@@ -1,0 +1,92 @@
+import { getRequestUser, unauthorized } from '@/lib/auth';
+import { cleanText, ensureUserSeed, getDatabase, jsonError, rowToCase } from '@/lib/server';
+
+export const dynamic = 'force-dynamic';
+
+export async function POST(request: Request) {
+  const user = getRequestUser(request);
+  if (!user) return unauthorized();
+  await ensureUserSeed(user);
+
+  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+  if (!body) return jsonError('提交内容格式不正确。');
+
+  const company = cleanText(body.company, 100);
+  const type = cleanText(body.type, 50);
+  if (!company || !type) return jsonError('请填写单位名称和争议类型。');
+
+  const amount = Math.max(0, Math.round(Number(body.amount) || 0));
+  const deadline = cleanText(body.deadline, 10) || null;
+  const location = cleanText(body.location, 100);
+  const description = cleanText(body.description, 1200);
+  const nextAction = cleanText(body.nextAction, 160) || '补充案件事实与证据';
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+  const db = getDatabase();
+
+  await db
+    .prepare(
+      `INSERT INTO cases
+        (id, user_id, type, company, amount, status, current_step, next_action, deadline, location, description, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 'collecting', 0, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      id,
+      user.userId,
+      type,
+      company,
+      amount,
+      nextAction,
+      deadline,
+      location,
+      description,
+      now,
+      now,
+    )
+    .run();
+
+  const row = await db
+    .prepare('SELECT * FROM cases WHERE id = ? AND user_id = ?')
+    .bind(id, user.userId)
+    .first<Record<string, unknown>>();
+  if (!row) return jsonError('案件创建后未能读取，请刷新重试。', 500);
+  return Response.json({ case: rowToCase(row) }, { status: 201 });
+}
+
+export async function PATCH(request: Request) {
+  const user = getRequestUser(request);
+  if (!user) return unauthorized();
+  await ensureUserSeed(user);
+
+  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+  const id = cleanText(body?.id, 80);
+  if (!id) return jsonError('缺少案件编号。');
+
+  const allowedStatus = ['collecting', 'negotiating', 'arbitration', 'completed', 'archived'];
+  const updates: Array<{ column: string; value: string | number | null }> = [];
+  if (body && 'company' in body) updates.push({ column: 'company', value: cleanText(body.company, 100) });
+  if (body && 'type' in body) updates.push({ column: 'type', value: cleanText(body.type, 50) });
+  if (body && 'amount' in body) updates.push({ column: 'amount', value: Math.max(0, Math.round(Number(body.amount) || 0)) });
+  if (body && 'nextAction' in body) updates.push({ column: 'next_action', value: cleanText(body.nextAction, 160) });
+  if (body && 'deadline' in body) updates.push({ column: 'deadline', value: cleanText(body.deadline, 10) || null });
+  if (body && 'location' in body) updates.push({ column: 'location', value: cleanText(body.location, 100) });
+  if (body && 'description' in body) updates.push({ column: 'description', value: cleanText(body.description, 1200) });
+  if (body && 'currentStep' in body) updates.push({ column: 'current_step', value: Math.max(0, Math.min(4, Math.round(Number(body.currentStep) || 0))) });
+  if (body && 'status' in body && allowedStatus.includes(String(body.status))) updates.push({ column: 'status', value: String(body.status) });
+  if (!updates.length) return jsonError('没有可更新的字段。');
+
+  updates.push({ column: 'updated_at', value: new Date().toISOString() });
+  const sql = `UPDATE cases SET ${updates.map((item) => `${item.column} = ?`).join(', ')} WHERE id = ? AND user_id = ?`;
+  const result = await getDatabase()
+    .prepare(sql)
+    .bind(...updates.map((item) => item.value), id, user.userId)
+    .run();
+  if ((result.meta.changes ?? 0) === 0) return jsonError('未找到这个案件。', 404);
+
+  const row = await getDatabase()
+    .prepare('SELECT * FROM cases WHERE id = ? AND user_id = ?')
+    .bind(id, user.userId)
+    .first<Record<string, unknown>>();
+  if (!row) return jsonError('案件更新后未能读取。', 500);
+  return Response.json({ case: rowToCase(row) });
+}

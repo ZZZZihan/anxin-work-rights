@@ -1,0 +1,113 @@
+/* ===== 重置 & 全局 ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--c-bg-page);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 手机壳 */
+#app {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  background: var(--c-white);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 600px) {
+  body { align-items: flex-start; padding: 20px 0; }
+  #app {
+    min-height: calc(100vh - 40px);
+    max-height: calc(100vh - 40px);
+    box-shadow: 0 4px 40px rgba(0,0,0,.22);
+    border-radius: 16px;
+  }
+}
+
+/* 状态栏 */
+.status-bar {
+  height: var(--statusbar-h);
+  background: var(--c-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--sp-page);
+  color: var(--c-white);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* 页面容器 */
+#page-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 页面通用 */
+.page { display: flex; flex-direction: column; height: 100%; }
+.page-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+/* TabBar */
+.tabbar {
+  height: var(--tabbar-h);
+  background: var(--c-white);
+  border-top: 1px solid var(--c-border);
+  display: flex;
+  flex-shrink: 0;
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  color: var(--c-text-muted);
+  font-size: var(--fs-xs);
+  transition: color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab-item.active { color: var(--c-primary); }
+.tab-icon { font-size: 26px; line-height: 1; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,.75);
+  color: var(--c-white);
+  padding: 10px 20px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-sm);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* 加载动画 */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 2px solid rgba(255,255,255,.5);
+  border-top-color: var(--c-white);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
