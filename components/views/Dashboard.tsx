@@ -97,7 +97,11 @@ export default function Dashboard({ data, setActiveCaseId, navigate }: SharedVie
             {activeCases.slice(0, 3).map((item) => (
               <button className="case-mini" key={item.id} onClick={() => openCase(item)}>
                 <FileText className="case-mini-icon" size={21} aria-hidden="true" />
-                <span className="case-mini-copy"><strong>{item.company}</strong><span>{item.type}</span></span>
+                <span className="case-mini-copy">
+                  <strong>{item.company}</strong>
+                  <span>{item.type}<span className="case-mini-mobile-status"> · {statusLabels[item.status]}</span></span>
+                  {daysUntil(item.deadline) !== null && <small className="case-mini-deadline">{deadlineCopy(daysUntil(item.deadline)!)}</small>}
+                </span>
                 <span className={`status-pill ${item.status}`}>{statusLabels[item.status]}</span>
                 <span className="case-mini-side"><strong>{item.amount > 0 ? formatMoney(item.amount) : '金额待核'}</strong></span>
                 <ChevronRight className="case-mini-arrow" size={17} aria-hidden="true" />
