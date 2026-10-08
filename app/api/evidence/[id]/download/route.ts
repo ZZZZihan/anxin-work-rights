@@ -14,10 +14,12 @@ export async function GET(
   const { id: rawId } = await context.params;
   const id = cleanText(rawId, 80);
   const row = await getDatabase()
-    .prepare('SELECT name, mime_type, object_key FROM evidence_files WHERE id = ? AND user_id = ?')
+    .prepare('SELECT name, mime_type, object_key, status FROM evidence_files WHERE id = ? AND user_id = ?')
     .bind(id, user.userId)
-    .first<{ name: string; mime_type: string; object_key: string | null }>();
+    .first<{ name: string; mime_type: string; object_key: string | null; status: string }>();
   if (!row || !row.object_key) return jsonError('这个记录没有可下载的真实文件。', 404);
+
+  if (!['uploaded', 'needs_review'].includes(row.status)) return jsonError('文件尚未上传完成或正在删除。', 409);
 
   const object = await getFilesBucket().get(row.object_key);
   if (!object) return jsonError('文件对象已不存在，请删除记录后重新上传。', 404);

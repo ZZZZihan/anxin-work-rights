@@ -16,6 +16,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
+import { statusForStep } from '@/lib/validation';
 import { apiRequest, daysUntil, formatDate, formatMoney } from '@/lib/client';
 import type { WorkCase } from '@/lib/types';
 import type { SharedViewProps } from '../types';
@@ -42,13 +43,13 @@ export default function Cases({
   const [editing, setEditing] = useState<WorkCase | null | 'new'>(null);
   const [savingStep, setSavingStep] = useState(false);
 
-  const filtered = useMemo(() => data.cases.filter((item) => {
+  const filtered = useMemo(() => (filter === 'archived' ? data.archivedCases : data.cases).filter((item) => {
     const matchesQuery = `${item.company}${item.type}${item.location}`.toLowerCase().includes(query.toLowerCase());
     const matchesFilter = filter === 'all' || item.status === filter;
     return matchesQuery && matchesFilter;
-  }), [data.cases, query, filter]);
+  }), [data.cases, data.archivedCases, query, filter]);
 
-  const activeCase = data.cases.find((item) => item.id === activeCaseId) ?? data.cases[0];
+  const activeCase = [...data.cases, ...data.archivedCases].find((item) => item.id === activeCaseId) ?? filtered[0];
 
   const updateCase = (nextCase: WorkCase) => {
     setData((current) => current ? {
@@ -58,16 +59,10 @@ export default function Cases({
   };
 
   const advanceStep = async () => {
-    if (!activeCase || activeCase.currentStep >= steps.length - 1) return;
+    if (!activeCase || activeCase.status === 'archived' || activeCase.currentStep >= steps.length - 1) return;
     setSavingStep(true);
     const nextStep = activeCase.currentStep + 1;
-    const nextStatus: WorkCase['status'] = nextStep >= 4
-      ? 'completed'
-      : nextStep >= 3
-        ? 'arbitration'
-        : nextStep >= 2
-          ? 'negotiating'
-          : 'collecting';
+    const nextStatus = statusForStep(nextStep);
     try {
       const result = await apiRequest<{ case: WorkCase }>('/api/cases', {
         method: 'PATCH',
@@ -91,7 +86,7 @@ export default function Cases({
   const archiveCase = async () => {
     if (!activeCase || !window.confirm(`确认归档“${activeCase.company}”案件？记录仍保存在后台。`)) return;
     try {
-      await apiRequest<{ case: WorkCase }>('/api/cases', {
+      const result = await apiRequest<{ case: WorkCase }>('/api/cases', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: activeCase.id, status: 'archived' }),
@@ -99,6 +94,7 @@ export default function Cases({
       setData((current) => current ? {
         ...current,
         cases: current.cases.filter((item) => item.id !== activeCase.id),
+        archivedCases: [result.case, ...current.archivedCases],
       } : current);
       const next = data.cases.find((item) => item.id !== activeCase.id);
       setActiveCaseId(next?.id ?? '');
@@ -106,6 +102,18 @@ export default function Cases({
     } catch (error) {
       notify(error instanceof Error ? error.message : '归档失败。', 'error');
     }
+  };
+
+  const restoreCase = async () => {
+    if (!activeCase) return;
+    try {
+      const result = await apiRequest<{ case: WorkCase }>('/api/cases', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeCase.id, status: statusForStep(activeCase.currentStep) }),
+      });
+      setData((current) => current ? { ...current, cases: [result.case, ...current.cases], archivedCases: current.archivedCases.filter((item) => item.id !== activeCase.id) } : current);
+      setFilter('all'); notify('案件已恢复。');
+    } catch (error) { notify(error instanceof Error ? error.message : '恢复失败。', 'error'); }
   };
 
   return (
@@ -131,12 +139,13 @@ export default function Cases({
             </label>
             <label className="select-compact">
               <span className="sr-only">按状态筛选</span>
-              <select value={filter} onChange={(event) => setFilter(event.target.value)}>
+              <select value={filter} onChange={(event) => { setFilter(event.target.value); setActiveCaseId((event.target.value === 'archived' ? data.archivedCases : data.cases)[0]?.id ?? ''); }}>
                 <option value="all">全部状态</option>
                 <option value="collecting">整理材料</option>
                 <option value="negotiating">沟通协商</option>
                 <option value="arbitration">仲裁准备</option>
                 <option value="completed">已完成</option>
+                <option value="archived">已归档</option>
               </select>
             </label>
           </div>
@@ -179,8 +188,8 @@ export default function Cases({
                 <p>{activeCase.type} · 建档于 {formatDate(activeCase.createdAt, true)}</p>
               </div>
               <div className="icon-actions">
-                <button className="icon-button" aria-label="编辑案件" onClick={() => setEditing(activeCase)}><Pencil size={17} /></button>
-                <button className="icon-button" aria-label="归档案件" onClick={archiveCase}><Archive size={17} /></button>
+                <button className="icon-button" aria-label="编辑案件" disabled={activeCase.status === 'archived'} onClick={() => setEditing(activeCase)}><Pencil size={17} /></button>
+                <button className="icon-button" aria-label={activeCase.status === 'archived' ? '恢复案件' : '归档案件'} onClick={activeCase.status === 'archived' ? restoreCase : archiveCase}><Archive size={17} /></button>
               </div>
             </div>
 
@@ -208,7 +217,7 @@ export default function Cases({
             <div className="next-action-card">
               <span className="next-action-icon"><ClipboardList size={21} /></span>
               <div><span>下一步行动</span><strong>{activeCase.nextAction}</strong></div>
-              {activeCase.status !== 'completed' && (
+              {activeCase.status !== 'completed' && activeCase.status !== 'archived' && (
                 <button className="button button-primary button-small" disabled={savingStep} onClick={advanceStep}>
                   {savingStep ? '正在更新…' : '完成本步'} <ArrowRight size={16} />
                 </button>
@@ -220,7 +229,7 @@ export default function Cases({
               <p>{activeCase.description || '还没有填写事实摘要。编辑案件后补充关键时间、人物和发生经过。'}</p>
             </div>
 
-            <div className="case-detail-actions">
+            <div className="case-detail-actions" hidden={activeCase.status === 'archived'}>
               <button className="button button-secondary" onClick={() => navigate('evidence')}>查看证据 <ArrowRight size={16} /></button>
               <button className="button button-secondary" onClick={() => navigate('chat')}>继续梳理 <ArrowRight size={16} /></button>
               <button className="button button-secondary" onClick={() => navigate('documents')}>起草文书 <ArrowRight size={16} /></button>

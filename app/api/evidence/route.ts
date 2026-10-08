@@ -46,39 +46,43 @@ export async function POST(request: Request) {
     .first();
   if (!caseExists) return jsonError('未找到所选案件。', 404);
 
-  const id = crypto.randomUUID();
+  const operationId = cleanText(form.get('operationId'), 80);
+  if (operationId && !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(operationId)) return jsonError('上传操作编号不正确。');
+  const id = operationId || crypto.randomUUID();
   const safeName = normaliseFileName(upload.name);
   const objectKey = `${encodeURIComponent(user.userId)}/${caseId}/${id}-${safeName}`;
+  const bytes = await upload.arrayBuffer();
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
   const now = new Date().toISOString();
-
-  await getFilesBucket().put(objectKey, upload.stream(), {
-    httpMetadata: { contentType: upload.type },
-    customMetadata: { originalName: safeName, userId: user.userId, caseId },
-  });
-
+  // Record the intent before touching R2 so every object has recoverable metadata.
+  await db.prepare(
+    `INSERT OR IGNORE INTO evidence_files
+      (id, user_id, case_id, name, category, size, mime_type, status, note, object_key, uploaded_at, content_hash)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'uploading', ?, ?, ?, ?)`,
+  ).bind(id, user.userId, caseId, safeName, category, upload.size, upload.type, note, objectKey, now, hash).run();
+  const intent = await db.prepare('SELECT * FROM evidence_files WHERE id = ? AND user_id = ?')
+    .bind(id, user.userId).first<Record<string, unknown>>();
+  if (!intent || intent.content_hash !== hash || intent.case_id !== caseId || intent.name !== safeName || intent.category !== category || intent.note !== note || intent.mime_type !== upload.type) return jsonError('上传操作编号已用于其他文件。', 409);
+  if (intent.status === 'uploaded') return Response.json({ evidence: rowToEvidence(intent) });
+  if (!['uploading', 'upload_failed'].includes(String(intent.status))) return jsonError('文件正在删除，不能重复上传。', 409);
   try {
-    await db
-      .prepare(
-        `INSERT INTO evidence_files
-          (id, user_id, case_id, name, category, size, mime_type, status, note, object_key, uploaded_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'uploaded', ?, ?, ?)`,
-      )
-      .bind(
-        id,
-        user.userId,
-        caseId,
-        safeName,
-        category,
-        upload.size,
-        upload.type,
-        note,
-        objectKey,
-        now,
-      )
-      .run();
+    await getFilesBucket().put(objectKey, bytes, {
+      httpMetadata: { contentType: upload.type },
+      customMetadata: { originalName: safeName, userId: user.userId, caseId },
+    });
+    const finalized = await db.prepare("UPDATE evidence_files SET status = 'uploaded' WHERE id = ? AND user_id = ? AND status IN ('uploading', 'upload_failed')")
+      .bind(id, user.userId).run();
+    if ((finalized.meta.changes ?? 0) === 0) {
+      await getFilesBucket().delete(objectKey);
+      return jsonError('上传已取消，请重新选择文件。', 409);
+    }
   } catch (error) {
-    await getFilesBucket().delete(objectKey);
-    throw error;
+    console.error('evidence upload incomplete', error);
+    // Keep the key and intent even if recording the failure itself is unavailable.
+    await db.prepare("UPDATE evidence_files SET status = 'upload_failed' WHERE id = ? AND user_id = ? AND status = 'uploading'")
+      .bind(id, user.userId).run().catch(() => undefined);
+    return jsonError('上传未完成，记录已保留；可重试相同文件或删除记录。', 503);
   }
 
   const row = await db
@@ -104,11 +108,17 @@ export async function DELETE(request: Request) {
     .first<{ object_key: string | null }>();
   if (!row) return jsonError('未找到这个证据记录。', 404);
 
-  if (row.object_key) await getFilesBucket().delete(row.object_key);
-  await db
-    .prepare('DELETE FROM evidence_files WHERE id = ? AND user_id = ?')
-    .bind(id, user.userId)
-    .run();
+  try {
+    // A durable tombstone blocks downloads before irreversible object deletion.
+    await db.prepare("UPDATE evidence_files SET status = 'deleting' WHERE id = ? AND user_id = ?")
+      .bind(id, user.userId).run();
+    if (row.object_key) await getFilesBucket().delete(row.object_key);
+    await db.prepare('DELETE FROM evidence_files WHERE id = ? AND user_id = ?')
+      .bind(id, user.userId).run();
+  } catch (error) {
+    console.error('evidence deletion incomplete', error);
+    return jsonError('删除未完成，请刷新查看状态后重试。', 503);
+  }
   return Response.json({ ok: true });
 }
 

@@ -1,6 +1,8 @@
 import { getRequestUser, unauthorized } from '@/lib/auth';
 import { cleanText, ensureUserSeed, getDatabase, jsonError, rowToCase } from '@/lib/server';
 
+import { isRecord, statusForStep, validAmount, validDate } from '@/lib/validation';
+
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
@@ -9,7 +11,9 @@ export async function POST(request: Request) {
   await ensureUserSeed(user);
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!body) return jsonError('提交内容格式不正确。');
+  if (!isRecord(body)) return jsonError('提交内容格式不正确。');
+  const invalid = validateFields(body);
+  if (invalid) return jsonError(invalid);
 
   const company = cleanText(body.company, 100);
   const type = cleanText(body.type, 50);
@@ -59,10 +63,23 @@ export async function PATCH(request: Request) {
   await ensureUserSeed(user);
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
-  const id = cleanText(body?.id, 80);
+  if (!isRecord(body)) return jsonError('提交内容格式不正确。');
+  const invalid = validateFields(body);
+  if (invalid) return jsonError(invalid);
+  const id = cleanText(body.id, 80);
   if (!id) return jsonError('缺少案件编号。');
 
   const allowedStatus = ['collecting', 'negotiating', 'arbitration', 'completed', 'archived'];
+  const existing = await getDatabase().prepare('SELECT * FROM cases WHERE id = ? AND user_id = ?')
+    .bind(id, user.userId).first<Record<string, unknown>>();
+  if (!existing) return jsonError('未找到这个案件。', 404);
+  const step = 'currentStep' in body ? Number(body.currentStep) : Number(existing.current_step);
+  if ('currentStep' in body && (!Number.isInteger(step) || step < 0 || step > 4)) return jsonError('案件阶段必须是 0 至 4 的整数。');
+  if ('status' in body && !allowedStatus.includes(String(body.status))) return jsonError('案件状态不正确。');
+  if ('status' in body && body.status !== 'archived' && body.status !== statusForStep(step)) return jsonError('案件状态与阶段不一致。');
+  if ('currentStep' in body && existing.status === 'archived') return jsonError('请先恢复归档案件。', 409);
+  if ('currentStep' in body) body.status = statusForStep(step);
+
   const updates: Array<{ column: string; value: string | number | null }> = [];
   if (body && 'company' in body) updates.push({ column: 'company', value: cleanText(body.company, 100) });
   if (body && 'type' in body) updates.push({ column: 'type', value: cleanText(body.type, 50) });
@@ -89,4 +106,16 @@ export async function PATCH(request: Request) {
     .first<Record<string, unknown>>();
   if (!row) return jsonError('案件更新后未能读取。', 500);
   return Response.json({ case: rowToCase(row) });
+}
+
+function validateFields(body: Record<string, unknown>): string | null {
+  const textLimits: Record<string, number> = { company: 100, type: 50, location: 100, description: 1200, nextAction: 160 };
+  for (const [key, limit] of Object.entries(textLimits)) {
+    if (key in body && (typeof body[key] !== 'string' || String(body[key]).length > limit)) return `${key} 内容格式或长度不正确。`;
+  }
+  if ('company' in body && !String(body.company).trim()) return '单位名称不能为空。';
+  if ('type' in body && !String(body.type).trim()) return '争议类型不能为空。';
+  if ('amount' in body && !validAmount(body.amount)) return '金额必须是 0 至 10 亿元的整数。';
+  if ('deadline' in body && !validDate(body.deadline)) return '目标日期必须是真实的 YYYY-MM-DD 日期。';
+  return null;
 }

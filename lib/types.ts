@@ -28,7 +28,7 @@ export type EvidenceFile = {
   category: string;
   size: number;
   mimeType: string;
-  status: 'uploaded' | 'needs_review' | 'example';
+  status: 'uploaded' | 'needs_review' | 'example' | 'uploading' | 'upload_failed' | 'deleting';
   note: string;
   downloadable: boolean;
   uploadedAt: string;
@@ -54,12 +54,14 @@ export type DocumentDraft = {
   caseId: string;
   type: string;
   fields: Record<string, string>;
+  revision: number;
   updatedAt: string;
 };
 
 export type BootstrapData = {
   user: UserProfile;
   cases: WorkCase[];
+  archivedCases: WorkCase[];
   evidence: EvidenceFile[];
   messages: ChatMessage[];
   documents: DocumentDraft[];

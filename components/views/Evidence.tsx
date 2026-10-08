@@ -32,6 +32,7 @@ export default function Evidence({
   const [category, setCategory] = useState(categories[0]);
   const [note, setNote] = useState('');
   const [uploading, setUploading] = useState(false);
+  const pendingUploads = useRef(new Map<string, string>());
   const [dragging, setDragging] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -39,10 +40,14 @@ export default function Evidence({
   const evidence = data.evidence.filter((item) => item.caseId === activeCase?.id);
 
   const upload = async (file: File | undefined) => {
-    if (!file || !activeCase) return;
+    if (!file || !activeCase || uploading) return;
+    const uploadKey = `${activeCase.id}:${file.name}:${file.size}:${file.lastModified}:${category}:${note}`;
+    const operationId = pendingUploads.current.get(uploadKey) ?? crypto.randomUUID();
+    pendingUploads.current.set(uploadKey, operationId);
     const form = new FormData();
     form.append('file', file);
     form.append('caseId', activeCase.id);
+    form.append('operationId', operationId);
     form.append('category', category);
     form.append('note', note);
     setUploading(true);
@@ -53,12 +58,15 @@ export default function Evidence({
       });
       setData((current) => current ? {
         ...current,
-        evidence: [result.evidence, ...current.evidence],
+        evidence: [result.evidence, ...current.evidence.filter((item) => item.id !== result.evidence.id)],
       } : current);
+      pendingUploads.current.delete(uploadKey);
       setNote('');
       notify('文件已安全保存到当前案件。');
     } catch (error) {
       notify(error instanceof Error ? error.message : '上传失败。', 'error');
+      const refreshed = await apiRequest<import('@/lib/types').BootstrapData>('/api/bootstrap').catch(() => null);
+      if (refreshed) setData(refreshed);
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -83,6 +91,8 @@ export default function Evidence({
       notify('证据记录已删除。');
     } catch (error) {
       notify(error instanceof Error ? error.message : '删除失败。', 'error');
+      const refreshed = await apiRequest<import('@/lib/types').BootstrapData>('/api/bootstrap').catch(() => null);
+      if (refreshed) setData(refreshed);
     } finally {
       setDeletingId(null);
     }
@@ -178,7 +188,7 @@ export default function Evidence({
               <div className="evidence-main">
                 <div className="evidence-name-row">
                   <strong>{item.name}</strong>
-                  <span className={`evidence-status ${item.status}`}>{item.status === 'example' ? '示例记录' : item.status === 'uploaded' ? '已上传' : '待核对'}</span>
+                  <span className={`evidence-status ${item.status}`}>{item.status === 'example' ? '示例记录' : item.status === 'uploaded' ? '已上传' : item.status === 'deleting' ? '删除待重试' : item.status === 'upload_failed' || item.status === 'uploading' ? '上传未完成' : '待核对'}</span>
                 </div>
                 <span>{item.category} · {formatFileSize(item.size)} · {formatDate(item.uploadedAt, true)}</span>
                 {item.note && <small>{item.note}</small>}
@@ -187,7 +197,7 @@ export default function Evidence({
                 {item.downloadable ? (
                   <a className="icon-button" aria-label={`下载 ${item.name}`} href={`/api/evidence/${encodeURIComponent(item.id)}/download`}><Download size={17} /></a>
                 ) : (
-                  <button className="icon-button" aria-label="示例记录不可下载" disabled><Download size={17} /></button>
+                  <button className="icon-button" aria-label="文件暂不可下载" disabled><Download size={17} /></button>
                 )}
                 <button className="icon-button danger" aria-label={`删除 ${item.name}`} disabled={deletingId === item.id} onClick={() => void remove(item)}><Trash2 size={17} /></button>
               </div>

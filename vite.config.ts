@@ -12,7 +12,7 @@ const localBindingConfig = {
   main: 'vinext/server/app-router-entry',
   compatibility_flags: ['nodejs_compat'],
   d1_databases: d1
-    ? [{ binding: d1, database_name: 'anxin-local', database_id: PLACEHOLDER_DATABASE_ID }]
+    ? [{ binding: d1, database_name: 'anxin-local', database_id: PLACEHOLDER_DATABASE_ID, migrations_dir: './drizzle' }]
     : [],
   r2_buckets: r2 ? [{ binding: r2, bucket_name: 'anxin-files-local' }] : [],
 };

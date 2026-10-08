@@ -1,6 +1,8 @@
 import { getRequestUser, unauthorized } from '@/lib/auth';
 import { cleanText, ensureUserSeed, getDatabase, jsonError, rowToDocument } from '@/lib/server';
 
+import { isRecord, templateFields } from '@/lib/validation';
+
 export const dynamic = 'force-dynamic';
 
 export async function PUT(request: Request) {
@@ -16,11 +18,11 @@ export async function PUT(request: Request) {
     return jsonError('文书草稿内容不完整。');
   }
 
-  const safeFields = Object.fromEntries(
-    Object.entries(rawFields as Record<string, unknown>)
-      .slice(0, 40)
-      .map(([key, value]) => [key.slice(0, 60), cleanText(value, 3000)]),
-  );
+  if (!isRecord(body) || !Object.hasOwn(templateFields, type) || !isRecord(rawFields)) return jsonError('文书模板不支持。');
+  if (!Number.isSafeInteger(body.revision) || Number(body.revision) < 0) return jsonError('缺少有效的草稿修订号。');
+  const entries = Object.entries(rawFields);
+  if (entries.some(([key, value]) => !templateFields[type].includes(key) || typeof value !== 'string' || value.length > 3000)) return jsonError('草稿字段或长度不正确。');
+  const safeFields = Object.fromEntries(entries);
   const db = getDatabase();
   const caseExists = await db
     .prepare("SELECT id FROM cases WHERE id = ? AND user_id = ? AND status != 'archived'")
@@ -30,16 +32,20 @@ export async function PUT(request: Request) {
 
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
-  await db
+  const result = await db
     .prepare(
-      `INSERT INTO document_drafts (id, user_id, case_id, type, fields_json, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?)
+      `INSERT INTO document_drafts (id, user_id, case_id, type, fields_json, updated_at, revision)
+       SELECT ?, ?, ?, ?, ?, ?, 1 WHERE ? = 0 OR EXISTS (SELECT 1 FROM document_drafts WHERE user_id = ? AND case_id = ? AND type = ?)
        ON CONFLICT (user_id, case_id, type) DO UPDATE SET
          fields_json = excluded.fields_json,
-         updated_at = excluded.updated_at`,
+         updated_at = excluded.updated_at,
+         revision = document_drafts.revision + 1
+       WHERE document_drafts.revision = ?`,
     )
-    .bind(id, user.userId, caseId, type, JSON.stringify(safeFields), now)
+    .bind(id, user.userId, caseId, type, JSON.stringify(safeFields), now, body.revision, user.userId, caseId, type, body.revision)
     .run();
+
+  if ((result.meta.changes ?? 0) === 0) return jsonError('草稿已在其他页面更新，请刷新后核对；当前文字仍保留。', 409);
 
   const row = await db
     .prepare('SELECT * FROM document_drafts WHERE user_id = ? AND case_id = ? AND type = ?')

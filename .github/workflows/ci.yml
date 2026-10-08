@@ -1,0 +1,39 @@
+name: Check
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - name: HTTP persistence and failure regressions
+        shell: bash
+        run: |
+          state=/tmp/anxin-e2e-ci
+          node node_modules/wrangler/bin/wrangler.js d1 migrations apply DB --local --config dist/server/wrangler.json --persist-to "$state"
+          node node_modules/wrangler/bin/wrangler.js dev --local --config dist/server/wrangler.json --ip 127.0.0.1 --port 8798 --persist-to "$state" > /tmp/anxin-worker.log 2>&1 &
+          worker_pid=$!
+          trap 'kill "$worker_pid" || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl -s -o /dev/null http://127.0.0.1:8798/api/bootstrap; then break; fi
+            sleep 1
+          done
+          database=$(find "$state" -path '*/miniflare-D1DatabaseObject/*.sqlite' ! -name metadata.sqlite -print -quit)
+          node scripts/http-regression.mjs http://127.0.0.1:8798 "$database" /tmp/http-results.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: http-regression
+          path: |
+            /tmp/http-results.json
+            /tmp/anxin-worker.log

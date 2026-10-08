@@ -40,6 +40,7 @@ export const evidenceFiles = sqliteTable(
     status: text('status').notNull(),
     note: text('note').notNull().default(''),
     objectKey: text('object_key'),
+    contentHash: text('content_hash'),
     uploadedAt: text('uploaded_at').notNull(),
   },
   (table) => [
@@ -73,6 +74,7 @@ export const documentDrafts = sqliteTable(
     caseId: text('case_id').notNull(),
     type: text('type').notNull(),
     fieldsJson: text('fields_json').notNull(),
+    revision: integer('revision').notNull().default(1),
     updatedAt: text('updated_at').notNull(),
   },
   (table) => [

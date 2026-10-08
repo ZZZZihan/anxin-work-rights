@@ -91,9 +91,12 @@ export default function Documents({
   notify,
 }: SharedViewProps) {
   const [templateId, setTemplateId] = useState(templates[0].id);
-  const [fields, setFields] = useState<Record<string, string>>({});
+  type WorkingCopy = { fields: Record<string, string>; revision: number; saved: boolean };
+  const storageKey = `anxin-drafts:${data.user.userId}`;
+  const [copies, setCopies] = useState<Record<string, WorkingCopy>>(() => {
+    try { return JSON.parse(sessionStorage.getItem(storageKey) ?? '{}'); } catch { return {}; }
+  });
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const activeCase = data.cases.find((item) => item.id === activeCaseId) ?? data.cases[0];
   const template = templates.find((item) => item.id === templateId) ?? templates[0];
   const draft = data.documents.find((item) => item.caseId === activeCase?.id && item.type === templateId);
@@ -103,26 +106,35 @@ export default function Documents({
     [activeCase, data.user.displayName, templateId],
   );
 
+  const copyKey = `${activeCase?.id}:${templateId}`;
+  const working = copies[copyKey];
+  const fields = working?.fields ?? draft?.fields ?? defaults;
+  const saved = working?.saved ?? Boolean(draft);
   useEffect(() => {
-    // Switching the case or template starts a new editable working copy.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFields(draft?.fields ?? defaults);
-    setSaved(Boolean(draft));
-  }, [draft, activeCase?.id, defaults]);
+    sessionStorage.setItem(storageKey, JSON.stringify(copies));
+    const warn = (event: BeforeUnloadEvent) => {
+      if (Object.values(copies).some((copy) => !copy.saved)) { event.preventDefault(); event.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [copies, storageKey]);
 
   const update = (key: string, value: string) => {
-    setSaved(false);
-    setFields((current) => ({ ...current, [key]: value }));
+    setCopies((current) => ({ ...current, [copyKey]: {
+      fields: { ...fields, [key]: value }, revision: working?.revision ?? draft?.revision ?? 0, saved: false,
+    } }));
   };
 
   const save = async () => {
     if (!activeCase) return;
     setSaving(true);
+    const submittedFields = fields;
+    const submittedKey = copyKey;
     try {
       const result = await apiRequest<{ document: DocumentDraft }>('/api/documents', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseId: activeCase.id, type: templateId, fields }),
+        body: JSON.stringify({ caseId: activeCase.id, type: templateId, fields: submittedFields, revision: working?.revision ?? draft?.revision ?? 0 }),
       });
       setData((current) => current ? {
         ...current,
@@ -131,7 +143,10 @@ export default function Documents({
           ...current.documents.filter((item) => item.id !== result.document.id),
         ],
       } : current);
-      setSaved(true);
+      setCopies((current) => {
+        const latest = current[submittedKey]?.fields ?? submittedFields;
+        return { ...current, [submittedKey]: { fields: latest, revision: result.document.revision, saved: JSON.stringify(latest) === JSON.stringify(submittedFields) } };
+      });
       notify('草稿已保存。');
     } catch (error) {
       notify(error instanceof Error ? error.message : '保存失败。', 'error');
