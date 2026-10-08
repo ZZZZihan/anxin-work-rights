@@ -132,9 +132,8 @@ export default function Evidence({
     <div className="view-stack">
       <section className="page-heading-row">
         <div>
-          <span className="eyebrow">PRIVATE EVIDENCE VAULT</span>
           <h1>证据管家</h1>
-          <p>保留原文件、完整上下文和来源说明；系统不会假装做过 OCR 或证据效力判断。</p>
+          <p>把原文件和来源说明一起保存，让每一份材料都能找到来处。</p>
         </div>
         <label className="case-switcher">
           <span>当前案件</span>

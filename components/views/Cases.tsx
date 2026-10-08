@@ -120,7 +120,6 @@ export default function Cases({
     <div className="view-stack">
       <section className="page-heading-row">
         <div>
-          <span className="eyebrow">CASE WORKSPACE</span>
           <h1>案件追踪</h1>
           <p>每个案件只有一个明确的下一步，材料和记录都围绕它展开。</p>
         </div>
