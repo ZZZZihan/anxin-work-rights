@@ -1,3 +1,5 @@
+import { validDate } from './validation';
+
 export async function apiRequest<T>(input: string, init?: RequestInit): Promise<T> {
   const response = await fetch(input, init);
   const body = (await response.json().catch(() => ({}))) as T & { error?: string };
@@ -17,10 +19,14 @@ export function formatDate(value: string | null, withYear = false): string {
 }
 
 export function daysUntil(value: string | null): number | null {
-  if (!value) return null;
-  const target = new Date(`${value}T23:59:59`).getTime();
-  if (Number.isNaN(target)) return null;
-  return Math.ceil((target - Date.now()) / 86_400_000);
+  if (!value || !validDate(value)) return null;
+  const now = new Date();
+  // Compare calendar dates in the user's timezone. Encoding both dates at UTC
+  // midnight avoids the 23/25-hour days caused by daylight-saving transitions.
+  const today = new Date(0);
+  today.setUTCFullYear(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(`${value}T00:00:00Z`).getTime();
+  return (target - today.getTime()) / 86_400_000;
 }
 
 export function formatMoney(value: number): string {
