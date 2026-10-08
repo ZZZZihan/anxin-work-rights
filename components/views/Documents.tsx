@@ -146,7 +146,8 @@ export default function Documents({
         ],
       } : current);
       setCopies((current) => {
-        const latest = current[submittedKey]?.fields ?? submittedFields;
+        const latestRaw = current[submittedKey]?.fields ?? submittedFields;
+        const latest = Object.fromEntries(templateFields[templateId].map((key) => [key, latestRaw[key] ?? '']));
         return { ...current, [submittedKey]: { fields: latest, revision: result.document.revision, saved: JSON.stringify(latest) === JSON.stringify(submittedFields) } };
       });
       notify('草稿已保存。');
