@@ -49,6 +49,15 @@ export const evidenceFiles = sqliteTable(
   ],
 );
 
+// Retained after the visible evidence row is removed so delayed uploads cannot
+// reuse a cancelled operation UUID. The key also supports late-object cleanup.
+export const evidenceUploadCancellations = sqliteTable('evidence_upload_cancellations', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  objectKey: text('object_key'),
+  cancelledAt: text('cancelled_at').notNull(),
+});
+
 export const chatMessages = sqliteTable(
   'chat_messages',
   {

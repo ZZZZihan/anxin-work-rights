@@ -50,6 +50,12 @@ const schemaStatements = [
   )`,
   'CREATE INDEX IF NOT EXISTS evidence_user_idx ON evidence_files (user_id)',
   'CREATE INDEX IF NOT EXISTS evidence_case_idx ON evidence_files (case_id)',
+  `CREATE TABLE IF NOT EXISTS evidence_upload_cancellations (
+    id TEXT PRIMARY KEY NOT NULL,
+    user_id TEXT NOT NULL,
+    object_key TEXT,
+    cancelled_at TEXT NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS chat_messages (
     id TEXT PRIMARY KEY NOT NULL,
     user_id TEXT NOT NULL,
