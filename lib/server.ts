@@ -93,20 +93,52 @@ export function getFilesBucket(): R2Bucket {
 
 export async function ensureSchema(): Promise<void> {
   // Production schema is owned by the checked-in Drizzle migrations. Local
-  // previews do not run the hosting migration lifecycle, so they bootstrap a
-  // disposable Miniflare database here for developer convenience only.
+  // previews preserve their Miniflare data across starts and need upgrades too.
   if (process.env.NODE_ENV === 'production') return;
 
   if (!schemaPromise) {
-    schemaPromise = getDatabase()
-      .batch(schemaStatements.map((statement) => getDatabase().prepare(statement)))
-      .then(() => undefined)
+    schemaPromise = upgradeLocalSchema()
       .catch((error) => {
         schemaPromise = null;
         throw error;
       });
   }
   return schemaPromise;
+}
+
+async function upgradeLocalSchema(): Promise<void> {
+  const db = getDatabase();
+  await db.batch(schemaStatements.map((statement) => db.prepare(statement)));
+  for (const [table, column, definition] of [
+    ['document_drafts', 'revision', 'INTEGER DEFAULT 1 NOT NULL'],
+    ['evidence_files', 'content_hash', 'TEXT'],
+  ]) {
+    const hasColumn = async () => (await db.prepare(`PRAGMA table_info(${table})`).all<{ name: string }>())
+      .results.some((item) => item.name === column);
+    if (await hasColumn()) continue;
+    try {
+      await db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`).run();
+    } catch (error) {
+      // Another local worker may have upgraded the same persisted database.
+      if (!(await hasColumn())) throw error;
+    }
+  }
+
+  // Adopt only migrations whose complete schema is now present. This also
+  // covers old runtime-created databases with no Wrangler migration journal.
+  // Keep these names aligned with drizzle/ when adding a local schema upgrade.
+  await db.batch([
+    db.prepare(`CREATE TABLE IF NOT EXISTS d1_migrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE,
+      applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+    )`),
+    ...[
+      '0000_fresh_bill_hollister.sql',
+      '0001_mighty_fantastic_four.sql',
+      '0002_evidence_upload_cancellations.sql',
+    ].map((name) => db.prepare('INSERT OR IGNORE INTO d1_migrations (name) VALUES (?)').bind(name)),
+  ]);
 }
 
 export async function ensureUserSeed(user: RequestUser): Promise<void> {

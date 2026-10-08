@@ -31,4 +31,5 @@ install -m 600 deploy/local-cloud/anxin-local.service /home/carryz/.config/syste
 systemctl --user daemon-reload
 systemctl --user enable anxin-local.service
 systemctl --user restart anxin-local.service
+ANXIN_CONFIG=/home/carryz/.config/anxin/config.json node deploy/local-cloud/readiness.mjs "$revision"
 REMOTE

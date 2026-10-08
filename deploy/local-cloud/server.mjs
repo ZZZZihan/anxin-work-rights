@@ -61,6 +61,9 @@ const server = createServer({ key: readFileSync(config.tlsKey), cert: readFileSy
     if (url.pathname.startsWith('/cdn-cgi/')) return reply(res, 404, '未找到页面。');
     const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
     if (isMutation && req.headers.origin !== origin.origin) return reply(res, 403, JSON.stringify({ error: '请求来源不正确。' }), 'application/json');
+    if (url.pathname === '/api/ready' && req.method === 'GET') {
+      return reply(res, 200, JSON.stringify({ status: 'ok', release: config.release, pid: process.pid }), 'application/json');
+    }
     if (url.pathname === '/signin-with-chatgpt' || url.pathname === '/auth/login') {
       if (req.method === 'GET') return reply(res, 200, loginPage());
       if (req.method !== 'POST' || url.pathname !== '/auth/login') return reply(res, 405, '请求方法不支持。');
