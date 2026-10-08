@@ -33,9 +33,15 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const [release, root] = process.argv.slice(2);
     const args = isolationArgs(release, root);
     for (const directory of ['home', 'cache']) mkdirSync(join(root, directory), { mode: 0o700, recursive: true });
-    const child = spawn('/usr/bin/bwrap', args, { stdio: ['ignore', 'inherit', 'inherit'] });
+    const child = spawn('/usr/bin/bwrap', args, { stdio: ['pipe', 'inherit', 'inherit'] });
+    let stopping = false, force;
+    child.stdin.on('error', () => { process.exitCode = 1; });
     child.on('error', () => { console.error('bwrap unavailable; no bare-process fallback.'); process.exitCode = 1; });
-    child.on('exit', (code) => { process.exitCode = code ?? 1; });
-    for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => child.kill(signal));
+    child.on('exit', (code) => { clearTimeout(force); child.stdin.destroy(); process.exitCode = code ?? 1; });
+    for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => {
+      if (stopping) return; stopping = true;
+      child.stdin.end('stop\n');
+      force = setTimeout(() => child.kill('SIGKILL'), 10_000);
+    });
   } catch { console.error('Synthetic isolation refused; no fallback.'); process.exitCode = 1; }
 }

@@ -2,6 +2,7 @@ import { lstatSync, readFileSync, readlinkSync, unlinkSync, writeFileSync } from
 import { join } from 'node:path';
 import { startEnvironment } from './server.mjs';
 import { loadEnvironment } from './environment.mjs';
+import { attachStopControl } from './stop-control.mjs';
 
 // These paths are checked inside the new mount/PID namespace only. No file
 // contents from the existing HTTPS application are read by this environment.
@@ -22,5 +23,6 @@ try {
   try { writeFileSync(readonly, 'synthetic probe', { flag: 'wx' }); unlinkSync(readonly); throw new Error('Release writable'); }
   catch (error) { if (!['EROFS', 'EACCES'].includes(error.code)) throw error; }
   console.log(JSON.stringify({ syntheticIsolation: true, realPathsAbsent: true, newPidNamespace: true, effectiveCapabilities: capEff, readonlyRelease: true, writableSyntheticRoot: true }));
-  startEnvironment(config.root).catch(() => { console.error('Isolated synthetic startup failed; no fallback.'); process.exitCode = 1; });
+  const fail = () => { console.error('Isolated synthetic startup or control failed; no fallback.'); process.exitCode = 1; };
+  attachStopControl(process.stdin, () => startEnvironment(config.root), fail).catch(fail);
 } catch { console.error('Synthetic namespace self-check failed; no fallback.'); process.exitCode = 1; }

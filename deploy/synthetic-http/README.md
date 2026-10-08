@@ -46,7 +46,7 @@ node deploy/synthetic-http/isolated.mjs RELEASE ROOT
 
 网关必须通过已有 bwrap 启动，失败就停止，不退回裸进程，也不代理真实 HTTPS 8444。隔离清空环境、使用新的 PID/mount/user namespace、丢弃 capabilities，仅挂载只读 release 和准确 Node 二进制（到 `/runtime/node`），持久写入仅限新 synthetic root；系统公共运行库只读，`/tmp`、`/run` 为临时挂载。真实 `/home/carryz/.config/anxin` 和 `/home/carryz/.local/share/anxin` 不挂载。在实际 namespace 内启动前自检路径为 ENOENT、新 PID namespace、CapEff 为零、release 只读和新 root 可写，失败则关闭。离线 argv 测试不能代替目标机 namespace 自检。
 
-网关与专用 Nginx 均设最长 4 小时运行期限，不 enable 持久服务。停止时只操作本次精确单位名和 root；保留现有 HTTPS 8444、SSH、Tailscale、数据库与旧网站文件。如果 80 被未知服务占用，先确认，不接管未知进程。
+网关与专用 Nginx 均设最长 4 小时运行期限，不 enable 持久服务。网关 transient unit 使用 `KillMode=mixed`、`TimeoutStopSec=12`：TERM 仅发给 launcher，由本实例私有 stdin 管道请求内部网关优雅停止，超时才强制结束并报告失败。保留 bwrap 的 PID1 reaper；自然到期不会被控制管道保持存活。Nginx 单元可使用 `KillMode=control-group`。停止时只操作本次精确单位名和 root；保留现有 HTTPS 8444、SSH、Tailscale、数据库与旧网站文件。如果 80 被未知服务占用，先确认，不接管未知进程。
 
 当前批准来源为 `172.23.1.0/24` 和 `172.31.125.123/32`。Mac 的 SSH 在目标端曾观察为 NAT 来源 `219.243.58.55`；该额外 `/32` 必须另获明确授权，不能自动加入。来源 IP 可能共享 NAT，不代表唯一物理设备。来源未批准时，记录拒绝及浏览器限制；不得冒充来源、忽略证书或宣称 LAN 浏览器验收完成。
 

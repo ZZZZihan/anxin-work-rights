@@ -59,17 +59,22 @@ async function waitExit(expected) {
   await assertPortFree('127.0.0.1', config.workerPort);
 }
 const cookies = {};
+const cookieLifetimes = [];
 async function request(path, user = 'a', method = 'GET', value, extra = {}) {
   const headers = { ...(cookies[user] ? { Cookie: cookies[user] } : {}), ...(method !== 'GET' ? { Origin: item.origin } : {}), ...extra };
   if (value && !(value instanceof FormData)) headers['Content-Type'] = 'application/json';
   return fetch(item.origin + path, { method, headers, body: value instanceof FormData ? value : value === undefined ? undefined : JSON.stringify(value), redirect: 'manual', signal: AbortSignal.timeout(15_000) });
 }
 async function login(key, index) {
-  const response = await fetch(item.origin + '/auth/login', { method: 'POST', headers: { Origin: item.origin }, body: new URLSearchParams(access.accounts[index]), redirect: 'manual' });
+  const began = Date.now();
+  const response = await fetch(item.origin + '/auth/login', { method: 'POST', headers: { Origin: item.origin }, body: new URLSearchParams(access.accounts[index]), redirect: 'manual', signal: AbortSignal.timeout(15_000) });
   assert.equal(response.status, 303);
   const cookie = response.headers.get('set-cookie');
   const age = Number(cookie.match(/Max-Age=(\d+)$/)?.[1]);
-  assert.equal(cookie.startsWith(config.cookieName + '=') && cookie.includes('HttpOnly; SameSite=Strict;') && age <= 1800 && age >= 1790, true);
+  const remainingBefore = Math.min(1800, Math.floor((Date.parse(item.expiresAt) - began) / 1000));
+  const remainingAfter = Math.min(1800, Math.floor((Date.parse(item.expiresAt) - Date.now()) / 1000));
+  assert.equal(cookie.startsWith(config.cookieName + '=') && cookie.includes('HttpOnly; SameSite=Strict;') && age > 0 && age <= remainingBefore + 1 && age >= remainingAfter - 2, true);
+  cookieLifetimes.push({ age, remainingBefore, remainingAfter });
   cookies[key] = cookie.split(';')[0];
 }
 async function upload(caseId, operationId, bytes = 'synthetic HTTP evidence') {
@@ -88,7 +93,7 @@ try {
   assert.equal(wrongHostStatus, 400); observe('host_boundary');
   assert.equal((await request('/api/cases', null, 'POST', {}, { Origin: 'http://other.invalid' })).status, 403); observe('origin_boundary');
   assert.equal((await request('/api/synthetic-ready', null)).status, 404); observe('worker_identity_endpoint_not_proxied');
-  await login('a', 0); await login('b', 1); observe('separate_synthetic_logins_cookie_policy');
+  await login('a', 0); await login('b', 1); observe('separate_synthetic_logins_cookie_policy', { cookieLifetimes });
   const bootstrap = await (await request('/api/bootstrap')).json();
   assert.equal(bootstrap.synthetic.environmentId, item.environmentId);
   assert.equal(bootstrap.cases.length + bootstrap.evidence.length + bootstrap.documents.length, 0); observe('fresh_marked_d1_r2');
