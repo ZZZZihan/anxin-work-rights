@@ -14,6 +14,7 @@ import {
   ScrollText,
 } from 'lucide-react';
 import { apiRequest } from '@/lib/client';
+import { templateFields } from '@/lib/validation';
 import type { DocumentDraft, WorkCase } from '@/lib/types';
 import type { SharedViewProps } from '../types';
 
@@ -108,7 +109,8 @@ export default function Documents({
 
   const copyKey = `${activeCase?.id}:${templateId}`;
   const working = copies[copyKey];
-  const fields = working?.fields ?? draft?.fields ?? defaults;
+  const rawFields = working?.fields ?? draft?.fields ?? defaults;
+  const fields = Object.fromEntries(templateFields[templateId].map((key) => [key, rawFields[key] ?? '']));
   const saved = working?.saved ?? Boolean(draft);
   useEffect(() => {
     sessionStorage.setItem(storageKey, JSON.stringify(copies));
@@ -255,9 +257,8 @@ export default function Documents({
 }
 
 function buildDefaults(type: string, item: WorkCase, displayName: string): Record<string, string> {
-  const common = { contact: '', applicantName: displayName, sender: displayName, worker: displayName };
   if (type === 'arbitration-application') return {
-    ...common,
+    contact: '', applicantName: displayName,
     respondent: item.company,
     respondentAddress: item.location,
     requests: item.amount ? `1. 请求支付相关款项人民币 ${item.amount.toLocaleString('zh-CN')} 元；` : '',
@@ -265,7 +266,7 @@ function buildDefaults(type: string, item: WorkCase, displayName: string): Recor
     evidenceList: '',
   };
   if (type === 'wage-demand-letter') return {
-    ...common,
+    contact: '', sender: displayName,
     recipient: item.company,
     amount: item.amount ? `人民币 ${item.amount.toLocaleString('zh-CN')} 元` : '',
     dueDate: item.deadline ?? '',
@@ -273,7 +274,7 @@ function buildDefaults(type: string, item: WorkCase, displayName: string): Recor
     paymentMethod: '',
   };
   if (type === 'injury-material-checklist') return {
-    ...common,
+    contact: '', worker: displayName,
     employer: item.company,
     injuryDate: '',
     injuryPlace: item.location,
