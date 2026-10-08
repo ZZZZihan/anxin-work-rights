@@ -235,15 +235,9 @@ export default function Documents({
     <div className="view-stack">
       <section className="page-heading-row">
         <div>
-          <h1>文书工作台</h1>
-          <p>先保存可编辑草稿，再导出 Word 或使用浏览器“打印 / 存为 PDF”。</p>
+          <h1>把事实写清楚，行动更有底气</h1>
+          <p>先补齐关键信息，再保存草稿或导出。</p>
         </div>
-        <label className="case-switcher">
-          <span>当前案件</span>
-          <select value={activeCase.id} onChange={(event) => setActiveCaseId(event.target.value)}>
-            {data.cases.map((item) => <option key={item.id} value={item.id}>{item.company} · {item.type}</option>)}
-          </select>
-        </label>
       </section>
 
       <section className="template-picker" aria-label="文书模板">
@@ -251,7 +245,7 @@ export default function Documents({
           const Icon = item.icon;
           const hasDraft = data.documents.some((entry) => entry.caseId === activeCase.id && entry.type === item.id);
           return (
-            <button key={item.id} className={item.id === templateId ? 'active' : ''} onClick={() => setTemplateId(item.id)}>
+            <button key={item.id} className={item.id === templateId ? 'active' : ''} aria-pressed={item.id === templateId} onClick={() => setTemplateId(item.id)}>
               <span><Icon size={20} /></span>
               <div><strong>{item.title}</strong><small>{item.description}</small></div>
               {hasDraft && <i title="已有草稿"><Check size={13} /></i>}
@@ -262,9 +256,13 @@ export default function Documents({
 
       <div className="document-workspace">
         <section className="panel document-editor">
-          <div className="section-heading">
-            <div><span className="eyebrow">编辑草稿</span><h2>{template.title}</h2></div>
+          <div className="document-editor-heading">
+            <h2>关键信息</h2>
             <span className={`save-state ${saved && !conflict ? 'saved' : ''}`}>{conflict ? '需要核对版本' : saved ? <><Check size={14} />已保存</> : '尚未保存'}</span>
+            <div className="editor-actions">
+              <button className="button button-secondary button-small" disabled={saving || conflict} onClick={() => void save()}><Save size={17} />{saving ? '正在保存…' : '保存草稿'}</button>
+              <button className="button button-primary button-small" onClick={downloadWord}><Download size={17} />导出 Word</button>
+            </div>
           </div>
           {conflict && (
             <section className="draft-conflict" aria-label="草稿版本对照">
@@ -289,28 +287,29 @@ export default function Documents({
             </section>
           )}
           <div className="document-form">
+            <label className="field">
+              <span>当前案件</span>
+              <select value={activeCase.id} onChange={(event) => setActiveCaseId(event.target.value)}>
+                {data.cases.map((item) => <option key={item.id} value={item.id}>{item.company} · {item.type}</option>)}
+              </select>
+            </label>
             {template.fields.map((field) => (
               <label className={`field ${field.multiline ? 'field-wide' : ''}`} key={field.key}>
                 <span>{field.label}</span>
                 {field.multiline ? (
-                  <textarea rows={field.key === 'facts' || field.key === 'events' ? 7 : 4} value={fields[field.key] ?? ''} onChange={(event) => update(field.key, event.target.value)} placeholder={field.placeholder} />
+                  <textarea rows={4} value={fields[field.key] ?? ''} onChange={(event) => update(field.key, event.target.value)} placeholder={field.placeholder} />
                 ) : (
                   <input value={fields[field.key] ?? ''} onChange={(event) => update(field.key, event.target.value)} placeholder={field.placeholder} />
                 )}
               </label>
             ))}
           </div>
-          <div className="editor-actions">
-            <button className="button button-primary" disabled={saving || conflict} onClick={() => void save()}><Save size={17} />{saving ? '正在保存…' : '保存草稿'}</button>
-            <button className="button button-secondary" onClick={downloadWord}><Download size={17} />导出 Word</button>
-            <button className="button button-secondary" onClick={printDocument}><Printer size={17} />打印 / 存为 PDF</button>
-          </div>
-          <div className="review-note"><Info size={17} /><span>提交前请逐项核对主体名称、金额、日期、仲裁请求和证据目录；系统不会替你确认法律主张是否适合个案。</span></div>
         </section>
 
         <aside className="panel document-preview">
-          <div className="preview-bar"><span>页面预览</span><small>A4 · 草稿</small></div>
+          <div className="preview-bar"><div><span>文书预览</span><small>A4 · 草稿</small></div><button className="button button-secondary button-small" onClick={printDocument}><Printer size={17} />打印 / 存为 PDF</button></div>
           <div className="paper-preview" dangerouslySetInnerHTML={{ __html: markup }} />
+          <div className="review-note"><Info size={17} /><span>提交前请逐项核对主体名称、金额、日期、仲裁请求和证据目录；系统不会替你确认法律主张是否适合个案。</span></div>
         </aside>
       </div>
     </div>

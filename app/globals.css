@@ -503,6 +503,15 @@ p {
   border-color: var(--line-strong);
 }
 
+.button-ghost {
+  color: var(--navy-800);
+  background: transparent;
+}
+
+.button-ghost:hover:not(:disabled) {
+  background: rgb(255 255 255 / 60%);
+}
+
 .button-small {
   min-height: 36px;
   padding: 7px 12px;
@@ -1162,15 +1171,27 @@ p {
 }
 
 .draft-conflict-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  display: grid;
+  gap: 7px;
   color: var(--orange-600);
 }
 
 .draft-conflict-heading h3,
 .draft-conflict-heading p {
   margin: 0;
+}
+
+.draft-conflict-heading p,
+.draft-conflict > p {
+  color: var(--ink-700);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.draft-conflict-values span {
+  color: var(--ink-500);
+  font-size: 0.72rem;
+  font-weight: 650;
 }
 
 .draft-conflict-heading strong,
@@ -1752,6 +1773,25 @@ p {
   background: var(--blue-100);
 }
 
+.evidence-status.uploading,
+.evidence-status.upload_failed,
+.evidence-status.deleting {
+  color: var(--orange-600);
+  background: var(--orange-100);
+}
+
+.evidence-actions {
+  flex-wrap: wrap;
+  align-items: center;
+  max-width: 100%;
+}
+
+.evidence-actions .button {
+  max-width: 100%;
+  padding: 8px 11px;
+  font-size: 0.8rem;
+}
+
 .chat-page {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 290px;
@@ -2178,6 +2218,22 @@ p {
   margin-top: 6px;
 }
 
+.document-editor-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.document-editor-heading h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .save-state {
   color: var(--ink-500);
   background: var(--surface-muted);
@@ -2190,7 +2246,6 @@ p {
 
 .editor-actions {
   flex-wrap: wrap;
-  margin-top: 22px;
 }
 
 .review-note {
@@ -2216,7 +2271,17 @@ p {
 }
 
 .preview-bar small {
+  display: block;
+  margin-top: 3px;
   color: var(--ink-500);
+  font-size: 0.68rem;
+  font-weight: 400;
+}
+
+.document-preview .review-note {
+  margin: 0 24px 24px;
+  background: var(--orange-100);
+  border-color: #ecd8c9;
 }
 
 .paper-preview {
@@ -2828,6 +2893,23 @@ p {
   .document-form .field {
     grid-template-columns: 1fr;
     gap: 7px;
+  }
+
+  .document-editor-heading .editor-actions {
+    width: 100%;
+  }
+
+  .document-editor-heading .editor-actions .button {
+    flex: 1;
+  }
+
+  .preview-bar {
+    padding: 18px 16px 0;
+    gap: 12px;
+  }
+
+  .document-preview .review-note {
+    margin: 0 16px 16px;
   }
 
   .document-form .field > span {
