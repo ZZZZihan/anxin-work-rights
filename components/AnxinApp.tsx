@@ -3,17 +3,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  BriefcaseBusiness,
   CheckCircle2,
+  ClipboardList,
   FileText,
-  FolderLock,
-  LayoutDashboard,
+  Folder,
+  House,
   LogOut,
   Menu,
-  MessageCircleMore,
   RefreshCw,
   Scale,
   ShieldCheck,
+  UserRound,
   X,
 } from 'lucide-react';
 import Dashboard from './views/Dashboard';
@@ -30,12 +30,12 @@ const navigation: Array<{
   label: string;
   shortLabel: string;
   description: string;
-  icon: typeof LayoutDashboard;
+  icon: typeof House;
 }> = [
-  { key: 'home', label: '行动首页', shortLabel: '首页', description: '今天先做什么', icon: LayoutDashboard },
-  { key: 'cases', label: '案件追踪', shortLabel: '案件', description: '进度与下一步', icon: BriefcaseBusiness },
-  { key: 'evidence', label: '证据管家', shortLabel: '证据', description: '材料归档', icon: FolderLock },
-  { key: 'chat', label: '权益助手', shortLabel: '咨询', description: '规则路径初筛', icon: MessageCircleMore },
+  { key: 'home', label: '行动首页', shortLabel: '首页', description: '今天先做什么', icon: House },
+  { key: 'cases', label: '案件追踪', shortLabel: '案件', description: '进度与下一步', icon: ClipboardList },
+  { key: 'evidence', label: '证据管家', shortLabel: '证据', description: '材料归档', icon: Folder },
+  { key: 'chat', label: '权益助手', shortLabel: '咨询', description: '规则路径初筛', icon: UserRound },
   { key: 'documents', label: '文书工作台', shortLabel: '文书', description: '草稿与导出', icon: FileText },
 ];
 
@@ -145,7 +145,7 @@ export default function AnxinApp() {
           {navigation.map((item) => {
             const Icon = item.icon;
             return (
-              <button key={item.key} className={view === item.key ? 'active' : ''} onClick={() => navigate(item.key)}>
+              <button key={item.key} className={view === item.key ? 'active' : ''} aria-current={view === item.key ? 'page' : undefined} onClick={() => navigate(item.key)}>
                 <span className="nav-icon"><Icon size={20} /></span>
                 <span><strong>{item.label}</strong><small>{item.description}</small></span>
               </button>
@@ -174,7 +174,7 @@ export default function AnxinApp() {
             <span>{currentNav.label}</span>
             {activeCase && view !== 'home' && <><i /> <strong>{activeCase.company}</strong></>}
           </div>
-          <div className="topbar-account"><span>数据已连接</span><i /><span className="avatar small-avatar">{initials(data.user.displayName)}</span></div>
+          <div className="topbar-account"><span className="account-icon"><UserRound size={18} /></span><span>{data.user.displayName}</span></div>
         </header>
 
         <div className={`page-content page-${view}`}>
@@ -194,7 +194,7 @@ export default function AnxinApp() {
       <nav className="bottom-nav" aria-label="移动端主要导航">
         {navigation.map((item) => {
           const Icon = item.icon;
-          return <button key={item.key} className={view === item.key ? 'active' : ''} onClick={() => navigate(item.key)}><Icon size={20} /><span>{item.shortLabel}</span></button>;
+          return <button key={item.key} className={view === item.key ? 'active' : ''} aria-current={view === item.key ? 'page' : undefined} onClick={() => navigate(item.key)}><Icon size={20} /><span>{item.shortLabel}</span></button>;
         })}
       </nav>
 

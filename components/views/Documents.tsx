@@ -196,7 +196,6 @@ export default function Documents({
     <div className="view-stack">
       <section className="page-heading-row">
         <div>
-          <span className="eyebrow">DOCUMENT STUDIO</span>
           <h1>文书工作台</h1>
           <p>先保存可编辑草稿，再导出 Word 或使用浏览器“打印 / 存为 PDF”。</p>
         </div>
