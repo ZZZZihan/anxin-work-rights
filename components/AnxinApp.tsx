@@ -177,6 +177,13 @@ export default function AnxinApp() {
           <div className="topbar-account"><span className="account-icon"><UserRound size={18} /></span><span>{data.user.displayName}</span></div>
         </header>
 
+        {data.synthetic && (
+          <section className="synthetic-notice" role="note" aria-label="合成验收环境提示">
+            <strong>仅限合成数据 · HTTP 验收环境</strong>
+            <span>HTTP 可被抓包或篡改，请勿输入真实资料或复用真实密码。截止：{new Date(data.synthetic.expiresAt).toLocaleString('zh-CN')}。</span>
+          </section>
+        )}
+
         <div className={`page-content page-${view}`}>
           {view === 'home' && <Dashboard {...shared} />}
           {view === 'cases' && <Cases {...shared} />}

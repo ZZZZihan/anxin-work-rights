@@ -15,6 +15,7 @@ import {
   UploadCloud,
 } from 'lucide-react';
 import { apiRequest, formatDate, formatFileSize } from '@/lib/client';
+import { createOperationId } from '@/lib/client-uuid';
 import type { EvidenceFile } from '@/lib/types';
 import type { SharedViewProps } from '../types';
 
@@ -56,7 +57,7 @@ export default function Evidence({
     const form = new FormData();
     form.append('file', file);
     form.append('caseId', retry?.caseId ?? activeCase.id);
-    form.append('operationId', retry?.id ?? crypto.randomUUID());
+    form.append('operationId', retry?.id ?? createOperationId());
     form.append('category', retry?.category ?? category);
     form.append('note', retry?.note ?? note);
     setUploading(true);
@@ -101,7 +102,7 @@ export default function Evidence({
   };
 
   const remove = async (item: EvidenceFile) => {
-    if (!window.confirm(`确认删除“${item.name}”？真实上传的文件会一并从私有存储中删除。`)) return;
+    if (!window.confirm(`确认删除“${item.name}”？${data.synthetic ? '合成' : '真实'}上传的文件会一并从私有存储中删除。`)) return;
     setDeletingId(item.id);
     try {
       await apiRequest<{ ok: true }>(`/api/evidence?id=${encodeURIComponent(item.id)}`, { method: 'DELETE' });
@@ -146,7 +147,7 @@ export default function Evidence({
       <div className="evidence-layout">
         <section className="upload-panel panel">
           <div className="section-heading">
-            <div><span className="eyebrow">上传材料</span><h2>添加真实文件</h2></div>
+            <div><span className="eyebrow">上传材料</span><h2>{data.synthetic ? '添加合成文件' : '添加真实文件'}</h2></div>
             <span className="private-badge"><LockKeyhole size={14} />仅你可见</span>
           </div>
 
@@ -244,7 +245,7 @@ export default function Evidence({
             </article>
           ))}
           {!evidence.length && (
-            <div className="inline-empty"><FolderLock size={26} /><strong>还没有材料</strong><span>从上方上传第一份真实文件。</span></div>
+            <div className="inline-empty"><FolderLock size={26} /><strong>还没有材料</strong><span>从上方上传第一份{data.synthetic ? '合成' : '真实'}文件。</span></div>
           )}
         </div>
       </section>
