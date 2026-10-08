@@ -53,6 +53,20 @@ try {
   assert.equal(await downloaded.text(), 'synthetic evidence bytes'); observe('download_exact_bytes');
   assert.equal((await request(`/api/evidence/${evidence.id}/download`, 'b')).status, 404);
   assert.equal((await request(`/api/evidence?id=${evidence.id}`, 'b', 'DELETE')).status, 404); observe('cross_user_evidence_404');
+  const concurrentUploadStatuses = [];
+  for (let round = 0; round < 30; round++) {
+    const concurrentOperation = crypto.randomUUID();
+    const content = `synthetic concurrent evidence ${round}\n${'x'.repeat(512_000)}`;
+    const responses = await Promise.all([upload(workCase.id, concurrentOperation, content), upload(workCase.id, concurrentOperation, content)]);
+    const statuses = responses.map((response) => response.status).sort();
+    assert(statuses.every((status) => status === 200 || status === 201), `concurrent upload statuses: ${statuses}`);
+    assert(statuses.includes(201));
+    concurrentUploadStatuses.push(statuses);
+    const exact = await request(`/api/evidence/${concurrentOperation}/download`);
+    assert.equal(exact.status, 200); assert.equal(await exact.text(), content);
+    assert.equal((await request(`/api/evidence?id=${concurrentOperation}`, 'a', 'DELETE')).status, 200);
+  }
+  observe('concurrent_identical_uploads_preserve_exact_bytes', { rounds: 30, statuses: concurrentUploadStatuses });
   sql(`CREATE TRIGGER e2e_intent_failure BEFORE UPDATE OF status ON evidence_files WHEN OLD.id = '${evidence.id}' AND NEW.status = 'deleting' BEGIN SELECT RAISE(ABORT, 'injected intent failure'); END;`);
   try {
     assert.equal((await request(`/api/evidence?id=${evidence.id}`, 'a', 'DELETE')).status, 503);
@@ -66,6 +80,12 @@ try {
     assert.equal((await request(`/api/evidence/${evidence.id}/download`)).status, 409); observe('delete_finalization_failure_has_tombstone');
   } finally { sql('DROP TRIGGER e2e_delete_failure;'); }
   assert.equal((await request(`/api/evidence?id=${evidence.id}`, 'a', 'DELETE')).status, 200); observe('delete_retry_completes');
+  assert.equal((await upload(workCase.id, operation)).status, 409);
+  assert.equal((await request(`/api/evidence/${evidence.id}/download`)).status, 404);
+  assert.equal((await request(`/api/evidence?id=${evidence.id}`, 'a', 'DELETE')).status, 200);
+  assert.equal((await request(`/api/evidence?id=${evidence.id}`, 'b', 'DELETE')).status, 404);
+  assert(!(await (await request('/api/bootstrap')).json()).evidence.some((item) => item.id === evidence.id));
+  observe('cancelled_operation_cannot_resurrect_and_delete_is_retryable');
   const failedOperation = crypto.randomUUID();
   sql(`CREATE TRIGGER e2e_upload_finalize_failure BEFORE UPDATE OF status ON evidence_files WHEN OLD.id = '${failedOperation}' AND NEW.status = 'uploaded' BEGIN SELECT RAISE(ABORT, 'injected upload failure'); END;`);
   try {

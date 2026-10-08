@@ -1,8 +1,10 @@
 import { defineConfig } from 'vitest/config';
+import { fileURLToPath } from 'node:url';
 
-// Keep domain tests independent from the Cloudflare/Vinext build plugins.
-// Route and binding integration is verified by the production build and HTTP smoke tests.
+// Domain and controlled binding tests run without Cloudflare/Vinext build plugins.
+// The built Worker's routing is additionally verified by HTTP regressions.
 export default defineConfig({
+  resolve: { alias: { '@': fileURLToPath(new URL('.', import.meta.url)) } },
   test: {
     environment: 'node',
     include: ['lib/**/*.test.ts'],

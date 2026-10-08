@@ -59,38 +59,56 @@ export async function POST(request: Request) {
   await db.prepare(
     `INSERT OR IGNORE INTO evidence_files
       (id, user_id, case_id, name, category, size, mime_type, status, note, object_key, uploaded_at, content_hash)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'uploading', ?, ?, ?, ?)`,
-  ).bind(id, user.userId, caseId, safeName, category, upload.size, upload.type, note, objectKey, now, hash).run();
+     SELECT ?, ?, ?, ?, ?, ?, ?, 'uploading', ?, ?, ?, ?
+     WHERE NOT EXISTS (SELECT 1 FROM evidence_upload_cancellations WHERE id = ?)`,
+  ).bind(id, user.userId, caseId, safeName, category, upload.size, upload.type, note, objectKey, now, hash, id).run();
   const intent = await db.prepare('SELECT * FROM evidence_files WHERE id = ? AND user_id = ?')
     .bind(id, user.userId).first<Record<string, unknown>>();
-  if (!intent || intent.content_hash !== hash || intent.case_id !== caseId || intent.name !== safeName || intent.category !== category || intent.note !== note || intent.mime_type !== upload.type) return jsonError('上传操作编号已用于其他文件。', 409);
+  if (!intent) {
+    const cancelled = await db.prepare('SELECT id FROM evidence_upload_cancellations WHERE id = ? AND user_id = ?')
+      .bind(id, user.userId).first();
+    return jsonError(cancelled ? '上传已取消，请使用新的上传操作编号重新选择文件。' : '上传操作编号已用于其他文件。', 409);
+  }
+  if (intent.content_hash !== hash || intent.case_id !== caseId || intent.name !== safeName || intent.category !== category || intent.note !== note || intent.mime_type !== upload.type) return jsonError('上传操作编号已用于其他文件。', 409);
   if (intent.status === 'uploaded') return Response.json({ evidence: rowToEvidence(intent) });
   if (!['uploading', 'upload_failed'].includes(String(intent.status))) return jsonError('文件正在删除，不能重复上传。', 409);
+  let cancelledDuringUpload = false;
   try {
     await getFilesBucket().put(objectKey, bytes, {
       httpMetadata: { contentType: upload.type },
       customMetadata: { originalName: safeName, userId: user.userId, caseId },
     });
-    const finalized = await db.prepare("UPDATE evidence_files SET status = 'uploaded' WHERE id = ? AND user_id = ? AND status IN ('uploading', 'upload_failed')")
-      .bind(id, user.userId).run();
-    if ((finalized.meta.changes ?? 0) === 0) {
-      await getFilesBucket().delete(objectKey);
-      return jsonError('上传已取消，请重新选择文件。', 409);
+    const finalized = await db.prepare(
+      `UPDATE evidence_files SET status = 'uploaded'
+       WHERE id = ? AND user_id = ? AND status IN ('uploading', 'upload_failed')
+       AND NOT EXISTS (SELECT 1 FROM evidence_upload_cancellations WHERE id = ?)`,
+    ).bind(id, user.userId, id).run();
+    const current = await db.prepare('SELECT * FROM evidence_files WHERE id = ? AND user_id = ?')
+      .bind(id, user.userId).first<Record<string, unknown>>();
+    // Another identical request can finish first. Its object is also ours;
+    // deleting it here would turn a successful upload into a missing file.
+    if (current?.status === 'uploaded') {
+      return Response.json({ evidence: rowToEvidence(current) }, { status: (finalized.meta.changes ?? 0) === 0 ? 200 : 201 });
     }
+    const cancelled = await db.prepare('SELECT object_key FROM evidence_upload_cancellations WHERE id = ? AND user_id = ?')
+      .bind(id, user.userId).first<{ object_key: string | null }>();
+    if (cancelled) {
+      cancelledDuringUpload = true;
+      // DELETE may have completed before this put. The durable cancellation
+      // prevents a retry from reusing this key, so late cleanup cannot remove
+      // a newer upload. Keep the cancellation even after cleanup succeeds.
+      if (cancelled.object_key === objectKey) await getFilesBucket().delete(objectKey);
+      return jsonError('上传已取消，请使用新的上传操作编号重新选择文件。', 409);
+    }
+    return jsonError('上传状态未能确认，文件未删除；请刷新后重试。', 503);
   } catch (error) {
     console.error('evidence upload incomplete', error);
     // Keep the key and intent even if recording the failure itself is unavailable.
     await db.prepare("UPDATE evidence_files SET status = 'upload_failed' WHERE id = ? AND user_id = ? AND status = 'uploading'")
       .bind(id, user.userId).run().catch(() => undefined);
+    if (cancelledDuringUpload) return jsonError('上传已取消，文件清理未完成；取消记录已保留，可重试删除。', 503);
     return jsonError('上传未完成，记录已保留；可重试相同文件或删除记录。', 503);
   }
-
-  const row = await db
-    .prepare('SELECT * FROM evidence_files WHERE id = ? AND user_id = ?')
-    .bind(id, user.userId)
-    .first<Record<string, unknown>>();
-  if (!row) return jsonError('文件保存后未能读取。', 500);
-  return Response.json({ evidence: rowToEvidence(row) }, { status: 201 });
 }
 
 export async function DELETE(request: Request) {
@@ -102,18 +120,23 @@ export async function DELETE(request: Request) {
   if (!id) return jsonError('缺少证据编号。');
 
   const db = getDatabase();
-  const row = await db
-    .prepare('SELECT object_key FROM evidence_files WHERE id = ? AND user_id = ?')
-    .bind(id, user.userId)
-    .first<{ object_key: string | null }>();
-  if (!row) return jsonError('未找到这个证据记录。', 404);
-
   try {
-    // A durable tombstone blocks downloads before irreversible object deletion.
-    await db.prepare("UPDATE evidence_files SET status = 'deleting' WHERE id = ? AND user_id = ?")
-      .bind(id, user.userId).run();
-    if (row.object_key) await getFilesBucket().delete(row.object_key);
-    await db.prepare('DELETE FROM evidence_files WHERE id = ? AND user_id = ?')
+    // Persist cancellation and block downloads in one database transaction.
+    // Removing the visible record must not forget the operation UUID: an
+    // in-flight put or delayed retry may still arrive after DELETE succeeds.
+    await db.batch([
+      db.prepare(
+        `INSERT OR IGNORE INTO evidence_upload_cancellations (id, user_id, object_key, cancelled_at)
+         SELECT id, user_id, object_key, ? FROM evidence_files WHERE id = ? AND user_id = ?`,
+      ).bind(new Date().toISOString(), id, user.userId),
+      db.prepare("UPDATE evidence_files SET status = 'deleting' WHERE id = ? AND user_id = ?")
+        .bind(id, user.userId),
+    ]);
+    const cancellation = await db.prepare('SELECT object_key FROM evidence_upload_cancellations WHERE id = ? AND user_id = ?')
+      .bind(id, user.userId).first<{ object_key: string | null }>();
+    if (!cancellation) return jsonError('未找到这个证据记录。', 404);
+    if (cancellation.object_key) await getFilesBucket().delete(cancellation.object_key);
+    await db.prepare("DELETE FROM evidence_files WHERE id = ? AND user_id = ? AND status = 'deleting'")
       .bind(id, user.userId).run();
   } catch (error) {
     console.error('evidence deletion incomplete', error);

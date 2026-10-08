@@ -29,28 +29,38 @@ export default function Evidence({
   notify,
 }: SharedViewProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const retryInputRef = useRef<HTMLInputElement>(null);
+  const retryItemRef = useRef<EvidenceFile | null>(null);
   const [category, setCategory] = useState(categories[0]);
   const [note, setNote] = useState('');
   const [uploading, setUploading] = useState(false);
-  const pendingUploads = useRef(new Map<string, string>());
+  const [uploadError, setUploadError] = useState('');
   const [dragging, setDragging] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const activeCase = data.cases.find((item) => item.id === activeCaseId) ?? data.cases[0];
   const evidence = data.evidence.filter((item) => item.caseId === activeCase?.id);
 
-  const upload = async (file: File | undefined) => {
+  const upload = async (file: File | undefined, retry?: EvidenceFile) => {
     if (!file || !activeCase || uploading) return;
-    const uploadKey = `${activeCase.id}:${file.name}:${file.size}:${file.lastModified}:${category}:${note}`;
-    const operationId = pendingUploads.current.get(uploadKey) ?? crypto.randomUUID();
-    pendingUploads.current.set(uploadKey, operationId);
+    if (retry) {
+      // Match the server's stored filename; the server also verifies the content hash.
+      const name = file.name.replace(/[\\/]/g, '-').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 120) || '未命名文件';
+      if (name !== retry.name || file.size !== retry.size || file.type !== retry.mimeType) {
+        const message = `请选择“${retry.name}”的原文件；名称、大小和文件类型必须与原记录一致。`;
+        setUploadError(message);
+        notify(message, 'error');
+        return;
+      }
+    }
     const form = new FormData();
     form.append('file', file);
-    form.append('caseId', activeCase.id);
-    form.append('operationId', operationId);
-    form.append('category', category);
-    form.append('note', note);
+    form.append('caseId', retry?.caseId ?? activeCase.id);
+    form.append('operationId', retry?.id ?? crypto.randomUUID());
+    form.append('category', retry?.category ?? category);
+    form.append('note', retry?.note ?? note);
     setUploading(true);
+    setUploadError('');
     try {
       const result = await apiRequest<{ evidence: EvidenceFile }>('/api/evidence', {
         method: 'POST',
@@ -60,17 +70,28 @@ export default function Evidence({
         ...current,
         evidence: [result.evidence, ...current.evidence.filter((item) => item.id !== result.evidence.id)],
       } : current);
-      pendingUploads.current.delete(uploadKey);
-      setNote('');
-      notify('文件已安全保存到当前案件。');
+      if (!retry) setNote('');
+      notify(retry ? '原上传记录已恢复，文件已安全保存。' : '文件已安全保存到当前案件。');
     } catch (error) {
-      notify(error instanceof Error ? error.message : '上传失败。', 'error');
+      const message = error instanceof Error ? error.message : '上传失败。';
+      notify(message, 'error');
       const refreshed = await apiRequest<import('@/lib/types').BootstrapData>('/api/bootstrap').catch(() => null);
-      if (refreshed) setData(refreshed);
+      if (refreshed) {
+        setData(refreshed);
+        setUploadError(`${message} 若材料清单中显示“上传未完成”，请使用该记录的“选择原文件重试”。`);
+      } else {
+        setUploadError(`${message} 当前未能刷新材料状态，请稍后刷新页面，恢复后在“上传未完成”记录中选择原文件重试。`);
+      }
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';
     }
+  };
+
+  const retryUpload = (item: EvidenceFile) => {
+    if (uploading) return;
+    retryItemRef.current = item;
+    retryInputRef.current?.click();
   };
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -129,6 +150,8 @@ export default function Evidence({
             <span className="private-badge"><LockKeyhole size={14} />仅你可见</span>
           </div>
 
+          {uploadError && <div className="integrity-note" role="alert"><Info size={18} /><p>{uploadError}</p></div>}
+
           <div
             className={`drop-zone ${dragging ? 'dragging' : ''}`}
             onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
@@ -181,6 +204,19 @@ export default function Evidence({
           <span className="muted-count">{evidence.length} 项</span>
         </div>
         <div className="evidence-table" role="list">
+          <input
+            ref={retryInputRef}
+            hidden
+            type="file"
+            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt"
+            aria-label="选择原文件重试上传"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              const item = retryItemRef.current;
+              event.target.value = '';
+              if (item) void upload(file, item);
+            }}
+          />
           {evidence.map((item) => (
             <article className="evidence-row" key={item.id} role="listitem">
               <span className={`file-icon ${fileTone(item.mimeType)}`}>{fileIcon(item.mimeType)}</span>
@@ -193,6 +229,11 @@ export default function Evidence({
                 {item.note && <small>{item.note}</small>}
               </div>
               <div className="evidence-actions">
+                {(item.status === 'uploading' || item.status === 'upload_failed') && (
+                  <button className="button button-secondary" aria-label={`选择原文件重试 ${item.name}`} disabled={uploading || deletingId === item.id} onClick={() => retryUpload(item)}>
+                    <UploadCloud size={16} />选择原文件重试
+                  </button>
+                )}
                 {item.downloadable ? (
                   <a className="icon-button" aria-label={`下载 ${item.name}`} href={`/api/evidence/${encodeURIComponent(item.id)}/download`}><Download size={17} /></a>
                 ) : (

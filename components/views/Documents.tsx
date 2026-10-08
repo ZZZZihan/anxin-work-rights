@@ -14,8 +14,8 @@ import {
   ScrollText,
 } from 'lucide-react';
 import { apiRequest } from '@/lib/client';
-import { templateFields } from '@/lib/validation';
-import type { DocumentDraft, WorkCase } from '@/lib/types';
+import { finishDraftSave, mergeRemoteDrafts, normalizeDraftFields, resolveDraftCopy, type WorkingCopy } from '@/lib/draft-copies';
+import type { BootstrapData, DocumentDraft, WorkCase } from '@/lib/types';
 import type { SharedViewProps } from '../types';
 
 type TemplateField = { key: string; label: string; placeholder: string; multiline?: boolean };
@@ -92,12 +92,12 @@ export default function Documents({
   notify,
 }: SharedViewProps) {
   const [templateId, setTemplateId] = useState(templates[0].id);
-  type WorkingCopy = { fields: Record<string, string>; revision: number; saved: boolean };
   const storageKey = `anxin-drafts:${data.user.userId}`;
   const [copies, setCopies] = useState<Record<string, WorkingCopy>>(() => {
     try { return JSON.parse(sessionStorage.getItem(storageKey) ?? '{}'); } catch { return {}; }
   });
   const [saving, setSaving] = useState(false);
+  const [conflictChecks, setConflictChecks] = useState<Record<string, { pending: boolean; error?: string }>>({});
   const activeCase = data.cases.find((item) => item.id === activeCaseId) ?? data.cases[0];
   const template = templates.find((item) => item.id === templateId) ?? templates[0];
   const draft = data.documents.find((item) => item.caseId === activeCase?.id && item.type === templateId);
@@ -109,11 +109,13 @@ export default function Documents({
 
   const copyKey = `${activeCase?.id}:${templateId}`;
   const working = copies[copyKey];
-  const rawFields = working?.fields ?? draft?.fields ?? defaults;
-  const fields = Object.fromEntries(templateFields[templateId].map((key) => [key, rawFields[key] ?? '']));
-  const saved = working?.saved ?? Boolean(draft);
+  const { fields, revision, saved, conflict: revisionConflict } = resolveDraftCopy(templateId, working, draft, defaults);
+  const conflictCheck = conflictChecks[copyKey];
+  const conflict = revisionConflict || Boolean(conflictCheck);
+  const remoteFields = normalizeDraftFields(templateId, draft?.fields ?? defaults);
+  const differences = template.fields.filter((field) => fields[field.key] !== remoteFields[field.key]);
   useEffect(() => {
-    sessionStorage.setItem(storageKey, JSON.stringify(copies));
+    sessionStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(Object.entries(copies).filter(([, copy]) => !copy.saved))));
     const warn = (event: BeforeUnloadEvent) => {
       if (Object.values(copies).some((copy) => !copy.saved)) { event.preventDefault(); event.returnValue = ''; }
     };
@@ -123,32 +125,69 @@ export default function Documents({
 
   const update = (key: string, value: string) => {
     setCopies((current) => ({ ...current, [copyKey]: {
-      fields: { ...fields, [key]: value }, revision: working?.revision ?? draft?.revision ?? 0, saved: false,
+      fields: { ...fields, [key]: value }, revision, saved: false,
     } }));
   };
 
+  const refreshRemote = async (key: string) => {
+    setConflictChecks((current) => ({ ...current, [key]: { pending: true } }));
+    try {
+      const fresh = await apiRequest<BootstrapData>('/api/bootstrap', { cache: 'no-store' });
+      setData((current) => current ? { ...current, documents: mergeRemoteDrafts(current.documents, fresh.documents) } : current);
+      setConflictChecks((current) => ({ ...current, [key]: { pending: false } }));
+    } catch (error) {
+      setConflictChecks((current) => ({ ...current, [key]: { pending: false, error: error instanceof Error ? error.message : '暂时无法核对服务器版本。' } }));
+    }
+  };
+
+  const resolveConflict = (keepLocal: boolean) => {
+    if (conflictCheck?.pending || conflictCheck?.error || saving) return;
+    setCopies((current) => {
+      const next = { ...current };
+      if (keepLocal) next[copyKey] = { fields, revision: draft?.revision ?? 0, saved: false };
+      else delete next[copyKey];
+      return next;
+    });
+    setConflictChecks((current) => {
+      const next = { ...current };
+      delete next[copyKey];
+      return next;
+    });
+    notify(keepLocal ? '已保留你的文字；核对后点击“保存草稿”，才会更新服务器版本。' : '已加载服务器版本。', 'info');
+  };
+
   const save = async () => {
-    if (!activeCase) return;
+    if (!activeCase || conflict || saving) return;
     setSaving(true);
     const submittedFields = fields;
     const submittedKey = copyKey;
     try {
-      const result = await apiRequest<{ document: DocumentDraft }>('/api/documents', {
+      const response = await fetch('/api/documents', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseId: activeCase.id, type: templateId, fields: submittedFields, revision: working?.revision ?? draft?.revision ?? 0 }),
+        body: JSON.stringify({ caseId: activeCase.id, type: templateId, fields: submittedFields, revision }),
       });
+      const result = await response.json().catch(() => ({})) as { document: DocumentDraft; error?: string };
+      if (response.status === 409) {
+        // Ensure even an untouched default form is preserved for recovery.
+        setCopies((current) => current[submittedKey] && !current[submittedKey].saved ? current : {
+          ...current, [submittedKey]: { fields: submittedFields, revision, saved: false },
+        });
+        await refreshRemote(submittedKey);
+        notify('另一页面已更新草稿。你的文字仍保留，请在版本对照中选择如何继续。', 'info');
+        return;
+      }
+      if (!response.ok) throw new Error(result.error || '保存失败。');
       setData((current) => current ? {
         ...current,
-        documents: [
-          result.document,
-          ...current.documents.filter((item) => item.id !== result.document.id),
-        ],
+        documents: mergeRemoteDrafts(current.documents, [result.document]),
       } : current);
       setCopies((current) => {
-        const latestRaw = current[submittedKey]?.fields ?? submittedFields;
-        const latest = Object.fromEntries(templateFields[templateId].map((key) => [key, latestRaw[key] ?? '']));
-        return { ...current, [submittedKey]: { fields: latest, revision: result.document.revision, saved: JSON.stringify(latest) === JSON.stringify(submittedFields) } };
+        const next = { ...current };
+        const remaining = finishDraftSave(templateId, current[submittedKey], submittedFields, revision, result.document);
+        if (remaining) next[submittedKey] = remaining;
+        else delete next[submittedKey];
+        return next;
       });
       notify('草稿已保存。');
     } catch (error) {
@@ -225,8 +264,30 @@ export default function Documents({
         <section className="panel document-editor">
           <div className="section-heading">
             <div><span className="eyebrow">编辑草稿</span><h2>{template.title}</h2></div>
-            <span className={`save-state ${saved ? 'saved' : ''}`}>{saved ? <><Check size={14} />已保存</> : '尚未保存'}</span>
+            <span className={`save-state ${saved && !conflict ? 'saved' : ''}`}>{conflict ? '需要核对版本' : saved ? <><Check size={14} />已保存</> : '尚未保存'}</span>
           </div>
+          {conflict && (
+            <section className="draft-conflict" aria-label="草稿版本对照">
+              <div className="draft-conflict-heading"><h3>另一页面更新了草稿</h3><p>你的文字仍在下面。请对照服务器版本，再选择如何继续；尚未保存的文字不会自动覆盖其他页面。</p></div>
+              {conflictCheck?.pending ? <p role="status">正在核对服务器版本…</p> : conflictCheck?.error ? <p role="alert">{conflictCheck.error} 你的文字已保留，请重新核对后继续。</p> : (
+                <>
+                  <p>本地基于第 {revision} 版 · 服务器第 {draft?.revision ?? 0} 版</p>
+                  {differences.length ? <div className="draft-conflict-comparison">
+                    {differences.map((field) => <div className="draft-conflict-field" key={field.key}>
+                      <strong>{field.label}</strong>
+                      <div className="draft-conflict-values"><div><span>你的文字</span><pre>{fields[field.key] || '（空白）'}</pre></div><div><span>服务器文字</span><pre>{remoteFields[field.key] || '（空白）'}</pre></div></div>
+                    </div>)}
+                  </div> : <p>两边文字相同，修订号已变化。仍需选择要使用的版本。</p>}
+                  <p className="draft-conflict-help">“使用服务器版本”会替换本地未保存文字；“确认保留我的文字”保留当前输入，之后点击保存才会更新服务器。</p>
+                </>
+              )}
+              <div className="draft-conflict-actions">
+                <button className="button button-secondary" disabled={saving || conflictCheck?.pending || Boolean(conflictCheck?.error)} onClick={() => resolveConflict(false)}>使用服务器版本</button>
+                <button className="button button-secondary" disabled={saving || conflictCheck?.pending || Boolean(conflictCheck?.error)} onClick={() => resolveConflict(true)}>确认保留我的文字</button>
+                <button className="button button-ghost" disabled={saving || conflictCheck?.pending} onClick={() => void refreshRemote(copyKey)}>重新核对服务器版本</button>
+              </div>
+            </section>
+          )}
           <div className="document-form">
             {template.fields.map((field) => (
               <label className={`field ${field.multiline ? 'field-wide' : ''}`} key={field.key}>
@@ -240,7 +301,7 @@ export default function Documents({
             ))}
           </div>
           <div className="editor-actions">
-            <button className="button button-primary" disabled={saving} onClick={() => void save()}><Save size={17} />{saving ? '正在保存…' : '保存草稿'}</button>
+            <button className="button button-primary" disabled={saving || conflict} onClick={() => void save()}><Save size={17} />{saving ? '正在保存…' : '保存草稿'}</button>
             <button className="button button-secondary" onClick={downloadWord}><Download size={17} />导出 Word</button>
             <button className="button button-secondary" onClick={printDocument}><Printer size={17} />打印 / 存为 PDF</button>
           </div>
