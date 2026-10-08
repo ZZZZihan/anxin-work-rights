@@ -46,8 +46,9 @@ export async function waitForReadiness({
   }
   const deadline = now() + timeout;
   const readState = () => {
-    if (now() >= deadline) throw new Error('Deployment readiness timed out for the expected release and process.');
-    const current = state(Math.min(5000, deadline - now()));
+    const remaining = deadline - now();
+    if (remaining <= 0) throw new Error('Deployment readiness timed out for the expected release and process.');
+    const current = state(Math.min(5000, remaining));
     if (now() >= deadline) throw new Error('Deployment readiness timed out for the expected release and process.');
     return current;
   };

@@ -49,6 +49,13 @@ describe('bounded deployment readiness', () => {
     await expect(waitForReadiness(offline({ now: () => clock, state: () => { clock += 3000; return running; } })))
       .rejects.toThrow('timed out');
   });
+  it('never passes zero (unbounded) to a status command at the deadline boundary', async () => {
+    let clock = 0;
+    await expect(waitForReadiness(offline({
+      timeout: 2, now: () => clock++,
+      state: (maxWait) => { expect(maxWait).toBeGreaterThan(0); return running; },
+    }))).rejects.toThrow('timed out');
+  });
 });
 
 describe('actual isolated HTTPS certificate checks', () => {
