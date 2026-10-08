@@ -34,6 +34,8 @@ bash deploy/local-cloud/deploy.sh
 
 部署脚本使用当前提交的 Git archive，安装 lockfile 依赖，在 Linux 上执行 `npm run check`，应用尚未执行的 `drizzle/` 迁移，再切换 `current` 链接并重启用户级服务。脚本要求已有配置；已存在的发布目录不会被覆盖。迁移前应备份已有数据；不兼容迁移不得直接用旧代码回滚。
 
+重启后最多等待 90 秒，使用配置中的公开 TLS 证书验证 HTTPS 证书与主机名，再检查 `/api/ready` 的提交 SHA 和进程号是否匹配 systemd 当前进程。该就绪接口不需要登录，只返回状态、版本和进程号。服务退出或再次重启、证书验证失败、超时都会让部署脚本返回非零；就绪失败后应先检查服务状态和日志，再决定恢复步骤。
+
 ```bash
 ssh carryz@172.23.1.127 'systemctl --user status anxin-local.service --no-pager'
 ssh carryz@172.23.1.127 'journalctl --user -u anxin-local.service -n 80 --no-pager'

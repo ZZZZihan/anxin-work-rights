@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Archive,
   ArrowRight,
@@ -42,6 +42,8 @@ export default function Cases({
   const [filter, setFilter] = useState('all');
   const [editing, setEditing] = useState<WorkCase | null | 'new'>(null);
   const [savingStep, setSavingStep] = useState(false);
+  const [savingArchive, setSavingArchive] = useState(false);
+  const archivePending = useRef(false);
 
   const filtered = useMemo(() => (filter === 'archived' ? data.archivedCases : data.cases).filter((item) => {
     const matchesQuery = `${item.company}${item.type}${item.location}`.toLowerCase().includes(query.toLowerCase());
@@ -49,7 +51,11 @@ export default function Cases({
     return matchesQuery && matchesFilter;
   }), [data.cases, data.archivedCases, query, filter]);
 
-  const activeCase = [...data.cases, ...data.archivedCases].find((item) => item.id === activeCaseId) ?? filtered[0];
+  const activeCase = filtered.find((item) => item.id === activeCaseId) ?? filtered[0];
+  useEffect(() => {
+    const visibleId = activeCase?.id ?? '';
+    if (visibleId !== activeCaseId) setActiveCaseId(visibleId);
+  }, [activeCase?.id, activeCaseId, setActiveCaseId]);
 
   const updateCase = (nextCase: WorkCase) => {
     setData((current) => current ? {
@@ -59,7 +65,7 @@ export default function Cases({
   };
 
   const advanceStep = async () => {
-    if (!activeCase || activeCase.status === 'archived' || activeCase.currentStep >= steps.length - 1) return;
+    if (!activeCase || archivePending.current || activeCase.status === 'archived' || activeCase.currentStep >= steps.length - 1) return;
     setSavingStep(true);
     const nextStep = activeCase.currentStep + 1;
     const nextStatus = statusForStep(nextStep);
@@ -84,7 +90,9 @@ export default function Cases({
   };
 
   const archiveCase = async () => {
-    if (!activeCase || !window.confirm(`确认归档“${activeCase.company}”案件？记录仍保存在后台。`)) return;
+    if (!activeCase || archivePending.current || activeCase.status === 'archived' || !window.confirm(`确认归档“${activeCase.company}”案件？记录仍保存在后台。`)) return;
+    archivePending.current = true;
+    setSavingArchive(true);
     try {
       const result = await apiRequest<{ case: WorkCase }>('/api/cases', {
         method: 'PATCH',
@@ -94,26 +102,37 @@ export default function Cases({
       setData((current) => current ? {
         ...current,
         cases: current.cases.filter((item) => item.id !== activeCase.id),
-        archivedCases: [result.case, ...current.archivedCases],
+        archivedCases: [result.case, ...current.archivedCases.filter((item) => item.id !== result.case.id)],
       } : current);
-      const next = data.cases.find((item) => item.id !== activeCase.id);
+      const next = filtered.find((item) => item.id !== activeCase.id);
       setActiveCaseId(next?.id ?? '');
       notify('案件已归档。');
     } catch (error) {
       notify(error instanceof Error ? error.message : '归档失败。', 'error');
+    } finally {
+      archivePending.current = false;
+      setSavingArchive(false);
     }
   };
 
   const restoreCase = async () => {
-    if (!activeCase) return;
+    if (!activeCase || archivePending.current || activeCase.status !== 'archived') return;
+    archivePending.current = true;
+    setSavingArchive(true);
     try {
       const result = await apiRequest<{ case: WorkCase }>('/api/cases', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: activeCase.id, status: statusForStep(activeCase.currentStep) }),
       });
-      setData((current) => current ? { ...current, cases: [result.case, ...current.cases], archivedCases: current.archivedCases.filter((item) => item.id !== activeCase.id) } : current);
+      setData((current) => current ? {
+        ...current,
+        cases: [result.case, ...current.cases.filter((item) => item.id !== result.case.id)],
+        archivedCases: current.archivedCases.filter((item) => item.id !== result.case.id),
+      } : current);
+      setActiveCaseId(result.case.id);
       setFilter('all'); notify('案件已恢复。');
     } catch (error) { notify(error instanceof Error ? error.message : '恢复失败。', 'error'); }
+    finally { archivePending.current = false; setSavingArchive(false); }
   };
 
   return (
@@ -138,7 +157,7 @@ export default function Cases({
             </label>
             <label className="select-compact">
               <span className="sr-only">按状态筛选</span>
-              <select value={filter} onChange={(event) => { setFilter(event.target.value); setActiveCaseId((event.target.value === 'archived' ? data.archivedCases : data.cases)[0]?.id ?? ''); }}>
+              <select value={filter} onChange={(event) => setFilter(event.target.value)}>
                 <option value="all">全部状态</option>
                 <option value="collecting">整理材料</option>
                 <option value="negotiating">沟通协商</option>
@@ -187,8 +206,8 @@ export default function Cases({
                 <p>{activeCase.type} · 建档于 {formatDate(activeCase.createdAt, true)}</p>
               </div>
               <div className="icon-actions">
-                <button className="icon-button" aria-label="编辑案件" disabled={activeCase.status === 'archived'} onClick={() => setEditing(activeCase)}><Pencil size={17} /></button>
-                <button className="icon-button" aria-label={activeCase.status === 'archived' ? '恢复案件' : '归档案件'} onClick={activeCase.status === 'archived' ? restoreCase : archiveCase}><Archive size={17} /></button>
+                <button className="icon-button" aria-label="编辑案件" disabled={savingStep || savingArchive || activeCase.status === 'archived'} onClick={() => setEditing(activeCase)}><Pencil size={17} /></button>
+                <button className="icon-button" aria-label={activeCase.status === 'archived' ? '恢复案件' : '归档案件'} disabled={savingStep || savingArchive} onClick={activeCase.status === 'archived' ? restoreCase : archiveCase}><Archive size={17} /></button>
               </div>
             </div>
 
@@ -217,7 +236,7 @@ export default function Cases({
               <span className="next-action-icon"><ClipboardList size={21} /></span>
               <div><span>下一步行动</span><strong>{activeCase.nextAction}</strong></div>
               {activeCase.status !== 'completed' && activeCase.status !== 'archived' && (
-                <button className="button button-primary button-small" disabled={savingStep} onClick={advanceStep}>
+                <button className="button button-primary button-small" disabled={savingStep || savingArchive} onClick={advanceStep}>
                   {savingStep ? '正在更新…' : '完成本步'} <ArrowRight size={16} />
                 </button>
               )}
@@ -236,7 +255,9 @@ export default function Cases({
           </section>
         ) : (
           <section className="panel empty-panel case-empty">
-            <BriefcaseBusiness size={28} /><h2>创建第一个案件</h2><p>填写单位、争议类型和下一步即可开始。</p>
+            <BriefcaseBusiness size={28} />
+            <h2>{data.cases.length || data.archivedCases.length ? '没有匹配的案件' : '创建第一个案件'}</h2>
+            <p>{data.cases.length || data.archivedCases.length ? '试试其他关键词或状态。' : '填写单位、争议类型和下一步即可开始。'}</p>
             <button className="button button-primary" onClick={() => setEditing('new')}><Plus size={17} />新建案件</button>
           </section>
         )}
