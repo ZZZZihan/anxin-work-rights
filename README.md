@@ -44,9 +44,12 @@ lib/server.ts           后端用例与 D1/R2 访问模块
 lib/types.ts            前后端共享的请求/响应数据类型
 db/schema.ts            Drizzle schema
 drizzle/                可审查、按顺序应用的 D1 迁移
+fixtures/regional-demo/  天津、北京、南京的静态展示素材与来源说明
 legacy-index.html       旧版手机演示入口，仅供对照
 js/ 与 styles/          旧版演示实现，不进入新应用构建
 ```
+
+[地区展示素材](fixtures/regional-demo/README.md)包含8个原创场景及材料、文书和咨询问题。它们是可复用的静态fixture，不随应用启动或部署自动写入；来源元数据只用于资料说明。
 
 ## 能力边界
 
