@@ -38,7 +38,7 @@ export function createGateway(config, workerBase, { now = Date.now } = {}) {
   const origin = new URL(config.origin);
   const expiresAt = Date.parse(config.expiresAt);
   const directEntry = config.directEntry === true;
-  const guest = directEntry ? { ...config.users.find((user) => user.username === 'synthetic-a'), displayName: '访客' } : null;
+  const guest = directEntry ? { ...config.users.find((user) => user.username === 'synthetic-a'), displayName: '林晓', email: 'lin.xiao@example.com' } : null;
   const sign = (value) => createHmac('sha256', config.sessionKey).update(value).digest('base64url');
   const attempts = new Map();
   const loginPage = (failed = false) => `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>合成验收登录 · 安薪乐业</title><style>body{font:16px system-ui;background:#fff4cf;color:#624515}main{max-width:420px;margin:6vh auto;padding:24px;background:white;border-radius:12px}label{display:grid;gap:6px;margin:20px 0}input,button{font:inherit;padding:10px}p{line-height:1.6}</style><main><h1>合成 HTTP 验收环境</h1><p role="note">${notice}</p><p>截止：${config.expiresAt}。短期合成账户与真实工作台无关。</p>${failed ? '<p role="alert">合成账户或密码不正确。</p>' : ''}<form method="post" action="/auth/login"><label>合成账号<input name="username" autocomplete="off" required maxlength="80"></label><label>合成密码<input type="password" name="password" autocomplete="off" required maxlength="256"></label><button>进入合成验收</button></form></main></html>`;

@@ -131,7 +131,8 @@ try {
   const shared = await (await request('/api/bootstrap', null)).json();
   assert.equal(shared.synthetic.directEntry, true);
   assert.equal(shared.user.userId, config.users[0].id);
-  assert.equal(shared.user.displayName, '访客');
+  assert.equal(shared.user.displayName, '林晓');
+  assert.equal(shared.user.email, 'lin.xiao@example.com');
   assert.equal(shared.cases[0].id, workCase.id); assert.equal(shared.evidence[0].id, operationId);
   assert.equal(shared.documents[0].id, reopened.documents[0].id);
   assert.equal(shared.messages.length, reopened.messages.length); observe('direct_entry_preserves_existing_shared_records');

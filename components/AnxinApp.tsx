@@ -158,11 +158,11 @@ export default function AnxinApp() {
           <ShieldCheck size={20} />
           <div><strong>私有工作台</strong><span>资料按登录用户隔离</span></div>
         </div>}
-        {!directEntry && <div className="sidebar-profile">
+        <div className="sidebar-profile">
           <span className="avatar">{initials(data.user.displayName)}</span>
           <div><strong>{data.user.displayName}</strong><span>{data.user.email}</span></div>
-          <a href="/signout-with-chatgpt?return_to=%2F" aria-label="退出登录"><LogOut size={17} /></a>
-        </div>}
+          {!directEntry && <a href="/signout-with-chatgpt?return_to=%2F" aria-label="退出登录"><LogOut size={17} /></a>}
+        </div>
       </aside>
 
       {mobileMenu && <button className="menu-scrim" aria-label="关闭菜单" onClick={() => setMobileMenu(false)} />}
@@ -175,7 +175,7 @@ export default function AnxinApp() {
             <span>{currentNav.label}</span>
             {activeCase && view !== 'home' && <><i /> <strong>{activeCase.company}</strong></>}
           </div>
-          <div className="topbar-account"><span className="account-icon"><UserRound size={18} /></span><span>{directEntry ? '访客' : data.user.displayName}</span></div>
+          <div className="topbar-account"><span className="account-icon"><UserRound size={18} /></span><span>{data.user.displayName}</span></div>
         </header>
 
         {data.synthetic && !directEntry && (

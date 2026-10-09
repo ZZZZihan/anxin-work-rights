@@ -126,7 +126,8 @@ describe('session boundaries and worker identity', () => {
     expect(loaded.status).toBe(200);
     expect((await loaded.json()).synthetic.directEntry).toBe(true);
     expect(forwarded['oai-authenticated-user-id']).toBe(a.config.users[0].id);
-    expect(decodeURIComponent(forwarded['oai-authenticated-user-full-name'])).toBe('访客');
+    expect(decodeURIComponent(forwarded['oai-authenticated-user-full-name'])).toBe('林晓');
+    expect(forwarded['oai-authenticated-user-email']).toBe('lin.xiao@example.com');
     expect(forwarded.cookie === undefined && forwarded['x-forwarded-for'] === undefined).toBe(true);
     for (const path of ['/auth/login', '/signin-with-chatgpt', '/signout-with-chatgpt']) {
       const response = await request(base + path, { headers });
