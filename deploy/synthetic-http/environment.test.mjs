@@ -28,9 +28,22 @@ describe('fresh synthetic environment boundaries', () => {
     const a = environment(), b = environment();
     expect(a.config.bindIp).toBe('127.0.0.1');
     expect(a.config.allowCidrs).toEqual(['127.0.0.1/32']);
+    expect(a.config.directEntry).toBe(false);
     expect(Date.parse(a.config.expiresAt) - Date.parse(a.config.createdAt)).toBe(maxLifetime);
     expect(a.config.sessionKey !== b.config.sessionKey && a.config.cookieName !== b.config.cookieName && a.config.users[0].id !== b.config.users[0].id).toBe(true);
     expect(a.config.stateDir !== b.config.stateDir).toBe(true);
+  });
+  it('requires an explicit boolean for direct entry and accepts older default configurations', () => {
+    expect(() => createEnvironment({ directEntry: 'true' })).toThrow('boolean');
+    const a = environment({ directEntry: true });
+    expect(a.config.directEntry).toBe(true);
+    const path = join(a.root, 'config.json');
+    const config = { ...a.config }; delete config.stateDir; delete config.directEntry;
+    writeFileSync(path, JSON.stringify(config));
+    expect(loadEnvironment(a.root).directEntry).toBeUndefined();
+    config.directEntry = 'true'; writeFileSync(path, JSON.stringify(config));
+    expect(() => loadEnvironment(a.root)).toThrow('direct-entry');
+    config.directEntry = false; writeFileSync(path, JSON.stringify(config));
   });
   it('requires one private bind IP and explicit canonical sources, with public sources restricted to /32', () => {
     for (const bindIp of ['0.0.0.0', '::', '219.243.58.55']) expect(() => validateNetwork({ bindIp })).toThrow();
@@ -104,6 +117,26 @@ describe('proxy authentication and precise sources', () => {
   });
 });
 describe('session boundaries and worker identity', () => {
+  it('direct entry fixes the shared identity and redirects authentication without weakening request boundaries', async () => {
+    const a = environment({ directEntry: true }); let clock = Date.now(), forwarded;
+    const worker = await listen(createServer((req, res) => { forwarded = req.headers; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ cases: [] })); }));
+    const base = await listen(createGateway(a.config, worker, { now: () => clock }));
+    const headers = { Host: new URL(a.origin).host, Cookie: `${a.config.cookieName}=stale-b-cookie`, 'oai-authenticated-user-id': a.config.users[1].id, 'x-forwarded-for': 'forged' };
+    const loaded = await request(base + '/api/bootstrap', { headers });
+    expect(loaded.status).toBe(200);
+    expect((await loaded.json()).synthetic.directEntry).toBe(true);
+    expect(forwarded['oai-authenticated-user-id']).toBe(a.config.users[0].id);
+    expect(decodeURIComponent(forwarded['oai-authenticated-user-full-name'])).toBe('访客');
+    expect(forwarded.cookie === undefined && forwarded['x-forwarded-for'] === undefined).toBe(true);
+    for (const path of ['/auth/login', '/signin-with-chatgpt', '/signout-with-chatgpt']) {
+      const response = await request(base + path, { headers });
+      expect(response.status).toBe(303); expect(response.headers.get('location')).toBe('/');
+    }
+    expect((await request(base + '/', { headers: { ...headers, Host: 'wrong.invalid' } })).status).toBe(400);
+    expect((await request(base + '/api/cases', { method: 'POST', headers, body: '{}' })).status).toBe(403);
+    clock = Date.parse(a.expiresAt) + 1;
+    expect((await request(base + '/', { headers })).status).toBe(410);
+  });
   it('caps synthetic sessions, strips forged identity/proxy headers and expires timely', async () => {
     const a = environment(); let clock = Date.now(), forwarded;
     const worker = await listen(createServer((req, res) => { forwarded = req.headers; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ cases: [], archivedCases: [], documents: [], evidence: [], messages: [] })); }));

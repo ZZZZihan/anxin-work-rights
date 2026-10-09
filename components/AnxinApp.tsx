@@ -123,6 +123,7 @@ export default function AnxinApp() {
     />
   );
 
+  const directEntry = data.synthetic?.directEntry === true;
   const shared = {
     data,
     setData,
@@ -153,15 +154,15 @@ export default function AnxinApp() {
           })}
         </nav>
 
-        <div className="sidebar-trust">
+        {!directEntry && <div className="sidebar-trust">
           <ShieldCheck size={20} />
           <div><strong>私有工作台</strong><span>资料按登录用户隔离</span></div>
-        </div>
-        <div className="sidebar-profile">
+        </div>}
+        {!directEntry && <div className="sidebar-profile">
           <span className="avatar">{initials(data.user.displayName)}</span>
           <div><strong>{data.user.displayName}</strong><span>{data.user.email}</span></div>
           <a href="/signout-with-chatgpt?return_to=%2F" aria-label="退出登录"><LogOut size={17} /></a>
-        </div>
+        </div>}
       </aside>
 
       {mobileMenu && <button className="menu-scrim" aria-label="关闭菜单" onClick={() => setMobileMenu(false)} />}
@@ -174,10 +175,10 @@ export default function AnxinApp() {
             <span>{currentNav.label}</span>
             {activeCase && view !== 'home' && <><i /> <strong>{activeCase.company}</strong></>}
           </div>
-          <div className="topbar-account"><span className="account-icon"><UserRound size={18} /></span><span>{data.user.displayName}</span></div>
+          <div className="topbar-account"><span className="account-icon"><UserRound size={18} /></span><span>{directEntry ? '访客' : data.user.displayName}</span></div>
         </header>
 
-        {data.synthetic && (
+        {data.synthetic && !directEntry && (
           <section className="synthetic-notice" role="note" aria-label="合成验收环境提示">
             <strong>仅限合成数据 · HTTP 验收环境</strong>
             <span>HTTP 可被抓包或篡改，请勿输入真实资料或复用真实密码。截止：{new Date(data.synthetic.expiresAt).toLocaleString('zh-CN')}。</span>

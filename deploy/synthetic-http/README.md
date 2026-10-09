@@ -2,7 +2,9 @@
 
 这是短期合成数据入口，唯一部署目标为 **carryz Debian 12 / 172.23.1.127**。Z820 `172.31.125.123` 只是可选的第二验证来源。它不复用现有 HTTPS 8444 的账号、密钥、配置、D1 或 R2，也不更改 `deploy/local-cloud` 的 HTTPS 要求。
 
-HTTP 的内容、合成密码和会话可被网络中的人抓包或篡改。只输入合成资料，不复用真实密码。登录页及登录后所有业务页持续提示这一限制。使用独立浏览器 profile；端口不同不能隔离 Cookie。合成 Cookie 使用随机独立名称与签名密钥，真实 HTTPS 的 Secure Cookie 不会发到 HTTP，但合成 Cookie 仍可能发到同 IP 的 HTTPS，真实网关忽略它。
+HTTP 的内容、合成密码和会话可被网络中的人抓包或篡改。只输入合成资料，不复用真实密码。默认登录模式在登录页及业务页提示这一限制。使用独立浏览器 profile；端口不同不能隔离 Cookie。合成 Cookie 使用随机独立名称与签名密钥，真实 HTTPS 的 Secure Cookie 不会发到 HTTP，但合成 Cookie 仍可能发到同 IP 的 HTTPS，真实网关忽略它。
+
+显式设置 `directEntry: true`（创建参数 `--direct-entry true`）可直接进入首页。此模式共享已有 `synthetic-a` 的虚拟记录，忽略遗留登录 Cookie，界面显示访客并隐藏认证和环境提示。默认关闭；来源、Host、Origin、请求头剥离及绝对到期限制仍生效。切换已有环境时保留原 root、用户 ID、密钥、状态与截止时间，只正常重启网关。真实 HTTPS 网关不使用此选项。
 
 ## 本机隔离回归
 

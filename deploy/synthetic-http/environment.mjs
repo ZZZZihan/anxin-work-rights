@@ -71,8 +71,9 @@ function generatedRoot(root) {
   if (realpathSync(path) !== path) throw new Error('Synthetic root must not use symlinks.');
   return path;
 }
-export function createEnvironment({ baseDirectory = tmpdir(), ttlMinutes = 240, release = 'local-synthetic', ...network } = {}) {
+export function createEnvironment({ baseDirectory = tmpdir(), ttlMinutes = 240, release = 'local-synthetic', directEntry = false, ...network } = {}) {
   if (!Number.isInteger(ttlMinutes) || ttlMinutes < 1 || ttlMinutes > 240) throw new Error('Synthetic lifetime must be 1 to 240 minutes.');
+  if (typeof directEntry !== 'boolean') throw new Error('Direct entry must be explicitly boolean.');
   if (release !== 'local-synthetic' && !/^[a-f0-9]{40}$/.test(release)) throw new Error('Invalid synthetic release.');
   const scope = validateNetwork(network);
   const requested = resolve(baseDirectory);
@@ -97,7 +98,7 @@ export function createEnvironment({ baseDirectory = tmpdir(), ttlMinutes = 240, 
     access.push({ username, password });
     return { username, id: `synthetic-${environmentId}-${username}`, displayName: '合成验收账户', email: `${username}@synthetic.invalid`, salt, passwordHash: scryptSync(password, salt, 64).toString('hex') };
   });
-  const config = { ...marker, ...scope, release, origin: scope.publicOrigin ?? `http://${scope.bindIp}:${scope.port}`, cookieName: `anxin-synthetic-${environmentId}`, sessionKey: randomBytes(48).toString('hex'), ...(scope.proxyMode ? { proxyKey: randomBytes(32).toString('hex') } : {}), users };
+  const config = { ...marker, ...scope, release, directEntry, origin: scope.publicOrigin ?? `http://${scope.bindIp}:${scope.port}`, cookieName: `anxin-synthetic-${environmentId}`, sessionKey: randomBytes(48).toString('hex'), ...(scope.proxyMode ? { proxyKey: randomBytes(32).toString('hex') } : {}), users };
   writeFileSync(join(root, 'config.json'), JSON.stringify(config, null, 2), { mode: 0o600, flag: 'wx' });
   writeFileSync(join(root, 'access.json'), JSON.stringify({ purpose, environmentId, origin: config.origin, expiresAt, accounts: access }, null, 2), { mode: 0o600, flag: 'wx' });
   return { root, environmentId, origin: config.origin, expiresAt };
@@ -116,6 +117,7 @@ export function loadEnvironment(root, { allowExpired = false } = {}) {
   const lifetime = Date.parse(config.expiresAt) - Date.parse(config.createdAt);
   if (!Number.isFinite(lifetime) || lifetime <= 0 || lifetime > maxLifetime || Date.parse(config.createdAt) > Date.now() + 1000 || (!allowExpired && Date.parse(config.expiresAt) <= Date.now())) throw new Error('Synthetic environment expired or lifetime invalid.');
   validateNetwork(config);
+  if (config.directEntry !== undefined && typeof config.directEntry !== 'boolean') throw new Error('Invalid direct-entry configuration.');
   if (Boolean(config.proxyMode) !== Boolean(config.publicOrigin) || (config.proxyMode ? !/^[a-f0-9]{64}$/.test(config.proxyKey) : config.proxyKey !== undefined)) throw new Error('Invalid synthetic proxy configuration.');
   if (config.origin !== (config.publicOrigin ?? `http://${config.bindIp}:${config.port}`) || config.cookieName !== `anxin-synthetic-${config.environmentId}` || !/^[a-f0-9]{96}$/.test(config.sessionKey) || config.users?.length !== 2 || new Set(config.users.map((user) => user.username)).size !== 2 || config.users.some((user) => user.id !== `synthetic-${config.environmentId}-${user.username}` || !['synthetic-a', 'synthetic-b'].includes(user.username) || !/^[a-f0-9]{64}$/.test(user.salt) || !/^[a-f0-9]{128}$/.test(user.passwordHash))) throw new Error('Invalid synthetic identity configuration.');
   return { ...config, stateDir: join(path, 'state') };
@@ -139,6 +141,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         else if (key === '--base-dir') options.baseDirectory = value;
         else if (key === '--public-origin') options.publicOrigin = value;
         else if (key === '--release') options.release = value;
+        else if (key === '--direct-entry' && ['true', 'false'].includes(value)) options.directEntry = value === 'true';
         else if (['--port', '--worker-port', '--ttl-minutes'].includes(key)) options[{ '--port': 'port', '--worker-port': 'workerPort', '--ttl-minutes': 'ttlMinutes' }[key]] = Number(value);
         else throw new Error('Unknown option.');
       }

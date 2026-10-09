@@ -37,6 +37,8 @@ export function requestSource(req, config) {
 export function createGateway(config, workerBase, { now = Date.now } = {}) {
   const origin = new URL(config.origin);
   const expiresAt = Date.parse(config.expiresAt);
+  const directEntry = config.directEntry === true;
+  const guest = directEntry ? { ...config.users.find((user) => user.username === 'synthetic-a'), displayName: '访客' } : null;
   const sign = (value) => createHmac('sha256', config.sessionKey).update(value).digest('base64url');
   const attempts = new Map();
   const loginPage = (failed = false) => `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>合成验收登录 · 安薪乐业</title><style>body{font:16px system-ui;background:#fff4cf;color:#624515}main{max-width:420px;margin:6vh auto;padding:24px;background:white;border-radius:12px}label{display:grid;gap:6px;margin:20px 0}input,button{font:inherit;padding:10px}p{line-height:1.6}</style><main><h1>合成 HTTP 验收环境</h1><p role="note">${notice}</p><p>截止：${config.expiresAt}。短期合成账户与真实工作台无关。</p>${failed ? '<p role="alert">合成账户或密码不正确。</p>' : ''}<form method="post" action="/auth/login"><label>合成账号<input name="username" autocomplete="off" required maxlength="80"></label><label>合成密码<input type="password" name="password" autocomplete="off" required maxlength="256"></label><button>进入合成验收</button></form></main></html>`;
@@ -63,6 +65,7 @@ export function createGateway(config, workerBase, { now = Date.now } = {}) {
       if (url.pathname.startsWith('/cdn-cgi/') || url.pathname === '/api/synthetic-ready') return reply(res, 404, '{}');
       if (url.pathname === '/api/ready' && req.method === 'GET') return reply(res, 200, JSON.stringify({ status: 'ok', environmentId: config.environmentId, release: config.release, pid: process.pid, expiresAt: config.expiresAt }));
       if (['/auth/login', '/signin-with-chatgpt'].includes(url.pathname)) {
+        if (directEntry) { res.writeHead(303, { Location: '/', 'Cache-Control': 'no-store' }); return res.end(); }
         if (req.method === 'GET') return reply(res, 200, loginPage(), 'text/html; charset=utf-8');
         if (url.pathname !== '/auth/login' || req.method !== 'POST') return reply(res, 405, '{}');
         const recent = (attempts.get(source) ?? []).filter((time) => now() - time < 60_000);
@@ -79,9 +82,9 @@ export function createGateway(config, workerBase, { now = Date.now } = {}) {
         return res.end();
       }
       if (url.pathname === '/signout-with-chatgpt') {
-        res.writeHead(303, { Location: '/auth/login', 'Cache-Control': 'no-store', 'Set-Cookie': `${config.cookieName}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0` }); return res.end();
+        res.writeHead(303, { Location: directEntry ? '/' : '/auth/login', 'Cache-Control': 'no-store', 'Set-Cookie': `${config.cookieName}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0` }); return res.end();
       }
-      const user = sessionUser(req);
+      const user = directEntry ? guest : sessionUser(req);
       if (!user) {
         if (url.pathname.startsWith('/api/')) return reply(res, 401, '{"error":"需要合成账户登录。"}');
         res.writeHead(303, { Location: '/auth/login', 'Cache-Control': 'no-store' }); return res.end();
@@ -102,7 +105,7 @@ export function createGateway(config, workerBase, { now = Date.now } = {}) {
       if (url.pathname.startsWith('/api/')) outputHeaders['cache-control'] = 'private, no-store';
       if (url.pathname === '/api/bootstrap' && response.ok) {
         const data = await response.json();
-        data.synthetic = { environmentId: config.environmentId, expiresAt: config.expiresAt };
+        data.synthetic = { environmentId: config.environmentId, expiresAt: config.expiresAt, directEntry };
         return reply(res, response.status, JSON.stringify(data));
       }
       res.writeHead(response.status, outputHeaders);

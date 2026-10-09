@@ -123,6 +123,27 @@ try {
   launch(); await waitReady();
   const reopened = await (await request('/api/bootstrap')).json();
   assert.equal(reopened.cases[0].id, workCase.id); assert.equal(reopened.evidence[0].id, operationId); observe('restart_preserves_own_state');
+  child.kill('SIGTERM'); await waitExit(0);
+  const privateConfig = JSON.parse(readFileSync(join(item.root, 'config.json')));
+  privateConfig.directEntry = true;
+  writeFileSync(join(item.root, 'config.json'), JSON.stringify(privateConfig), { mode: 0o600 });
+  launch(); await waitReady();
+  const shared = await (await request('/api/bootstrap', null)).json();
+  assert.equal(shared.synthetic.directEntry, true);
+  assert.equal(shared.user.userId, config.users[0].id);
+  assert.equal(shared.user.displayName, '访客');
+  assert.equal(shared.cases[0].id, workCase.id); assert.equal(shared.evidence[0].id, operationId);
+  assert.equal(shared.documents[0].id, reopened.documents[0].id);
+  assert.equal(shared.messages.length, reopened.messages.length); observe('direct_entry_preserves_existing_shared_records');
+  const withOldB = await (await request('/api/bootstrap', 'b', 'GET', undefined, { 'oai-authenticated-user-id': config.users[1].id })).json();
+  assert.equal(withOldB.user.userId, config.users[0].id); assert.equal(withOldB.cases[0].id, workCase.id); observe('direct_entry_ignores_old_b_cookie_and_identity_headers');
+  const page = await request('/', null); assert.equal(page.status, 200); assert.match(page.headers.get('content-type'), /text\/html/); observe('direct_entry_anonymous_home');
+  for (const path of ['/auth/login', '/signin-with-chatgpt', '/signout-with-chatgpt']) {
+    const response = await request(path, null); assert.equal(response.status, 303); assert.equal(response.headers.get('location'), '/');
+  }
+  observe('direct_entry_auth_paths_return_home');
+  assert.equal((await request('/api/chat', null, 'POST', { caseId: workCase.id, message: '共享访客整理材料' })).status, 201); observe('direct_entry_anonymous_write');
+  assert.equal((await request('/api/cases', null, 'POST', {}, { Origin: 'http://other.invalid' })).status, 403); observe('direct_entry_origin_boundary_preserved');
   child.kill('SIGTERM'); await waitExit(0); observe('graceful_stop_ports_and_marker_clear');
   removeEnvironment(item.root, item.environmentId); assert.equal(existsSync(item.root), false); observe('exact_marked_stopped_cleanup');
   console.log(JSON.stringify({ passed: observations.length, observations }, null, 2));
@@ -137,7 +158,7 @@ try {
   }
   if (existsSync(item.root) && !existsSync(join(item.root, '.runtime.json'))) removeEnvironment(item.root, item.environmentId);
   if (output) {
-    writeFileSync(output, JSON.stringify({ passed: observations.length, complete: observations.length === 20, observations, fixtureRoot: item.root, fixtureRemoved: !existsSync(item.root) }, null, 2));
+    writeFileSync(output, JSON.stringify({ passed: observations.length, complete: observations.length === 26, observations, fixtureRoot: item.root, fixtureRemoved: !existsSync(item.root) }, null, 2));
     writeFileSync(output.replace(/\.json$/, '.worker.log'), log);
   }
 }

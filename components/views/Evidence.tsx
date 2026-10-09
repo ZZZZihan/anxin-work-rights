@@ -102,7 +102,7 @@ export default function Evidence({
   };
 
   const remove = async (item: EvidenceFile) => {
-    if (!window.confirm(`确认删除“${item.name}”？${data.synthetic ? '合成' : '真实'}上传的文件会一并从私有存储中删除。`)) return;
+    if (!window.confirm(`确认删除“${item.name}”？${data.synthetic?.directEntry ? '' : data.synthetic ? '合成' : '真实'}上传的文件会一并从私有存储中删除。`)) return;
     setDeletingId(item.id);
     try {
       await apiRequest<{ ok: true }>(`/api/evidence?id=${encodeURIComponent(item.id)}`, { method: 'DELETE' });
@@ -147,8 +147,8 @@ export default function Evidence({
       <div className="evidence-layout">
         <section className="upload-panel panel">
           <div className="section-heading">
-            <div><span className="eyebrow">上传材料</span><h2>{data.synthetic ? '添加合成文件' : '添加真实文件'}</h2></div>
-            <span className="private-badge"><LockKeyhole size={14} />仅你可见</span>
+            <div><span className="eyebrow">上传材料</span><h2>{data.synthetic?.directEntry ? '添加文件' : data.synthetic ? '添加合成文件' : '添加真实文件'}</h2></div>
+            {!data.synthetic?.directEntry && <span className="private-badge"><LockKeyhole size={14} />仅你可见</span>}
           </div>
 
           {uploadError && <div className="integrity-note" role="alert"><Info size={18} /><p>{uploadError}</p></div>}
@@ -245,7 +245,7 @@ export default function Evidence({
             </article>
           ))}
           {!evidence.length && (
-            <div className="inline-empty"><FolderLock size={26} /><strong>还没有材料</strong><span>从上方上传第一份{data.synthetic ? '合成' : '真实'}文件。</span></div>
+            <div className="inline-empty"><FolderLock size={26} /><strong>还没有材料</strong><span>从上方上传第一份{data.synthetic?.directEntry ? '' : data.synthetic ? '合成' : '真实'}文件。</span></div>
           )}
         </div>
       </section>
