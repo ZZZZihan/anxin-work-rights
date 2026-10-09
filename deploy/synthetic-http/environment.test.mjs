@@ -29,6 +29,7 @@ describe('fresh synthetic environment boundaries', () => {
     expect(a.config.bindIp).toBe('127.0.0.1');
     expect(a.config.allowCidrs).toEqual(['127.0.0.1/32']);
     expect(a.config.directEntry).toBe(false);
+    expect(a.config.persistentDemo).toBe(false);
     expect(Date.parse(a.config.expiresAt) - Date.parse(a.config.createdAt)).toBe(maxLifetime);
     expect(a.config.sessionKey !== b.config.sessionKey && a.config.cookieName !== b.config.cookieName && a.config.users[0].id !== b.config.users[0].id).toBe(true);
     expect(a.config.stateDir !== b.config.stateDir).toBe(true);
@@ -39,11 +40,45 @@ describe('fresh synthetic environment boundaries', () => {
     expect(a.config.directEntry).toBe(true);
     const path = join(a.root, 'config.json');
     const config = { ...a.config }; delete config.stateDir; delete config.directEntry;
+    delete config.persistentDemo;
+    const markerPath = join(a.root, '.synthetic-environment.json');
+    const marker = JSON.parse(readFileSync(markerPath)); delete marker.persistentDemo;
+    writeFileSync(markerPath, JSON.stringify(marker));
     writeFileSync(path, JSON.stringify(config));
     expect(loadEnvironment(a.root).directEntry).toBeUndefined();
     config.directEntry = 'true'; writeFileSync(path, JSON.stringify(config));
     expect(() => loadEnvironment(a.root)).toThrow('direct-entry');
     config.directEntry = false; writeFileSync(path, JSON.stringify(config));
+  });
+  it('allows persistent Demo only with matching markers, direct entry and a valid creation time', () => {
+    expect(() => createEnvironment({ persistentDemo: true })).toThrow('direct entry');
+    expect(() => createEnvironment({ directEntry: true, persistentDemo: 'true' })).toThrow();
+    const a = environment({ directEntry: true, persistentDemo: true });
+    expect(a.expiresAt).toBe(null);
+    const configPath = join(a.root, 'config.json'), markerPath = join(a.root, '.synthetic-environment.json');
+    const config = JSON.parse(readFileSync(configPath)), marker = JSON.parse(readFileSync(markerPath));
+    config.createdAt = marker.createdAt = new Date(Date.now() - maxLifetime - 1000).toISOString();
+    writeFileSync(configPath, JSON.stringify(config)); writeFileSync(markerPath, JSON.stringify(marker));
+    expect(loadEnvironment(a.root).persistentDemo).toBe(true);
+    marker.persistentDemo = false; writeFileSync(markerPath, JSON.stringify(marker));
+    expect(() => loadEnvironment(a.root)).toThrow('marker');
+    marker.persistentDemo = true;
+    config.createdAt = marker.createdAt = 'invalid';
+    writeFileSync(configPath, JSON.stringify(config)); writeFileSync(markerPath, JSON.stringify(marker));
+    expect(() => loadEnvironment(a.root)).toThrow('creation time');
+    config.createdAt = marker.createdAt = new Date().toISOString();
+    config.expiresAt = marker.expiresAt = new Date(Date.now() + maxLifetime).toISOString();
+    writeFileSync(configPath, JSON.stringify(config)); writeFileSync(markerPath, JSON.stringify(marker));
+    expect(() => loadEnvironment(a.root)).toThrow('must not have an expiry');
+    config.expiresAt = marker.expiresAt = null;
+    config.createdAt = marker.createdAt = new Date(Date.now() + 5000).toISOString();
+    writeFileSync(configPath, JSON.stringify(config)); writeFileSync(markerPath, JSON.stringify(marker));
+    expect(() => loadEnvironment(a.root)).toThrow('creation time');
+    config.createdAt = marker.createdAt = new Date().toISOString();
+    config.directEntry = false;
+    writeFileSync(configPath, JSON.stringify(config)); writeFileSync(markerPath, JSON.stringify(marker));
+    expect(() => loadEnvironment(a.root)).toThrow('direct entry');
+    config.directEntry = true; writeFileSync(configPath, JSON.stringify(config));
   });
   it('requires one private bind IP and explicit canonical sources, with public sources restricted to /32', () => {
     for (const bindIp of ['0.0.0.0', '::', '219.243.58.55']) expect(() => validateNetwork({ bindIp })).toThrow();
@@ -117,6 +152,17 @@ describe('proxy authentication and precise sources', () => {
   });
 });
 describe('session boundaries and worker identity', () => {
+  it('persistent Demo remains available beyond the default lifetime while default mode expires', async () => {
+    const a = environment({ directEntry: true, persistentDemo: true }), b = environment();
+    const worker = await listen(createServer((_req, res) => { res.setHeader('Content-Type', 'application/json'); res.end('{}'); }));
+    const clock = Date.now() + maxLifetime + 60_000;
+    const persistent = await listen(createGateway(a.config, worker, { now: () => clock }));
+    const limited = await listen(createGateway(b.config, worker, { now: () => clock }));
+    const response = await request(persistent + '/api/ready', { headers: { Host: new URL(a.origin).host } });
+    expect(response.status).toBe(200); expect((await response.json()).expiresAt).toBe(null);
+    expect((await request(persistent + '/api/bootstrap', { headers: { Host: new URL(a.origin).host } })).status).toBe(200);
+    expect((await request(limited + '/api/ready', { headers: { Host: new URL(b.origin).host } })).status).toBe(410);
+  });
   it('direct entry fixes the shared identity and redirects authentication without weakening request boundaries', async () => {
     const a = environment({ directEntry: true }); let clock = Date.now(), forwarded;
     const worker = await listen(createServer((req, res) => { forwarded = req.headers; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ cases: [] })); }));

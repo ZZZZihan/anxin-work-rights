@@ -36,7 +36,7 @@ export function requestSource(req, config) {
 }
 export function createGateway(config, workerBase, { now = Date.now } = {}) {
   const origin = new URL(config.origin);
-  const expiresAt = Date.parse(config.expiresAt);
+  const expiresAt = config.persistentDemo === true ? Infinity : Date.parse(config.expiresAt);
   const directEntry = config.directEntry === true;
   const guest = directEntry ? { ...config.users.find((user) => user.username === 'synthetic-a'), displayName: '林晓', email: 'lin.xiao@example.com' } : null;
   const sign = (value) => createHmac('sha256', config.sessionKey).update(value).digest('base64url');
@@ -63,7 +63,7 @@ export function createGateway(config, workerBase, { now = Date.now } = {}) {
       const mutation = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
       if (mutation && req.headers.origin !== config.origin) return reply(res, 403, '{"error":"合成环境请求来源不正确。"}');
       if (url.pathname.startsWith('/cdn-cgi/') || url.pathname === '/api/synthetic-ready') return reply(res, 404, '{}');
-      if (url.pathname === '/api/ready' && req.method === 'GET') return reply(res, 200, JSON.stringify({ status: 'ok', environmentId: config.environmentId, release: config.release, pid: process.pid, expiresAt: config.expiresAt }));
+      if (url.pathname === '/api/ready' && req.method === 'GET') return reply(res, 200, JSON.stringify({ status: 'ok', environmentId: config.environmentId, release: config.release, pid: process.pid, expiresAt: config.expiresAt, persistentDemo: config.persistentDemo === true }));
       if (['/auth/login', '/signin-with-chatgpt'].includes(url.pathname)) {
         if (directEntry) { res.writeHead(303, { Location: '/', 'Cache-Control': 'no-store' }); return res.end(); }
         if (req.method === 'GET') return reply(res, 200, loginPage(), 'text/html; charset=utf-8');
@@ -105,7 +105,7 @@ export function createGateway(config, workerBase, { now = Date.now } = {}) {
       if (url.pathname.startsWith('/api/')) outputHeaders['cache-control'] = 'private, no-store';
       if (url.pathname === '/api/bootstrap' && response.ok) {
         const data = await response.json();
-        data.synthetic = { environmentId: config.environmentId, expiresAt: config.expiresAt, directEntry };
+        data.synthetic = { environmentId: config.environmentId, expiresAt: config.expiresAt, directEntry, persistentDemo: config.persistentDemo === true };
         return reply(res, response.status, JSON.stringify(data));
       }
       res.writeHead(response.status, outputHeaders);
@@ -189,7 +189,7 @@ export async function startEnvironment(root) {
     server = createGateway(config, workerBase);
     await new Promise((done, fail) => { server.once('error', fail); server.listen(config.port, config.bindIp, done); });
     worker.once('exit', () => { if (!closing) void stop().finally(() => { process.exitCode = 1; }).catch(() => undefined); });
-    lifetime = setTimeout(() => { void stop().catch(() => { process.exitCode = 1; }); }, Date.parse(config.expiresAt) - Date.now());
+    if (config.persistentDemo !== true) lifetime = setTimeout(() => { void stop().catch(() => { process.exitCode = 1; }); }, Date.parse(config.expiresAt) - Date.now());
     shutdown = () => { void stop().catch(() => { process.exitCode = 1; }); };
     process.once('SIGTERM', shutdown); process.once('SIGINT', shutdown);
     console.log(JSON.stringify({ synthetic: true, environmentId: config.environmentId, origin: config.origin, listener: `http://${config.bindIp}:${config.port}`, expiresAt: config.expiresAt, worker: worker.pid, notice }));

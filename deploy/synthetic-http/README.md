@@ -6,6 +6,8 @@ HTTP 的内容、合成密码和会话可被网络中的人抓包或篡改。只
 
 显式设置 `directEntry: true`（创建参数 `--direct-entry true`）可直接进入首页。此模式共享已有 `synthetic-a` 的虚拟记录，忽略遗留登录 Cookie，以虚构人物林晓展示账户资料，隐藏登录、退出、认证宣传和环境提示。默认关闭；来源、Host、Origin、请求头剥离及绝对到期限制仍生效。切换已有环境时保留原 root、用户 ID、密钥、状态与截止时间，只正常重启网关。真实 HTTPS 网关不使用此选项。
 
+需要持续展示时，显式添加 `--persistent-demo true`，并同时设置 `--direct-entry true`。此时标记和配置的 `persistentDemo` 均为 true、`expiresAt` 均为 null，不创建自动到期计时器，由操作者主动停止。服务管理器的网关和专用代理单元也必须取消 RuntimeMaxSec 限制。升级已有展示账号保留同 root、用户 ID、密钥与记录，仅同步生命周期元数据及新 release；不要创建空实例。默认登录和限时直接进入模式仍受原四小时上限约束。
+
 ## 本机隔离回归
 
 ```sh

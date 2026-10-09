@@ -71,9 +71,10 @@ function generatedRoot(root) {
   if (realpathSync(path) !== path) throw new Error('Synthetic root must not use symlinks.');
   return path;
 }
-export function createEnvironment({ baseDirectory = tmpdir(), ttlMinutes = 240, release = 'local-synthetic', directEntry = false, ...network } = {}) {
+export function createEnvironment({ baseDirectory = tmpdir(), ttlMinutes = 240, release = 'local-synthetic', directEntry = false, persistentDemo = false, ...network } = {}) {
   if (!Number.isInteger(ttlMinutes) || ttlMinutes < 1 || ttlMinutes > 240) throw new Error('Synthetic lifetime must be 1 to 240 minutes.');
   if (typeof directEntry !== 'boolean') throw new Error('Direct entry must be explicitly boolean.');
+  if (typeof persistentDemo !== 'boolean' || (persistentDemo && !directEntry)) throw new Error('Persistent Demo requires explicit direct entry.');
   if (release !== 'local-synthetic' && !/^[a-f0-9]{40}$/.test(release)) throw new Error('Invalid synthetic release.');
   const scope = validateNetwork(network);
   const requested = resolve(baseDirectory);
@@ -88,8 +89,8 @@ export function createEnvironment({ baseDirectory = tmpdir(), ttlMinutes = 240, 
   mkdirSync(join(root, 'state'), { mode: 0o700 });
   const created = Date.now();
   const createdAt = new Date(created).toISOString();
-  const expiresAt = new Date(created + ttlMinutes * 60_000).toISOString();
-  const marker = { purpose, environmentId, root, createdAt, expiresAt };
+  const expiresAt = persistentDemo ? null : new Date(created + ttlMinutes * 60_000).toISOString();
+  const marker = { purpose, environmentId, root, createdAt, expiresAt, persistentDemo };
   writeFileSync(join(root, '.synthetic-environment.json'), JSON.stringify(marker), { mode: 0o600, flag: 'wx' });
   const access = [];
   const users = ['synthetic-a', 'synthetic-b'].map((username) => {
@@ -114,10 +115,19 @@ export function loadEnvironment(root, { allowExpired = false } = {}) {
   privateFile(join(path, 'state'), true);
   const config = JSON.parse(readFileSync(join(path, 'config.json'), 'utf8'));
   for (const field of ['purpose', 'environmentId', 'root', 'createdAt', 'expiresAt']) if (config[field] !== marker[field]) throw new Error('Synthetic configuration marker mismatch.');
-  const lifetime = Date.parse(config.expiresAt) - Date.parse(config.createdAt);
-  if (!Number.isFinite(lifetime) || lifetime <= 0 || lifetime > maxLifetime || Date.parse(config.createdAt) > Date.now() + 1000 || (!allowExpired && Date.parse(config.expiresAt) <= Date.now())) throw new Error('Synthetic environment expired or lifetime invalid.');
-  validateNetwork(config);
   if (config.directEntry !== undefined && typeof config.directEntry !== 'boolean') throw new Error('Invalid direct-entry configuration.');
+  for (const value of [config.persistentDemo, marker.persistentDemo]) if (value !== undefined && typeof value !== 'boolean') throw new Error('Invalid persistent Demo configuration.');
+  const persistent = config.persistentDemo === true;
+  if (persistent !== (marker.persistentDemo === true) || (persistent && config.directEntry !== true)) throw new Error('Persistent Demo marker or direct entry mismatch.');
+  const created = Date.parse(config.createdAt);
+  if (!Number.isFinite(created) || created > Date.now() + 1000) throw new Error('Synthetic creation time is invalid.');
+  if (persistent) {
+    if (config.expiresAt !== null) throw new Error('Persistent Demo must not have an expiry.');
+  } else {
+    const lifetime = Date.parse(config.expiresAt) - created;
+    if (!Number.isFinite(lifetime) || lifetime <= 0 || lifetime > maxLifetime || (!allowExpired && Date.parse(config.expiresAt) <= Date.now())) throw new Error('Synthetic environment expired or lifetime invalid.');
+  }
+  validateNetwork(config);
   if (Boolean(config.proxyMode) !== Boolean(config.publicOrigin) || (config.proxyMode ? !/^[a-f0-9]{64}$/.test(config.proxyKey) : config.proxyKey !== undefined)) throw new Error('Invalid synthetic proxy configuration.');
   if (config.origin !== (config.publicOrigin ?? `http://${config.bindIp}:${config.port}`) || config.cookieName !== `anxin-synthetic-${config.environmentId}` || !/^[a-f0-9]{96}$/.test(config.sessionKey) || config.users?.length !== 2 || new Set(config.users.map((user) => user.username)).size !== 2 || config.users.some((user) => user.id !== `synthetic-${config.environmentId}-${user.username}` || !['synthetic-a', 'synthetic-b'].includes(user.username) || !/^[a-f0-9]{64}$/.test(user.salt) || !/^[a-f0-9]{128}$/.test(user.passwordHash))) throw new Error('Invalid synthetic identity configuration.');
   return { ...config, stateDir: join(path, 'state') };
@@ -142,6 +152,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         else if (key === '--public-origin') options.publicOrigin = value;
         else if (key === '--release') options.release = value;
         else if (key === '--direct-entry' && ['true', 'false'].includes(value)) options.directEntry = value === 'true';
+        else if (key === '--persistent-demo' && ['true', 'false'].includes(value)) options.persistentDemo = value === 'true';
         else if (['--port', '--worker-port', '--ttl-minutes'].includes(key)) options[{ '--port': 'port', '--worker-port': 'workerPort', '--ttl-minutes': 'ttlMinutes' }[key]] = Number(value);
         else throw new Error('Unknown option.');
       }

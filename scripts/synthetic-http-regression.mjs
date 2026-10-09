@@ -145,6 +145,25 @@ try {
   observe('direct_entry_auth_paths_return_home');
   assert.equal((await request('/api/chat', null, 'POST', { caseId: workCase.id, message: '共享访客整理材料' })).status, 201); observe('direct_entry_anonymous_write');
   assert.equal((await request('/api/cases', null, 'POST', {}, { Origin: 'http://other.invalid' })).status, 403); observe('direct_entry_origin_boundary_preserved');
+  child.kill('SIGTERM'); await waitExit(0);
+  const persistentConfig = JSON.parse(readFileSync(join(item.root, 'config.json')));
+  const persistentMarker = JSON.parse(readFileSync(join(item.root, '.synthetic-environment.json')));
+  persistentConfig.persistentDemo = persistentMarker.persistentDemo = true;
+  persistentConfig.expiresAt = persistentMarker.expiresAt = null;
+  writeFileSync(join(item.root, 'config.json'), JSON.stringify(persistentConfig), { mode: 0o600 });
+  writeFileSync(join(item.root, '.synthetic-environment.json'), JSON.stringify(persistentMarker), { mode: 0o600 });
+  launch(); await waitReady();
+  const persistentReady = await (await request('/api/ready', null)).json();
+  assert.equal(persistentReady.expiresAt, null); assert.equal(persistentReady.persistentDemo, true); observe('persistent_demo_explicit_null_expiry');
+  await pause(250);
+  assert.equal(exit, undefined); assert.equal((await request('/api/bootstrap', null)).status, 200); observe('persistent_demo_no_infinite_timeout_shutdown');
+  child.kill('SIGTERM'); await waitExit(0); observe('persistent_demo_manual_stop');
+  launch(); await waitReady();
+  const persistentReopened = await (await request('/api/bootstrap', null)).json();
+  assert.equal(persistentReopened.cases[0].id, workCase.id);
+  assert.equal(persistentReopened.evidence[0].id, operationId);
+  assert.equal(persistentReopened.documents[0].id, shared.documents[0].id);
+  assert.equal(persistentReopened.messages.length, shared.messages.length + 2); observe('persistent_demo_restart_retains_same_root_records');
   child.kill('SIGTERM'); await waitExit(0); observe('graceful_stop_ports_and_marker_clear');
   removeEnvironment(item.root, item.environmentId); assert.equal(existsSync(item.root), false); observe('exact_marked_stopped_cleanup');
   console.log(JSON.stringify({ passed: observations.length, observations }, null, 2));
@@ -159,7 +178,7 @@ try {
   }
   if (existsSync(item.root) && !existsSync(join(item.root, '.runtime.json'))) removeEnvironment(item.root, item.environmentId);
   if (output) {
-    writeFileSync(output, JSON.stringify({ passed: observations.length, complete: observations.length === 26, observations, fixtureRoot: item.root, fixtureRemoved: !existsSync(item.root) }, null, 2));
+    writeFileSync(output, JSON.stringify({ passed: observations.length, complete: observations.length === 30, observations, fixtureRoot: item.root, fixtureRemoved: !existsSync(item.root) }, null, 2));
     writeFileSync(output.replace(/\.json$/, '.worker.log'), log);
   }
 }
