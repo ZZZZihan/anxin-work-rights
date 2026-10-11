@@ -79,7 +79,7 @@ export default function Chat({
           </div>
           <label className="case-switcher compact-switcher">
             <span>围绕案件</span>
-            <select value={activeCase.id} onChange={(event) => setActiveCaseId(event.target.value)}>
+            <select value={activeCase.id} disabled={sending} onChange={(event) => setActiveCaseId(event.target.value)}>
               {data.cases.map((item) => <option key={item.id} value={item.id}>{item.company} · {item.type}</option>)}
             </select>
           </label>
@@ -139,9 +139,11 @@ export default function Chat({
             <span className="sr-only">输入你的劳动权益问题</span>
             <textarea
               rows={2}
+              disabled={sending}
               value={input}
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={(event) => {
+                if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
                 if (event.key === 'Enter' && !event.shiftKey) {
                   event.preventDefault();
                   void send();

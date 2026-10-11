@@ -98,6 +98,12 @@ export default function Evidence({
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragging(false);
+    if (event.dataTransfer.files.length > 1) {
+      const message = '一次只能上传一个文件，请分次选择或拖入。';
+      setUploadError(message);
+      notify(message, 'error');
+      return;
+    }
     void upload(event.dataTransfer.files[0]);
   };
 
@@ -161,7 +167,7 @@ export default function Evidence({
           >
             <span className="upload-icon"><UploadCloud size={28} /></span>
             <h3>{uploading ? '正在安全上传…' : '把文件拖到这里'}</h3>
-            <p>或从设备选择文件；单个不超过 10MB</p>
+            <p>一次选择或拖入一个文件；单个不超过 10MB</p>
             <button className="button button-secondary" disabled={uploading} onClick={() => inputRef.current?.click()}>
               <Plus size={17} />选择文件
             </button>
