@@ -2,6 +2,7 @@
 
 import {
   ArrowRight,
+  CalendarDays,
   CheckCircle2,
   ChevronRight,
   ClipboardList,
@@ -51,9 +52,9 @@ export default function Dashboard({ data, setActiveCaseId, navigate }: SharedVie
           <h1>{greeting()}，{data.user.displayName}</h1>
           <p>把眼前的一件事处理好，让每一步都有依据。</p>
           <section className="clio-metrics" aria-label="案件概况">
-            <article><strong>{activeCases.length}</strong><span>进行中案件</span></article>
-            <article><strong>{upcoming.length}</strong><span>14 天内节点</span></article>
-            <article><strong>{data.evidence.length}</strong><span>证据记录</span></article>
+            <article className="tone-cases"><div className="clio-metric-value"><strong>{activeCases.length}</strong><span className="clio-metric-icon"><ClipboardList size={20} aria-hidden="true" /></span></div><span>进行中案件</span></article>
+            <article className="tone-nodes"><div className="clio-metric-value"><strong>{upcoming.length}</strong><span className="clio-metric-icon"><CalendarDays size={20} aria-hidden="true" /></span></div><span>14 天内节点</span></article>
+            <article className="tone-evidence"><div className="clio-metric-value"><strong>{data.evidence.length}</strong><span className="clio-metric-icon"><FolderLock size={20} aria-hidden="true" /></span></div><span>证据记录</span></article>
           </section>
         </div>
 
@@ -119,10 +120,10 @@ export default function Dashboard({ data, setActiveCaseId, navigate }: SharedVie
           <section className="clio-shortcuts" aria-labelledby="quick-entry-title">
             <header className="clio-section-heading"><h2 id="quick-entry-title">快速入口</h2></header>
             <div className="clio-shortcut-list">
-              <button onClick={() => navigate('chat')}><span className="clio-shortcut-icon"><ListChecks size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>梳理问题</strong><small>厘清事实，明确诉求</small></span><ChevronRight size={16} aria-hidden="true" /></button>
-              <button onClick={() => navigate('evidence')}><span className="clio-shortcut-icon"><Upload size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>上传材料</strong><small>整理并上传相关证据</small></span><ChevronRight size={16} aria-hidden="true" /></button>
-              <button onClick={() => navigate('documents')}><span className="clio-shortcut-icon"><FileCheck2 size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>起草文书</strong><small>参考模板，准备所需文书</small></span><ChevronRight size={16} aria-hidden="true" /></button>
-              <a href="tel:12333"><span className="clio-shortcut-icon"><PhoneCall size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>拨打 12333</strong><small>咨询政策与办理流程</small></span><ChevronRight size={16} aria-hidden="true" /></a>
+              <button className="tone-violet" onClick={() => navigate('chat')}><span className="clio-shortcut-icon"><ListChecks size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>梳理问题</strong><small>厘清事实，明确诉求</small></span><ChevronRight size={16} aria-hidden="true" /></button>
+              <button className="tone-blue" onClick={() => navigate('evidence')}><span className="clio-shortcut-icon"><Upload size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>上传材料</strong><small>整理并上传相关证据</small></span><ChevronRight size={16} aria-hidden="true" /></button>
+              <button className="tone-mint" onClick={() => navigate('documents')}><span className="clio-shortcut-icon"><FileCheck2 size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>起草文书</strong><small>参考模板，准备所需文书</small></span><ChevronRight size={16} aria-hidden="true" /></button>
+              <a className="tone-apricot" href="tel:12333"><span className="clio-shortcut-icon"><PhoneCall size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>拨打 12333</strong><small>咨询政策与办理流程</small></span><ChevronRight size={16} aria-hidden="true" /></a>
             </div>
           </section>
 
