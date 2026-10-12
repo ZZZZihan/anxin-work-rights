@@ -47,45 +47,47 @@ export default function Dashboard({ data, setActiveCaseId, navigate }: SharedVie
 
   return (
     <div className="view-stack">
-      <section className="welcome-row">
-        <div>
-          <h1>{greeting()}，{data.user.displayName}</h1>
-          <p>先处理离期限最近的一件事，把事实和证据一步步整理清楚。</p>
-        </div>
-        <button className="button button-primary desktop-action" onClick={() => navigate('cases')}>
-          <Plus size={19} aria-hidden="true" />新建案件
-        </button>
-      </section>
+      <div className="dashboard-intro">
+        <section className="welcome-row">
+          <div>
+            <h1>{greeting()}，{data.user.displayName}</h1>
+            <p>先处理离期限最近的一件事，把事实和证据一步步整理清楚。</p>
+          </div>
+          <button className="button button-primary desktop-action" onClick={() => navigate('cases')}>
+            <Plus size={19} aria-hidden="true" />新建案件
+          </button>
+        </section>
 
-      <section className="action-hero" aria-labelledby="next-action-title">
-        <span className="action-hero-icon"><ClipboardList size={30} aria-hidden="true" /></span>
-        <div className="action-hero-copy">
-          <h2 id="next-action-title">{urgent ? urgent.nextAction : '从一件事开始，慢慢整理清楚'}</h2>
-          <p>{urgent ? `${urgent.company} · ${urgent.type}` : '创建案件，记录发生的事，再一步步补齐证据。'}</p>
-          {urgent && (
-            <div className="hero-meta">
-              <span>目标日期 {formatDate(urgent.deadline, true)}</span>
-              {daysUntil(urgent.deadline) !== null && <strong>{deadlineCopy(daysUntil(urgent.deadline)!)}</strong>}
-            </div>
-          )}
-        </div>
-        <div className="action-hero-buttons">
-          {urgent ? (
-            <>
-              <button className="button button-secondary" onClick={() => openCase(urgent)}>查看行动清单 <ArrowRight size={17} /></button>
-              <button className="button button-primary" onClick={() => openCase(urgent, 'evidence')}><FolderLock size={17} />补充证据</button>
-            </>
-          ) : (
-            <button className="button button-primary" onClick={() => navigate('cases')}><Plus size={18} />新建案件</button>
-          )}
-        </div>
-      </section>
+        <section className="action-hero" aria-labelledby="next-action-title">
+          <span className="action-hero-icon"><ClipboardList size={30} aria-hidden="true" /></span>
+          <div className="action-hero-copy">
+            <h2 id="next-action-title">{urgent ? urgent.nextAction : '从一件事开始，慢慢整理清楚'}</h2>
+            <p>{urgent ? `${urgent.company} · ${urgent.type}` : '创建案件，记录发生的事，再一步步补齐证据。'}</p>
+            {urgent && (
+              <div className="hero-meta">
+                <span>目标日期 {formatDate(urgent.deadline, true)}</span>
+                {daysUntil(urgent.deadline) !== null && <strong>{deadlineCopy(daysUntil(urgent.deadline)!)}</strong>}
+              </div>
+            )}
+          </div>
+          <div className="action-hero-buttons">
+            {urgent ? (
+              <>
+                <button className="button button-secondary" onClick={() => openCase(urgent)}>查看行动清单 <ArrowRight size={17} /></button>
+                <button className="button button-primary" onClick={() => openCase(urgent, 'evidence')}><FolderLock size={17} />补充证据</button>
+              </>
+            ) : (
+              <button className="button button-primary" onClick={() => navigate('cases')}><Plus size={18} />新建案件</button>
+            )}
+          </div>
+        </section>
 
-      <section className="metric-grid" aria-label="案件概况">
-        <article className="metric-card"><strong>{activeCases.length}</strong><span>进行中案件</span></article>
-        <article className="metric-card"><strong>{upcoming.length}</strong><span>14 天内节点</span></article>
-        <article className="metric-card"><strong>{data.evidence.length}</strong><span>证据记录</span></article>
-      </section>
+        <section className="metric-grid" aria-label="案件概况">
+          <article className="metric-card"><strong>{activeCases.length}</strong><span>进行中案件</span></article>
+          <article className="metric-card"><strong>{upcoming.length}</strong><span>14 天内节点</span></article>
+          <article className="metric-card"><strong>{data.evidence.length}</strong><span>证据记录</span></article>
+        </section>
+      </div>
 
       <div className="dashboard-grid">
         <section className="panel case-overview-panel">
