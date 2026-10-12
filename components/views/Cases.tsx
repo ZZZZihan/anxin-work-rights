@@ -137,11 +137,14 @@ export default function Cases({
   };
 
   return (
-    <div className="view-stack">
+    <div className="view-stack workspace-view cases-view">
       <section className="page-heading-row">
-        <div>
-          <h1>案件追踪</h1>
-          <p>每个案件只有一个明确的下一步，材料和记录都围绕它展开。</p>
+        <div className="workspace-heading-copy">
+          <span className="workspace-page-icon tone-blue" aria-hidden="true"><BriefcaseBusiness size={25} /></span>
+          <div>
+            <h1>案件追踪</h1>
+            <p>每个案件只有一个明确的下一步，材料和记录都围绕它展开。</p>
+          </div>
         </div>
         <button className="button button-primary" onClick={() => setEditing('new')}>
           <Plus size={18} />新建案件
@@ -175,6 +178,7 @@ export default function Cases({
                 <button
                   key={item.id}
                   className={`case-list-card ${item.id === activeCase?.id ? 'active' : ''}`}
+                  aria-pressed={item.id === activeCase?.id}
                   onClick={() => setActiveCaseId(item.id)}
                 >
                   <span className="case-list-card-top">
@@ -213,9 +217,9 @@ export default function Cases({
             </div>
 
             <div className="case-facts-grid">
-              <div><span><CircleDollarSign size={16} />争议金额</span><strong>{activeCase.amount ? formatMoney(activeCase.amount) : '待核算'}</strong></div>
-              <div><span><CalendarDays size={16} />目标日期</span><strong>{formatDate(activeCase.deadline, true)}</strong></div>
-              <div><span><MapPin size={16} />发生地</span><strong>{activeCase.location || '待补充'}</strong></div>
+              <div className="tone-mint"><span><CircleDollarSign size={16} />争议金额</span><strong>{activeCase.amount ? formatMoney(activeCase.amount) : '待核算'}</strong></div>
+              <div className="tone-apricot"><span><CalendarDays size={16} />目标日期</span><strong>{formatDate(activeCase.deadline, true)}</strong></div>
+              <div className="tone-violet"><span><MapPin size={16} />发生地</span><strong>{activeCase.location || '待补充'}</strong></div>
             </div>
 
             <div className="case-progress-block">
@@ -249,9 +253,9 @@ export default function Cases({
             </div>
 
             <div className="case-detail-actions" hidden={activeCase.status === 'archived'}>
-              <button className="button button-secondary" onClick={() => navigate('evidence')}>查看证据 <ArrowRight size={16} /></button>
-              <button className="button button-secondary" onClick={() => navigate('chat')}>继续梳理 <ArrowRight size={16} /></button>
-              <button className="button button-secondary" onClick={() => navigate('documents')}>起草文书 <ArrowRight size={16} /></button>
+              <button className="button button-secondary tone-blue" onClick={() => navigate('evidence')}>查看证据 <ArrowRight size={16} /></button>
+              <button className="button button-secondary tone-violet" onClick={() => navigate('chat')}>继续梳理 <ArrowRight size={16} /></button>
+              <button className="button button-secondary tone-mint" onClick={() => navigate('documents')}>起草文书 <ArrowRight size={16} /></button>
             </div>
           </section>
         ) : (

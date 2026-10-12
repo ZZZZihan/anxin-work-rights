@@ -62,7 +62,7 @@ export default function Chat({
 
   if (!activeCase) {
     return (
-      <section className="panel empty-panel standalone-empty">
+      <section className="workspace-view chat-view panel empty-panel standalone-empty">
         <MessageCircleMore size={30} /><h1>先创建一个案件</h1><p>咨询记录会和具体案件关联，避免不同事实相互混淆。</p>
         <button className="button button-primary" onClick={() => navigate('cases')}><Plus size={17} />创建案件</button>
       </section>
@@ -70,7 +70,7 @@ export default function Chat({
   }
 
   return (
-    <div className="chat-page">
+    <div className="workspace-view chat-view chat-page">
       <section className="chat-main panel">
         <header className="chat-header">
           <div className="assistant-identity">
