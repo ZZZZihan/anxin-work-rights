@@ -46,7 +46,7 @@ export default function Dashboard({ data, setActiveCaseId, navigate }: SharedVie
   };
 
   return (
-    <div className="view-stack">
+    <div className="view-stack dashboard-view">
       <div className="dashboard-intro">
         <section className="welcome-row">
           <div>
@@ -58,36 +58,22 @@ export default function Dashboard({ data, setActiveCaseId, navigate }: SharedVie
           </button>
         </section>
 
-        <section className="action-hero" aria-labelledby="next-action-title">
-          <span className="action-hero-icon"><ClipboardList size={30} aria-hidden="true" /></span>
-          <div className="action-hero-copy">
-            <h2 id="next-action-title">{urgent ? urgent.nextAction : '从一件事开始，慢慢整理清楚'}</h2>
-            <p>{urgent ? `${urgent.company} · ${urgent.type}` : '创建案件，记录发生的事，再一步步补齐证据。'}</p>
-            {urgent && (
-              <div className="hero-meta">
-                <span>目标日期 {formatDate(urgent.deadline, true)}</span>
-                {daysUntil(urgent.deadline) !== null && <strong>{deadlineCopy(daysUntil(urgent.deadline)!)}</strong>}
-              </div>
-            )}
-          </div>
-          <div className="action-hero-buttons">
-            {urgent ? (
-              <>
-                <button className="button button-secondary" onClick={() => openCase(urgent)}>查看行动清单 <ArrowRight size={17} /></button>
-                <button className="button button-primary" onClick={() => openCase(urgent, 'evidence')}><FolderLock size={17} />补充证据</button>
-              </>
-            ) : (
-              <button className="button button-primary" onClick={() => navigate('cases')}><Plus size={18} />新建案件</button>
-            )}
-          </div>
-        </section>
-
         <section className="metric-grid" aria-label="案件概况">
           <article className="metric-card"><strong>{activeCases.length}</strong><span>进行中案件</span></article>
           <article className="metric-card"><strong>{upcoming.length}</strong><span>14 天内节点</span></article>
           <article className="metric-card"><strong>{data.evidence.length}</strong><span>证据记录</span></article>
         </section>
       </div>
+
+      <section className="panel quick-panel">
+        <div className="section-heading"><h2>快速入口</h2></div>
+        <div className="quick-grid">
+          <button onClick={() => navigate('chat')}><span className="quick-icon"><ListChecks size={21} /></span><span><strong>梳理问题</strong><small>厘清关键事实，明确你的诉求</small></span><ChevronRight size={17} /></button>
+          <button onClick={() => navigate('evidence')}><span className="quick-icon"><Upload size={21} /></span><span><strong>上传材料</strong><small>按时间顺序整理并上传相关证据</small></span><ChevronRight size={17} /></button>
+          <button onClick={() => navigate('documents')}><span className="quick-icon"><FileCheck2 size={21} /></span><span><strong>起草文书</strong><small>参考模板，完成申请或仲裁文书</small></span><ChevronRight size={17} /></button>
+          <a href="tel:12333"><span className="quick-icon"><PhoneCall size={21} /></span><span><strong>拨打 12333</strong><small>咨询劳动保障相关政策与办理流程</small></span><ChevronRight size={17} /></a>
+        </div>
+      </section>
 
       <div className="dashboard-grid">
         <section className="panel case-overview-panel">
@@ -113,13 +99,27 @@ export default function Dashboard({ data, setActiveCaseId, navigate }: SharedVie
           </div>
         </section>
 
-        <section className="panel quick-panel">
-          <div className="section-heading"><h2>现在可以做</h2></div>
-          <div className="quick-grid">
-            <button onClick={() => navigate('chat')}><span className="quick-icon"><ListChecks size={21} /></span><span><strong>梳理问题</strong><small>厘清关键事实，明确你的诉求</small></span><ChevronRight size={17} /></button>
-            <button onClick={() => navigate('evidence')}><span className="quick-icon"><Upload size={21} /></span><span><strong>上传材料</strong><small>按时间顺序整理并上传相关证据</small></span><ChevronRight size={17} /></button>
-            <button onClick={() => navigate('documents')}><span className="quick-icon"><FileCheck2 size={21} /></span><span><strong>起草文书</strong><small>参考模板，完成申请或仲裁文书</small></span><ChevronRight size={17} /></button>
-            <a href="tel:12333"><span className="quick-icon"><PhoneCall size={21} /></span><span><strong>拨打 12333</strong><small>咨询劳动保障相关政策与办理流程</small></span><ChevronRight size={17} /></a>
+        <section className="action-hero" aria-labelledby="next-action-title">
+          <span className="action-hero-icon"><ClipboardList size={30} aria-hidden="true" /></span>
+          <div className="action-hero-copy">
+            <h2 id="next-action-title">{urgent ? urgent.nextAction : '从一件事开始，慢慢整理清楚'}</h2>
+            <p>{urgent ? `${urgent.company} · ${urgent.type}` : '创建案件，记录发生的事，再一步步补齐证据。'}</p>
+            {urgent && (
+              <div className="hero-meta">
+                <span>目标日期 {formatDate(urgent.deadline, true)}</span>
+                {daysUntil(urgent.deadline) !== null && <strong>{deadlineCopy(daysUntil(urgent.deadline)!)}</strong>}
+              </div>
+            )}
+          </div>
+          <div className="action-hero-buttons">
+            {urgent ? (
+              <>
+                <button className="button button-secondary" onClick={() => openCase(urgent)}>查看行动清单 <ArrowRight size={17} /></button>
+                <button className="button button-primary" onClick={() => openCase(urgent, 'evidence')}><FolderLock size={17} />补充证据</button>
+              </>
+            ) : (
+              <button className="button button-primary" onClick={() => navigate('cases')}><Plus size={18} />新建案件</button>
+            )}
           </div>
         </section>
       </div>
