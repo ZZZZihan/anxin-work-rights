@@ -128,7 +128,7 @@ export default function Evidence({
 
   if (!activeCase) {
     return (
-      <section className="panel empty-panel standalone-empty">
+      <section className="panel empty-panel standalone-empty workspace-view evidence-view">
         <FolderLock size={30} /><h1>先创建一个案件</h1><p>证据文件需要归入具体案件，便于形成完整材料清单。</p>
         <button className="button button-primary" onClick={() => navigate('cases')}><Plus size={17} />创建案件</button>
       </section>
@@ -136,11 +136,14 @@ export default function Evidence({
   }
 
   return (
-    <div className="view-stack">
+    <div className="view-stack workspace-view evidence-view">
       <section className="page-heading-row">
-        <div>
-          <h1>证据管家</h1>
-          <p>把原文件和来源说明一起保存，让每一份材料都能找到来处。</p>
+        <div className="workspace-heading-copy">
+          <span className="workspace-page-icon tone-blue" aria-hidden="true"><FolderLock size={25} /></span>
+          <div>
+            <h1>证据管家</h1>
+            <p>把原文件和来源说明一起保存，让每一份材料都能找到来处。</p>
+          </div>
         </div>
         <label className="case-switcher">
           <span>当前案件</span>
@@ -193,6 +196,7 @@ export default function Evidence({
         </section>
 
         <aside className="evidence-summary panel">
+          <span className="workspace-card-icon tone-mint" aria-hidden="true"><FolderLock size={22} /></span>
           <span className="eyebrow">当前案件</span>
           <h2>{activeCase.company}</h2>
           <p>{activeCase.type}</p>
