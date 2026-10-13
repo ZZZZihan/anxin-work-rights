@@ -8,10 +8,12 @@ import type {
   WorkCase,
 } from './types';
 import type { RequestUser } from './auth';
+import { materialSchemaStatements } from './material-schema';
 
 let schemaPromise: Promise<void> | null = null;
 
 const schemaStatements = [
+  ...materialSchemaStatements,
   `CREATE TABLE IF NOT EXISTS profiles (
     user_id TEXT PRIMARY KEY NOT NULL,
     display_name TEXT NOT NULL,
@@ -137,6 +139,7 @@ async function upgradeLocalSchema(): Promise<void> {
       '0000_fresh_bill_hollister.sql',
       '0001_mighty_fantastic_four.sql',
       '0002_evidence_upload_cancellations.sql',
+      '0003_material_analyses.sql',
     ].map((name) => db.prepare('INSERT OR IGNORE INTO d1_migrations (name) VALUES (?)').bind(name)),
   ]);
 }

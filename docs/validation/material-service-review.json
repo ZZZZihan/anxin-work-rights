@@ -1,0 +1,488 @@
+{
+  "review": "independent_material_service_source_review",
+  "reviewedAt": "2026-10-13",
+  "reviewer": "material_ui",
+  "requestedModel": "gpt-6.1-sol",
+  "requestedReasoningEffort": "ultra",
+  "actualModelConfigurationIndependentlyVerified": false,
+  "sourceWorktree": "/Users/xuzihan/Documents/Projects/国创/anxin-material-extractor",
+  "status": "pass_for_final_prompt_source_review_runtime_acceptance_pending",
+  "readOnlyScope": [
+    "scripts/material-service.mjs",
+    "scripts/material-ocr.swift",
+    "scripts/material-structure.swift",
+    "scripts/material-service.test.mjs",
+    "docs/material-extractor.md"
+  ],
+  "reviewedSourceSha256": {
+    "scripts/material-service.mjs": "f0cb27a44df137164dfc00a47ae3c53d88eb57d04d89e011b907f730dd616605",
+    "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+    "scripts/material-structure.swift": "91c97c498565d80e0dc99317033289a3fb8c63813aca4ec16b7d6688e2d2212c",
+    "scripts/material-service.test.mjs": "ee97fc5db73a451b587d9f889321157ce3a1fa277b5a07ae541952e2b0added1",
+    "docs/material-extractor.md": "6ef9094615c81571c395d05f8eb9d010e050c47d7df61b4f88c1770806c3d95d"
+  },
+  "findings": [
+    {
+      "id": "SERVICE-LOCAL-REDIRECT",
+      "priority": 2,
+      "file": "scripts/material-service.mjs",
+      "lines": [
+        119,
+        123
+      ],
+      "evidenceClass": "source_control_flow",
+      "problem": "The Ollama fetch does not reject HTTP redirects. A 307 or 308 response from the fixed loopback endpoint can redirect the material-bearing POST elsewhere, so the fixed initial URL alone does not enforce the stated local-only network boundary.",
+      "recommendedChange": "Set redirect to error on every Ollama request and add a no-inference regression that rejects a redirect response. Keep model and endpoint selection controlled by the backend.",
+      "scope": "This is an enforced-boundary gap. No external request or private-material egress was executed during review.",
+      "resolution": {
+        "status": "resolved",
+        "finalFile": "scripts/material-service.mjs",
+        "finalLines": [
+          145,
+          150
+        ],
+        "evidence": "All Ollama requests use the one helper with redirect:error. The no-inference transport regression asserts this option for tags, show, and chat and verifies a failed model request cannot become rule success.",
+        "independentTest": "Ollama calls reject redirects and a model transport failure cannot become rule success"
+      }
+    },
+    {
+      "id": "SERVICE-CLEANUP-DONE",
+      "priority": 2,
+      "file": "scripts/material-service.mjs",
+      "lines": [
+        237,
+        255
+      ],
+      "evidenceClass": "source_control_flow",
+      "problem": "The job finally block awaits rm before resolveDone. If cleanup rejects, the done promise is never resolved and processing is never reset; void drain is also left with an unhandled rejection. DELETE can await job.done indefinitely and close can loop while processing stays true.",
+      "recommendedChange": "Guarantee resolveDone in an inner finally and processing reset in an outer finally. Capture cleanup failure, surface an explicit sanitized failure or retry cleanup, and handle the drain promise. Add fault-injection coverage for rm rejection.",
+      "scope": "The cleanup-error branch was identified statically. No filesystem permission failure was injected during this review.",
+      "resolution": {
+        "status": "resolved",
+        "finalFile": "scripts/material-service.mjs",
+        "finalLines": [
+          170,
+          178,
+          276,
+          300,
+          344,
+          359,
+          374,
+          384
+        ],
+        "evidence": "removeDirectory catches rm failures and retains a pending cleanup entry; job.done is resolved and processing is reset by finalization. Cleanup failures suppress results, produce TEMP_CLEANUP_FAILED, remain visible in health, and DELETE returns 503 until a cleanup retry succeeds. Background retries and close root cleanup are explicit; close clears in-memory cached material.",
+        "independentTest": "temporary cleanup failures remain visible without hanging cancellation or the next job; an occupied listen port removes the newly created private service directory"
+      }
+    },
+    {
+      "id": "SERVICE-PROMPT-DATA-CLAIM",
+      "priority": 3,
+      "file": "scripts/material-structure.swift",
+      "lines": [
+        28,
+        36
+      ],
+      "evidenceClass": "source_text",
+      "problem": "The production extraction prompt declares every input to be a synthetic document even though the upload service can receive genuine documents. This injects an unsupported assumption into the model's interpretation of the evidence.",
+      "recommendedChange": "Remove the blanket synthetic-document statement. Preserve the candidate-fact and human-review instructions. Mark a synthetic fixture in evidence records only when its origin is actually known.",
+      "resolution": {
+        "status": "resolved",
+        "finalFile": "scripts/material-structure.swift",
+        "finalLines": [
+          28,
+          36
+        ],
+        "evidence": "The unsupported synthetic-document declaration is removed. The prompt retains exact quotations, supplied IDs, candidate facts, and human review instructions."
+      }
+    }
+  ],
+  "confirmedSourceProperties": [
+    "HTTP listener binds to 127.0.0.1, every route requires a caller-generated token of at least 32 characters, and equality uses timingSafeEqual.",
+    "Browser Origin requests are rejected; there are no CORS response headers. Client URL and model override headers/query parameters are rejected.",
+    "The service performs actual UTF-8 extraction for TXT, actual Apple Vision/PDFKit OCR for supported image/PDF paths, and labels the no-model path ocr_rules without silently claiming model inference.",
+    "The Apple path invokes LanguageModelSession/SystemLanguageModel and marks local_text_model with no image inputs and no claimed digest. The vision path explicitly attaches image inputs when available; TXT via a vision-capable model states imageCount zero and a no-image warning.",
+    "Every returned model field requires an allowed key, an existing block ID, a nonempty exact quote in every referenced block, and a value that is an exact substring of that quote. Unsupported model fields are discarded with a warning.",
+    "Input is bounded to 10MiB, three admitted/in-flight jobs, 32 retained jobs, one processing job, five PDF pages, 40 million pixels per image/page, 32000 text characters, and 1000 blocks. Model input and output have additional explicit limits/timeouts.",
+    "DELETE removes cached results and aborts queued/running jobs. A late result cannot become reachable by its removed job ID. Temporary inputs use private files under an mkdtemp service root and are normally removed in job finalization.",
+    "Citation substring validation establishes textual provenance, not correct semantic field labeling, legal effect, document authenticity, or OCR accuracy; human review remains necessary.",
+    "Re-review confirms explicit redirect rejection and fault-injection-tested cleanup recovery; all three initial findings are resolved in the frozen source hashes above."
+  ],
+  "verification": [
+    {
+      "command": "node --test --test-name-pattern='all routes require|TXT jobs run|model fields require|job capacity|deleting a ready' scripts/material-service.test.mjs",
+      "exitCode": 0,
+      "passed": 5,
+      "failed": 0,
+      "durationMs": 205.251792,
+      "coverage": [
+        "authentication and browser-origin/override rejection",
+        "10MiB input rejection and supported-kind checks",
+        "actual UTF-8 extraction and explicit rule citations",
+        "invalid/empty/overlong TXT failure",
+        "allowed keys, exact substring citations, missing and irrelevant block rejection",
+        "32-job capacity and restart isolation",
+        "ready-job deletion idempotency and cached-result removal"
+      ],
+      "realModelInferenceExecuted": false,
+      "realOcrExecuted": false
+    },
+    {
+      "command": "node --test --test-name-pattern='all routes require|TXT jobs run|model fields require|Ollama calls reject|recorded synthetic Apple|temporary cleanup|occupied listen|job capacity|deleting a ready' scripts/material-service.test.mjs",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "durationMs": 4346.75975,
+      "coverage": [
+        "all prior five no-inference checks",
+        "redirect:error on all model HTTP paths and failed model transport stays failed",
+        "five display-prefixed candidate replay fields accepted only after exact source checks",
+        "hallucinated amount, wrong prefix ID, missing block, and irrelevant additional reference rejected",
+        "injected cleanup permission failure reports failed status without returning content",
+        "next job progresses despite cleanup failure",
+        "DELETE responds 503 promptly while cleanup is blocked and succeeds after retry",
+        "pending cleanup health count clears and temporary directory is absent after retry",
+        "occupied listen port cleans newly created private service directory"
+      ],
+      "realModelInferenceExecuted": false,
+      "realOcrExecuted": false,
+      "modelTransportMocked": true
+    },
+    {
+      "command": "inline Node assertions using only cleanModelFields and validateFields",
+      "exitCode": 0,
+      "positiveCases": 1,
+      "negativeCases": 9,
+      "coverage": [
+        "known cited exact prefix accepted without changing value",
+        "unknown prefix rejected",
+        "existing but uncited prefix rejected",
+        "internal display decoration rejected",
+        "repeated display decoration rejected",
+        "empty post-prefix quote rejected",
+        "decorated field value rejected",
+        "fabricated amount rejected",
+        "unrelated additional block reference rejected",
+        "unknown legal-conclusion key rejected"
+      ],
+      "serviceStarted": false,
+      "realModelInferenceExecuted": false,
+      "realOcrExecuted": false
+    },
+    {
+      "command": "node --test --test-name-pattern='recorded real Apple HTTP misclassifications|semantic model rejections' scripts/material-service.test.mjs",
+      "sourceSha256": {
+        "scripts/material-service.mjs": "f0cb27a44df137164dfc00a47ae3c53d88eb57d04d89e011b907f730dd616605",
+        "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+        "scripts/material-structure.swift": "606cea79f8f7c3ebd7f4a105e32af16527f7b36d33e60dc229d66da3f8a7a88e",
+        "scripts/material-service.test.mjs": "ee97fc5db73a451b587d9f889321157ce3a1fa277b5a07ae541952e2b0added1"
+      },
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "durationMs": 257.893375,
+      "coverage": [
+        "twenty recorded/reconstructed candidates across contract/wage/chat: eleven accepted and nine rejected without replacement fields",
+        "fourteen meaning guard positive/negative cases",
+        "model-only HTTP output exposes semantic rejection warning and cannot gain fields from rule extraction"
+      ],
+      "realModelInferenceExecuted": false,
+      "realOcrExecuted": false,
+      "modelTransportMocked": true
+    },
+    {
+      "command": "inline Node validateFields assertions and fully mocked-model loopback HTTP preservation check",
+      "sourceSha256": {
+        "scripts/material-service.mjs": "f0cb27a44df137164dfc00a47ae3c53d88eb57d04d89e011b907f730dd616605",
+        "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+        "scripts/material-structure.swift": "606cea79f8f7c3ebd7f4a105e32af16527f7b36d33e60dc229d66da3f8a7a88e",
+        "scripts/material-service.test.mjs": "ee97fc5db73a451b587d9f889321157ce3a1fa277b5a07ae541952e2b0added1"
+      },
+      "exitCode": 0,
+      "sourceBlocksPreserved": 5,
+      "acceptedFieldsUnchanged": 1,
+      "semanticRejected": 3,
+      "coverage": [
+        "input candidate and block arrays unchanged by validateFields",
+        "HTTP returns exact five original TXT blocks including title spaces, wage-month text and disclaimer",
+        "accepted field value and quote unchanged with origin model",
+        "three misclassified fields rejected with explicit warning",
+        "existing rule-extractable wage amount not used to fill model output"
+      ],
+      "serviceStarted": true,
+      "modelTransportMocked": true,
+      "realModelInferenceExecuted": false,
+      "realOcrExecuted": false
+    },
+    {
+      "command": "/usr/bin/swiftc -typecheck -parse-as-library scripts/material-structure.swift",
+      "sourceSha256": {
+        "scripts/material-service.mjs": "f0cb27a44df137164dfc00a47ae3c53d88eb57d04d89e011b907f730dd616605",
+        "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+        "scripts/material-structure.swift": "91c97c498565d80e0dc99317033289a3fb8c63813aca4ec16b7d6688e2d2212c",
+        "scripts/material-service.test.mjs": "ee97fc5db73a451b587d9f889321157ce3a1fa277b5a07ae541952e2b0added1",
+        "docs/material-extractor.md": "6ef9094615c81571c395d05f8eb9d010e050c47d7df61b4f88c1770806c3d95d"
+      },
+      "exitCode": 0,
+      "coverage": [
+        "last general prompt and schema compile/typecheck under installed framework"
+      ],
+      "realModelInferenceExecuted": false,
+      "realOcrExecuted": false,
+      "compiledExecutableExecuted": false
+    },
+    {
+      "command": "read exact final Swift and material-extractor.md plus SHA256 confirmation",
+      "sourceSha256": {
+        "scripts/material-service.mjs": "f0cb27a44df137164dfc00a47ae3c53d88eb57d04d89e011b907f730dd616605",
+        "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+        "scripts/material-structure.swift": "91c97c498565d80e0dc99317033289a3fb8c63813aca4ec16b7d6688e2d2212c",
+        "scripts/material-service.test.mjs": "ee97fc5db73a451b587d9f889321157ce3a1fa277b5a07ae541952e2b0added1",
+        "docs/material-extractor.md": "6ef9094615c81571c395d05f8eb9d010e050c47d7df61b4f88c1770806c3d95d"
+      },
+      "coverage": [
+        "general per-block category instructions and complete source context",
+        "no fixture sentence",
+        "service/guards/tests SHA256 unchanged",
+        "known chat omission FAIL retained",
+        "TTL does not prove disk cleanup",
+        "final-prompt runtime success not claimed"
+      ],
+      "realModelInferenceExecuted": false,
+      "realOcrExecuted": false
+    }
+  ],
+  "notIndependentlyExecuted": [
+    "The implementation agent reported a 13/13 full service test run on the semantic-guard candidate, including real OCR checks. This reviewer executed the two semantic increment tests and one fully mocked-model HTTP/pure-source assertion check in this increment; prior nine no-OCR/no-inference tests remain bound to their earlier source snapshot.",
+    "No Apple Foundation Models inference, Ollama inference, or duplicate real OCR probe was started while the main agent's Apple probe was running.",
+    "No browser, integrated application API, production deployment, external-source retrieval, legal expert review, or real user acceptance was performed by this review.",
+    "The startup-captured Ollama digest identifies startup metadata, not a separately verified immutable per-request model artifact if an external operator changes its model tag during the service lifetime."
+  ],
+  "handoff": {
+    "notified": [
+      "/root",
+      "/root/multimodal_backend_plan"
+    ],
+    "sourceFilesModifiedByReviewer": false,
+    "committed": false,
+    "nextStep": "The last Swift/docs increment has no source-review findings and independently passes Swift typecheck. Main agent performs the one final actual Apple HTTP acceptance and binds it to final hashes; retain model limitations/FAIL if management remains omitted. This report does not claim final runtime completeness."
+  },
+  "initialReviewedSourceSha256": {
+    "scripts/material-service.mjs": "8e6dc296e746aa6f86d429c1c098539a932b4556ca3aacc4d19c0714aab37c26",
+    "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+    "scripts/material-structure.swift": "2902ff068b8f49fe3e330584af908e64d9e4ecfa5949411e40cd44e1fd271a93",
+    "scripts/material-service.test.mjs": "1178f640adbb0f85cde7be8577909d75b9d3c9ff3466f97c159914d65cbb512b"
+  },
+  "reReviewedAtUtc": "2026-10-13T03:20:17.604671+00:00",
+  "openFindings": [],
+  "reReview": {
+    "frozenFilesAnnouncedBy": "/root/multimodal_backend_plan",
+    "finalHashesMatchedAnnouncement": true,
+    "hashesUnchangedAcrossIndependentReReview": true,
+    "modelInferenceRepeated": false,
+    "citationFormattingChangeAccepted": true,
+    "citationFormattingFile": "scripts/material-service.mjs",
+    "citationFormattingLines": [
+      95,
+      107
+    ],
+    "citationGuarantees": [
+      "Only the exact opening display prefix [ID] followed by one space is eligible for removal.",
+      "The prefix ID must be explicitly cited in field.blockIds and exist in the original blocks map.",
+      "The original value is never transformed.",
+      "The remaining quote must be nonempty, contain the original value, and occur verbatim in every cited original block before a cleaned candidate is returned.",
+      "The unchanged allowed-key, length, shape, existing-block, value-in-quote, and quote-in-all-blocks checks are then run by validateFields in both text-model and vision-model paths.",
+      "The change establishes literal OCR provenance only; semantic labeling and legal applicability still require human review."
+    ],
+    "recordedModelReplayBoundary": "The recorded candidate replay in the service test validates deterministic handling of a claimed recorded output shape. The reviewer did not inspect the private original model diagnostic or independently rerun model generation, so this is not independent evidence of a successful live Apple inference.",
+    "sourceSha256": {
+      "scripts/material-service.mjs": "c4165915abfeb9db71299f126b2582a8e7f65808083f64dfdae1bd591175b27d",
+      "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+      "scripts/material-structure.swift": "f85ae4024ae678c3fe689050710114e399f6287cabed1c68da678470328361da",
+      "scripts/material-service.test.mjs": "110fd9278fe2a647fb0e1d8c05b75e86d2380d5a5fc5c60dd3008460a37ba7d4"
+    }
+  },
+  "priorReviewedSourceStatus": "pass_for_narrow_semantic_rejection_and_source_preservation",
+  "semanticIncrementRequest": {
+    "requestedAtUtc": "2026-10-13T03:29:35.485690+00:00",
+    "reportedBy": "/root",
+    "evidenceIndependentlyReadByReviewer": false,
+    "reportedObservedMislabels": [
+      "contract declaration assigned management_statement",
+      "wage statement title assigned job",
+      "wage month assigned wage_standard",
+      "chat month assigned payment_date"
+    ],
+    "reviewScope": [
+      "narrow rejection of unsupported semantic field labels",
+      "clear key definitions",
+      "preservation of all original OCR blocks",
+      "explicit rejection warnings",
+      "no rule-based filling of model fields",
+      "no generalized accuracy claim from few sample results"
+    ],
+    "candidateFrozen": true,
+    "newModelInferenceToBeExecutedByReviewer": false
+  },
+  "sourceReviewHistory": [
+    {
+      "scope": "redirect_cleanup_and_literal_prefix_re_review",
+      "status": "pass_for_reviewed_source_and_no_inference_checks",
+      "sourceSha256": {
+        "scripts/material-service.mjs": "c4165915abfeb9db71299f126b2582a8e7f65808083f64dfdae1bd591175b27d",
+        "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+        "scripts/material-structure.swift": "f85ae4024ae678c3fe689050710114e399f6287cabed1c68da678470328361da",
+        "scripts/material-service.test.mjs": "110fd9278fe2a647fb0e1d8c05b75e86d2380d5a5fc5c60dd3008460a37ba7d4"
+      },
+      "verificationIndexes": [
+        1,
+        2
+      ],
+      "reReview": {
+        "frozenFilesAnnouncedBy": "/root/multimodal_backend_plan",
+        "finalHashesMatchedAnnouncement": true,
+        "hashesUnchangedAcrossIndependentReReview": true,
+        "modelInferenceRepeated": false,
+        "citationFormattingChangeAccepted": true,
+        "citationFormattingFile": "scripts/material-service.mjs",
+        "citationFormattingLines": [
+          95,
+          107
+        ],
+        "citationGuarantees": [
+          "Only the exact opening display prefix [ID] followed by one space is eligible for removal.",
+          "The prefix ID must be explicitly cited in field.blockIds and exist in the original blocks map.",
+          "The original value is never transformed.",
+          "The remaining quote must be nonempty, contain the original value, and occur verbatim in every cited original block before a cleaned candidate is returned.",
+          "The unchanged allowed-key, length, shape, existing-block, value-in-quote, and quote-in-all-blocks checks are then run by validateFields in both text-model and vision-model paths.",
+          "The change establishes literal OCR provenance only; semantic labeling and legal applicability still require human review."
+        ],
+        "recordedModelReplayBoundary": "The recorded candidate replay in the service test validates deterministic handling of a claimed recorded output shape. The reviewer did not inspect the private original model diagnostic or independently rerun model generation, so this is not independent evidence of a successful live Apple inference."
+      }
+    },
+    {
+      "scope": "narrow_semantic_rejection_and_source_preservation",
+      "status": "pass_for_narrow_semantic_rejection_and_source_preservation",
+      "sourceSha256": {
+        "scripts/material-service.mjs": "f0cb27a44df137164dfc00a47ae3c53d88eb57d04d89e011b907f730dd616605",
+        "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+        "scripts/material-structure.swift": "606cea79f8f7c3ebd7f4a105e32af16527f7b36d33e60dc229d66da3f8a7a88e",
+        "scripts/material-service.test.mjs": "ee97fc5db73a451b587d9f889321157ce3a1fa277b5a07ae541952e2b0added1"
+      },
+      "verificationIndexes": [
+        3,
+        4
+      ]
+    }
+  ],
+  "semanticIncrementReview": {
+    "reviewedAtUtc": "2026-10-13T03:36:02.974271+00:00",
+    "status": "pass_for_narrow_semantic_rejection_and_source_preservation",
+    "sourceSha256": {
+      "scripts/material-service.mjs": "f0cb27a44df137164dfc00a47ae3c53d88eb57d04d89e011b907f730dd616605",
+      "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+      "scripts/material-structure.swift": "606cea79f8f7c3ebd7f4a105e32af16527f7b36d33e60dc229d66da3f8a7a88e",
+      "scripts/material-service.test.mjs": "ee97fc5db73a451b587d9f889321157ce3a1fa277b5a07ae541952e2b0added1"
+    },
+    "announcedHashesMatched": true,
+    "fileLocations": {
+      "meaningGuards": "scripts/material-service.mjs:38-68",
+      "literalThenSemanticValidation": "scripts/material-service.mjs:111-136",
+      "rejectionWarnings": "scripts/material-service.mjs:155-159",
+      "unchangedOriginalBlocks": "scripts/material-service.mjs:334",
+      "generalFieldDefinitions": "scripts/material-structure.swift:28-55"
+    },
+    "findings": [],
+    "confirmedProperties": [
+      "Shape, existing block IDs, value-in-quote and quote-in-every-block checks still run before semantic rejection.",
+      "The semantic guards reject unsupported candidates; they never rewrite value/quote/key or create a replacement field.",
+      "Known document titles, software-test disclaimers, generic employer values, wage-month amounts/dates, future payment promises and unsupported management statements have narrow rejection guards.",
+      "The original OCR/TXT block array is returned without semantic filtering. Title, disclaimer and wage-month source text remains available for human verification.",
+      "Both model branches return only validated model fields; the explicit no-model rule branch remains separate.",
+      "Warnings report rejected count and the semantic-mismatch reason. Prompts and output warnings retain candidate-fact and human-review boundaries.",
+      "The Swift schema and common prompt define general field meanings and contain no fixed fixture sentence."
+    ],
+    "replayBoundary": "The service test replays key/value/block IDs reported as earlier real HTTP candidates, but reconstructs quotes from original fixture substrings. The reviewer did not inspect the original private raw HTTP response; this is a deterministic semantic-filter regression, not new or independently verified model inference.",
+    "accuracyLimits": [
+      "A narrow regex rejection guard cannot establish general semantic correctness, completeness, OCR accuracy, authenticity or legal effect.",
+      "Date guards validate recognizable month/day form, not full calendar validity or all date-to-event associations.",
+      "The tests cover observed misclassification classes and selected positive/negative cases; retained fields and omissions still need original-document review.",
+      "The main agent reported a subsequent live Apple HTTP run on this candidate: contract five and wage four retained fields were correct, but chat management_statement was omitted and the strengthened complete-extraction acceptance failed. The reviewer has not independently read that private runtime report."
+    ],
+    "realModelInferenceExecuted": false,
+    "realOcrExecuted": false,
+    "sourceFilesModified": false
+  },
+  "finalPromptIncrementRequest": {
+    "requestedAtUtc": "2026-10-13T03:36:02.974387+00:00",
+    "reportedBy": "/root",
+    "reportedLiveAcceptance": "contract five and wage four correct; chat worker and two arrears retained but management omitted; strengthened acceptance FAIL",
+    "reportedEvidenceIndependentlyRead": false,
+    "scope": [
+      "last general prompt change only",
+      "per-block independent checking of management and wage status with full semantic context",
+      "no fixture text",
+      "no guard or HTTP acceptance change",
+      "retain failed actual acceptance and no accuracy overclaim"
+    ],
+    "candidateFrozen": true,
+    "newModelInferenceToBeExecutedByReviewer": false
+  },
+  "finalPromptIncrementReview": {
+    "reviewedAtUtc": "2026-10-13T03:37:49.975497+00:00",
+    "status": "pass_for_scoped_source_review_not_runtime_completeness",
+    "sourceSha256": {
+      "scripts/material-service.mjs": "f0cb27a44df137164dfc00a47ae3c53d88eb57d04d89e011b907f730dd616605",
+      "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+      "scripts/material-structure.swift": "91c97c498565d80e0dc99317033289a3fb8c63813aca4ec16b7d6688e2d2212c",
+      "scripts/material-service.test.mjs": "ee97fc5db73a451b587d9f889321157ce3a1fa277b5a07ae541952e2b0added1",
+      "docs/material-extractor.md": "6ef9094615c81571c395d05f8eb9d010e050c47d7df61b4f88c1770806c3d95d"
+    },
+    "announcedHashesMatched": true,
+    "unchangedComparedWithSemanticCandidate": [
+      "scripts/material-service.mjs",
+      "scripts/material-ocr.swift",
+      "scripts/material-service.test.mjs"
+    ],
+    "actualChangedFiles": [
+      "scripts/material-structure.swift",
+      "docs/material-extractor.md"
+    ],
+    "fileLocations": {
+      "independentCategoryPrompt": "scripts/material-structure.swift:46-51",
+      "parallelCategorySchema": "scripts/material-structure.swift:65",
+      "ttlCleanupBoundary": "docs/material-extractor.md:65",
+      "retainedRuntimeFailureAndStopRule": "docs/material-extractor.md:84"
+    },
+    "findings": [],
+    "confirmedProperties": [
+      "New instructions check each OCR block independently for work/attendance and wage/payment status; these may coexist and one category must not suppress the other.",
+      "Statement fields request complete original wording and context; original literal value/quote/block checks remain enforced by the unchanged service.",
+      "Prompt and schema use general category descriptions with no fixture-specific sentence, name, date or amount.",
+      "The field list, exact-source requirements, human-review qualification, response token limit and backend guards are unchanged.",
+      "Documentation distinguishes in-memory TTL from disk cleanup and does not claim eventual cache expiry proves deletion of temporary originals.",
+      "Documentation retains the strengthened real HTTP chat omission as FAIL and explicitly states the last prompt has no proven runtime completeness yet."
+    ],
+    "checksNotRepeated": [
+      "full 13-test service suite",
+      "real OCR",
+      "Apple/Ollama model inference",
+      "application browser and HTTP acceptance"
+    ],
+    "modelInferenceExecuted": false,
+    "sourceFilesModified": false,
+    "runtimeBoundary": "Prompt source review and Swift typecheck confirm a scoped, valid change. They do not prove a model will return management_statement or preserve completeness. The main agent must bind one final actual HTTP run to these hashes; if the omission persists, preserve the limited-model conclusion and failed acceptance."
+  },
+  "currentRuntimeAcceptance": {
+    "sourceCandidateSha256": {
+      "scripts/material-service.mjs": "f0cb27a44df137164dfc00a47ae3c53d88eb57d04d89e011b907f730dd616605",
+      "scripts/material-ocr.swift": "806868e837cf6ce8a1e82fc4ff26a8a20927a298772fcefc4ebdf56fdf68c1dc",
+      "scripts/material-structure.swift": "606cea79f8f7c3ebd7f4a105e32af16527f7b36d33e60dc229d66da3f8a7a88e",
+      "scripts/material-service.test.mjs": "ee97fc5db73a451b587d9f889321157ce3a1fa277b5a07ae541952e2b0added1"
+    },
+    "reportedBy": "/root",
+    "independentlyReadByReviewer": false,
+    "status": "FAIL_as_reported_by_main_agent",
+    "reason": "chat management_statement supported by original text was omitted despite correct retained contract/wage fields",
+    "finalPromptCandidateAcceptance": "not yet independently reviewed or executed by this reviewer"
+  }
+}

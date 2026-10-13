@@ -58,6 +58,21 @@ export const evidenceUploadCancellations = sqliteTable('evidence_upload_cancella
   cancelledAt: text('cancelled_at').notNull(),
 });
 
+export const evidenceAnalyses = sqliteTable('evidence_analyses', {
+  evidenceId: text('evidence_id').primaryKey(),
+  userId: text('user_id').notNull(),
+  contentHash: text('content_hash').notNull(),
+  documentKind: text('document_kind').notNull(),
+  status: text('status').notNull(),
+  revision: integer('revision').notNull().default(1),
+  runId: text('run_id').notNull(),
+  jobId: text('job_id'),
+  resultJson: text('result_json'),
+  error: text('error'),
+  startedAt: text('started_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+}, (table) => [index('analyses_user_idx').on(table.userId)]);
+
 export const chatMessages = sqliteTable(
   'chat_messages',
   {

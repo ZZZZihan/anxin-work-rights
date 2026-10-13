@@ -120,21 +120,35 @@ export async function DELETE(request: Request) {
   if (!id) return jsonError('缺少证据编号。');
 
   const db = getDatabase();
+  let processingCleanupPending = false;
   try {
     // Persist cancellation and block downloads in one database transaction.
     // Removing the visible record must not forget the operation UUID: an
     // in-flight put or delayed retry may still arrive after DELETE succeeds.
-    await db.batch([
+    const deletion = await db.batch([
       db.prepare(
         `INSERT OR IGNORE INTO evidence_upload_cancellations (id, user_id, object_key, cancelled_at)
          SELECT id, user_id, object_key, ? FROM evidence_files WHERE id = ? AND user_id = ?`,
       ).bind(new Date().toISOString(), id, user.userId),
       db.prepare("UPDATE evidence_files SET status = 'deleting' WHERE id = ? AND user_id = ?")
         .bind(id, user.userId),
+      db.prepare('SELECT job_id FROM evidence_analyses WHERE evidence_id = ? AND user_id = ?')
+        .bind(id, user.userId),
+      db.prepare('DELETE FROM evidence_analyses WHERE evidence_id = ? AND user_id = ?')
+        .bind(id, user.userId),
     ]);
+    // Read the job ID inside the transaction after blocking new attachments.
+    const analysisJob = deletion[2].results[0] as { job_id: string | null } | undefined;
     const cancellation = await db.prepare('SELECT object_key FROM evidence_upload_cancellations WHERE id = ? AND user_id = ?')
       .bind(id, user.userId).first<{ object_key: string | null }>();
     if (!cancellation) return jsonError('未找到这个证据记录。', 404);
+    if (analysisJob?.job_id) {
+      // A stopped/offline companion must not prevent deleting the original.
+      // Its authenticated, bounded temporary cache is also cancelled when reachable.
+      const { callMaterialService } = await import('@/lib/material-service-client');
+      await callMaterialService(`/jobs/${encodeURIComponent(analysisJob.job_id)}`, { method: 'DELETE' })
+        .catch(() => { processingCleanupPending = true; });
+    }
     if (cancellation.object_key) await getFilesBucket().delete(cancellation.object_key);
     await db.prepare("DELETE FROM evidence_files WHERE id = ? AND user_id = ? AND status = 'deleting'")
       .bind(id, user.userId).run();
@@ -142,7 +156,7 @@ export async function DELETE(request: Request) {
     console.error('evidence deletion incomplete', error);
     return jsonError('删除未完成，请刷新查看状态后重试。', 503);
   }
-  return Response.json({ ok: true });
+  return Response.json({ ok: true, processingCleanupPending });
 }
 
 function normaliseFileName(name: string): string {

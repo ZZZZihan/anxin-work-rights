@@ -36,7 +36,15 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: http-regression
+          name: base-http-regression
           path: |
             /tmp/http-results.json
             /tmp/anxin-worker.log
+      - name: Material extraction and public citations over production HTTP
+        run: node scripts/material-http-runner.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: material-http-regression
+          path: |
+            output/materials/http-production.json

@@ -11,12 +11,14 @@ import {
   Info,
   LockKeyhole,
   Plus,
+  ScanText,
   Trash2,
   UploadCloud,
 } from 'lucide-react';
 import { apiRequest, formatDate, formatFileSize } from '@/lib/client';
 import type { EvidenceFile } from '@/lib/types';
 import type { SharedViewProps } from '../types';
+import MaterialAnalysisPanel from '../MaterialAnalysisPanel';
 
 const categories = ['劳动关系', '工资支付', '考勤加班', '解除经过', '工伤材料', '沟通记录', '其他材料'];
 
@@ -37,9 +39,13 @@ export default function Evidence({
   const [uploadError, setUploadError] = useState('');
   const [dragging, setDragging] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<{ caseId: string; id: string } | null>(null);
 
   const activeCase = data.cases.find((item) => item.id === activeCaseId) ?? data.cases[0];
   const evidence = data.evidence.filter((item) => item.caseId === activeCase?.id);
+  const selectedEvidence = selectedMaterial?.caseId === activeCase?.id
+    ? evidence.find((item) => item.id === selectedMaterial.id && item.downloadable)
+    : undefined;
 
   const upload = async (file: File | undefined, retry?: EvidenceFile) => {
     if (!file || !activeCase || uploading) return;
@@ -71,6 +77,7 @@ export default function Evidence({
         evidence: [result.evidence, ...current.evidence.filter((item) => item.id !== result.evidence.id)],
       } : current);
       if (!retry) setNote('');
+      setSelectedMaterial({ caseId: result.evidence.caseId, id: result.evidence.id });
       notify(retry ? '原上传记录已恢复，文件已安全保存。' : '文件已安全保存到当前案件。');
     } catch (error) {
       const message = error instanceof Error ? error.message : '上传失败。';
@@ -104,12 +111,13 @@ export default function Evidence({
     if (!window.confirm(`确认删除“${item.name}”？真实上传的文件会一并从私有存储中删除。`)) return;
     setDeletingId(item.id);
     try {
-      await apiRequest<{ ok: true }>(`/api/evidence?id=${encodeURIComponent(item.id)}`, { method: 'DELETE' });
+      const deletion = await apiRequest<{ ok: true; processingCleanupPending?: boolean }>(`/api/evidence?id=${encodeURIComponent(item.id)}`, { method: 'DELETE' });
       setData((current) => current ? {
         ...current,
         evidence: current.evidence.filter((entry) => entry.id !== item.id),
       } : current);
-      notify('证据记录已删除。');
+      setSelectedMaterial((current) => current?.id === item.id ? null : current);
+      notify(deletion.processingCleanupPending ? '原件和记录已删除；识别服务的临时材料尚未确认清理，请重启识别服务并查看清理状态。' : '证据记录已删除。');
     } catch (error) {
       notify(error instanceof Error ? error.message : '删除失败。', 'error');
       const refreshed = await apiRequest<import('@/lib/types').BootstrapData>('/api/bootstrap').catch(() => null);
@@ -137,7 +145,7 @@ export default function Evidence({
         </div>
         <label className="case-switcher">
           <span>当前案件</span>
-          <select value={activeCase.id} onChange={(event) => setActiveCaseId(event.target.value)}>
+          <select value={activeCase.id} onChange={(event) => { setSelectedMaterial(null); setActiveCaseId(event.target.value); }}>
             {data.cases.map((item) => <option key={item.id} value={item.id}>{item.company} · {item.type}</option>)}
           </select>
         </label>
@@ -171,7 +179,7 @@ export default function Evidence({
               accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt"
               onChange={(event) => void upload(event.target.files?.[0])}
             />
-            <small>支持 PDF、Word、PNG、JPG、TXT</small>
+            <small>支持 PDF、Word、PNG、JPG、TXT；Word 上传后请转换为 PDF 或图片再识别。</small>
           </div>
 
           <div className="upload-meta-grid">
@@ -229,6 +237,11 @@ export default function Evidence({
                 {item.note && <small>{item.note}</small>}
               </div>
               <div className="evidence-actions">
+                {item.downloadable && (
+                  <button className="button button-secondary material-open-button" aria-label={`识别或查看结果 ${item.name}`} disabled={deletingId === item.id} onClick={() => setSelectedMaterial({ caseId: item.caseId, id: item.id })}>
+                    <ScanText size={16} />识别 / 查看结果
+                  </button>
+                )}
                 {(item.status === 'uploading' || item.status === 'upload_failed') && (
                   <button className="button button-secondary" aria-label={`选择原文件重试 ${item.name}`} disabled={uploading || deletingId === item.id} onClick={() => retryUpload(item)}>
                     <UploadCloud size={16} />选择原文件重试
@@ -248,6 +261,15 @@ export default function Evidence({
           )}
         </div>
       </section>
+
+      {selectedEvidence && (
+        <MaterialAnalysisPanel
+          key={`${activeCase.id}:${selectedEvidence.id}`}
+          evidence={selectedEvidence}
+          notify={notify}
+          onClose={() => setSelectedMaterial(null)}
+        />
+      )}
     </div>
   );
 }

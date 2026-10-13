@@ -1,0 +1,191 @@
+
+> anxin-work-rights@1.0.0 check
+> npm run typecheck && npm run lint && npm test && npm run build && npm run data:check && npm run data:runtime:check && npm run test:materials
+
+
+> anxin-work-rights@1.0.0 typecheck
+> tsc --noEmit --pretty false
+
+
+> anxin-work-rights@1.0.0 lint
+> eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern js --ignore-pattern screenshot.py
+
+
+> anxin-work-rights@1.0.0 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-material-demo
+
+ ✓ lib/client.test.ts (7 tests) 8ms
+ ✓ lib/validation.test.ts (4 tests) 3ms
+ ✓ lib/draft-copies.test.ts (7 tests) 2ms
+ ✓ lib/legal.test.ts (3 tests) 2ms
+ ✓ deploy/local-cloud/readiness.test.mjs (9 tests) 709ms
+   ✓ actual isolated HTTPS certificate checks > enforces the wall-clock deadline even while HTTPS keeps sending bytes  404ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > retains the key for a DELETE retry when late-put cleanup fails
+evidence upload incomplete Error: synthetic late cleanup failure
+    at Object.delete (/Users/xuzihan/Documents/Projects/国创/anxin-material-demo/lib/evidence-concurrency.test.ts:141:36)
+    at Module.POST (/Users/xuzihan/Documents/Projects/国创/anxin-material-demo/app/api/evidence/route.ts:100:70)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-material-demo/lib/evidence-concurrency.test.ts:149:13
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-material-demo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+ ✓ lib/public-retrieval.test.ts (15 tests) 1296ms
+   ✓ public labor knowledge retrieval on frozen official records > rebuild verification matches the committed index without writing  627ms
+   ✓ public labor knowledge retrieval on frozen official records > rejects altered paragraph references and invented provision text before index output  642ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > rolls back cancellation if marking deletion fails and preserves the uploaded bytes
+evidence deletion incomplete Error: D1_ERROR: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at Module.DELETE (/Users/xuzihan/Documents/Projects/国创/anxin-material-demo/app/api/evidence/route.ts:128:22)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-material-demo/lib/evidence-concurrency.test.ts:170:15
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-material-demo/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20 {
+  [cause]: Error: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+      at D1DatabaseSessionAlwaysPrimary._sendOrThrow (cloudflare-internal:d1-api:189:24)
+      at async cloudflare-internal:d1-api:137:19
+      at async #fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-material-demo/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4923:18)
+      at async ProxyServer.fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-material-demo/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4823:14) {
+    [cause]: undefined
+  }
+}
+
+ ✓ lib/evidence-concurrency.test.ts (4 tests) 1400ms
+   ✓ evidence upload and cancellation interleavings > cleans a put that completes after DELETE without recreating the cancelled UUID  407ms
+ ✓ lib/server-schema.test.ts (4 tests) 1986ms
+   ✓ persisted local schema upgrades > upgrades a journal-free old database without losing drafts, records or file bytes  995ms
+   ✓ persisted local schema upgrades > adopts a fresh runtime-created database so later explicit migrations are harmless  344ms
+   ✓ persisted local schema upgrades > finishes a partial upgrade and preserves existing revisions and journal entries  349ms
+ ✓ lib/material-lifecycle-review.test.ts (5 tests) 2474ms
+   ✓ independent material lifecycle review regressions > independent: cancellation captures a job attached before deletion transaction starts  589ms
+   ✓ independent material lifecycle review regressions > independent: archival during submission cancels the late job and keeps analysis inaccessible  581ms
+   ✓ independent material lifecycle review regressions > independent: foreign deletion leaves owner records and original bytes intact  544ms
+   ✓ independent material lifecycle review regressions > independent: offline cache cleanup is reported while original and analysis deletion finish  549ms
+ ✓ lib/material-analysis.test.ts (9 tests) 4450ms
+   ✓ material extraction boundaries and persisted ownership > uploads exact bytes, deduplicates starts, persists grounded fields and real public citations, and protects review revisions  928ms
+   ✓ material extraction boundaries and persisted ownership > rejects cross-user reads, starts and edits without service calls or state changes  558ms
+   ✓ material extraction boundaries and persisted ownership > preserves the original through service failure and recovers only through explicit retry  584ms
+   ✓ material extraction boundaries and persisted ownership > rejects changed original bytes before sending a job  341ms
+   ✓ material extraction boundaries and persisted ownership > does not revive results when a file is deleted while the provider returns  479ms
+   ✓ material extraction boundaries and persisted ownership > blocks archived case access and unsupported formats  339ms
+   ✓ material extraction boundaries and persisted ownership > cancels a job whose ID arrives only after the original was deleted  435ms
+   ✓ material extraction boundaries and persisted ownership > turns expired/unknown provider jobs into visible retryable failures  585ms
+
+ Test Files  10 passed (10)
+      Tests  67 passed (67)
+   Start at  11:37:39
+   Duration  5.21s (transform 307ms, setup 0ms, collect 1.57s, tests 12.33s, environment 1ms, prepare 589ms)
+
+
+> anxin-work-rights@1.0.0 build
+> vinext build
+
+
+  vinext build  (Vite 8.3.0)
+
+(node:73560) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[1/5] analyze client references...
+transforming...
+✓ 265 modules transformed.
+rendering chunks...
+✓ built in 306ms
+[2/5] analyze server references...
+transforming...
+✓ 184 modules transformed.
+rendering chunks...
+✓ built in 156ms
+[3/5] build rsc environment...
+transforming...
+✓ 256 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 312ms
+[4/5] build client environment...
+transforming...
+✓ 1693 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 621ms
+[5/5] build ssr environment...
+transforming...
+✓ 188 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 389ms
+[0m
+  Route (app)
+  ┌ ƒ /
+  ├ λ /api/bootstrap
+  ├ λ /api/cases
+  ├ λ /api/chat
+  ├ λ /api/documents
+  ├ λ /api/evidence
+  ├ λ /api/evidence/:id/analysis
+  ├ λ /api/evidence/:id/download
+  └ λ /api/knowledge
+
+  λ API  ƒ Dynamic
+
+  Build complete. Run `vinext start` to start the production server.
+
+
+> anxin-work-rights@1.0.0 data:check
+> python3 -B scripts/public-data.py verify && python3 -B -m unittest discover -s scripts/tests -p test_public_data.py
+
+{
+  "status": "PASS",
+  "data_fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a",
+  "counts": {
+    "sources": 12,
+    "source_paragraphs": 1453,
+    "cases": 14,
+    "cases_by_topic": {
+      "employment_relationship": 8,
+      "wage_arrears": 8
+    },
+    "laws": 8,
+    "selected_provisions": 54,
+    "field_citations": 620,
+    "evidence_descriptions": 22,
+    "original_case_exhibits": 0,
+    "linked_rule_citations": 10,
+    "unlinked_rule_citations": 9,
+    "cases_with_undisclosed_region": 14,
+    "cases_with_undisclosed_decision_date": 14
+  }
+}
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 1.293s
+
+OK
+
+> anxin-work-rights@1.0.0 data:runtime:check
+> python3 -B scripts/build-public-index.py --check
+
+{"status": "PASS", "fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a", "bytes": 232203, "checkOnly": true}
+
+> anxin-work-rights@1.0.0 test:materials
+> node --test scripts/material-service.test.mjs
+
+✔ all routes require the caller token, reject browser origins and client parameters (33.708833ms)
+✔ TXT jobs run actual UTF-8 extraction and explicit rules with verbatim field citations (420.310208ms)
+✔ model fields require allowed keys, existing blocks and exact original text (1.161167ms)
+✔ recorded real Apple HTTP misclassifications are rejected without adding or changing model fields (0.977333ms)
+✔ semantic model rejections are visible in job warnings and cannot be filled by rules (105.915625ms)
+✔ Ollama calls reject redirects and a model transport failure cannot become rule success (107.784458ms)
+✔ recorded synthetic Apple candidates can lose display ID prefixes while exact citations stay mandatory (0.339542ms)
+✔ temporary cleanup failures remain visible without hanging cancellation or the next job (109.693042ms)
+✔ an occupied listen port removes the newly created private service directory (0.784792ms)
+✔ job capacity is bounded and a restart cannot expose prior in-memory jobs (3357.414792ms)
+✔ deleting a ready job clears cached content and DELETE is idempotent (11.54925ms)
+✔ at most two jobs wait and deletion cancels running/queued OCR without reviving results (1864.877917ms)
+✔ real Apple Vision recognises synthetic PNG/PDF, preserves bboxes, rejects broken images and six-page PDFs (3292.162041ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9438.015666
