@@ -31,7 +31,11 @@ npm run dev
 npm run check
 ```
 
-`check` 依次运行类型检查、ESLint、规则模块测试和生产构建。涉及 D1/R2 的修改还应在本地预览里验证完整 HTTP 闭环。
+`check` 依次运行类型检查、ESLint、规则模块测试、生产构建及公开数据库来源/一致性核查。数据工具需要 Python 3.10 及以上。涉及 D1/R2 的修改还应在本地预览里验证完整 HTTP 闭环。
+
+## 公开资料数据库样例
+
+[欠薪与劳动关系确认样例 v1](data/labor-public-v1/README.md) 提供 14 个官方案例、8 部法规与 54 条相关条文，以及可离线使用的 SQLite、JSONL、原始来源、清洗和查询工具。运行 `npm run data:check` 核查发布文件，`npm run data:build` 从冻结来源重建。它是独立的资料库交付，尚未接入应用的聊天或上传链路，没有运行多模态模型。
 
 ## 目录
 
@@ -57,4 +61,4 @@ js/ 与 styles/          旧版演示实现，不进入新应用构建
 
 ## GitHub 与本地云试用
 
-主维护仓库为私有 GitHub 仓库 `ZZZZihan/anxin-work-rights`。修复通过分支和 PR 推进，CI 执行基础检查与隔离 HTTP 回归。本地云测试实例的部署、登录、数据目录和恢复方法见 [部署说明](deploy/local-cloud/README.md)。
+主维护仓库为 GitHub 仓库 `ZZZZihan/anxin-work-rights`。修复通过分支和 PR 推进，CI 执行基础检查与隔离 HTTP 回归。本地云测试实例的部署、登录、数据目录和恢复方法见 [部署说明](deploy/local-cloud/README.md)。
