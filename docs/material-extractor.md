@@ -32,7 +32,7 @@ Content-Type 支持 `image/png`、`image/jpeg`、`application/pdf`、`text/plain
 
 临时目录清理失败时不会发布成功结果；任务返回 `TEMP_CLEANUP_FAILED`，health 的 `cleanup.pending` 显示非敏感待清理数量。队列仍会处理后续任务，取消和关闭不会因未终结的 job.done 挂住。系统每 30 秒重试待清理目录，DELETE 也会重试该任务目录；关闭服务清理整个服务专用目录，失败则明确报错。监听端口占用时，同样撤销新建的私有目录。文件系统持续拒绝清理属于待处理故障，不能声称原件已经从伴随服务清除。
 
-macOS 图片使用 Apple Vision accurate 中文/英文识别，PDF 由 PDFKit 渲染全部允许页后逐页做 OCR。Linux 使用本机 Tesseract 的 `chi_sim` 简体中文语言包和默认自动布局（PSM 3）；PDF 先由 `pdfinfo` 核对加密状态、完整页数及所有允许页尺寸，再由 `pdftoppm` 按 144 DPI 逐页渲染并识别。使用默认中文模型避免英语模型把中文短行误识为拉丁字符；英文材料的识别准确性尚未单独验收。其他系统当前只支持 UTF-8 TXT。Word 仍可由主应用保存，伴随服务返回 415；识别尚不支持 Word。
+macOS 图片使用 Apple Vision accurate 中文/英文识别，PDF 由 PDFKit 渲染全部允许页后逐页做 OCR。Linux 使用本机 Tesseract 的 `chi_sim` 简体中文语言包和默认自动布局（PSM 3）；PDF 先由 `pdfinfo` 核对加密状态、完整页数及所有允许页尺寸，再由 `pdftoppm` 按 216 DPI 逐页渲染并识别。使用默认中文模型避免英语模型把中文短行误识为拉丁字符；英文材料的识别准确性尚未单独验收。其他系统当前只支持 UTF-8 TXT。Word 仍可由主应用保存，伴随服务返回 415；识别尚不支持 Word。
 
 Linux 启动前只探测 Tesseract 的 `chi_sim` 语言包和 Poppler 工具，不安装或下载依赖。默认从服务进程的 PATH 查找 `tesseract`、`pdfinfo` 与 `pdftoppm`。Tesseract 可由运维在专用私有目录安装，使用以下受信任的启动配置；HTTP 调用方仍不能选择工具、文件路径或语言包：
 
@@ -44,7 +44,9 @@ Linux 启动前只探测 Tesseract 的 `chi_sim` 语言包和 Poppler 工具，�
 
 语言包与工具就绪时，health 的 `capabilities.ocr` 为 `['tesseract_chi_sim','poppler','utf8_text']`。只有图片引擎就绪时保留 `tesseract_chi_sim`，缺少中文引擎时只保留 `utf8_text`，并附非敏感 `ocrError`；相应图片或 PDF 任务明确返回 `OCR_UNAVAILABLE`，不降级成空白成功。启动探测结果在本次服务运行中固定；安装或修复依赖后需要重启服务。
 
-Linux 在解码前检查 PNG/JPEG 头部尺寸，PDF 在渲染前逐页检查 144 DPI 下的尺寸，并在渲染后再次检查 PNG 尺寸；沿用每边不超过 8192 像素、每页不超过 4000 万像素、最多 5 页、32000 字和 1000 块的限制。整个 PDF 检查、渲染与 OCR 共享 60 秒预算，超过限制明确失败。工具以无 shell 的直接子进程运行；超时、取消和关闭使用终止信号并等待子进程及输出流关闭，随后才由服务清理私有临时材料，避免识别进程在清理后继续写入。
+Linux 在解码前检查 PNG/JPEG 头部尺寸，PDF 在渲染前逐页检查 216 DPI 下的尺寸（每英寸 72 点，按同一 DPI 换算并向上取整），并在渲染后再次检查 PNG 尺寸；沿用每边不超过 8192 像素、每页不超过 4000 万像素、最多 5 页、32000 字和 1000 块的限制。提高 DPI 后，原尺寸较大的 PDF 会更早达到像素限制；服务明确拒绝，不降分辨率或截断页面。整个 PDF 检查、渲染与 OCR 共享 60 秒预算，超过限制明确失败。工具以无 shell 的直接子进程运行；超时、取消和关闭使用终止信号并等待子进程及输出流关闭，随后才由服务清理私有临时材料，避免识别进程在清理后继续写入。
+
+2026-10-13 在目标 Debian 12 的 Tesseract 5.3.0、Poppler 22.12.0 上，对同一合成 `contract.pdf` 比较 144、216、300 DPI：144 DPI 漏识“用人单位”的“用”，216 DPI 识别出合同的五个预设字段，300 DPI 出现分行与误字。因此选择 216 DPI 作为通用渲染参数，保留原始 OCR 文字和字段断言。这是同一合成夹具上的工程调参，不是 OCR 准确率评估；不能推断任意真实 PDF 或更高 DPI 均能正确识别。原始 TSV、文字、字段及各分辨率的成功和失败结果保留在 `output/materials/pdf-dpi-probe.json`。macOS 上直接调用 Linux helper 的开发探针在 216 DPI 将“劳动者”识别为“苔动者”，未取得 worker 字段；失败结果保留在 `output/materials/pdf-dpi-local-comparison.json`。该调用不是受支持的 macOS 服务路径；macOS 服务仍使用 Apple Vision，其真实 OCR 回归独立执行，不能把该探针称为 Mac Tesseract 语义通过。
 
 Tesseract TSV 的词块按同一行合并为出处块，中文和标点边界不额外插入分词空格，拉丁词之间保留分隔。只消除 TSV 引入的词边界，不改写识别出的汉字、日期、金额或标点。页码、归一化左上角区域和按文字长度加权的 OCR 置信度保留；图片结果 `engine.ocr=tesseract_chi_sim`，PDF 结果 `engine.ocr=tesseract_chi_sim_poppler`。工具参数依据 [Tesseract 官方 CLI 文档](https://tesseract-ocr.github.io/tessdoc/Command-Line-Usage.html)、[Debian 12 pdfinfo 手册](https://manpages.debian.org/bookworm/poppler-utils/pdfinfo.1.en.html) 和 [Debian 12 pdftoppm 手册](https://manpages.debian.org/bookworm/poppler-utils/pdftoppm.1.en.html) 核对。Linux OCR、字段规则、可选模型推理与目标机实际 HTTP 验收分别记录，不能把本机 OCR 通过称为 Debian 部署通过。
 
@@ -88,7 +90,7 @@ swift fixtures/material-demo/generate.swift fixtures/material-demo
 
 单元/HTTP 测试覆盖所有路由鉴权、浏览器来源拒绝、客户端模型/URL 拒绝、输入边界、UTF-8 与规则实际提取、逐字字段引用、队列容量、运行/等待任务删除及重启丢失。macOS 测试额外运行真实 Apple Vision PNG/PDF OCR，核对合成合同、到账记录与聊天的预设文字、bbox、损坏图片和 6 页 PDF 失败。注入故障测试验证重定向拒绝、清理失败后的错误/取消/后续任务恢复、占用端口后的清理；这些故障测试没有发出真实模型推理请求。
 
-Linux helper 测试覆盖 TSV 中文行和拉丁词边界、原样保留 OCR 错字、bbox/置信度格式、PNG/JPEG 尺寸、完整 PDF 页数/加密/后续页超限、私有工具配置、依赖缺失、全部页面出处、超时和真实子进程取消后退出。已安装 Tesseract `chi_sim` 与 Poppler 的测试主机另运行合成 PNG/PDF 的真实 OCR；缺少工具时该项明确跳过。服务在已具备工具的 Linux 主机上也执行真实 OCR、运行/等待任务取消、损坏图片和 6 页 PDF 回归。合成材料通过仅证明该组受控样例，不证明任意真实材料准确；目标 Debian 的版本、工具、服务 HTTP 和应用完整链路仍需在目标机单独验收。
+Linux helper 的解析、尺寸/页数限制、私有工具配置、全部页面出处、超时和真实子进程取消测试跨平台执行。已安装 Tesseract `chi_sim` 与 Poppler 的 Linux 测试主机另运行合成 PNG/PDF 的真实 OCR，逐字核对合同全部五字段及字段出处；非 Linux 或缺少工具时该项明确跳过，因为它验证 Linux 服务路径。macOS 继续独立执行真实 Apple Vision 服务回归。服务在已具备工具的 Linux 主机上也执行真实 OCR、运行/等待任务取消、损坏图片和 6 页 PDF 回归。合成材料通过仅证明该组受控样例，不证明任意真实材料准确；目标 Debian 的版本、工具、服务 HTTP 和应用完整链路仍需在目标机单独验收。
 
 `fixtures/material-demo` 中所有文件均为明确标识的合成材料，不能用于说明真实当事人材料已经验证。视觉模型推理不属于默认测试；主 Agent 授权后才可单图、单并发运行已有模型的有限探针，并记录模型名、返回引擎、耗时、内存情况及字段出处。不要把 OCR/规则测试通过写成 VLM 已验证。
 

@@ -8,6 +8,7 @@ const MAX_TEXT = 32_000;
 const MAX_BLOCKS = 1000;
 const OCR_TIMEOUT_MS = 60_000;
 const MAX_OUTPUT = 16 * 1024 * 1024;
+const PDF_DPI = 216;
 
 function failure(code, message, status = 400) { return Object.assign(new Error(message), { code, status }); }
 
@@ -144,7 +145,7 @@ export function parsePdfInfo(output) {
   for (let page = 1; page <= pageCount; page += 1) {
     const size = pages.get(page);
     if (!size) throw failure('INVALID_PDF', '无法确认所有 PDF 页面尺寸。');
-    checkDimensions(Math.ceil(size[0] * 2), Math.ceil(size[1] * 2));
+    checkDimensions(Math.ceil(size[0] * PDF_DPI / 72), Math.ceil(size[1] * PDF_DPI / 72));
   }
   return pageCount;
 }
@@ -201,7 +202,7 @@ export function createLinuxOcr({ env = process.env, run = runOcrCommand } = {}) 
       for (let page = 1; page <= pageCount; page += 1) {
         if (combined.aborted) throw signal?.aborted ? signal.reason : failure('OCR_TIMEOUT', '文字识别超时，请拆分或缩小材料后重试。');
         const prefix = join(directory, `page-${page}`);
-        await command('pdftoppm', ['-f', String(page), '-l', String(page), '-r', '144', '-singlefile', '-png', input, prefix], toolEnv, 'PDF_RENDER_FAILED', 'PDF 页面无法渲染。');
+        await command('pdftoppm', ['-f', String(page), '-l', String(page), '-r', String(PDF_DPI), '-singlefile', '-png', input, prefix], toolEnv, 'PDF_RENDER_FAILED', 'PDF 页面无法渲染。');
         const path = `${prefix}.png`;
         imageDimensions(await readFile(path), 'image/png');
         imagePaths.push(path);

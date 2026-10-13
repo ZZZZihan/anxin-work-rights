@@ -293,9 +293,11 @@ test('deleting a ready job clears cached content and DELETE is idempotent', asyn
   assert.equal((await fetch(`${service.url}/jobs/${job.payload.jobId}`, { method: 'DELETE' })).status, 401);
 });
 
-test('at most two jobs wait and deletion cancels running/queued OCR without reviving results', { skip: process.platform !== 'darwin' }, async (t) => {
+test('at most two jobs wait and deletion cancels running/queued OCR without reviving results', { skip: !['darwin', 'linux'].includes(process.platform) }, async (t) => {
   const service = await createMaterialService({ token });
   t.after(() => service.close());
+  const health = await (await fetch(`${service.url}/health`, { headers: auth })).json();
+  if (process.platform === 'linux' && !health.capabilities.ocr.includes('tesseract_chi_sim')) { t.skip('Linux Chinese OCR tools are not installed.'); return; }
   const bytes = await readFile(fixture('contract.png'));
   const admitted = [];
   for (let index = 0; index < 3; index += 1) {
@@ -313,9 +315,11 @@ test('at most two jobs wait and deletion cancels running/queued OCR without revi
   for (const id of admitted.slice(0, 2)) assert.equal((await fetch(`${service.url}/jobs/${id}`, { headers: auth })).status, 404);
 });
 
-test('real Apple Vision recognises synthetic PNG/PDF, preserves bboxes, rejects broken images and six-page PDFs', { skip: process.platform !== 'darwin' }, async (t) => {
+test('real platform OCR recognises synthetic PNG/PDF, preserves bboxes, rejects broken images and six-page PDFs', { skip: !['darwin', 'linux'].includes(process.platform) }, async (t) => {
   const service = await createMaterialService({ token });
   t.after(() => service.close());
+  const health = await (await fetch(`${service.url}/health`, { headers: auth })).json();
+  if (process.platform === 'linux' && !health.capabilities.ocr.includes('poppler')) { t.skip('Linux Chinese OCR/PDF tools are not installed.'); return; }
   for (const [name, mime, kind, expected] of [
     ['contract.png', 'image/png', 'contract', ['8000元', '张小合']],
     ['wage-statement.png', 'image/png', 'wage_statement', ['6500元', '2026年02月10日']],

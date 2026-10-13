@@ -60,6 +60,11 @@ test('PDF preflight rejects encryption, page truncation and a large later page b
   assert.throws(() => parsePdfInfo('Pages: 2\nEncrypted: no\nPage 1 size: 1000 x 700 pts'), { code: 'INVALID_PDF' });
   assert.throws(() => parsePdfInfo(pdf().replace('Page 2 MediaBox: 0.00 0.00 1000.00 700.00', 'Page 2 MediaBox: 0.00 0.00 5000.00 5000.00')), { code: 'IMAGE_TOO_LARGE' });
   assert.equal(parsePdfInfo('Pages: 1\nEncrypted: no\nPage size: 595.28 x 841.89 pts (A4)'), 1);
+  // Both fit the former 144 DPI bounds; reject using the actual 216 DPI rendering scale.
+  assert.throws(() => parsePdfInfo('Pages: 1\nEncrypted: no\nPage size: 3000 x 100 pts'), { code: 'IMAGE_TOO_LARGE' });
+  assert.throws(() => parsePdfInfo('Pages: 1\nEncrypted: no\nPage size: 2300 x 2000 pts'), { code: 'IMAGE_TOO_LARGE' });
+  assert.equal(parsePdfInfo('Pages: 1\nEncrypted: no\nPage size: 2730 x 100 pts'), 1);
+  assert.throws(() => parsePdfInfo('Pages: 1\nEncrypted: no\nPage size: 2731 x 100 pts'), { code: 'IMAGE_TOO_LARGE' });
 });
 
 test('private executable/language/library configuration is passed only to Tesseract', async (t) => {
@@ -122,13 +127,16 @@ test('all PDF pages retain page IDs, bounded rendering arguments and citations; 
   assert.equal(result.engine, 'tesseract_chi_sim_poppler');
   assert.deepEqual(result.blocks.map((block) => [block.id, block.page]), [['p1-b1', 1], ['p2-b1', 2]]);
   assert.deepEqual(renders.map((args) => args.slice(0, 9)), [
-    ['-f', '1', '-l', '1', '-r', '144', '-singlefile', '-png', join(directory, 'original.pdf')],
-    ['-f', '2', '-l', '2', '-r', '144', '-singlefile', '-png', join(directory, 'original.pdf')],
+    ['-f', '1', '-l', '1', '-r', '216', '-singlefile', '-png', join(directory, 'original.pdf')],
+    ['-f', '2', '-l', '2', '-r', '216', '-singlefile', '-png', join(directory, 'original.pdf')],
   ]);
   for (const field of extractRuleFields(result.blocks, 'contract')) assert(result.blocks.find((block) => block.id === field.blockIds[0]).text.includes(field.quote));
   info = pdf(6); renders.length = 0;
   await assert.rejects(ocr.recognise(Buffer.from('six-page controlled PDF'), 'application/pdf', directory), { code: 'PDF_PAGE_LIMIT' });
   assert.equal(renders.length, 0);
+  info = pdf().replace('Page 2 MediaBox: 0.00 0.00 1000.00 700.00', 'Page 2 MediaBox: 0.00 0.00 3000.00 100.00');
+  await assert.rejects(ocr.recognise(Buffer.from('large second-page controlled PDF'), 'application/pdf', directory), { code: 'IMAGE_TOO_LARGE' });
+  assert.equal(renders.length, 0, 'Preflight all page dimensions at the selected DPI before rendering any page.');
 });
 
 test('PDF password errors and OCR timeouts expose stable errors, not subprocess paths or stderr', async (t) => {
@@ -163,7 +171,9 @@ test('a missing direct executable closes and rejects without hanging startup', a
   await assert.rejects(runOcrCommand('/nonexistent-anxin-test/tesseract', ['--list-langs']), { code: 'ENOENT' });
 });
 
-test('real local Tesseract/Poppler recognises explicit synthetic PNG/PDF fixtures without model inference', async (t) => {
+test('real Linux Tesseract/Poppler recognises explicit synthetic PNG/PDF fixtures without model inference', {
+  skip: process.platform === 'linux' ? false : 'Tesseract is the supported Linux runtime; macOS real OCR uses Apple Vision and is tested in material-service.test.mjs.',
+}, async (t) => {
   const ocr = createLinuxOcr();
   const available = await ocr.probe();
   if (!available.pdf) { t.skip('Tesseract chi_sim or Poppler is not installed on this test host.'); return; }
@@ -176,6 +186,13 @@ test('real local Tesseract/Poppler recognises explicit synthetic PNG/PDF fixture
     const result = await ocr.recognise(await readFile(new URL(`../fixtures/material-demo/${name}`, import.meta.url)), mime, directory);
     const text = result.blocks.map((block) => block.text).join('\n');
     for (const value of expected) assert(text.includes(value), `${name}: ${value}\n${text}`);
+    if (name === 'contract.png' || name === 'contract.pdf') {
+      const fields = extractRuleFields(result.blocks, 'contract');
+      for (const [key, value] of Object.entries({ employer: '合成星海科技有限公司', worker: '张小合', job: '设备维护员', employment_start: '2026年01月05日', wage_standard: '8000元' })) {
+        assert(fields.some((field) => field.key === key && field.value === value), `${name}: ${key}=${value}\n${text}`);
+      }
+      for (const field of fields) assert(result.blocks.filter((block) => field.blockIds.includes(block.id)).map((block) => block.text).join('\n').includes(field.quote));
+    }
     assert(result.blocks.every((block) => block.bbox[0] + block.bbox[2] <= 1 && block.bbox[1] + block.bbox[3] <= 1));
   }
 });
