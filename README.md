@@ -12,7 +12,7 @@
 
 ![新版安薪乐业行动首页：深蓝工作台、案件进度与浅彩快捷入口](docs/images/workbench-home-7e3d496.png)
 
-*当前演示界面，2026-10-13 重新截取，版本 `7e3d496`，使用合成演示数据。界面来自 [PR #19](https://github.com/ZZZZihan/anxin-work-rights/pull/19)，下文材料识别样例来自 [PR #24](https://github.com/ZZZZihan/anxin-work-rights/pull/24)，两条分支尚未整合。[截图来源记录](docs/images/README.md)。*
+*当前演示界面，2026-10-13 重新截取，版本 `7e3d496`，使用合成演示数据。截图来自[界面 PR #19](https://github.com/ZZZZihan/anxin-work-rights/pull/19)；材料识别与数据库样例由[功能 PR #24](https://github.com/ZZZZihan/anxin-work-rights/pull/24)交付到主分支，界面改版尚未与主分支整合。[截图来源记录](docs/images/README.md)。*
 
 <details>
 <summary>查看新版证据管家：劳动关系确认案件的材料归档</summary>
@@ -112,10 +112,10 @@ flowchart LR
 
 需要 **Node.js 22.13+、Python 3.10+**。图片与 PDF 识别还需要 macOS、Swift 命令行工具及 Apple Vision/PDFKit；首次图片或 PDF 识别会编译本机 OCR 助手。其他平台可使用 UTF-8 TXT 跑通文本链路。
 
-本说明对应材料识别功能分支。首次获取项目可运行：
+从主仓库获取包含材料识别样例的代码并启动：
 
 ```bash
-git clone --branch feature/material-source-demo https://github.com/ZZZZihan/anxin-work-rights.git
+git clone https://github.com/ZZZZihan/anxin-work-rights.git
 cd anxin-work-rights
 npm ci
 npm run dev:materials
