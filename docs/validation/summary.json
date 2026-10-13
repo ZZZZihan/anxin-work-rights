@@ -1,0 +1,91 @@
+{
+  "recordedAt": "2026-10-13",
+  "scope": "Local runnable sample; synthetic materials only; no merge or deployment",
+  "base": {
+    "pullRequest": 22,
+    "commit": "da689eb00827faa68abc524377978c021c6a4e74",
+    "datasetFingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a"
+  },
+  "status": "PASS_WITH_DECLARED_LIMITS",
+  "localCheck": {
+    "status": "PASS",
+    "appTests": 67,
+    "dataTests": 9,
+    "serviceTests": 13,
+    "serviceSkipped": 0,
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "publicIndex": "PASS",
+    "report": "local-check.txt"
+  },
+  "productionHttp": {
+    "base": {
+      "checks": 21,
+      "report": "http-baseline.json"
+    },
+    "utf8Rules": {
+      "checks": 5,
+      "report": "http-production.json"
+    },
+    "imageRules": {
+      "checks": 14,
+      "report": "http-images.json"
+    },
+    "appleTextModel": {
+      "checks": 14,
+      "report": "http-apple-images.json",
+      "manualReview": "All 17 accepted fields were read and match the known synthetic facts and source quotes. Rejected candidates remain visible by count and reason."
+    }
+  },
+  "realModel": {
+    "model": "apple-foundation-models",
+    "structuring": "local_text_model",
+    "imageCount": 0,
+    "digest": null,
+    "elapsedSeconds": 30.48,
+    "maximumMemoryPressure": 1,
+    "swapUnchanged": true,
+    "fieldsByFixture": {
+      "contract.png": 5,
+      "wage-statement.png": 4,
+      "chat.png": 3,
+      "contract.pdf": 5
+    },
+    "chatFields": [
+      "management_statement",
+      "arrears_statement",
+      "arrears_statement"
+    ],
+    "report": "http-apple-resources.json"
+  },
+  "independentReview": {
+    "apiUiAndHttp": "material-independent-review.json",
+    "extractionAndPrompt": "material-service-review.json",
+    "runtimeAcceptanceBy": "main agent after source reviews"
+  },
+  "agents": {
+    "children": 3,
+    "roles": [
+      "public index plus independent API/UI/HTTP review",
+      "OCR/model service and fixtures",
+      "frontend plus independent service review"
+    ],
+    "requestedModel": "gpt-6.1-sol",
+    "requestedReasoning": "ultra",
+    "actualRuntimeConfigurationIndependentlyVerified": false
+  },
+  "limitations": [
+    "Prompt and safeguards iterated on these known synthetic samples; not held-out accuracy or real-user acceptance.",
+    "Apple model receives OCR text, not images; 27B visual model was stopped for memory pressure and produced no useful fields.",
+    "Public retrieval is deterministic keyword/topic matching, not semantic vectors or generated legal advice.",
+    "Official case summaries are not original judgments; law currency/version caveats remain.",
+    "Only macOS currently supports image/PDF OCR; Linux CI validates TXT.",
+    "No legal expert review, merge or deployment."
+  ],
+  "historicalFailures": [
+    "model-probes.json",
+    "http-apple-before-semantic-filter.json",
+    "http-apple-semantic-filter-missing-management.json"
+  ]
+}
