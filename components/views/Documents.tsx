@@ -19,7 +19,7 @@ import type { BootstrapData, DocumentDraft, WorkCase } from '@/lib/types';
 import type { SharedViewProps } from '../types';
 
 type TemplateField = { key: string; label: string; placeholder: string; multiline?: boolean };
-type Template = { id: string; title: string; description: string; icon: typeof FileText; fields: TemplateField[] };
+type Template = { id: string; title: string; description: string; icon: typeof FileText; tone: string; fields: TemplateField[] };
 
 const templates: Template[] = [
   {
@@ -27,6 +27,7 @@ const templates: Template[] = [
     title: '劳动仲裁申请书',
     description: '整理当事人、仲裁请求和事实理由',
     icon: ScrollText,
+    tone: 'tone-blue',
     fields: [
       { key: 'applicantName', label: '申请人', placeholder: '姓名' },
       { key: 'contact', label: '联系方式', placeholder: '手机号码' },
@@ -42,6 +43,7 @@ const templates: Template[] = [
     title: '欠薪催告函',
     description: '向单位书面确认欠付金额与付款期限',
     icon: FileClock,
+    tone: 'tone-violet',
     fields: [
       { key: 'sender', label: '发函人', placeholder: '姓名' },
       { key: 'contact', label: '联系方式', placeholder: '手机号码' },
@@ -57,6 +59,7 @@ const templates: Template[] = [
     title: '工伤认定材料清单',
     description: '记录事故事实与待准备的申请材料',
     icon: ListChecks,
+    tone: 'tone-mint',
     fields: [
       { key: 'worker', label: '受伤职工', placeholder: '姓名' },
       { key: 'contact', label: '联系方式', placeholder: '手机号码' },
@@ -73,6 +76,7 @@ const templates: Template[] = [
     title: '案件事实时间线',
     description: '把关键日期、人物、事件和证据对齐',
     icon: FileText,
+    tone: 'tone-apricot',
     fields: [
       { key: 'title', label: '时间线标题', placeholder: '例如：欠薪与协商经过' },
       { key: 'participants', label: '相关人员', placeholder: '姓名、职务、联系方式或角色' },
@@ -224,7 +228,7 @@ export default function Documents({
 
   if (!activeCase) {
     return (
-      <section className="panel empty-panel standalone-empty">
+      <section className="workspace-view documents-view panel empty-panel standalone-empty">
         <FileText size={30} /><h1>先创建一个案件</h1><p>文书草稿会自动带入当前案件的单位与事实摘要。</p>
         <button className="button button-primary" onClick={() => navigate('cases')}><Plus size={17} />创建案件</button>
       </section>
@@ -232,11 +236,14 @@ export default function Documents({
   }
 
   return (
-    <div className="view-stack">
+    <div className="workspace-view documents-view view-stack">
       <section className="page-heading-row">
-        <div>
-          <h1>把事实写清楚，行动更有底气</h1>
-          <p>先补齐关键信息，再保存草稿或导出。</p>
+        <div className="workspace-heading-copy">
+          <span className="workspace-page-icon tone-mint" aria-hidden="true"><FileText size={24} /></span>
+          <div>
+            <h1>把事实写清楚，行动更有底气</h1>
+            <p>先补齐关键信息，再保存草稿或导出。</p>
+          </div>
         </div>
       </section>
 
@@ -245,10 +252,10 @@ export default function Documents({
           const Icon = item.icon;
           const hasDraft = data.documents.some((entry) => entry.caseId === activeCase.id && entry.type === item.id);
           return (
-            <button key={item.id} className={item.id === templateId ? 'active' : ''} aria-pressed={item.id === templateId} onClick={() => setTemplateId(item.id)}>
-              <span><Icon size={20} /></span>
+            <button key={item.id} className={`${item.tone}${item.id === templateId ? ' active' : ''}`} aria-pressed={item.id === templateId} onClick={() => setTemplateId(item.id)}>
+              <span className="template-icon" aria-hidden="true"><Icon size={20} /></span>
               <div><strong>{item.title}</strong><small>{item.description}</small></div>
-              {hasDraft && <i title="已有草稿"><Check size={13} /></i>}
+              {hasDraft && <i title="已有草稿" role="img" aria-label="已有草稿"><Check size={13} aria-hidden="true" /></i>}
             </button>
           );
         })}

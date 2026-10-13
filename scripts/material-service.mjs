@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFile } from 'node:child_process';
+import { createLinuxOcr } from './material-ocr-linux.mjs';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_JOBS = 32;
@@ -200,6 +201,8 @@ export async function createMaterialService({ token, port = 0, model = null } = 
   if (typeof token !== 'string' || token.length < 32) throw new Error('A caller-generated token of at least 32 characters is required.');
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Invalid loopback port.');
   if (model !== null && (typeof model !== 'string' || !model.trim() || model.length > 150)) throw new Error('Invalid configured model.');
+  const linuxOcr = process.platform === 'linux' ? createLinuxOcr() : null;
+  const linuxCapabilities = linuxOcr ? await linuxOcr.probe() : null;
   const root = await mkdtemp(join(tmpdir(), 'anxin-material-service-'));
   const jobs = new Map();
   const queue = [];
@@ -256,7 +259,8 @@ export async function createMaterialService({ token, port = 0, model = null } = 
       if (lines.length > 1000) throw failure('BLOCK_LIMIT', '文字段落过多，请拆分后上传。');
       return { pageCount: 1, blocks: lines.map((line, index) => ({ id: `p1-b${index + 1}`, page: 1, text: line, bbox: null, confidence: null })), imagePaths: [], engine: 'utf8_text' };
     }
-    if (process.platform !== 'darwin') throw failure('OCR_UNAVAILABLE', '此机器没有配置 Apple Vision；图片与 PDF 识别不可用。', 503);
+    if (linuxOcr) return linuxOcr.recognise(bytes, mime, directory, signal);
+    if (process.platform !== 'darwin') throw failure('OCR_UNAVAILABLE', '此机器没有配置可用的图片与 PDF 识别引擎。', 503);
     if (!compiled) {
       const binary = join(root, 'material-ocr');
       compiled = runFile('/usr/bin/swiftc', ['-O', fileURLToPath(new URL('./material-ocr.swift', import.meta.url)), '-o', binary], OCR_TIMEOUT_MS, shutdown.signal)
@@ -360,7 +364,8 @@ export async function createMaterialService({ token, port = 0, model = null } = 
       if (url.search) throw failure('INVALID_PARAMETERS', '不接受 URL、模型或其他查询参数。');
       prune();
       if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, {
-        status: 'ok', capabilities: { ocr: process.platform === 'darwin' ? ['apple_vision', 'pdfkit', 'utf8_text'] : ['utf8_text'],
+        status: 'ok', capabilities: { ocr: process.platform === 'darwin' ? ['apple_vision', 'pdfkit', 'utf8_text'] : linuxCapabilities?.capabilities || ['utf8_text'],
+          ...(linuxCapabilities?.error ? { ocrError: linuxCapabilities.error } : {}),
           structuring: model === APPLE_MODEL ? 'local_text_model' : model ? 'local_vision_model' : 'ocr_rules', model: modelInfo, modelError, maxPages: 5, maxBytes: MAX_BYTES, concurrency: 1, maxWaiting: 2 },
         cleanup: { pending: pendingCleanup.size, ...(pendingCleanup.size ? { error: 'TEMP_CLEANUP_FAILED' } : {}) },
       });

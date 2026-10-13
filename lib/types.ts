@@ -59,6 +59,7 @@ export type DocumentDraft = {
 };
 
 export type BootstrapData = {
+  synthetic?: { environmentId: string; expiresAt: string | null; directEntry?: boolean; persistentDemo?: boolean };
   user: UserProfile;
   cases: WorkCase[];
   archivedCases: WorkCase[];

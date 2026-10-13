@@ -1,0 +1,8 @@
+### Ran Playwright code
+```js
+await (async (page) => { await page.getByRole("region",{name:"法条案例与来源",exact:true}).scrollIntoViewIfNeeded(); await page.screenshot({path:"output/playwright/material-live/material-sources-desktop.png"}); const reports=[]; for(const [file,kind,expected] of [["wage-statement.png","工资流水",["6500元","2026年02月10日"]],["chat.png","聊天记录",["安排你明天上午到工厂上班，请按时打卡。","公司拖欠2月份工资，会尽快支付。"]],["contract.pdf","劳动合同",["合成星海科技有限公司","张小合","设备维护员","2026年01月05日","8000元"]]]) { const chooserPromise=page.waitForEvent("filechooser"); await page.getByRole("button",{name:"选择文件",exact:true}).click(); await (await chooserPromise).setFiles("/Users/xuzihan/Documents/Projects/国创/anxin-material-live/fixtures/material-demo/"+file); const panel=page.getByRole("region",{name:"材料识别："+file,exact:true}); await panel.waitFor(); await panel.getByRole("combobox",{name:"识别材料类型",exact:true}).selectOption({label:kind}); await panel.getByRole("button",{name:"识别并检索",exact:true}).click(); const fields=panel.getByRole("region",{name:"字段核对",exact:true}); await fields.waitFor({timeout:60000}); const values=[]; for(const input of await fields.getByRole("textbox").all()) values.push(await input.inputValue()); for(const v of expected) if(!values.includes(v)) throw Error(file+" missing "+v+JSON.stringify(values)); const sources=panel.getByRole("region",{name:"法条案例与来源",exact:true}); await sources.waitFor(); const sourceText=await sources.innerText(); if(!sourceText.includes("案例")||!sourceText.includes("法条")) throw Error("missing case/law"); reports.push({file,values,caseAndLawVisible:true}); } console.log(JSON.stringify(reports)); })(page);
+```
+### Page
+- Page URL: http://172.23.1.127/#evidence
+### Modal state
+- [File chooser]: can be handled by upload

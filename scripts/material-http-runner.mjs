@@ -1,5 +1,7 @@
 // Runs the production build against isolated local D1/R2 and the real extraction
-// service. Linux CI uses UTF-8 extraction; --images requires macOS Apple Vision.
+// service. --images uses Apple Vision on macOS or Tesseract/Poppler on Linux.
+// Fixture facts are compared exactly unless --punctuation-equivalence is explicit;
+// raw OCR, quotes, field provenance and source hashes always remain exact.
 import { spawn } from 'node:child_process';
 import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -13,13 +15,15 @@ await rm(output, { force: true }); // A failed run must not leave an older PASS 
 const mode = process.argv.includes('--images') ? 'images' : 'text';
 const temp = await mkdtemp(join(tmpdir(), 'anxin-material-http-'));
 const token = randomBytes(32).toString('hex');
-const service = await createMaterialService({ token, model: process.env.ANXIN_MATERIAL_MODEL || process.env.ANXIN_VISION_MODEL || null });
+const model = process.env.ANXIN_MATERIAL_MODEL || process.env.ANXIN_VISION_MODEL || null;
+let service;
 const run = (args, options = {}) => new Promise((yes, no) => {
   const child = spawn(process.execPath, args, { stdio: 'inherit', ...options });
   child.once('error', no); child.once('exit', (code) => code === 0 ? yes() : no(new Error(`Child exited ${code}`)));
 });
 let worker;
 try {
+  service = await createMaterialService({ token, model });
   const probe = createServer(); await new Promise((yes) => probe.listen(0, '127.0.0.1', yes));
   const port = probe.address().port; await new Promise((yes) => probe.close(yes));
   const baseConfig = resolve('dist/server/wrangler.json');
@@ -44,11 +48,42 @@ try {
   }
   if (!ready) throw new Error('Isolated Worker readiness timed out.');
   const { mkdir } = await import('node:fs/promises'); await mkdir(dirname(output), { recursive: true });
-  await run(['scripts/material-http-regression.mjs', `http://127.0.0.1:${port}`, output, mode]);
+  const regressionArgs = ['scripts/material-http-regression.mjs', `http://127.0.0.1:${port}`, output, mode, '--service-restart'];
+  if (process.argv.includes('--punctuation-equivalence')) regressionArgs.push('--punctuation-equivalence');
+  const regression = spawn(process.execPath, regressionArgs, { stdio: ['inherit', 'inherit', 'inherit', 'ipc'] });
+  let restartOperation;
+  let restarted = false;
+  // Only this isolated child can request a restart. There is no HTTP control
+  // route, and the same private token/loopback port remain bound in the Worker.
+  regression.on('message', (message) => {
+    if (message?.type !== 'restart-material-service' || typeof message.requestId !== 'string') return;
+    const reply = (detail) => {
+      if (regression.connected) regression.send({ type: 'material-service-restarted', requestId: message.requestId, ...detail });
+    };
+    if (restarted) { reply({ error: 'Only one service restart is allowed per isolated regression.' }); return; }
+    restarted = true;
+    restartOperation = (async () => {
+      try {
+        const servicePort = Number(new URL(service.url).port);
+        await service.close();
+        service = await createMaterialService({ token, port: servicePort, model });
+        reply({ ok: true });
+      } catch (error) { reply({ error: error.message }); }
+    })();
+  });
+  try {
+    await new Promise((yes, no) => {
+      regression.once('error', no);
+      regression.once('exit', (code) => code === 0 ? yes() : no(new Error(`Material regression exited ${code}`)));
+    });
+  } finally { await restartOperation; }
 } finally {
-  if (worker && worker.exitCode === null) {
-    const done = new Promise((yes) => worker.once('exit', yes)); worker.kill('SIGTERM'); await done;
+  try {
+    if (worker && worker.exitCode === null) {
+      const done = new Promise((yes) => worker.once('exit', yes)); worker.kill('SIGTERM'); await done;
+    }
+    await service?.close();
+  } finally {
+    await rm(temp, { recursive: true, force: true });
   }
-  await service.close();
-  await rm(temp, { recursive: true, force: true });
 }

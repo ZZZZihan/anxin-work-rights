@@ -4,7 +4,7 @@
 
 ## 启动与操作
 
-需要 Node.js 22.13+、Python 3.10+。图片和 PDF 识别需要 macOS、Swift 命令行工具及 Apple Vision/PDFKit；首次运行会在私有临时目录编译助手。其他平台可用 UTF-8 TXT 演示文本链路。
+需要 Node.js 22.13+、Python 3.10+。图片和 PDF 识别支持 macOS 与 Linux：macOS 使用 Swift 命令行工具及 Apple Vision/PDFKit，首次运行会在私有临时目录编译助手；Linux 使用本机 Tesseract、`chi_sim` 简体中文语言包及 Poppler 的 `pdfinfo`/`pdftoppm`，启动前需安装并配置这些工具，服务不会自行下载。其他平台可用 UTF-8 TXT 演示文本链路。依赖与私有安装路径见[提取服务说明](material-extractor.md)。
 
 ```bash
 npm ci
@@ -24,7 +24,7 @@ npm run dev:materials
 
 ## 实际处理方式
 
-默认启动使用真实 Apple Vision 中文 OCR 和可解释字段规则，界面标为「OCR + 规则提取」。这条路径不调用大模型。检索采用有限劳动权益词表、同义词及加权匹配，不是向量语义检索，也不生成法律结论。
+默认启动使用本机 OCR 和可解释字段规则，界面标为「OCR + 规则提取」：macOS 使用 Apple Vision，Linux 使用 Tesseract `chi_sim`，PDF 由 Poppler 按 216 DPI 逐页渲染。缺少对应工具时图片或 PDF 识别明确失败，UTF-8 TXT 仍可处理。这条路径不调用大模型。检索采用有限劳动权益词表、同义词及加权匹配，不是向量语义检索，也不生成法律结论。
 
 可通过环境变量显式选择已有本地模型，启动器不会下载模型或调用付费服务：
 
@@ -52,23 +52,30 @@ ANXIN_MATERIAL_MODEL=<本机模型名> npm run dev:materials
 
 原文件由已有 R2 链路保存，分析状态和核对修订保存在 D1。分析前核验原文件 SHA-256。其他用户不能读取、开始、修改或删除分析。修订有版本检查，冲突会提示先保留编辑内容再加载最新版本。
 
-识别服务仅监听 `127.0.0.1`，每次启动生成临时令牌；不允许浏览器直接访问，不接收任意远端 URL。临时文件处理后清除，内存任务缓存有 15 分钟到期时间。删除材料会先持久化取消并删除分析，再请求处理服务取消/清理任务；晚到结果不能恢复已删除数据。若处理服务不可用或临时目录清理失败，界面会说明临时材料尚未确认清理，应用原文件删除仍完成。目录清理失败会每 30 秒重试，关闭服务也会重试；持续失败需在本机处理，不能把内存 TTL 当成磁盘清理成功。案件归档只隐藏工作内容，不等于删除材料或数据。
+识别服务仅监听 `127.0.0.1`，不允许浏览器直接访问，不接收任意远端 URL。`npm run dev:materials` 为当次开发启动生成临时令牌；合成 HTTP 的部署启动器从 synthetic root 中的私有 `material-service.json` 读取地址与令牌，分别配置应用 Worker 和材料伴随服务。该令牌由运维生成并受控轮换，不因伴随服务重启而自动改变。部署配置与启动方式见[合成 HTTP 部署说明](../deploy/synthetic-http/README.md)。
+
+临时文件处理后清除，内存任务缓存有 15 分钟到期时间。删除材料会先持久化取消并删除分析，再请求处理服务取消/清理任务；晚到结果不能恢复已删除数据。若处理服务不可用或临时目录清理失败，界面会说明临时材料尚未确认清理，应用原文件删除仍完成。目录清理失败会每 30 秒重试，关闭服务也会重试；持续失败需在本机处理，不能把内存 TTL 当成磁盘清理成功。案件归档只隐藏工作内容，不等于删除材料或数据。
 
 上传成功而识别失败时，原文件仍可下载。恢复服务、确认格式后点击「重试识别并检索」。任务过期、模型不可用、超出页数或无可读文字都会显示可解释错误。重启开发服务后，已保存分析可读取；尚未完成的内存任务需要重试。默认 `npm run dev` 没有启用处理服务，页面会显示未配置。
 
-本样例的处理服务是本机进程，不能把 `127.0.0.1` 配置直接部署到远端 Cloudflare Worker。生产接入远程识别服务需要独立设计身份、网络和数据处理边界，本次未部署。
+整合版已实现同一 Debian 主机上的隔离 Worker 与回环材料伴随服务接线，使用 Linux OCR 与规则；伴随服务不向外部网络开放，也不启用 Ollama 或 Apple 文字模型。本次合成 HTTP 部署沿用已有数据 root 升级，部署及实际网站验收已完成，实际候选、运行检查与恢复结果以[本次发布验证记录](validation/material-live-20261013/README.md)为准。Cloudflare 云端 Worker 的回环地址属于另一运行环境，不能直接使用该主机的 `127.0.0.1`；云端接入仍需单独设计可达地址、身份与数据处理边界。
 
 ## 重建与核查
 
 ```bash
 npm run check
-# check 已包含索引来源核查和实际服务测试；Linux 跳过 macOS OCR 测试
+# check 包含索引来源核查及平台服务测试；macOS 使用 Apple Vision，Linux 使用 Tesseract/Poppler
 
 node scripts/material-http-runner.mjs
 # 隔离生产构建 D1/R2，实际 TXT HTTP 闭环
 
 ANXIN_MATERIAL_REPORT=output/materials/http-images.json node scripts/material-http-runner.mjs --images
-# macOS：三类图片和扫描 PDF 的真实 OCR HTTP 闭环
+# macOS：三类图片和扫描 PDF 的 Apple Vision HTTP 闭环
+
+ANXIN_MATERIAL_REPORT=output/materials/http-linux-images.json node scripts/material-http-runner.mjs --images --punctuation-equivalence
+# Linux：同一组合成材料的 Tesseract/Poppler HTTP 闭环；需先准备 chi_sim 与 Poppler
 ```
 
-HTTP 回归在一次性状态目录运行，结束自动清理。不要把回归脚本指向真实用户环境。模型模式的实际验证应独立记录，不能用规则模式的通过结果替代。
+真实 OCR 测试在相应受支持平台运行，缺少 Linux OCR 依赖时会明确跳过，不能把跳过计为识别通过。`--punctuation-equivalence` 仅允许合成夹具预设事实比较中的已定义中英文标点等价；OCR 原文、字段引用和出处校验不变。
+
+HTTP 回归在一次性状态目录运行，结束自动清理。不要把回归脚本指向真实用户环境。模型模式的实际验证应独立记录，不能用规则模式的通过结果替代。已有 macOS 与模型验证记录保留在[验证目录](validation/README.md)，本次 Linux 整合与部署验收另行记录。

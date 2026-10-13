@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('.', import.meta.url)) } },
   test: {
     environment: 'node',
-    include: ['lib/**/*.test.ts', 'deploy/local-cloud/*.test.mjs'],
+    include: ['lib/**/*.test.ts', 'deploy/local-cloud/*.test.mjs', 'deploy/synthetic-http/*.test.mjs'],
     passWithNoTests: false,
   },
 });

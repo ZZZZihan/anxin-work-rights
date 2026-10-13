@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-13",
+  "candidate": "1b676e0a6f7156374ca82f37a9e3ef3ed8cdaa4c",
+  "requestedSubagentModel": "gpt-6.1-sol",
+  "requestedReasoningEffort": "ultra",
+  "actualRuntimeModelIndependentlyVerified": false,
+  "reviews": [
+    {
+      "reviewer": "linux_material_service",
+      "scope": "Deployment configuration, sidecar and release rollback written by other agents",
+      "result": "No remaining verified blocker after rollback lifecycle fix",
+      "tests": "9/9 private-config tests; shell and Node syntax checks",
+      "fixedFinding": "Rollback now requires both new units stopped and ports 18090/18897/18898 free before removing private configuration",
+      "notExecuted": "Remote failure rollback or archive restore"
+    },
+    {
+      "reviewer": "deployment_path_review",
+      "scope": "Linux OCR helper and material service written by another agent",
+      "result": "No code-level blocker found; actual Debian semantics still require runtime acceptance",
+      "tests": "11/11 OCR adapter tests on macOS using real Tesseract/Poppler; 38/38 deployment tests"
+    },
+    {
+      "reviewer": "visual_material_integration",
+      "scope": "Backend ownership, restart recovery, original files, review and citation persistence",
+      "result": "No verified blocker",
+      "tests": "8/8 real isolated TXT HTTP checks, including service restart and post-denial state/original-byte assertions"
+    },
+    {
+      "reviewer": "deployment_path_review",
+      "scope": "216 DPI delta, same-DPI preflight, exact five-field assertions and platform test selection",
+      "result": "No code blocker; documentation links corrected by main agent",
+      "tests": "2/2 PDF bound tests independently rerun; negative probes retained"
+    }
+  ],
+  "boundary": "Independent code review and local tests do not substitute for Debian OCR or real-site browser acceptance. Initial PDF runtime failure retained separately.",
+  "latestReviewedCodeCandidate": "0cadf0f780557acea64b9b096161744591d8d5d0",
+  "postDeploymentReviews": {
+    "visual_material_integration": "15/15 read-only layouts, 248 trial-only actionability checks, no mutation/errors",
+    "linux_material_service": "50/50 old static resources; HTTPS and nginx process identities unchanged"
+  }
+}

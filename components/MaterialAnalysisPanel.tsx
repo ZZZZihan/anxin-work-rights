@@ -218,8 +218,8 @@ export default function MaterialAnalysisPanel({ evidence, onClose, notify }: Mat
   };
 
   return (
-    <section className="panel material-panel" ref={panelRef} tabIndex={-1} aria-label={`材料识别：${evidence.name}`}>
-      <div className="material-heading"><div><span className="eyebrow">识别 · 核对 · 查出处</span><h2>{evidence.name}</h2><p>识别结果需要与原文件逐项核对，才可用于整理案件事实。</p></div><button className="icon-button" aria-label="关闭材料识别面板" onClick={onClose}><X size={20} /></button></div>
+    <section id="material-analysis-panel" className="panel material-panel" ref={panelRef} tabIndex={-1} aria-label={`材料识别：${evidence.name}`}>
+      <div className="material-heading"><div className="material-heading-copy"><span className="workspace-page-icon tone-violet" aria-hidden="true"><ScanText size={24} /></span><div><span className="eyebrow">识别 · 核对 · 查出处</span><h2>{evidence.name}</h2><p>识别结果需要与原文件逐项核对，才可用于整理案件事实。</p></div></div><button className="icon-button" aria-label="关闭材料识别面板" onClick={onClose}><X size={20} /></button></div>
       <div className="material-toolbar">
         <label className="field"><span>识别材料类型</span><select value={documentKind} onChange={(event) => setDocumentKind(event.target.value as DocumentKind)} disabled={loading || starting || running || Boolean(result)}>{Object.entries(documentKindLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         {!result && <button className="button button-primary" onClick={() => void start()} disabled={loading || starting || running || configured === false || !supported}><ScanText size={17} />{starting ? '正在开始…' : running ? '正在识别…' : analysis?.status === 'failed' ? '重试识别并检索' : '识别并检索'}</button>}

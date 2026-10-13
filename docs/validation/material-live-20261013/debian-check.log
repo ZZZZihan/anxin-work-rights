@@ -1,0 +1,256 @@
+
+> anxin-work-rights@1.0.0 check
+> npm run typecheck && npm run lint && npm test && npm run build && npm run data:check && npm run data:runtime:check && npm run test:materials
+
+
+> anxin-work-rights@1.0.0 typecheck
+> tsc --noEmit --pretty false
+
+
+> anxin-work-rights@1.0.0 lint
+> eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern js --ignore-pattern screenshot.py
+
+
+> anxin-work-rights@1.0.0 test
+> vitest run
+
+
+ RUN  v3.2.7 /home/carryz/.local/lib/anxin-synthetic/releases/0cadf0f780557acea64b9b096161744591d8d5d0
+
+ ✓ deploy/synthetic-http/material-config.test.mjs (9 tests) 629ms
+   ✓ Wrangler credentials remain private on both success and failure > suppresses both real child streams, disables disk logging and strips migration error payloads  518ms
+ ✓ deploy/synthetic-http/environment.test.mjs (12 tests) 3987ms
+   ✓ fresh synthetic environment boundaries > defaults to loopback, loads the maximum TTL, and generates distinct identities and keys  659ms
+   ✓ proxy authentication and precise sources > rejects forged keys and excluded sources before allowing the public origin  311ms
+   ✓ session boundaries and worker identity > persistent Demo remains available beyond the default lifetime while default mode expires  512ms
+   ✓ session boundaries and worker identity > direct entry fixes the shared identity and redirects authentication without weakening request boundaries  306ms
+   ✓ session boundaries and worker identity > caps synthetic sessions, strips forged identity/proxy headers and expires timely  669ms
+   ✓ session boundaries and worker identity > refuses occupied Worker ports and unrelated 401/other-instance readiness  315ms
+ ✓ lib/public-retrieval.test.ts (15 tests) 4373ms
+   ✓ public labor knowledge retrieval on frozen official records > rebuild verification matches the committed index without writing  1937ms
+   ✓ public labor knowledge retrieval on frozen official records > rejects altered paragraph references and invented provision text before index output  2070ms
+ ✓ lib/client.test.ts (7 tests) 35ms
+ ✓ deploy/synthetic-http/stop-control.test.mjs (3 tests) 28ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > retains the key for a DELETE retry when late-put cleanup fails
+evidence upload incomplete Error: synthetic late cleanup failure
+    at Object.delete [90m(/home/carryz/.local/lib/anxin-synthetic/releases/0cadf0f780557acea64b9b096161744591d8d5d0/[39mlib/evidence-concurrency.test.ts:141:36[90m)[39m
+    at Module.POST [90m(/home/carryz/.local/lib/anxin-synthetic/releases/0cadf0f780557acea64b9b096161744591d8d5d0/[39mapp/api/evidence/route.ts:100:70[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at [90m/home/carryz/.local/lib/anxin-synthetic/releases/0cadf0f780557acea64b9b096161744591d8d5d0/[39mlib/evidence-concurrency.test.ts:149:13
+    at [90mfile:///home/carryz/.local/lib/anxin-synthetic/releases/0cadf0f780557acea64b9b096161744591d8d5d0/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-hooks.js:752:20
+
+ ✓ deploy/synthetic-http/regional-demo.test.mjs (14 tests) 5490ms
+   ✓ regional fixture import > checks all fixture bytes and creates eight complete HTTP workflows without sending metadata  445ms
+   ✓ regional fixture import > reruns without mutations and preserves edited case, stage and draft fields  371ms
+   ✓ regional fixture import > reconciles a lost successful /api/cases POST response before resuming  358ms
+   ✓ regional fixture import > reconciles a lost successful /api/cases PATCH response before resuming  551ms
+   ✓ regional fixture import > reconciles a lost successful /api/evidence POST response before resuming  384ms
+   ✓ regional fixture import > reconciles a lost successful /api/documents PUT response before resuming  338ms
+   ✓ regional fixture import > reconciles a lost successful /api/chat POST response before resuming  347ms
+   ✓ regional fixture import > does not repeat an unresolved creation immediately, and resumes when the earlier request window has settled  371ms
+   ✓ regional fixture import > refuses a different gateway identity before writing  370ms
+   ✓ regional fixture import > refuses simultaneous import and can recover the progress after the first exits  364ms
+   ✓ regional fixture import > refuses login mode and proxy or LAN environments before HTTP requests  1029ms
+ ✓ lib/client-uuid.test.ts (2 tests) 25ms
+ ✓ deploy/local-cloud/readiness.test.mjs (9 tests) 2452ms
+   ✓ actual isolated HTTPS certificate checks > enforces the wall-clock deadline even while HTTPS keeps sending bytes  425ms
+ ✓ lib/validation.test.ts (4 tests) 25ms
+ ✓ lib/draft-copies.test.ts (7 tests) 14ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > rolls back cancellation if marking deletion fails and preserves the uploaded bytes
+evidence deletion incomplete Error: D1_ERROR: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+[90m    at processTicksAndRejections (node:internal/process/task_queues:104:5)[39m
+    at Module.DELETE [90m(/home/carryz/.local/lib/anxin-synthetic/releases/0cadf0f780557acea64b9b096161744591d8d5d0/[39mapp/api/evidence/route.ts:128:22[90m)[39m
+    at [90m/home/carryz/.local/lib/anxin-synthetic/releases/0cadf0f780557acea64b9b096161744591d8d5d0/[39mlib/evidence-concurrency.test.ts:170:15
+    at [90mfile:///home/carryz/.local/lib/anxin-synthetic/releases/0cadf0f780557acea64b9b096161744591d8d5d0/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-hooks.js:752:20 {
+  [cause]: Error: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+      at D1DatabaseSessionAlwaysPrimary._sendOrThrow (cloudflare-internal:d1-api:189:24)
+      at async cloudflare-internal:d1-api:137:19
+      at async #fetch [90m(file:///home/carryz/.local/lib/anxin-synthetic/releases/0cadf0f780557acea64b9b096161744591d8d5d0/[39mnode_modules/[4mminiflare[24m/dist/src/workers/core/entry.worker.js:4923:18[90m)[39m
+      at async ProxyServer.fetch [90m(file:///home/carryz/.local/lib/anxin-synthetic/releases/0cadf0f780557acea64b9b096161744591d8d5d0/[39mnode_modules/[4mminiflare[24m/dist/src/workers/core/entry.worker.js:4823:14[90m)[39m {
+    [cause]: [90mundefined[39m
+  }
+}
+
+ ✓ lib/legal.test.ts (3 tests) 18ms
+ ✓ lib/evidence-concurrency.test.ts (4 tests) 7201ms
+   ✓ evidence upload and cancellation interleavings > keeps original bytes when identical concurrent requests finalize the same upload  1249ms
+   ✓ evidence upload and cancellation interleavings > cleans a put that completes after DELETE without recreating the cancelled UUID  1254ms
+   ✓ evidence upload and cancellation interleavings > retains the key for a DELETE retry when late-put cleanup fails  1519ms
+   ✓ evidence upload and cancellation interleavings > rolls back cancellation if marking deletion fails and preserves the uploaded bytes  1033ms
+ ✓ lib/server-schema.test.ts (4 tests) 11369ms
+   ✓ persisted local schema upgrades > upgrades a journal-free old database without losing drafts, records or file bytes  4678ms
+   ✓ persisted local schema upgrades > adopts a fresh runtime-created database so later explicit migrations are harmless  2409ms
+   ✓ persisted local schema upgrades > finishes a partial upgrade and preserves existing revisions and journal entries  2066ms
+   ✓ persisted local schema upgrades > leaves production schemas to explicit migrations and can reopen a migrated database locally  2211ms
+ ✓ lib/material-lifecycle-review.test.ts (5 tests) 14901ms
+   ✓ independent material lifecycle review regressions > independent: cancellation captures a job attached before deletion transaction starts  3376ms
+   ✓ independent material lifecycle review regressions > independent: archival during submission cancels the late job and keeps analysis inaccessible  2779ms
+   ✓ independent material lifecycle review regressions > independent: foreign deletion leaves owner records and original bytes intact  3418ms
+   ✓ independent material lifecycle review regressions > independent: offline cache cleanup is reported while original and analysis deletion finish  3506ms
+   ✓ independent material lifecycle review regressions > independent: maximum OCR and corrected fields stay within retrieval limit and preserve provenance  1813ms
+ ✓ lib/material-analysis.test.ts (9 tests) 26930ms
+   ✓ material extraction boundaries and persisted ownership > uploads exact bytes, deduplicates starts, persists grounded fields and real public citations, and protects review revisions  4408ms
+   ✓ material extraction boundaries and persisted ownership > rejects cross-user reads, starts and edits without service calls or state changes  3453ms
+   ✓ material extraction boundaries and persisted ownership > preserves the original through service failure and recovers only through explicit retry  3687ms
+   ✓ material extraction boundaries and persisted ownership > rejects changed original bytes before sending a job  2492ms
+   ✓ material extraction boundaries and persisted ownership > does not revive results when a file is deleted while the provider returns  3135ms
+   ✓ material extraction boundaries and persisted ownership > blocks archived case access and unsupported formats  2439ms
+   ✓ material extraction boundaries and persisted ownership > cancels a job whose ID arrives only after the original was deleted  2718ms
+   ✓ material extraction boundaries and persisted ownership > turns expired/unknown provider jobs into visible retryable failures  3059ms
+   ✓ material extraction boundaries and persisted ownership > drops invented values/references and rejects fake geometry instead of fabricating source support  1534ms
+
+ Test Files  15 passed (15)
+      Tests  107 passed (107)
+   Start at  14:02:49
+   Duration  30.55s (transform 3.10s, setup 0ms, collect 13.48s, tests 77.48s, environment 10ms, prepare 4.68s)
+
+
+> anxin-work-rights@1.0.0 build
+> vinext build
+
+
+  vinext build  (Vite 8.3.0)
+
+[1/5] analyze client references...
+transforming...
+✓ 266 modules transformed.
+rendering chunks...
+✓ built in 4.94s
+[33m[PLUGIN_TIMINGS] [0mPlugin hooks ran for 4.7s of this 4.8s build (97%).
+5 hooks are listed without a time. Their calls overlapped, so the time inside one call includes work from other calls. To find their cost, profile the build with `node --cpu-prof`:
+  - rsc:virtual-client-package resolveId (907 calls)
+  - alias resolveId (973 calls)
+  - vinext:og-inline-fetch-assets resolveId (897 calls)
+  … and 2 more
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+[2/5] analyze server references...
+transforming...
+✓ 183 modules transformed.
+rendering chunks...
+✓ built in 2.11s
+[3/5] build rsc environment...
+transforming...
+✓ 257 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 5.36s
+[4/5] build client environment...
+transforming...
+✓ 1694 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 14.00s
+[33m[PLUGIN_TIMINGS] [0mPlugin hooks ran for 12.5s of this 13.9s build (90%).
+The slowest hooks, timed inside each callback (the wait before a callback starts is excluded, the time it awaits is included):
+  - vinext:middleware-server-only resolveId (8%, 1.1s, 5071 calls)
+Additional hook time came from the hooks below and from hooks under 1s.
+2 hooks are listed without a time. Their calls overlapped, so the time inside one call includes work from other calls. To find their cost, profile the build with `node --cpu-prof`:
+  - vinext:og-inline-fetch-assets resolveId (4997 calls)
+  - alias resolveId (5057 calls)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+[5/5] build ssr environment...
+transforming...
+✓ 187 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 3.71s
+[33m[PLUGIN_TIMINGS] [0mPlugin hooks ran for 2.8s of this 3.6s build (77%).
+The slowest hooks, timed inside each callback (the wait before a callback starts is excluded, the time it awaits is included):
+  - vinext:optimize-imports transform (32%, 1.1s, 121 calls)
+Additional hook time came from the hooks below and from hooks under 1s.
+2 hooks are listed without a time. Their calls overlapped, so the time inside one call includes work from other calls. To find their cost, profile the build with `node --cpu-prof`:
+  - vinext:og-inline-fetch-assets resolveId (413 calls)
+  - alias resolveId (465 calls)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+[0m
+  Route (app)
+  ┌ ƒ /
+  ├ λ /api/bootstrap
+  ├ λ /api/cases
+  ├ λ /api/chat
+  ├ λ /api/documents
+  ├ λ /api/evidence
+  ├ λ /api/evidence/:id/analysis
+  ├ λ /api/evidence/:id/download
+  ├ λ /api/knowledge
+  └ λ /api/synthetic-ready
+
+  λ API  ƒ Dynamic
+
+  Build complete. Run `vinext start` to start the production server.
+
+
+> anxin-work-rights@1.0.0 data:check
+> python3 -B scripts/public-data.py verify && python3 -B -m unittest discover -s scripts/tests -p test_public_data.py
+
+{
+  "status": "PASS",
+  "data_fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a",
+  "counts": {
+    "sources": 12,
+    "source_paragraphs": 1453,
+    "cases": 14,
+    "cases_by_topic": {
+      "employment_relationship": 8,
+      "wage_arrears": 8
+    },
+    "laws": 8,
+    "selected_provisions": 54,
+    "field_citations": 620,
+    "evidence_descriptions": 22,
+    "original_case_exhibits": 0,
+    "linked_rule_citations": 10,
+    "unlinked_rule_citations": 9,
+    "cases_with_undisclosed_region": 14,
+    "cases_with_undisclosed_decision_date": 14
+  }
+}
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 8.047s
+
+OK
+
+> anxin-work-rights@1.0.0 data:runtime:check
+> python3 -B scripts/build-public-index.py --check
+
+{"status": "PASS", "fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a", "bytes": 232203, "checkOnly": true}
+
+> anxin-work-rights@1.0.0 test:materials
+> node --test scripts/material-service.test.mjs scripts/material-ocr-linux.test.mjs
+
+✔ TSV preserves page references, normalised left-top boxes, confidence and recognised text (30.116594ms)
+✔ TSV rejects ungrounded coordinates, missing dimensions, control text and oversized pages (4.660625ms)
+✔ image preflight checks PNG/JPEG dimensions before decoding (3.433584ms)
+✔ PDF preflight rejects encryption, page truncation and a large later page before rendering (6.157063ms)
+✔ private executable/language/library configuration is passed only to Tesseract (50.301696ms)
+✔ missing Chinese language/tool capabilities fail explicitly while TXT remains advertised (4.323362ms)
+✔ all PDF pages retain page IDs, bounded rendering arguments and citations; over-limit PDF never renders (37.798795ms)
+✔ PDF password errors and OCR timeouts expose stable errors, not subprocess paths or stderr (18.239771ms)
+✔ aborting a direct OCR child kills and settles it before caller cleanup (326.835333ms)
+✔ a missing direct executable closes and rejects without hanging startup (17.415675ms)
+✔ real Linux Tesseract/Poppler recognises explicit synthetic PNG/PDF fixtures without model inference (9234.952631ms)
+✔ all routes require the caller token, reject browser origins and client parameters (446.860785ms)
+✔ TXT jobs run actual UTF-8 extraction and explicit rules with verbatim field citations (637.080153ms)
+✔ model fields require allowed keys, existing blocks and exact original text (7.969647ms)
+✔ recorded real Apple HTTP misclassifications are rejected without adding or changing model fields (6.987583ms)
+✔ semantic model rejections are visible in job warnings and cannot be filled by rules (228.04612ms)
+✔ Ollama calls reject redirects and a model transport failure cannot become rule success (214.98848ms)
+✔ recorded synthetic Apple candidates can lose display ID prefixes while exact citations stay mandatory (3.085816ms)
+✔ temporary cleanup failures remain visible without hanging cancellation or the next job (247.248816ms)
+✔ an occupied listen port removes the newly created private service directory (85.183584ms)
+✔ job capacity is bounded and a restart cannot expose prior in-memory jobs (3751.274363ms)
+✔ deleting a ready job clears cached content and DELETE is idempotent (205.468714ms)
+✔ at most two jobs wait and deletion cancels running/queued OCR without reviving results (2118.352014ms)
+✔ real platform OCR recognises synthetic PNG/PDF, preserves bboxes, rejects broken images and six-page PDFs (9176.494223ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17633.994871

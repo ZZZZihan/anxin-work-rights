@@ -1,0 +1,38 @@
+async (page) => {
+  const layout = await page.evaluate(() => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const displayed = (el) => {
+      const style = getComputedStyle(el), rect = el.getBoundingClientRect();
+      return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+    };
+    const descriptor = (el) => {
+      const rect = el.getBoundingClientRect();
+      return {tag: el.tagName, className: el.className, text: (el.getAttribute('aria-label') || el.textContent || el.getAttribute('placeholder') || '').trim().slice(0, 120), left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height};
+    };
+    const controls = [...document.querySelectorAll('main button, main a, main input, main select, main textarea, nav[aria-label="移动端主要导航"] button')].filter(displayed);
+    const outOfBoundsControls = controls.filter(el => { const r = el.getBoundingClientRect(); return r.left < -1 || r.right > viewportWidth + 1; }).map(descriptor);
+    const elements = [...document.querySelectorAll('main *')].filter(displayed);
+    const overflowElements = elements.filter(el => { const r = el.getBoundingClientRect(); return r.left < -1 || r.right > viewportWidth + 1; }).map(descriptor).slice(0, 30);
+    return {
+      page: location.hash.replace('#','') || 'home', title: document.querySelector('main h1')?.textContent || document.querySelector('main h2')?.textContent,
+      viewportWidth, viewportHeight, documentClientWidth: document.documentElement.clientWidth, documentScrollWidth: document.documentElement.scrollWidth, bodyScrollWidth: document.body.scrollWidth,
+      horizontalOverflow: document.documentElement.scrollWidth > viewportWidth + 1,
+      visibleControlCount: controls.length, outOfBoundsControls, overflowElements,
+      controls: controls.map(descriptor), headings: [...document.querySelectorAll('main h1, main h2')].map(el=>el.textContent),
+      caseCountExcludedFromAcceptance: true,
+    };
+  });
+  const controls = page.locator('main button:not([disabled]), main a, main input:not([type="file"]):not([disabled]), main select:not([disabled]), main textarea:not([disabled]), nav[aria-label="移动端主要导航"] button');
+  layout.actionability = { checked: 0, passed: 0, failures: [] };
+  for (let index = 0; index < await controls.count(); index++) {
+    const control = controls.nth(index);
+    if (!await control.isVisible()) continue;
+    layout.actionability.checked++;
+    try { await control.click({ trial: true, timeout: 2500 }); layout.actionability.passed++; }
+    catch (error) { layout.actionability.failures.push({index, text: (await control.getAttribute('aria-label') || await control.textContent() || '').trim().slice(0,120), error:error.message}); }
+  }
+  await page.evaluate(() => window.scrollTo({top:0,behavior:'instant'}));
+  page.__readonlyReview.layouts.push(layout);
+  return {page:layout.page,width:layout.viewportWidth,scrollWidth:layout.documentScrollWidth,overflow:layout.horizontalOverflow,controls:layout.visibleControlCount,outOfBoundsControls:layout.outOfBoundsControls,overflowElements:layout.overflowElements,actionability:layout.actionability};
+}
