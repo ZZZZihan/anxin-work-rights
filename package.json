@@ -13,8 +13,10 @@
     "typecheck": "tsc --noEmit --pretty false",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern js --ignore-pattern screenshot.py",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run lint && npm test && npm run build",
-    "db:generate": "drizzle-kit generate"
+    "check": "npm run typecheck && npm run lint && npm test && npm run build && npm run data:check",
+    "db:generate": "drizzle-kit generate",
+    "data:build": "python3 -B scripts/public-data.py build",
+    "data:check": "python3 -B scripts/public-data.py verify && python3 -B -m unittest discover -s scripts/tests -p test_public_data.py"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
