@@ -22,6 +22,7 @@ import type { WorkCase } from '@/lib/types';
 import type { SharedViewProps } from '../types';
 
 const steps = ['整理事实', '固定证据', '沟通协商', '申请仲裁', '完成归档'];
+const caseTypes = ['欠薪争议', '解除劳动合同', '加班工资', '工伤认定', '社保争议', '其他劳动争议'];
 const statusLabels: Record<WorkCase['status'], string> = {
   collecting: '整理材料',
   negotiating: '沟通协商',
@@ -136,11 +137,14 @@ export default function Cases({
   };
 
   return (
-    <div className="view-stack">
+    <div className="view-stack workspace-view cases-view">
       <section className="page-heading-row">
-        <div>
-          <h1>案件追踪</h1>
-          <p>每个案件只有一个明确的下一步，材料和记录都围绕它展开。</p>
+        <div className="workspace-heading-copy">
+          <span className="workspace-page-icon tone-blue" aria-hidden="true"><BriefcaseBusiness size={25} /></span>
+          <div>
+            <h1>案件追踪</h1>
+            <p>每个案件只有一个明确的下一步，材料和记录都围绕它展开。</p>
+          </div>
         </div>
         <button className="button button-primary" onClick={() => setEditing('new')}>
           <Plus size={18} />新建案件
@@ -174,6 +178,7 @@ export default function Cases({
                 <button
                   key={item.id}
                   className={`case-list-card ${item.id === activeCase?.id ? 'active' : ''}`}
+                  aria-pressed={item.id === activeCase?.id}
                   onClick={() => setActiveCaseId(item.id)}
                 >
                   <span className="case-list-card-top">
@@ -212,9 +217,9 @@ export default function Cases({
             </div>
 
             <div className="case-facts-grid">
-              <div><span><CircleDollarSign size={16} />争议金额</span><strong>{activeCase.amount ? formatMoney(activeCase.amount) : '待核算'}</strong></div>
-              <div><span><CalendarDays size={16} />目标日期</span><strong>{formatDate(activeCase.deadline, true)}</strong></div>
-              <div><span><MapPin size={16} />发生地</span><strong>{activeCase.location || '待补充'}</strong></div>
+              <div className="tone-mint"><span><CircleDollarSign size={16} />争议金额</span><strong>{activeCase.amount ? formatMoney(activeCase.amount) : '待核算'}</strong></div>
+              <div className="tone-apricot"><span><CalendarDays size={16} />目标日期</span><strong>{formatDate(activeCase.deadline, true)}</strong></div>
+              <div className="tone-violet"><span><MapPin size={16} />发生地</span><strong>{activeCase.location || '待补充'}</strong></div>
             </div>
 
             <div className="case-progress-block">
@@ -248,9 +253,9 @@ export default function Cases({
             </div>
 
             <div className="case-detail-actions" hidden={activeCase.status === 'archived'}>
-              <button className="button button-secondary" onClick={() => navigate('evidence')}>查看证据 <ArrowRight size={16} /></button>
-              <button className="button button-secondary" onClick={() => navigate('chat')}>继续梳理 <ArrowRight size={16} /></button>
-              <button className="button button-secondary" onClick={() => navigate('documents')}>起草文书 <ArrowRight size={16} /></button>
+              <button className="button button-secondary tone-blue" onClick={() => navigate('evidence')}>查看证据 <ArrowRight size={16} /></button>
+              <button className="button button-secondary tone-violet" onClick={() => navigate('chat')}>继续梳理 <ArrowRight size={16} /></button>
+              <button className="button button-secondary tone-mint" onClick={() => navigate('documents')}>起草文书 <ArrowRight size={16} /></button>
             </div>
           </section>
         ) : (
@@ -268,6 +273,10 @@ export default function Cases({
           value={editing === 'new' ? null : editing}
           onClose={() => setEditing(null)}
           onSaved={(saved) => {
+            if (editing === 'new') {
+              setQuery('');
+              setFilter('all');
+            }
             setData((current) => current ? {
               ...current,
               cases: editing === 'new'
@@ -334,7 +343,7 @@ function CaseDialog({
         </div>
         <form className="form-grid" onSubmit={submit}>
           <label className="field field-span-2"><span>单位名称 *</span><input required value={form.company} onChange={(event) => update('company', event.target.value)} placeholder="例如：某某科技有限公司" /></label>
-          <label className="field"><span>争议类型 *</span><select value={form.type} onChange={(event) => update('type', event.target.value)}><option>欠薪争议</option><option>解除劳动合同</option><option>加班工资</option><option>工伤认定</option><option>社保争议</option><option>其他劳动争议</option></select></label>
+          <label className="field"><span>争议类型 *</span><select value={form.type} onChange={(event) => update('type', event.target.value)}>{value && !caseTypes.includes(value.type) && <option value={value.type}>{value.type}</option>}{caseTypes.map((type) => <option key={type} value={type}>{type}</option>)}</select></label>
           <label className="field"><span>争议金额（元）</span><input inputMode="numeric" min="0" type="number" value={form.amount} onChange={(event) => update('amount', event.target.value)} placeholder="暂不确定可留空" /></label>
           <label className="field"><span>目标日期</span><input type="date" value={form.deadline} onChange={(event) => update('deadline', event.target.value)} /></label>
           <label className="field"><span>城市 / 地区</span><input value={form.location} onChange={(event) => update('location', event.target.value)} placeholder="例如：江苏省南京市" /></label>

@@ -2,14 +2,13 @@
 
 import {
   ArrowRight,
+  CalendarDays,
   CheckCircle2,
   ChevronRight,
   ClipboardList,
   FileCheck2,
   FileText,
   FolderLock,
-  Landmark,
-  Link2,
   ListChecks,
   PhoneCall,
   Plus,
@@ -46,89 +45,97 @@ export default function Dashboard({ data, setActiveCaseId, navigate }: SharedVie
   };
 
   return (
-    <div className="view-stack">
-      <section className="welcome-row">
-        <div>
+    <div className="clio-dashboard">
+      <section className="clio-overview">
+        <div className="clio-welcome">
+          <span className="clio-overview-label">我的工作台</span>
           <h1>{greeting()}，{data.user.displayName}</h1>
-          <p>先处理离期限最近的一件事，把事实和证据一步步整理清楚。</p>
+          <p>把眼前的一件事处理好，让每一步都有依据。</p>
+          <section className="clio-metrics" aria-label="案件概况">
+            <article className="tone-cases"><div className="clio-metric-value"><strong>{activeCases.length}</strong><span className="clio-metric-icon"><ClipboardList size={20} aria-hidden="true" /></span></div><span>进行中案件</span></article>
+            <article className="tone-nodes"><div className="clio-metric-value"><strong>{upcoming.length}</strong><span className="clio-metric-icon"><CalendarDays size={20} aria-hidden="true" /></span></div><span>14 天内节点</span></article>
+            <article className="tone-evidence"><div className="clio-metric-value"><strong>{data.evidence.length}</strong><span className="clio-metric-icon"><FolderLock size={20} aria-hidden="true" /></span></div><span>证据记录</span></article>
+          </section>
         </div>
-        <button className="button button-primary desktop-action" onClick={() => navigate('cases')}>
-          <Plus size={19} aria-hidden="true" />新建案件
-        </button>
-      </section>
 
-      <section className="action-hero" aria-labelledby="next-action-title">
-        <span className="action-hero-icon"><ClipboardList size={30} aria-hidden="true" /></span>
-        <div className="action-hero-copy">
-          <h2 id="next-action-title">{urgent ? urgent.nextAction : '从一件事开始，慢慢整理清楚'}</h2>
-          <p>{urgent ? `${urgent.company} · ${urgent.type}` : '创建案件，记录发生的事，再一步步补齐证据。'}</p>
+        <section className="clio-priority" aria-labelledby="next-action-title">
+          <header className="clio-priority-heading">
+            <span className="clio-priority-label"><ClipboardList size={19} aria-hidden="true" />优先处理</span>
+            {urgent && <span className="clio-priority-status">{statusLabels[urgent.status]}</span>}
+          </header>
+          <h2 className="clio-priority-title" id="next-action-title">{urgent ? urgent.nextAction : '从一件事开始，慢慢整理清楚'}</h2>
+          <p className="clio-priority-case">{urgent ? `${urgent.company} · ${urgent.type}` : '创建案件，记录发生的事，再一步步补齐证据。'}</p>
           {urgent && (
-            <div className="hero-meta">
+            <div className="clio-priority-meta">
               <span>目标日期 {formatDate(urgent.deadline, true)}</span>
               {daysUntil(urgent.deadline) !== null && <strong>{deadlineCopy(daysUntil(urgent.deadline)!)}</strong>}
             </div>
           )}
-        </div>
-        <div className="action-hero-buttons">
-          {urgent ? (
-            <>
-              <button className="button button-secondary" onClick={() => openCase(urgent)}>查看行动清单 <ArrowRight size={17} /></button>
-              <button className="button button-primary" onClick={() => openCase(urgent, 'evidence')}><FolderLock size={17} />补充证据</button>
-            </>
-          ) : (
-            <button className="button button-primary" onClick={() => navigate('cases')}><Plus size={18} />新建案件</button>
-          )}
-        </div>
-      </section>
-
-      <section className="metric-grid" aria-label="案件概况">
-        <article className="metric-card"><strong>{activeCases.length}</strong><span>进行中案件</span></article>
-        <article className="metric-card"><strong>{upcoming.length}</strong><span>14 天内节点</span></article>
-        <article className="metric-card"><strong>{data.evidence.length}</strong><span>证据记录</span></article>
-      </section>
-
-      <div className="dashboard-grid">
-        <section className="panel case-overview-panel">
-          <div className="section-heading">
-            <h2>正在处理</h2>
-            <button className="text-button" onClick={() => navigate('cases')}>查看全部 <ArrowRight size={15} /></button>
+          <div className="clio-priority-actions">
+            {urgent ? (
+              <>
+                <button className="button button-primary" onClick={() => openCase(urgent)}>查看行动清单 <ArrowRight size={17} aria-hidden="true" /></button>
+                <button className="button button-secondary" onClick={() => openCase(urgent, 'evidence')}><FolderLock size={17} aria-hidden="true" />补充证据</button>
+              </>
+            ) : (
+              <button className="button button-primary" onClick={() => navigate('cases')}><Plus size={18} aria-hidden="true" />新建案件</button>
+            )}
           </div>
-          <div className="case-mini-list">
-            {activeCases.slice(0, 3).map((item) => (
-              <button className="case-mini" key={item.id} onClick={() => openCase(item)}>
-                <FileText className="case-mini-icon" size={21} aria-hidden="true" />
-                <span className="case-mini-copy">
+        </section>
+      </section>
+
+      <div className="clio-workspace">
+        <section className="clio-cases" aria-labelledby="my-cases-title">
+          <header className="clio-section-heading">
+            <h2 id="my-cases-title">我的案件</h2>
+            <div className="clio-section-actions">
+              <button className="text-button" onClick={() => navigate('cases')}>查看全部 <ArrowRight size={15} aria-hidden="true" /></button>
+              <button className="button button-primary clio-new-case" onClick={() => navigate('cases')}><Plus size={17} aria-hidden="true" />新建案件</button>
+            </div>
+          </header>
+          <div className="clio-case-list">
+            {activeCases.slice(0, 4).map((item) => (
+              <button className="clio-case-row" key={item.id} onClick={() => openCase(item)}>
+                <span className="clio-case-icon"><FileText size={21} aria-hidden="true" /></span>
+                <span className="clio-case-copy">
                   <strong>{item.company}</strong>
-                  <span>{item.type}<span className="case-mini-mobile-status"> · {statusLabels[item.status]}</span></span>
-                  {daysUntil(item.deadline) !== null && <small className="case-mini-deadline">{deadlineCopy(daysUntil(item.deadline)!)}</small>}
+                  <span>{item.type}</span>
+                  {item.nextAction && <small>下一步：{item.nextAction}</small>}
                 </span>
-                <span className={`status-pill ${item.status}`}>{statusLabels[item.status]}</span>
-                <span className="case-mini-side"><strong>{item.amount > 0 ? formatMoney(item.amount) : '金额待核'}</strong></span>
-                <ChevronRight className="case-mini-arrow" size={17} aria-hidden="true" />
+                <span className="clio-case-meta">
+                  <span className={`clio-status-pill ${item.status}`}>{statusLabels[item.status]}</span>
+                  <span className="clio-case-detail">
+                    <strong>{item.amount > 0 ? formatMoney(item.amount) : '金额待核'}</strong>
+                    {daysUntil(item.deadline) !== null && <small>{deadlineCopy(daysUntil(item.deadline)!)}</small>}
+                  </span>
+                </span>
+                <ChevronRight size={17} aria-hidden="true" />
               </button>
             ))}
-            {!activeCases.length && <div className="inline-empty"><CheckCircle2 size={26} /><strong>当前没有待推进的案件</strong><span>新建案件后，进度会显示在这里。</span></div>}
+            {!activeCases.length && <div className="clio-empty-state"><CheckCircle2 size={26} aria-hidden="true" /><strong>当前没有待推进的案件</strong><span>新建案件后，进度会显示在这里。</span></div>}
           </div>
         </section>
 
-        <section className="panel quick-panel">
-          <div className="section-heading"><h2>现在可以做</h2></div>
-          <div className="quick-grid">
-            <button onClick={() => navigate('chat')}><span className="quick-icon"><ListChecks size={21} /></span><span><strong>梳理问题</strong><small>厘清关键事实，明确你的诉求</small></span><ChevronRight size={17} /></button>
-            <button onClick={() => navigate('evidence')}><span className="quick-icon"><Upload size={21} /></span><span><strong>上传材料</strong><small>按时间顺序整理并上传相关证据</small></span><ChevronRight size={17} /></button>
-            <button onClick={() => navigate('documents')}><span className="quick-icon"><FileCheck2 size={21} /></span><span><strong>起草文书</strong><small>参考模板，完成申请或仲裁文书</small></span><ChevronRight size={17} /></button>
-            <a href="tel:12333"><span className="quick-icon"><PhoneCall size={21} /></span><span><strong>拨打 12333</strong><small>咨询劳动保障相关政策与办理流程</small></span><ChevronRight size={17} /></a>
-          </div>
-        </section>
+        <aside className="clio-tools">
+          <section className="clio-shortcuts" aria-labelledby="quick-entry-title">
+            <header className="clio-section-heading"><h2 id="quick-entry-title">快速入口</h2></header>
+            <div className="clio-shortcut-list">
+              <button className="tone-violet" onClick={() => navigate('chat')}><span className="clio-shortcut-icon"><ListChecks size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>梳理问题</strong><small>厘清事实，明确诉求</small></span><ChevronRight size={16} aria-hidden="true" /></button>
+              <button className="tone-blue" onClick={() => navigate('evidence')}><span className="clio-shortcut-icon"><Upload size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>上传材料</strong><small>整理并上传相关证据</small></span><ChevronRight size={16} aria-hidden="true" /></button>
+              <button className="tone-mint" onClick={() => navigate('documents')}><span className="clio-shortcut-icon"><FileCheck2 size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>起草文书</strong><small>参考模板，准备所需文书</small></span><ChevronRight size={16} aria-hidden="true" /></button>
+              <a className="tone-apricot" href="tel:12333"><span className="clio-shortcut-icon"><PhoneCall size={20} aria-hidden="true" /></span><span className="clio-shortcut-copy"><strong>拨打 12333</strong><small>咨询政策与办理流程</small></span><ChevronRight size={16} aria-hidden="true" /></a>
+            </div>
+          </section>
+
+          <section className="clio-resources" aria-labelledby="official-resources">
+            <header className="clio-section-heading"><h2 id="official-resources">官方入口</h2></header>
+            <div className="clio-resource-list">
+              <a href={OFFICIAL_SOURCES.arbitrationLaw.url} target="_blank" rel="noreferrer"><span className="clio-resource-copy"><strong>劳动争议程序</strong><small>了解仲裁、诉讼基本流程</small></span><ArrowRight size={16} aria-hidden="true" /></a>
+              <a href={OFFICIAL_SOURCES.service12333.url} target="_blank" rel="noreferrer"><span className="clio-resource-copy"><strong>12333 服务平台</strong><small>人力资源社会保障服务</small></span><ArrowRight size={16} aria-hidden="true" /></a>
+            </div>
+          </section>
+        </aside>
       </div>
-
-      <section className="source-strip" aria-labelledby="official-resources">
-        <h2 id="official-resources">官方入口</h2>
-        <div className="source-links">
-          <a href={OFFICIAL_SOURCES.arbitrationLaw.url} target="_blank" rel="noreferrer"><span className="quick-icon"><Landmark size={21} /></span><span><strong>劳动争议程序</strong><small>了解仲裁、诉讼等基本流程</small></span><ChevronRight size={17} /></a>
-          <a href={OFFICIAL_SOURCES.service12333.url} target="_blank" rel="noreferrer"><span className="quick-icon"><Link2 size={21} /></span><span><strong>12333 服务平台</strong><small>进入人力资源社会保障服务平台</small></span><ChevronRight size={17} /></a>
-        </div>
-      </section>
     </div>
   );
 }

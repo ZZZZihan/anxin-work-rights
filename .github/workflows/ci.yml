@@ -18,6 +18,8 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm ci
+      - name: Install Chinese OCR and PDF tools
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim poppler-utils
       - run: npm run check
       - name: HTTP persistence and failure regressions
         shell: bash
@@ -33,6 +35,8 @@ jobs:
           done
           database=$(find "$state" -path '*/miniflare-D1DatabaseObject/*.sqlite' ! -name metadata.sqlite -print -quit)
           node scripts/http-regression.mjs http://127.0.0.1:8798 "$database" /tmp/http-results.json
+      - name: Synthetic HTTP isolation and lifecycle regressions
+        run: node scripts/synthetic-http-regression.mjs /tmp/synthetic-http-results.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -40,11 +44,16 @@ jobs:
           path: |
             /tmp/http-results.json
             /tmp/anxin-worker.log
+            /tmp/synthetic-http-results.json
+            /tmp/synthetic-http-results.worker.log
       - name: Material extraction and public citations over production HTTP
         run: node scripts/material-http-runner.mjs
+      - name: Chinese image and PDF extraction over production HTTP
+        run: ANXIN_MATERIAL_REPORT=output/materials/http-images.json node scripts/material-http-runner.mjs --images --punctuation-equivalence
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: material-http-regression
           path: |
             output/materials/http-production.json
+            output/materials/http-images.json

@@ -16,6 +16,7 @@ import {
   UploadCloud,
 } from 'lucide-react';
 import { apiRequest, formatDate, formatFileSize } from '@/lib/client';
+import { createOperationId } from '@/lib/client-uuid';
 import type { EvidenceFile } from '@/lib/types';
 import type { SharedViewProps } from '../types';
 import MaterialAnalysisPanel from '../MaterialAnalysisPanel';
@@ -62,7 +63,7 @@ export default function Evidence({
     const form = new FormData();
     form.append('file', file);
     form.append('caseId', retry?.caseId ?? activeCase.id);
-    form.append('operationId', retry?.id ?? crypto.randomUUID());
+    form.append('operationId', retry?.id ?? createOperationId());
     form.append('category', retry?.category ?? category);
     form.append('note', retry?.note ?? note);
     setUploading(true);
@@ -104,11 +105,17 @@ export default function Evidence({
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragging(false);
+    if (event.dataTransfer.files.length > 1) {
+      const message = '一次只能上传一个文件，请分次选择或拖入。';
+      setUploadError(message);
+      notify(message, 'error');
+      return;
+    }
     void upload(event.dataTransfer.files[0]);
   };
 
   const remove = async (item: EvidenceFile) => {
-    if (!window.confirm(`确认删除“${item.name}”？真实上传的文件会一并从私有存储中删除。`)) return;
+    if (!window.confirm(`确认删除“${item.name}”？${data.synthetic?.directEntry ? '' : data.synthetic ? '合成' : '真实'}上传的文件会一并从私有存储中删除。`)) return;
     setDeletingId(item.id);
     try {
       const deletion = await apiRequest<{ ok: true; processingCleanupPending?: boolean }>(`/api/evidence?id=${encodeURIComponent(item.id)}`, { method: 'DELETE' });
@@ -129,7 +136,7 @@ export default function Evidence({
 
   if (!activeCase) {
     return (
-      <section className="panel empty-panel standalone-empty">
+      <section className="panel empty-panel standalone-empty workspace-view evidence-view">
         <FolderLock size={30} /><h1>先创建一个案件</h1><p>证据文件需要归入具体案件，便于形成完整材料清单。</p>
         <button className="button button-primary" onClick={() => navigate('cases')}><Plus size={17} />创建案件</button>
       </section>
@@ -137,11 +144,14 @@ export default function Evidence({
   }
 
   return (
-    <div className="view-stack">
+    <div className="view-stack workspace-view evidence-view">
       <section className="page-heading-row">
-        <div>
-          <h1>证据管家</h1>
-          <p>把原文件和来源说明一起保存，让每一份材料都能找到来处。</p>
+        <div className="workspace-heading-copy">
+          <span className="workspace-page-icon tone-blue" aria-hidden="true"><FolderLock size={25} /></span>
+          <div>
+            <h1>证据管家</h1>
+            <p>把原文件和来源说明一起保存，让每一份材料都能找到来处。</p>
+          </div>
         </div>
         <label className="case-switcher">
           <span>当前案件</span>
@@ -154,8 +164,8 @@ export default function Evidence({
       <div className="evidence-layout">
         <section className="upload-panel panel">
           <div className="section-heading">
-            <div><span className="eyebrow">上传材料</span><h2>添加真实文件</h2></div>
-            <span className="private-badge"><LockKeyhole size={14} />仅你可见</span>
+            <div><span className="eyebrow">上传材料</span><h2>{data.synthetic?.directEntry ? '添加文件' : data.synthetic ? '添加合成文件' : '添加真实文件'}</h2></div>
+            {!data.synthetic?.directEntry && <span className="private-badge"><LockKeyhole size={14} />仅你可见</span>}
           </div>
 
           {uploadError && <div className="integrity-note" role="alert"><Info size={18} /><p>{uploadError}</p></div>}
@@ -168,7 +178,7 @@ export default function Evidence({
           >
             <span className="upload-icon"><UploadCloud size={28} /></span>
             <h3>{uploading ? '正在安全上传…' : '把文件拖到这里'}</h3>
-            <p>或从设备选择文件；单个不超过 10MB</p>
+            <p>一次选择或拖入一个文件；单个不超过 10MB</p>
             <button className="button button-secondary" disabled={uploading} onClick={() => inputRef.current?.click()}>
               <Plus size={17} />选择文件
             </button>
@@ -194,6 +204,7 @@ export default function Evidence({
         </section>
 
         <aside className="evidence-summary panel">
+          <span className="workspace-card-icon tone-mint" aria-hidden="true"><FolderLock size={22} /></span>
           <span className="eyebrow">当前案件</span>
           <h2>{activeCase.company}</h2>
           <p>{activeCase.type}</p>
@@ -226,7 +237,7 @@ export default function Evidence({
             }}
           />
           {evidence.map((item) => (
-            <article className="evidence-row" key={item.id} role="listitem">
+            <article className={`evidence-row${selectedEvidence?.id === item.id ? ' material-row-selected' : ''}`} key={item.id} role="listitem">
               <span className={`file-icon ${fileTone(item.mimeType)}`}>{fileIcon(item.mimeType)}</span>
               <div className="evidence-main">
                 <div className="evidence-name-row">
@@ -238,7 +249,7 @@ export default function Evidence({
               </div>
               <div className="evidence-actions">
                 {item.downloadable && (
-                  <button className="button button-secondary material-open-button" aria-label={`识别或查看结果 ${item.name}`} disabled={deletingId === item.id} onClick={() => setSelectedMaterial({ caseId: item.caseId, id: item.id })}>
+                  <button className="button button-secondary material-open-button" aria-label={`识别或查看结果 ${item.name}`} aria-expanded={selectedEvidence?.id === item.id} aria-controls={selectedEvidence?.id === item.id ? 'material-analysis-panel' : undefined} disabled={deletingId === item.id} onClick={() => setSelectedMaterial({ caseId: item.caseId, id: item.id })}>
                     <ScanText size={16} />识别 / 查看结果
                   </button>
                 )}
@@ -257,7 +268,7 @@ export default function Evidence({
             </article>
           ))}
           {!evidence.length && (
-            <div className="inline-empty"><FolderLock size={26} /><strong>还没有材料</strong><span>从上方上传第一份真实文件。</span></div>
+            <div className="inline-empty"><FolderLock size={26} /><strong>还没有材料</strong><span>从上方上传第一份{data.synthetic?.directEntry ? '' : data.synthetic ? '合成' : '真实'}文件。</span></div>
           )}
         </div>
       </section>

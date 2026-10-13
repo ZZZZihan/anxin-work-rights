@@ -12,7 +12,7 @@
 
 ![新版安薪乐业行动首页：深蓝工作台、案件进度与浅彩快捷入口](docs/images/workbench-home-7e3d496.png)
 
-*当前演示界面，2026-10-13 重新截取，版本 `7e3d496`，使用合成演示数据。截图来自[界面 PR #19](https://github.com/ZZZZihan/anxin-work-rights/pull/19)；材料识别与数据库样例由[功能 PR #24](https://github.com/ZZZZihan/anxin-work-rights/pull/24)交付到主分支，界面改版尚未与主分支整合。[截图来源记录](docs/images/README.md)。*
+*当前演示界面，2026-10-13 重新截取，版本 `7e3d496`，使用合成演示数据。截图来自[界面 PR #19](https://github.com/ZZZZihan/anxin-work-rights/pull/19)；材料识别与数据库样例由[功能 PR #24](https://github.com/ZZZZihan/anxin-work-rights/pull/24)交付到主分支，本分支已将界面改版与材料处理整合，最新部署验证另行记录。[截图来源记录](docs/images/README.md)。*
 
 <details>
 <summary>查看新版证据管家：劳动关系确认案件的材料归档</summary>
@@ -108,9 +108,15 @@ flowchart LR
 
 本例展示的是逐份材料的结构化与引用检索。系统不自动把金额差额认定为欠薪，也不自动判定劳动关系；工资期间、扣款原因及多份材料之间的关系仍由人核对。[使用合成材料体验完整流程 →](fixtures/material-demo/README.md)
 
+## 当前展示入口
+
+[打开安薪乐业工作台](http://172.23.1.127/)（需处于可访问该内网地址的网络）。网站使用共享合成展示数据。新材料流程位于“证据管家”：选择案件，上传合同、工资记录、聊天截图或 PDF，开始识别，核对字段，再展开案例和法条出处。
+
+本地普通 HTTP 展示可运行 `npm run demo`；隔离环境和停止方式见[展示部署说明](deploy/synthetic-http/README.md)。
+
 ## 快速开始
 
-需要 **Node.js 22.13+、Python 3.10+**。图片与 PDF 识别还需要 macOS、Swift 命令行工具及 Apple Vision/PDFKit；首次图片或 PDF 识别会编译本机 OCR 助手。其他平台可使用 UTF-8 TXT 跑通文本链路。
+需要 **Node.js 22.13+、Python 3.10+**。图片与 PDF 可在 macOS（Swift、Apple Vision/PDFKit）或 Linux（Tesseract、chi_sim 中文语言包、Poppler）处理。macOS 首次使用编译本机助手；Debian/Ubuntu 可安装 `tesseract-ocr tesseract-ocr-chi-sim poppler-utils`。其他平台可用 UTF-8 TXT。
 
 从主仓库获取包含材料识别样例的代码并启动：
 
@@ -128,7 +134,7 @@ npm run dev:materials
 3. 更正需要调整的字段，勾选“已与原文件核对”并保存。
 4. 展开相关案例和法条，查看来源段落、官方链接与版本说明。
 
-其他平台可上传 [facts.txt](fixtures/material-demo/facts.txt)，选择“劳动合同”，体验同一套文字提取、核对和检索流程。
+没有配置 OCR 的平台可上传 [facts.txt](fixtures/material-demo/facts.txt)，选择“劳动合同”，体验同一套文字提取、核对和检索流程。
 
 所有附带材料均为明确标记的合成软件测试材料。单文件上限 10 MB，PDF 上限 5 页；Word 可归档和下载，识别前需转为 PDF 或图片。完整操作、失败恢复和保存方式见[材料样例使用说明](docs/material-demo.md)。
 
@@ -181,7 +187,7 @@ npm run check
 | 真实浏览器 | 上传、识别、更正保存、刷新恢复、原图定位、出处展开、手机显示与损坏材料失败恢复 |
 | 独立技术复核 | 应用集成、任务竞争、前端契约，以及提取出处与临时文件清理 |
 
-详细报告、截图和源码哈希见[验证目录](docs/validation/README.md)；最新提交的自动检查见 [GitHub Actions](https://github.com/ZZZZihan/anxin-work-rights/actions/workflows/ci.yml)。Linux CI 验证 TXT 链路，不能代替 macOS 图像识别结果。
+详细报告、截图和源码哈希见[验证目录](docs/validation/README.md)；最新提交的自动检查见 [GitHub Actions](https://github.com/ZZZZihan/anxin-work-rights/actions/workflows/ci.yml)。上述记录是原 macOS 样例的历史验收。整合版新增 Linux 中文 OCR，CI 同时检查中文引擎和图片/PDF链路；实际部署结果见后续独立发布记录。
 
 公开资料的免费访问不等于开放许可，来源权利信息与版本限制随数据包保留。基础数据包说明记录采集阶段的独立交付，应用集成情况以本文及[材料样例说明](docs/material-demo.md)为准。
 
