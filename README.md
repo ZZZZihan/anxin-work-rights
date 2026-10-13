@@ -114,7 +114,7 @@ flowchart LR
 
 [打开安薪乐业工作台](http://172.23.1.127/)（需处于可访问该内网地址的网络）。网站使用共享合成展示数据。新材料流程位于“证据管家”：选择案件，上传合同、工资记录、聊天截图或 PDF，开始识别，核对字段，再展开案例和法条出处。
 
-当前发布为 `0cadf0f`，使用 OCR + 规则，未开启大模型。该地址属于内网，共享展示环境请使用合成材料体验。代码与验证记录见[整合 PR #26](https://github.com/ZZZZihan/anxin-work-rights/pull/26)，尚未合并主分支。
+当前发布为 `0cadf0f`，使用 OCR + 规则，未开启大模型。该地址属于内网，共享展示环境请使用合成材料体验。代码、验证记录与合并状态见[整合 PR #26](https://github.com/ZZZZihan/anxin-work-rights/pull/26)。
 
 本地普通 HTTP 展示可运行 `npm run demo`；隔离环境和停止方式见[展示部署说明](deploy/synthetic-http/README.md)。
 
@@ -127,7 +127,7 @@ flowchart LR
 ```bash
 git clone https://github.com/ZZZZihan/anxin-work-rights.git
 cd anxin-work-rights
-git switch feature/material-live
+git switch main
 npm ci
 npm run dev:materials
 ```
