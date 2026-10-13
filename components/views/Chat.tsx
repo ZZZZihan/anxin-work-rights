@@ -28,13 +28,67 @@ export default function Chat({
 }: SharedViewProps) {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const endRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<HTMLDivElement>(null);
+  const streamRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLFormElement>(null);
   const activeCase = data.cases.find((item) => item.id === activeCaseId) ?? data.cases[0];
   const messages = data.messages.filter((item) => item.caseId === activeCase?.id);
+  const hasActiveCase = Boolean(activeCase);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [messages.length, sending]);
+    const stream = streamRef.current;
+    stream?.scrollTo({
+      top: stream.scrollHeight,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+    });
+  }, [activeCase?.id, messages.length, sending]);
+
+  useEffect(() => {
+    const shell = viewRef.current?.closest<HTMLElement>('.app-shell');
+    const composer = composerRef.current;
+    const navigation = shell?.querySelector<HTMLElement>('.bottom-nav');
+    if (!hasActiveCase || !shell || !composer || !navigation) return;
+
+    const viewport = window.visualViewport;
+    const mobile = window.matchMedia('(max-width: 680px)');
+    const properties = ['--chat-composer-height', '--chat-nav-height', '--chat-viewport-height', '--chat-viewport-offset'];
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      if (!mobile.matches) {
+        properties.forEach((name) => shell.style.removeProperty(name));
+        return;
+      }
+      const focused = composer.contains(document.activeElement);
+      const unzoomed = !viewport || Math.abs(viewport.scale - 1) < 0.01;
+      const offset = focused && viewport && unzoomed
+        ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop) : 0;
+      shell.style.setProperty('--chat-composer-height', `${composer.getBoundingClientRect().height}px`);
+      shell.style.setProperty('--chat-nav-height', `${navigation.getBoundingClientRect().height}px`);
+      shell.style.setProperty('--chat-viewport-height', `${unzoomed && viewport ? viewport.height : window.innerHeight}px`);
+      shell.style.setProperty('--chat-viewport-offset', `${offset}px`);
+    };
+    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(measure); };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(composer);
+    observer.observe(navigation);
+    window.addEventListener('resize', schedule);
+    viewport?.addEventListener('resize', schedule);
+    viewport?.addEventListener('scroll', schedule);
+    composer.addEventListener('focusin', schedule);
+    composer.addEventListener('focusout', schedule);
+    measure();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener('resize', schedule);
+      viewport?.removeEventListener('resize', schedule);
+      viewport?.removeEventListener('scroll', schedule);
+      composer.removeEventListener('focusin', schedule);
+      composer.removeEventListener('focusout', schedule);
+      properties.forEach((name) => shell.style.removeProperty(name));
+    };
+  }, [hasActiveCase]);
 
   const send = async (event?: FormEvent, suggested?: string) => {
     event?.preventDefault();
@@ -70,7 +124,7 @@ export default function Chat({
   }
 
   return (
-    <div className="workspace-view chat-view chat-page">
+    <div ref={viewRef} className="workspace-view chat-view chat-page">
       <section className="chat-main panel">
         <header className="chat-header">
           <div className="assistant-identity">
@@ -90,7 +144,7 @@ export default function Chat({
           <span>当前回复来自经过整理的规则路径，不替代律师意见，也不预测案件结果。具体时效和地区口径请向官方机构核实。</span>
         </div>
 
-        <div className="message-stream" aria-live="polite">
+        <div ref={streamRef} className="message-stream" aria-live="polite">
           <article className="message assistant-message">
             <span className="message-avatar"><Sparkles size={17} /></span>
             <div className="message-content">
@@ -131,10 +185,9 @@ export default function Chat({
               <div className="message-content typing"><i /><i /><i /><span className="sr-only">正在整理回复</span></div>
             </article>
           )}
-          <div ref={endRef} />
         </div>
 
-        <form className="chat-composer" onSubmit={(event) => void send(event)}>
+        <form ref={composerRef} className="chat-composer" onSubmit={(event) => void send(event)}>
           <label>
             <span className="sr-only">输入你的劳动权益问题</span>
             <textarea
