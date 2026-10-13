@@ -8,9 +8,20 @@
 
 [快速开始](#快速开始) · [材料样例](fixtures/material-demo/README.md) · [公开数据库](data/labor-public-v1/README.md) · [验证记录](docs/validation/README.md) · [功能 PR](https://github.com/ZZZZihan/anxin-work-rights/pull/24)
 
-![工资记录中的模型候选字段与原图定位](docs/validation/desktop-apple-wage-location.png)
+![新版安薪乐业行动首页：深蓝工作台、案件进度与浅彩快捷入口](docs/images/workbench-home-7e3d496.png)
 
-*真实运行截图，使用显著标记的合成材料：左侧核对提取字段，右侧定位原图及 OCR 原文。*
+*当前演示界面，2026-10-13 重新截取，版本 `7e3d496`；画面使用合成演示数据。[截图来源记录](docs/images/README.md)。*
+
+<details>
+<summary>查看新版证据管家：劳动关系确认案件的材料归档</summary>
+
+![新版证据管家：劳动关系确认演示案件的文件入口、来源说明与材料清单](docs/images/workbench-evidence-7e3d496.png)
+
+*同一演示版本下的证据管家，展示文件入口、材料分类、来源说明与已有合成材料。*
+
+</details>
+
+> 展示界面来自[界面 PR #19](https://github.com/ZZZZihan/anxin-work-rights/pull/19)，下文材料识别样例来自[功能 PR #24](https://github.com/ZZZZihan/anxin-work-rights/pull/24)。两条分支尚未整合；材料识别与出处定位的实际运行截图见[验证记录](docs/validation/README.md)。
 
 ## 两条技术创新主线
 
