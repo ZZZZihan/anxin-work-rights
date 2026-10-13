@@ -1,0 +1,6 @@
+### Result
+{"first":"本次识别未完成\n\n图片无法读取，请确认 PNG 文件完整。","second":"本次识别未完成\n\n图片无法读取，请确认 PNG 文件完整。","noFabricatedFields":true,"retryVisible":true}
+### Ran Playwright code
+```js
+await (async (page) => { const panel=page.getByRole("region",{name:"材料识别：broken.png",exact:true}); await panel.getByRole("button",{name:"识别并检索",exact:true}).click(); await panel.getByRole("button",{name:"重试识别并检索",exact:true}).waitFor({timeout:30000}); const first=await panel.getByRole("alert").innerText(); if(await panel.getByRole("region",{name:"字段核对",exact:true}).count()) throw Error("fabricated fields on broken image"); await panel.getByRole("button",{name:"重试识别并检索",exact:true}).click(); await panel.getByRole("button",{name:"重试识别并检索",exact:true}).waitFor({timeout:30000}); const second=await panel.getByRole("alert").innerText(); await panel.screenshot({path:"output/playwright/material-live/broken-material-error.png"}); return {first,second,noFabricatedFields:true,retryVisible:true}; })(page);
+```
