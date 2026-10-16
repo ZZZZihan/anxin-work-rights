@@ -1,0 +1,174 @@
+{
+  "status": "passed",
+  "python": "3.12.12 (main, Oct  9 2025, 11:07:00) [Clang 17.0.0 (clang-1700.6.3.2)]",
+  "frozen_hashes_verified": 17,
+  "source_snapshot_files_unchanged": 120,
+  "expected_actions": {
+    "ask_user": 36,
+    "call_tool": 32,
+    "report_tool_failure": 4
+  },
+  "blind_packet_counts": [
+    105,
+    40
+  ],
+  "mapping_counts": {
+    "deepseek": 61,
+    "rules": 44,
+    "qwen": 39,
+    "deepseek-recovery": 1
+  },
+  "mapping_packets_match_all_raw_results": true,
+  "primary_and_diagnostics_recomputed_cases": 216,
+  "backend_checks": {
+    "rules": {
+      "primary_correct": 55,
+      "business_semantic_correct": 55,
+      "strict_json": 72,
+      "contract_valid": 72,
+      "strict_json_and_primary": 55,
+      "diagnostic_correct": 55,
+      "semantic_only_pass_ids": [],
+      "diagnostic_only_pass_ids": [],
+      "both_in_group_semantically_correct": 24,
+      "reviewed": 44,
+      "deterministic_non_question": 28,
+      "expected_call_breakdown": {
+        "not_called": 5,
+        "correct_actual_call_and_arguments": 24,
+        "wrong_actual_tool_or_arguments": 3
+      },
+      "premature": 5,
+      "premature_denominator": 40,
+      "latency_seconds": {
+        "median": 8.012499893084168e-05,
+        "p95": 0.0003897499991580844,
+        "sum": 0.010331502737244591,
+        "includes_loading": false,
+        "concurrency": 1
+      }
+    },
+    "qwen": {
+      "primary_correct": 61,
+      "business_semantic_correct": 62,
+      "strict_json": 52,
+      "contract_valid": 70,
+      "strict_json_and_primary": 42,
+      "diagnostic_correct": 63,
+      "semantic_only_pass_ids": [
+        "c_3b94df86700a"
+      ],
+      "diagnostic_only_pass_ids": [
+        "c_b5b313d396dc",
+        "c_ceab75515e1f"
+      ],
+      "both_in_group_semantically_correct": 27,
+      "reviewed": 39,
+      "deterministic_non_question": 33,
+      "expected_call_breakdown": {
+        "correct_actual_call_and_arguments": 31,
+        "not_called": 1
+      },
+      "premature": 0,
+      "premature_denominator": 40,
+      "latency_seconds": {
+        "median": 6.18403991649393,
+        "p95": 8.064321291982196,
+        "sum": 468.0112990020716,
+        "includes_loading": false,
+        "concurrency": 1
+      }
+    },
+    "deepseek": {
+      "primary_correct": 33,
+      "business_semantic_correct": 71,
+      "strict_json": 71,
+      "contract_valid": 33,
+      "strict_json_and_primary": 33,
+      "diagnostic_correct": 71,
+      "semantic_only_pass_ids": [],
+      "diagnostic_only_pass_ids": [],
+      "both_in_group_semantically_correct": 35,
+      "reviewed": 61,
+      "deterministic_non_question": 11,
+      "expected_call_breakdown": {
+        "correct_actual_call_and_arguments": 32
+      },
+      "premature": 0,
+      "premature_denominator": 40,
+      "latency_seconds": {
+        "median": 2.435830895512481,
+        "p95": 3.8132440419867635,
+        "sum": 312.8507293298899,
+        "includes_loading": false,
+        "concurrency": 1
+      }
+    }
+  },
+  "api_checks": {
+    "attempts_by_run": {
+      "deepseek-dev-preflight": 1,
+      "deepseek-dev": 12,
+      "deepseek-test": 72,
+      "deepseek-recovery": 1
+    },
+    "successes_by_run": {
+      "deepseek-dev-preflight": 1,
+      "deepseek-dev": 12,
+      "deepseek-test": 71,
+      "deepseek-recovery": 1
+    },
+    "attempts_total": 86,
+    "successes_total": 85,
+    "usage": {
+      "prompt_tokens": 47583,
+      "completion_tokens": 7881,
+      "total_tokens": 55464,
+      "prompt_cache_hit_tokens": 37632,
+      "prompt_cache_miss_tokens": 9951
+    },
+    "peak_usd_decimal": "0.045999888",
+    "off_peak_usd_decimal": "0.022999944",
+    "billing_verified": false,
+    "timeout_billing_unknown": true
+  },
+  "resource_checks": {
+    "qwen_test_seconds": 475.2609756659949,
+    "qwen_peak_mlx_gib": 17.597866542637348,
+    "pressure_levels": [
+      1
+    ],
+    "swap_start_gib": 1.983642578125,
+    "swap_peak_gib": 1.983642578125,
+    "swap_end_gib": 1.944580078125,
+    "timeout_seconds": 122.47033591600484,
+    "recovery_seconds": 2.8736317500006407
+  },
+  "regenerated_comparison_sha256": "222e7379ff8aebe31d271dea0cafb0d3067784632b306df1b60dcb20fce0b89d",
+  "regenerated_comparison_byte_identical": true,
+  "missing_review_and_denominator_probes": [
+    {
+      "probe": "semantic row absent but mapping retained",
+      "rejected": true
+    },
+    {
+      "probe": "all traces of a primary-failure review removed",
+      "rejected": true
+    },
+    {
+      "probe": "all traces of a correct ask review removed",
+      "rejected": true
+    },
+    {
+      "probe": "first-attempt test rows truncated to 71",
+      "rejected": true
+    },
+    {
+      "probe": "retained real ask review has null question-text judgment",
+      "rejected": true
+    }
+  ],
+  "summarize_stdout": "{\"rules\": {\"primary\": 55, \"semantic\": 55, \"reviewed\": 44, \"group_both\": 24, \"protocol_issues\": {}}, \"qwen\": {\"primary\": 61, \"semantic\": 62, \"reviewed\": 39, \"group_both\": 27, \"protocol_issues\": {}}, \"deepseek\": {\"primary\": 33, \"semantic\": 71, \"reviewed\": 61, \"group_both\": 35, \"protocol_issues\": {\"missing_questions_key\": 25, \"ask_despite_empty_missing_metadata\": 9}}}\n{\"attempts\": 86, \"successful_responses\": 85, \"reported_usage\": {\"prompt_tokens\": 47583, \"completion_tokens\": 7881, \"total_tokens\": 55464, \"prompt_cache_hit_tokens\": 37632, \"prompt_cache_miss_tokens\": 9951}, \"estimated_usd_peak\": 0.045999887999999996, \"estimated_usd_off_peak\": 0.022999943999999998, \"actual_billing\": \"not inspected; failed request billing unknown\", \"pricing_source\": \"https://api-docs.deepseek.com/quick_start/pricing/\"}\n",
+  "models_loaded": false,
+  "api_called": false
+}

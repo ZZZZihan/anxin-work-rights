@@ -1,0 +1,62 @@
+{
+  "at": "2026-10-16T09:53:14.131658+00:00",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "experiments/decision-baseline-v1/data/validate_dataset.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"passed\",\n  \"splits\": {\n    \"train\": {\n      \"records\": 24,\n      \"groups\": 12,\n      \"categories\": {\n        \"complete\": 7,\n        \"conflict\": 2,\n        \"missing_due\": 3,\n        \"missing_period\": 2,\n        \"mixed_payment\": 2,\n        \"multi_turn\": 4,\n        \"payment_attribution\": 2,\n        \"tool_failure\": 2\n      },\n      \"actions\": {\n        \"ask_user\": 11,\n        \"call_tool\": 11,\n        \"report_tool_failure\": 2\n      }\n    },\n    \"dev\": {\n      \"records\": 12,\n      \"groups\": 6,\n      \"categories\": {\n        \"complete\": 3,\n        \"conflict\": 1,\n        \"missing_due\": 1,\n        \"mixed_payment\": 2,\n        \"multi_turn\": 3,\n        \"payment_attribution\": 1,\n        \"tool_failure\": 1\n      },\n      \"actions\": {\n        \"ask_user\": 5,\n        \"call_tool\": 6,\n        \"report_tool_failure\": 1\n      }\n    },\n    \"test\": {\n      \"records\": 72,\n      \"groups\": 36,\n      \"categories\": {\n        \"complete\": 15,\n        \"conflict\": 5,\n        \"missing_due\": 9,\n        \"missing_period\": 8,\n        \"mixed_payment\": 9,\n        \"multi_turn\": 13,\n        \"payment_attribution\": 9,\n        \"tool_failure\": 4\n      },\n      \"actions\": {\n        \"ask_user\": 36,\n        \"call_tool\": 32,\n        \"report_tool_failure\": 4\n      }\n    }\n  },\n  \"checks\": {\n    \"one_to_one_input_label_ids\": true,\n    \"unique_ids\": true,\n    \"no_duplicate_conversations\": true,\n    \"strict_schema\": true,\n    \"groups_do_not_cross_splits\": true,\n    \"question_fields_exact\": true,\n    \"calendar_dates_valid\": true,\n    \"amounts_have_at_most_two_decimals\": true,\n    \"retry_limit_observed_in_gold\": true,\n    \"explicit_zero_values\": 9,\n    \"negative_tool_gaps\": 3\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python3",
+        "experiments/decision-baseline-v1/prepare.py"
+      ],
+      "exit_code": 0,
+      "stdout": "Frozen hashes verified\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "experiments/decision-baseline-v1",
+        "-p",
+        "test_*.py"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ".....................................\n----------------------------------------------------------------------\nRan 37 tests in 0.007s\n\nOK\n"
+    },
+    {
+      "command": [
+        "python3",
+        "experiments/decision-baseline-v1/summarize.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"rules\": {\"primary\": 55, \"semantic\": 55, \"reviewed\": 44, \"group_both\": 24, \"protocol_issues\": {}}, \"qwen\": {\"primary\": 61, \"semantic\": 62, \"reviewed\": 39, \"group_both\": 27, \"protocol_issues\": {}}, \"deepseek\": {\"primary\": 33, \"semantic\": 71, \"reviewed\": 61, \"group_both\": 35, \"protocol_issues\": {\"missing_questions_key\": 25, \"ask_despite_empty_missing_metadata\": 9}}}\n{\"attempts\": 86, \"successful_responses\": 85, \"reported_usage\": {\"prompt_tokens\": 47583, \"completion_tokens\": 7881, \"total_tokens\": 55464, \"prompt_cache_hit_tokens\": 37632, \"prompt_cache_miss_tokens\": 9951}, \"estimated_usd_peak\": 0.045999887999999996, \"estimated_usd_off_peak\": 0.022999943999999998, \"actual_billing\": \"not inspected; failed request billing unknown\", \"pricing_source\": \"https://api-docs.deepseek.com/quick_start/pricing/\"}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        ".",
+        ":(exclude)experiments/decision-baseline-v1/**/*.log"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "models_or_api_called": false,
+  "note": "npm and isolated HTTP evidence are separate archived runs; raw logs preserve original trailing spaces and are excluded only from whitespace lint"
+}
