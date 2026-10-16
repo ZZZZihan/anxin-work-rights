@@ -7,6 +7,8 @@
 | case-src-nanyang-20230609-third | [人力资源社会保障部 最高人民法院关于联合发布第三批劳动人事争议典型案例的通知](https://rensheju.nanyang.gov.cn/2023/06-09/135971.html) | 南阳市人力资源和社会保障局（转载人力资源社会保障部、最高人民法院通知） | 2023-06-09 |
 | case-src-spc-20240125-wage | [最高法 人社部 全总发布涉欠薪纠纷典型案例](https://www.court.gov.cn/zixun/xiangqing/423922.html) | 最高人民法院（来源：最高人民法院新闻局） | 2024-01-25 |
 | case-src-spc-20241223-wage | [依法惩治欠薪！最高人民法院发布涉欠薪纠纷典型案例](https://www.court.gov.cn/zixun/xiangqing/450661.html) | 最高人民法院（来源：最高人民法院新闻局） | 2024-12-23 |
+| case-src-spc-20241223-guidance | [回应司法实践需求！最高人民法院发布首批新就业形态劳动争议专题指导性案例](https://www.court.gov.cn/zixun/xiangqing/450651.html) | 最高人民法院（来源：最高人民法院新闻局） | 2024-12-23 |
+| case-src-spc-20250416-fourth | [人社部、最高法联合发布第四批劳动人事争议典型案例](https://www.court.gov.cn/zixun/xiangqing/462311.html) | 最高人民法院（来源：最高人民法院新闻局） | 2025-04-16 |
 | case-src-spc-20250801-labor | [最高法发布劳动争议典型案例](https://www.court.gov.cn/zixun/xiangqing/472681.html) | 最高人民法院（来源：最高人民法院新闻局） | 2025-08-01 |
 | law-arbitration-2007 | [中华人民共和国劳动争议调解仲裁法](https://www.gjxfj.gov.cn/2007-12/29/c_139960598.htm) | 国家信访局（正文标注来源：国家法律法规数据库） | 2007-12-29 |
 | law-contract-2012 | [中华人民共和国劳动合同法](https://www.samr.gov.cn/zw/zfxxgk/fdzdgknr/bgt/art/2023/art_0abfdd261c03417b949df19d869add8d.html) | 国家市场监督管理总局 | 2021-06-10 |

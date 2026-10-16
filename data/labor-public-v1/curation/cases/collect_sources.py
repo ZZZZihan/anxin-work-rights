@@ -10,6 +10,7 @@ import hashlib
 import json
 import re
 from datetime import datetime, timezone
+from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -30,6 +31,14 @@ CATALOG = [
          title='人力资源社会保障部 最高人民法院关于联合发布第三批劳动人事争议典型案例的通知',
          publisher='南阳市人力资源和社会保障局（转载人力资源社会保障部、最高人民法院通知）',
          published_on='2023-06-09', selector=('id', 'mainCon')),
+    dict(id='case-src-spc-20241223-guidance', url='https://www.court.gov.cn/zixun/xiangqing/450651.html',
+         title='回应司法实践需求！最高人民法院发布首批新就业形态劳动争议专题指导性案例',
+         publisher='最高人民法院（来源：最高人民法院新闻局）',
+         published_on='2024-12-23', selector=('id', 'zoom')),
+    dict(id='case-src-spc-20250416-fourth', url='https://www.court.gov.cn/zixun/xiangqing/462311.html',
+         title='人社部、最高法联合发布第四批劳动人事争议典型案例',
+         publisher='最高人民法院（来源：最高人民法院新闻局）',
+         published_on='2025-04-16', selector=('id', 'zoom')),
 ]
 
 class ArticleParser(HTMLParser):
@@ -85,6 +94,8 @@ def main():
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument('--fetch', action='store_true', help='GET official webpages; capture missing snapshots and refuse changes to existing snapshots')
     mode.add_argument('--verify-clean', action='store_true', help='read-only offline verification of saved raw against sources and clean')
+    ap.add_argument('--source-id', action='append', choices=[item['id'] for item in CATALOG],
+                    help='with --fetch, only request these source IDs; all saved snapshots are still rebuilt/verified')
     args = ap.parse_args()
     (HERE / 'raw').mkdir(exist_ok=True)
     (HERE / 'clean').mkdir(exist_ok=True)
@@ -93,7 +104,7 @@ def main():
         sid = config['id']
         raw = HERE / 'raw' / (sid + '.html')
         meta_path = HERE / 'raw' / (sid + '.http.json')
-        if args.fetch:
+        if args.fetch and (not args.source_id or sid in args.source_id):
             request = Request(config['url'], headers={'User-Agent': 'Mozilla/5.0 (official-public-case-capture/1.0)'})
             with urlopen(request, timeout=45) as response:
                 payload = response.read()
@@ -123,9 +134,9 @@ def main():
         # the complete selected article body follows in original order.
         html = payload.decode('utf-8')
         if 'court.gov.cn' in config['url']:
-            title_match = re.search(r'<div class="title">([^<]+)</div>', html)
+            title_match = re.search(r'<div class="title">(.*?)</div>', html, re.S)
             date_match = re.search(r'发布时间：([0-9-]+ [0-9:]+)', html)
-            actual_title = title_match.group(1).strip() if title_match else None
+            actual_title = unescape(re.sub(r'<[^>]+>', '', title_match.group(1))).strip() if title_match else None
             actual_date_text = '发布时间：' + date_match.group(1) if date_match else None
         else:
             title_match = re.search(r'<meta name="ArticleTitle" content="([^"]+)"', html)

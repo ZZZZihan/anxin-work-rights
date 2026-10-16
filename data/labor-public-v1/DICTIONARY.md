@@ -11,7 +11,7 @@
 | `paragraphs` | `id,source_id,ordinal,text` | 从原始 HTML 去外壳和统一空白后得到的段落；标点和法律用语不改写 |
 | `cases` | `id,case_group_id,title,source_id` | 案例 ID、同案分组、原标题与来源 |
 | | `topics` | wage_arrears=欠薪；employment_relationship=劳动关系确认；可同时属于两者 |
-| | `region,decision_date` | 裁判地区和裁判日期；本版未披露，全部空 |
+| | `region,decision_date` | 裁判地区和裁判日期；地域全部空；4个案例披露裁判日期，其余空，不推断 |
 | | `source_refs` | 该案例正文范围内段落 ID 列表 |
 | | `facts,claims,issues,reasoning` | 原文摘录数组；每项含 text/kind/refs；分类属于标注 |
 | | `issue_disclosure` | reported_in_source 或 not_explicit_in_source，与 issues 是否为空对应 |
@@ -28,6 +28,9 @@
 | `citations` | `record_id,field_path,paragraph_id` | 各字段到源段落的可查询反向索引 |
 | `search_documents` | `kind,title,topics_json,search_text` | 可重建关键词索引，只覆盖案例和所选条文 |
 | `metadata` | `dataset_id,schema_version,data_fingerprint,status` | 候选数据身份、结构版本、内容摘要与核读状态 |
+| `coverage.json`（独立说明） | `case_group_id,topics,scenario,source_id,source_url` | 与案例一一对应的主题、场景和准确来源；不添加原案未披露事实 |
+| | `stage,merits_supervision_eligible,limitations` | 程序阶段、是否存在可阅读的实体处理叙述及使用限制；执行/破产/调解等不能冒充实体裁判答案 |
+| | `selection_policy,exclusions,uncovered` | 选取办法、明确排除内容和当前未覆盖问题；不表示总体代表性 |
 
 `statements.kind` 的取值包括 reported_fact（原文叙述事实）、party_assertion（当事人主张）、adjudicated_fact（明确事实认定）、issue（原文明确争点）、reasoning（案例分析或裁判理由）。取值可用不代表本次数据必然具有每种类型；没有清晰依据时不强行填充。
 

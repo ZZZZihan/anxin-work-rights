@@ -75,11 +75,25 @@ def main():
         require(all((fixture / p).read_bytes() == data for p, data in before.items()), 'identical fetch changed a fixture file')
         print('PASS: identical responses preserved original bytes and capture timestamps')
 
+        calls = []
+
+        def selected_response(request, timeout):
+            calls.append(request.full_url)
+            return saved_response(request, timeout)
+
+        namespace['urlopen'] = selected_response
+        selected = next(iter(configs.values()))
+        run('--fetch', '--source-id', selected['id'])
+        require(calls == [selected['url']], 'source filter requested an unselected URL')
+        require(all((fixture / p).read_bytes() == data for p, data in before.items()), 'filtered fetch changed a frozen fixture file')
+        print('PASS: selected-source fetch requested only the selected URL; all frozen files preserved')
+
         # A distinct empty fixture exercises the only path allowed to save a new
         # response. Original dataset files remain read-only throughout the test.
         missing = fixture / 'missing'
         missing.mkdir()
         namespace['HERE'] = missing
+        namespace['urlopen'] = saved_response
         namespace['CATALOG'] = [next(iter(configs.values()))]
         run('--fetch')
         config = namespace['CATALOG'][0]

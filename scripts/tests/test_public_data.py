@@ -41,6 +41,21 @@ class PublicDataTests(unittest.TestCase):
         # Raw download times are frozen metadata; a rebuild must not rewrite them.
         self.assertEqual(DATA.read_json(self.release / "manifest.json"), DATA.read_json(second / "manifest.json"))
 
+    def test_malformed_case_usage_limits_fail_before_release_replacement(self):
+        source = self.isolated_source("coverage-tamper")
+        path = source / "curation/cases/coverage.json"
+        original = DATA.read_json(path)
+        before = (self.release / "labor-public.sqlite").read_bytes()
+        for field, bad in (("limitations", "not-a-list"), ("limitations", [""]),
+                           ("merits_supervision_eligible", 1), ("scenario", ["not-a-string"])):
+            with self.subTest(field=field, bad=bad):
+                changed = copy.deepcopy(original)
+                changed["cases"][0][field] = bad
+                DATA.json_file(path, changed)
+                with self.assertRaisesRegex(DATA.DataError, "case extraction verification failed"):
+                    DATA.build(source, self.release)
+                self.assertEqual(before, (self.release / "labor-public.sqlite").read_bytes())
+
     def test_source_tamper_fails_before_replacing_release(self):
         source = self.isolated_source("raw-tamper")
         record = DATA.load_dataset(source)[0][0]

@@ -1,0 +1,316 @@
+
+> anxin-work-rights@1.0.0 check
+> npm run typecheck && npm run lint && npm test && npm run build && npm run data:check && npm run data:runtime:check && npm run eval:check && npm run test:materials
+
+
+> anxin-work-rights@1.0.0 typecheck
+> tsc --noEmit --pretty false
+
+
+> anxin-work-rights@1.0.0 lint
+> eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern js --ignore-pattern screenshot.py
+
+
+> anxin-work-rights@1.0.0 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-data-eval
+
+ ✓ deploy/synthetic-http/stop-control.test.mjs (3 tests) 4ms
+ ✓ lib/validation.test.ts (4 tests) 3ms
+ ✓ lib/draft-copies.test.ts (7 tests) 2ms
+ ✓ lib/legal.test.ts (3 tests) 2ms
+ ✓ lib/client-uuid.test.ts (2 tests) 3ms
+ ✓ lib/client.test.ts (7 tests) 9ms
+ ✓ lib/retrieval-evaluation.test.ts (17 tests) 5ms
+ ✓ deploy/synthetic-http/material-config.test.mjs (9 tests) 386ms
+   ✓ Wrangler credentials remain private on both success and failure > suppresses both real child streams, disables disk logging and strips migration error payloads  363ms
+ ✓ deploy/local-cloud/readiness.test.mjs (9 tests) 699ms
+   ✓ actual isolated HTTPS certificate checks > enforces the wall-clock deadline even while HTTPS keeps sending bytes  404ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > retains the key for a DELETE retry when late-put cleanup fails
+evidence upload incomplete Error: synthetic late cleanup failure
+    at Object.delete (/Users/xuzihan/Documents/Projects/国创/anxin-data-eval/lib/evidence-concurrency.test.ts:141:36)
+    at Module.POST (/Users/xuzihan/Documents/Projects/国创/anxin-data-eval/app/api/evidence/route.ts:100:70)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-data-eval/lib/evidence-concurrency.test.ts:149:13
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-data-eval/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+ ✓ lib/public-retrieval.test.ts (16 tests) 1029ms
+   ✓ public labor knowledge retrieval on frozen official records > rebuild verification matches the committed index without writing  517ms
+   ✓ public labor knowledge retrieval on frozen official records > rejects altered paragraph references and invented provision text before index output  478ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > rolls back cancellation if marking deletion fails and preserves the uploaded bytes
+evidence deletion incomplete Error: D1_ERROR: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at Module.DELETE (/Users/xuzihan/Documents/Projects/国创/anxin-data-eval/app/api/evidence/route.ts:128:22)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-data-eval/lib/evidence-concurrency.test.ts:170:15
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-data-eval/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20 {
+  [cause]: Error: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+      at D1DatabaseSessionAlwaysPrimary._sendOrThrow (cloudflare-internal:d1-api:189:24)
+      at async cloudflare-internal:d1-api:137:19
+      at async #fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-data-eval/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4923:18)
+      at async ProxyServer.fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-data-eval/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4823:14) {
+    [cause]: undefined
+  }
+}
+
+ ✓ deploy/synthetic-http/environment.test.mjs (12 tests) 1238ms
+   ✓ session boundaries and worker identity > refuses occupied Worker ports and unrelated 401/other-instance readiness  305ms
+ ✓ lib/evidence-concurrency.test.ts (4 tests) 1152ms
+ ✓ deploy/synthetic-http/regional-demo.test.mjs (14 tests) 1385ms
+ ✓ lib/server-schema.test.ts (4 tests) 1748ms
+   ✓ persisted local schema upgrades > upgrades a journal-free old database without losing drafts, records or file bytes  772ms
+   ✓ persisted local schema upgrades > adopts a fresh runtime-created database so later explicit migrations are harmless  335ms
+   ✓ persisted local schema upgrades > finishes a partial upgrade and preserves existing revisions and journal entries  352ms
+ ✓ lib/material-lifecycle-review.test.ts (5 tests) 2227ms
+   ✓ independent material lifecycle review regressions > independent: cancellation captures a job attached before deletion transaction starts  532ms
+   ✓ independent material lifecycle review regressions > independent: archival during submission cancels the late job and keeps analysis inaccessible  417ms
+   ✓ independent material lifecycle review regressions > independent: foreign deletion leaves owner records and original bytes intact  539ms
+   ✓ independent material lifecycle review regressions > independent: offline cache cleanup is reported while original and analysis deletion finish  533ms
+ ✓ lib/material-analysis.test.ts (9 tests) 4268ms
+   ✓ material extraction boundaries and persisted ownership > uploads exact bytes, deduplicates starts, persists grounded fields and real public citations, and protects review revisions  711ms
+   ✓ material extraction boundaries and persisted ownership > rejects cross-user reads, starts and edits without service calls or state changes  547ms
+   ✓ material extraction boundaries and persisted ownership > preserves the original through service failure and recovers only through explicit retry  575ms
+   ✓ material extraction boundaries and persisted ownership > rejects changed original bytes before sending a job  331ms
+   ✓ material extraction boundaries and persisted ownership > does not revive results when a file is deleted while the provider returns  489ms
+   ✓ material extraction boundaries and persisted ownership > blocks archived case access and unsupported formats  349ms
+   ✓ material extraction boundaries and persisted ownership > cancels a job whose ID arrives only after the original was deleted  436ms
+   ✓ material extraction boundaries and persisted ownership > turns expired/unknown provider jobs into visible retryable failures  614ms
+
+ Test Files  16 passed (16)
+      Tests  125 passed (125)
+   Start at  08:39:40
+   Duration  4.98s (transform 673ms, setup 0ms, collect 2.15s, tests 14.16s, environment 1ms, prepare 902ms)
+
+
+> anxin-work-rights@1.0.0 build
+> vinext build
+
+
+  vinext build  (Vite 8.3.0)
+
+(node:56130) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[1/5] analyze client references...
+transforming...
+✓ 266 modules transformed.
+rendering chunks...
+✓ built in 298ms
+[2/5] analyze server references...
+transforming...
+✓ 183 modules transformed.
+rendering chunks...
+✓ built in 145ms
+[3/5] build rsc environment...
+transforming...
+✓ 257 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 339ms
+[4/5] build client environment...
+transforming...
+✓ 1694 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 754ms
+[5/5] build ssr environment...
+transforming...
+✓ 187 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 306ms
+
+  Route (app)
+  ┌ ƒ /
+  ├ λ /api/bootstrap
+  ├ λ /api/cases
+  ├ λ /api/chat
+  ├ λ /api/documents
+  ├ λ /api/evidence
+  ├ λ /api/evidence/:id/analysis
+  ├ λ /api/evidence/:id/download
+  ├ λ /api/knowledge
+  └ λ /api/synthetic-ready
+
+  λ API  ƒ Dynamic
+
+  Build complete. Run `vinext start` to start the production server.
+
+
+> anxin-work-rights@1.0.0 data:check
+> python3 -B scripts/public-data.py verify && python3 -B -m unittest discover -s scripts/tests -p test_public_data.py
+
+{
+  "status": "PASS",
+  "data_fingerprint": "94593cc65bc34e1d739f22b6a66c95e19ff768e083f435bada899fc86309ac8e",
+  "counts": {
+    "sources": 14,
+    "source_paragraphs": 1641,
+    "cases": 33,
+    "cases_by_topic": {
+      "employment_relationship": 13,
+      "wage_arrears": 23
+    },
+    "laws": 8,
+    "selected_provisions": 54,
+    "field_citations": 970,
+    "evidence_descriptions": 38,
+    "original_case_exhibits": 0,
+    "linked_rule_citations": 16,
+    "unlinked_rule_citations": 17,
+    "cases_with_undisclosed_region": 33,
+    "cases_with_undisclosed_decision_date": 29
+  }
+}
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 2.425s
+
+OK
+
+> anxin-work-rights@1.0.0 data:runtime:check
+> python3 -B scripts/build-public-index.py --check
+
+{"status": "PASS", "fingerprint": "94593cc65bc34e1d739f22b6a66c95e19ff768e083f435bada899fc86309ac8e", "bytes": 390723, "checkOnly": true}
+
+> anxin-work-rights@1.0.0 eval:check
+> npm run data:runtime:check && node scripts/eval-public-retrieval.mjs check
+
+
+> anxin-work-rights@1.0.0 data:runtime:check
+> python3 -B scripts/build-public-index.py --check
+
+{"status": "PASS", "fingerprint": "94593cc65bc34e1d739f22b6a66c95e19ff768e083f435bada899fc86309ac8e", "bytes": 390723, "checkOnly": true}
+{
+  "mode": "check",
+  "tasks": 128,
+  "datasetFingerprint": "94593cc65bc34e1d739f22b6a66c95e19ff768e083f435bada899fc86309ac8e",
+  "overall": {
+    "tasks": 128,
+    "hitAt6": {
+      "numerator": 46,
+      "denominator": 118,
+      "value": 0.389831
+    },
+    "mrrAt6": {
+      "reciprocalRankSum": 25.55,
+      "denominator": 118,
+      "value": 0.216525
+    },
+    "annotatedRecordRecallAt6": {
+      "numerator": 46,
+      "denominator": 131,
+      "value": 0.351145
+    },
+    "annotatedCitationCoverageAt6": {
+      "numerator": 94,
+      "denominator": 258,
+      "value": 0.364341
+    },
+    "noAnswerAccuracy": {
+      "numerator": 8,
+      "denominator": 10,
+      "value": 0.8
+    },
+    "returnedCitationsValidated": 4632,
+    "failureTasks": 77
+  },
+  "bySplit": {
+    "dev": {
+      "tasks": 88,
+      "hitAt6": {
+        "numerator": 29,
+        "denominator": 82,
+        "value": 0.353659
+      },
+      "mrrAt6": {
+        "reciprocalRankSum": 14.733333333,
+        "denominator": 82,
+        "value": 0.179675
+      },
+      "annotatedRecordRecallAt6": {
+        "numerator": 29,
+        "denominator": 92,
+        "value": 0.315217
+      },
+      "annotatedCitationCoverageAt6": {
+        "numerator": 62,
+        "denominator": 185,
+        "value": 0.335135
+      },
+      "noAnswerAccuracy": {
+        "numerator": 6,
+        "denominator": 6,
+        "value": 1
+      },
+      "returnedCitationsValidated": 3126,
+      "failureTasks": 54
+    },
+    "test": {
+      "tasks": 40,
+      "hitAt6": {
+        "numerator": 17,
+        "denominator": 36,
+        "value": 0.472222
+      },
+      "mrrAt6": {
+        "reciprocalRankSum": 10.816666667,
+        "denominator": 36,
+        "value": 0.300463
+      },
+      "annotatedRecordRecallAt6": {
+        "numerator": 17,
+        "denominator": 39,
+        "value": 0.435897
+      },
+      "annotatedCitationCoverageAt6": {
+        "numerator": 32,
+        "denominator": 73,
+        "value": 0.438356
+      },
+      "noAnswerAccuracy": {
+        "numerator": 2,
+        "denominator": 4,
+        "value": 0.5
+      },
+      "returnedCitationsValidated": 1506,
+      "failureTasks": 23
+    }
+  }
+}
+
+> anxin-work-rights@1.0.0 test:materials
+> node --test scripts/material-service.test.mjs scripts/material-ocr-linux.test.mjs
+
+✔ TSV preserves page references, normalised left-top boxes, confidence and recognised text (4.005709ms)
+✔ TSV rejects ungrounded coordinates, missing dimensions, control text and oversized pages (0.394167ms)
+✔ image preflight checks PNG/JPEG dimensions before decoding (0.257709ms)
+✔ PDF preflight rejects encryption, page truncation and a large later page before rendering (1.149541ms)
+✔ private executable/language/library configuration is passed only to Tesseract (4.102291ms)
+✔ missing Chinese language/tool capabilities fail explicitly while TXT remains advertised (0.454334ms)
+✔ all PDF pages retain page IDs, bounded rendering arguments and citations; over-limit PDF never renders (3.389375ms)
+✔ PDF password errors and OCR timeouts expose stable errors, not subprocess paths or stderr (1.439125ms)
+✔ aborting a direct OCR child kills and settles it before caller cleanup (306.686792ms)
+✔ a missing direct executable closes and rejects without hanging startup (0.7385ms)
+﹣ real Linux Tesseract/Poppler recognises explicit synthetic PNG/PDF fixtures without model inference (0.056209ms) # Tesseract is the supported Linux runtime; macOS real OCR uses Apple Vision and is tested in material-service.test.mjs.
+✔ all routes require the caller token, reject browser origins and client parameters (34.392292ms)
+✔ TXT jobs run actual UTF-8 extraction and explicit rules with verbatim field citations (435.381584ms)
+✔ model fields require allowed keys, existing blocks and exact original text (1.097958ms)
+✔ recorded real Apple HTTP misclassifications are rejected without adding or changing model fields (0.83075ms)
+✔ semantic model rejections are visible in job warnings and cannot be filled by rules (121.472709ms)
+✔ Ollama calls reject redirects and a model transport failure cannot become rule success (105.17675ms)
+✔ recorded synthetic Apple candidates can lose display ID prefixes while exact citations stay mandatory (0.250042ms)
+✔ temporary cleanup failures remain visible without hanging cancellation or the next job (108.591625ms)
+✔ an occupied listen port removes the newly created private service directory (1.080667ms)
+✔ job capacity is bounded and a restart cannot expose prior in-memory jobs (3381.062167ms)
+✔ deleting a ready job clears cached content and DELETE is idempotent (112.639041ms)
+✔ at most two jobs wait and deletion cancels running/queued OCR without reviving results (25978.050125ms)
+✔ real platform OCR recognises synthetic PNG/PDF, preserves bboxes, rejects broken images and six-page PDFs (3605.04775ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 34027.309625

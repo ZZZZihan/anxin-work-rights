@@ -1,0 +1,178 @@
+{
+  "datasetId": "anxin-labor-eval-v1",
+  "schemaVersion": 1,
+  "frozenAt": "2026-10-16",
+  "annotationStatus": "agent_curated_not_legal_expert_reviewed",
+  "queryOrigin": "agent_authored_source_grounded",
+  "sourceDatasetId": "anxin-labor-public-v1",
+  "sourceDataFingerprint": "94593cc65bc34e1d739f22b6a66c95e19ff768e083f435bada899fc86309ac8e",
+  "tasksFile": "tasks.jsonl",
+  "tasksSha256": "8f246287cc124d0d2da8007f84fd0d6bb8a2a5031c88a03cd0cea0fdadf027c0",
+  "counts": {
+    "tasks": 128,
+    "byTaskType": {
+      "case_retrieval": 94,
+      "provision_retrieval": 24,
+      "no_answer": 10
+    },
+    "bySplit": {
+      "test": 40,
+      "dev": 88
+    },
+    "groups": 46
+  },
+  "splitPolicy": "case_group_id for cases; primary law_id for provision groupId, with every gold law constrained to a single split across all provision tasks; scenario family for no_answer; assigned before retrieval ranks were read",
+  "caseTestGroups": [
+    "case-guidance-238-registered-courier",
+    "case-guidance-240-designated-driver-no-employment",
+    "case-spc-2024-anticipatory-wage-breach",
+    "case-spc-2024-bankruptcy-wage-guarantee",
+    "case-spc-2024-borrowed-contractor-license",
+    "case-spc-2024-electronic-evidence-support",
+    "case-spc-2024-execution-bankruptcy-wages",
+    "case-spc-2024-online-mediation-confirmation",
+    "case-spc-2024-unpaid-shareholder-capital",
+    "case-spc-2025-mixed-employers",
+    "case-third-02-crowdsourced-courier"
+  ],
+  "provisionTestGroups": [
+    "labor-arbitration-law-2007",
+    "labor-dispute-interpretation-i-2020"
+  ],
+  "noAnswerTestGroups": [
+    "no-answer-gardening",
+    "no-answer-image-software"
+  ],
+  "goldLawSplitComponents": [
+    {
+      "split": "dev",
+      "lawIds": [
+        "employment-relationship-notice-2005",
+        "labor-contract-law-2012",
+        "labor-dispute-interpretation-ii-2025",
+        "labor-law-2018",
+        "migrant-wage-payment-regulation-2019",
+        "wage-payment-provisions-1994"
+      ]
+    },
+    {
+      "split": "test",
+      "lawIds": [
+        "labor-arbitration-law-2007",
+        "labor-dispute-interpretation-i-2020"
+      ]
+    }
+  ],
+  "inputProtocol": {
+    "retrievalFields": [
+      "query"
+    ],
+    "resultLimit": 6,
+    "topicUsage": "reporting_only",
+    "goldMetadataAllowedInRetrieval": false
+  },
+  "batches": [
+    {
+      "batchId": "initial-90",
+      "taskCount": 90,
+      "caseGroups": 14,
+      "provisionGroups": 8,
+      "noAnswerGroups": 5,
+      "originalTasksFile": "history/initial-90.tasks.jsonl",
+      "originalTasksSha256": "c2f12cfd9bfc50e5e0aa4ec7789d64a29bfc77d75bde63656f7b7b12689f0684",
+      "baseSourceDataFingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a",
+      "revisedTasksFile": "history/revised-90.tasks.jsonl",
+      "revisedTasksSha256": "a6c8ef40a72ae8c1efe61e9dd6a448b6b5765a808fee8a29921f0de36b311e94"
+    },
+    {
+      "batchId": "additional-19-cases-38-tasks",
+      "taskCount": 38,
+      "caseGroups": 19,
+      "bySplit": {
+        "dev": 24,
+        "test": 14
+      },
+      "taskIds": [
+        "labor-eval-case-15-01",
+        "labor-eval-case-15-02",
+        "labor-eval-case-16-01",
+        "labor-eval-case-16-02",
+        "labor-eval-case-17-01",
+        "labor-eval-case-17-02",
+        "labor-eval-case-18-01",
+        "labor-eval-case-18-02",
+        "labor-eval-case-19-01",
+        "labor-eval-case-19-02",
+        "labor-eval-case-20-01",
+        "labor-eval-case-20-02",
+        "labor-eval-case-21-01",
+        "labor-eval-case-21-02",
+        "labor-eval-case-22-01",
+        "labor-eval-case-22-02",
+        "labor-eval-case-23-01",
+        "labor-eval-case-23-02",
+        "labor-eval-case-24-01",
+        "labor-eval-case-24-02",
+        "labor-eval-case-25-01",
+        "labor-eval-case-25-02",
+        "labor-eval-case-26-01",
+        "labor-eval-case-26-02",
+        "labor-eval-case-27-01",
+        "labor-eval-case-27-02",
+        "labor-eval-case-28-01",
+        "labor-eval-case-28-02",
+        "labor-eval-case-29-01",
+        "labor-eval-case-29-02",
+        "labor-eval-case-30-01",
+        "labor-eval-case-30-02",
+        "labor-eval-case-31-01",
+        "labor-eval-case-31-02",
+        "labor-eval-case-32-01",
+        "labor-eval-case-32-02",
+        "labor-eval-case-33-01",
+        "labor-eval-case-33-02"
+      ],
+      "sourceCurationFiles": [
+        {
+          "file": "curation/cases/cases.json",
+          "sha256": "70a2caf86ca576dfce584de649ecead716f485ea166ee7d6ba5ff69461ff838b"
+        },
+        {
+          "file": "curation/cases/coverage.json",
+          "sha256": "041a8c9a9c580c4a000b6fa6a03e8e88f930ba96247b7b88b473c3b031bab7c8"
+        },
+        {
+          "file": "curation/cases/sources.json",
+          "sha256": "1750eea3e1e31a6cb8d5bc27e0f46ebc3314412aff318ca6398f5d56be73f048"
+        }
+      ]
+    }
+  ],
+  "revisions": [
+    {
+      "revisionId": "gold-law-split-correction",
+      "reason": "Primary-law grouping alone placed wage-payment-provisions-1994 test tasks in a different split from dev tasks whose gold contained the same law. Move the full primary group to dev before this annotator saw any retrieval ranks. Arbitration law and judicial interpretation I remain test.",
+      "previousTasksSha256": "c2f12cfd9bfc50e5e0aa4ec7789d64a29bfc77d75bde63656f7b7b12689f0684",
+      "revisedInitialTasksSha256": "a6c8ef40a72ae8c1efe61e9dd6a448b6b5765a808fee8a29921f0de36b311e94",
+      "changedField": "split",
+      "changedTaskIds": [
+        "labor-eval-provision-08-01",
+        "labor-eval-provision-08-02",
+        "labor-eval-provision-08-03"
+      ],
+      "oldValue": "test",
+      "newValue": "dev",
+      "unchangedFields": "All other fields of the original 90 tasks are unchanged, including id, query, gold arrays, topic and rationale."
+    }
+  ],
+  "goldExhaustive": false,
+  "retrievalRanksReadDuringAnnotation": false,
+  "limitations": [
+    "Agent authored, not real user questions or human legal expert review",
+    "Known-positive record labels are not exhaustive and do not support precision or legal correctness claims",
+    "All source documents remain retrievable in both splits; this is grouped task evaluation, not a held-out document corpus",
+    "The law split constraint applies to gold provision laws; cases across splits can still cite the same law or share a source compilation",
+    "No-answer tasks are corpus unsupported scenarios, not general refusal policy tests",
+    "24 tasks from 12 procedural cases only ask disclosed execution, bankruptcy, mediation or coordination steps and results; they are not merits supervision labels"
+  ]
+}
