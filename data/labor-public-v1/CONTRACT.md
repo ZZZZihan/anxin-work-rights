@@ -23,6 +23,8 @@
 - `cited_rules` 元素 `{name, article, refs, law_id, link_basis, version_match, link_note}`；`link_basis=source_explicit` 仅指原文明确提到规则名称。正式名称与所收录法规唯一相等时填 law_id，否则为 null；全部 `version_match=not_determined`，link_note 明示名称关联不等于适用版本认定。
 - `annotation_status=agent_curated_not_legal_expert_reviewed`，技术复核不冒称专业人工审核。
 
+`curation/cases/coverage.json` 是逐组覆盖说明，不替代案例精确原文。顶层包含 `schema_version, scope, annotation_status, selection_policy, exclusions, cases, uncovered`；每条 `cases` 记录包含 `case_group_id, topics, scenario, source_id, source_url, stage, merits_supervision_eligible, limitations`。`case_group_id` 与 cases.json 一一对应，来源及主题保持相同；场景、阶段与限制属于明确标明的 Agent 加工标注。`stage` 区分实体审理/仲裁、执行、破产、调解、司法确认及协商等程序。`merits_supervision_eligible=false` 的样本不得充作劳动关系或清偿责任的实体认定答案；`true` 也仅表示存在公开实体处理叙述，不代表专业审核或适用版本已经核定。未知实体结果不得由程序结果补写。
+
 ## 法规记录
 
 必需字段：`id, source_id, title, instrument_type, version_label, issued_on, effective_on, expires_on, applicability, status_note, source_refs, articles, annotation_status`。

@@ -1,4 +1,6 @@
-# 样例 v1 的验证范围
+# 样例 v1 的历史验证范围
+
+以下保留首批14例的验证记录，绑定旧指纹。2026-10-16 扩充至33例后的独立检查见[本次数据与检索验证](../../docs/validation/public-data-eval-20261016/README.md)。
 
 验证绑定数据指纹 `e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a`。发布文件逐项摘要在 `release/manifest.json`，主工具和测试代码摘要在 `validation/integration-report.json`。后续变更应重新构建与验证，不能沿用这一候选的结果。
 

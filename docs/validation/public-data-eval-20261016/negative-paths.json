@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "scope": "isolated filesystem copy; no network or real user data",
+  "checks": [
+    {
+      "check": "frozen baseline replay",
+      "result": "PASS",
+      "expected": "exit 0"
+    },
+    {
+      "check": "changed freeze manifest is rejected",
+      "result": "PASS",
+      "expected": "frozen task hash mismatch"
+    },
+    {
+      "check": "manifest rejection preserves both existing reports",
+      "result": "PASS"
+    },
+    {
+      "check": "invalid gold is rejected before report write",
+      "result": "PASS",
+      "expected": "unknown gold record"
+    },
+    {
+      "check": "stale report is rejected",
+      "result": "PASS",
+      "expected": "baseline.json is stale"
+    },
+    {
+      "check": "report regeneration repairs incomplete output",
+      "result": "PASS",
+      "expected": "exit 0"
+    },
+    {
+      "check": "repaired reports replay identically",
+      "result": "PASS",
+      "expected": "exit 0"
+    }
+  ]
+}

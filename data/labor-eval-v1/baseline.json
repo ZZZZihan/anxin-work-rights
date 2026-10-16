@@ -1,0 +1,3942 @@
+{
+  "schemaVersion": 1,
+  "evaluationId": "anxin-labor-retrieval-v1",
+  "inputProtocol": "production_query_only_top6",
+  "annotationStatus": "agent_curated_not_legal_expert_reviewed",
+  "datasetFingerprint": "94593cc65bc34e1d739f22b6a66c95e19ff768e083f435bada899fc86309ac8e",
+  "tasksSha256": "8f246287cc124d0d2da8007f84fd0d6bb8a2a5031c88a03cd0cea0fdadf027c0",
+  "indexSha256": "f2572750a6d940d114d59a8f16e2fa1f73851ff1f6c3ab729569b046f4c78ef1",
+  "evaluationManifestSha256": "6a5f41cb1d645e6f917387922b7d26f138b7da8b1e7ea31aa71ed93bab222b5f",
+  "dependencyLockSha256": "29e46074355a55bc977cdbd412d52e6bac53e51576493b2f8d23dbb2f19cbe11",
+  "implementationHashes": {
+    "lib/public-retrieval.ts": "af92d0a3aaf4b91f89f8473320a829d834bec7f9f194fe0dd01273e9aaf65faa",
+    "lib/public-retrieval-types.ts": "273c4d96c5a11e937363bb8ff8421a165abb80d8cbd608c3e6521b15fa795078",
+    "lib/retrieval-evaluation.ts": "cb540d5d60da760c3637068823ad1d068078c61dc0712996c796d1dd0e6dfaa3",
+    "scripts/eval-public-retrieval.mjs": "8e354cfc386c478bd968eabfadee916e48084ae06a905c0f322f06293f1cdf47",
+    "scripts/build-public-index.py": "450e73515e9bac3c66845e4e3bfadd1952f28f8c97d0f70d42d32889cec4142f",
+    "data/labor-public-v1/curation/cases/coverage.json": "041a8c9a9c580c4a000b6fa6a03e8e88f930ba96247b7b88b473c3b031bab7c8"
+  },
+  "limitations": [
+    "Agent-authored questions and partial relevance labels; not real-user traffic or legal-expert-reviewed gold.",
+    "Case groups and law groups are split together. All referenced documents remain in the searchable corpus.",
+    "This measures retrieval of annotated targets, not legal reasoning, answer correctness, or end-to-end agent success.",
+    "Only query and limit=6 are passed to search, matching current HTTP entry points. Annotation topic is used only for reporting.",
+    "No precision metric: unannotated returned documents are not established irrelevant.",
+    "Citation coverage checks exact paragraph inclusion, not whether a generated answer is supported.",
+    "No-answer tasks cover explicitly out-of-domain scenarios; they do not establish safe abstention on difficult legal questions.",
+    "Low scores are recorded, not optimized or gated away. Validity and reproducibility are hard gates."
+  ],
+  "topK": 6,
+  "overall": {
+    "tasks": 128,
+    "hitAt6": {
+      "numerator": 46,
+      "denominator": 118,
+      "value": 0.389831
+    },
+    "mrrAt6": {
+      "reciprocalRankSum": 25.55,
+      "denominator": 118,
+      "value": 0.216525
+    },
+    "annotatedRecordRecallAt6": {
+      "numerator": 46,
+      "denominator": 131,
+      "value": 0.351145
+    },
+    "annotatedCitationCoverageAt6": {
+      "numerator": 94,
+      "denominator": 258,
+      "value": 0.364341
+    },
+    "noAnswerAccuracy": {
+      "numerator": 8,
+      "denominator": 10,
+      "value": 0.8
+    },
+    "returnedCitationsValidated": 4632,
+    "failureTasks": 77
+  },
+  "bySplit": {
+    "dev": {
+      "tasks": 88,
+      "hitAt6": {
+        "numerator": 29,
+        "denominator": 82,
+        "value": 0.353659
+      },
+      "mrrAt6": {
+        "reciprocalRankSum": 14.733333333,
+        "denominator": 82,
+        "value": 0.179675
+      },
+      "annotatedRecordRecallAt6": {
+        "numerator": 29,
+        "denominator": 92,
+        "value": 0.315217
+      },
+      "annotatedCitationCoverageAt6": {
+        "numerator": 62,
+        "denominator": 185,
+        "value": 0.335135
+      },
+      "noAnswerAccuracy": {
+        "numerator": 6,
+        "denominator": 6,
+        "value": 1
+      },
+      "returnedCitationsValidated": 3126,
+      "failureTasks": 54
+    },
+    "test": {
+      "tasks": 40,
+      "hitAt6": {
+        "numerator": 17,
+        "denominator": 36,
+        "value": 0.472222
+      },
+      "mrrAt6": {
+        "reciprocalRankSum": 10.816666667,
+        "denominator": 36,
+        "value": 0.300463
+      },
+      "annotatedRecordRecallAt6": {
+        "numerator": 17,
+        "denominator": 39,
+        "value": 0.435897
+      },
+      "annotatedCitationCoverageAt6": {
+        "numerator": 32,
+        "denominator": 73,
+        "value": 0.438356
+      },
+      "noAnswerAccuracy": {
+        "numerator": 2,
+        "denominator": 4,
+        "value": 0.5
+      },
+      "returnedCitationsValidated": 1506,
+      "failureTasks": 23
+    }
+  },
+  "byTaskType": {
+    "case_retrieval": {
+      "tasks": 94,
+      "hitAt6": {
+        "numerator": 34,
+        "denominator": 94,
+        "value": 0.361702
+      },
+      "mrrAt6": {
+        "reciprocalRankSum": 21.133333333,
+        "denominator": 94,
+        "value": 0.224823
+      },
+      "annotatedRecordRecallAt6": {
+        "numerator": 34,
+        "denominator": 94,
+        "value": 0.361702
+      },
+      "annotatedCitationCoverageAt6": {
+        "numerator": 69,
+        "denominator": 200,
+        "value": 0.345
+      },
+      "noAnswerAccuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "returnedCitationsValidated": 3608,
+      "failureTasks": 60
+    },
+    "no_answer": {
+      "tasks": 10,
+      "hitAt6": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "mrrAt6": {
+        "reciprocalRankSum": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "annotatedRecordRecallAt6": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "annotatedCitationCoverageAt6": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "noAnswerAccuracy": {
+        "numerator": 8,
+        "denominator": 10,
+        "value": 0.8
+      },
+      "returnedCitationsValidated": 85,
+      "failureTasks": 2
+    },
+    "provision_retrieval": {
+      "tasks": 24,
+      "hitAt6": {
+        "numerator": 12,
+        "denominator": 24,
+        "value": 0.5
+      },
+      "mrrAt6": {
+        "reciprocalRankSum": 4.416666667,
+        "denominator": 24,
+        "value": 0.184028
+      },
+      "annotatedRecordRecallAt6": {
+        "numerator": 12,
+        "denominator": 37,
+        "value": 0.324324
+      },
+      "annotatedCitationCoverageAt6": {
+        "numerator": 25,
+        "denominator": 58,
+        "value": 0.431034
+      },
+      "noAnswerAccuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "returnedCitationsValidated": 939,
+      "failureTasks": 15
+    }
+  },
+  "byTopic": {
+    "employment_relationship": {
+      "tasks": 49,
+      "hitAt6": {
+        "numerator": 26,
+        "denominator": 49,
+        "value": 0.530612
+      },
+      "mrrAt6": {
+        "reciprocalRankSum": 16.133333333,
+        "denominator": 49,
+        "value": 0.329252
+      },
+      "annotatedRecordRecallAt6": {
+        "numerator": 26,
+        "denominator": 53,
+        "value": 0.490566
+      },
+      "annotatedCitationCoverageAt6": {
+        "numerator": 59,
+        "denominator": 118,
+        "value": 0.5
+      },
+      "noAnswerAccuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "returnedCitationsValidated": 2259,
+      "failureTasks": 25
+    },
+    "unspecified": {
+      "tasks": 10,
+      "hitAt6": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "mrrAt6": {
+        "reciprocalRankSum": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "annotatedRecordRecallAt6": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "annotatedCitationCoverageAt6": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "noAnswerAccuracy": {
+        "numerator": 8,
+        "denominator": 10,
+        "value": 0.8
+      },
+      "returnedCitationsValidated": 85,
+      "failureTasks": 2
+    },
+    "wage_arrears": {
+      "tasks": 69,
+      "hitAt6": {
+        "numerator": 20,
+        "denominator": 69,
+        "value": 0.289855
+      },
+      "mrrAt6": {
+        "reciprocalRankSum": 9.416666667,
+        "denominator": 69,
+        "value": 0.136473
+      },
+      "annotatedRecordRecallAt6": {
+        "numerator": 20,
+        "denominator": 78,
+        "value": 0.25641
+      },
+      "annotatedCitationCoverageAt6": {
+        "numerator": 35,
+        "denominator": 140,
+        "value": 0.25
+      },
+      "noAnswerAccuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "returnedCitationsValidated": 2288,
+      "failureTasks": 50
+    }
+  },
+  "results": [
+    {
+      "taskId": "labor-eval-case-01-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-anticipatory-wage-breach",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-anticipatory-wage-breach"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0054",
+        "case-src-spc-20241223-wage:p0056"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-01-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-anticipatory-wage-breach",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-anticipatory-wage-breach"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-anticipatory-wage-breach"
+      ],
+      "firstRelevantRank": 3,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0054",
+        "case-src-spc-20241223-wage:p0056"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20241223-wage:p0054",
+        "case-src-spc-20241223-wage:p0056"
+      ],
+      "returnedCitations": 38,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-01-03",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-anticipatory-wage-breach",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-anticipatory-wage-breach"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0054",
+        "case-src-spc-20241223-wage:p0056"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-01-04",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-anticipatory-wage-breach",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-anticipatory-wage-breach"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0056",
+        "case-src-spc-20241223-wage:p0058"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-02-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-borrowed-contractor-license",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-borrowed-contractor-license"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0070",
+        "case-src-spc-20240125-wage:p0072"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-02-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-borrowed-contractor-license",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-borrowed-contractor-license",
+        "labor-dispute-interpretation-i-2020:a002",
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-borrowed-contractor-license"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-borrowed-contractor-license"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0070",
+        "case-src-spc-20240125-wage:p0072"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0070",
+        "case-src-spc-20240125-wage:p0072"
+      ],
+      "returnedCitations": 33,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-02-03",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-borrowed-contractor-license",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-03-station-outsourcing",
+        "labor-dispute-interpretation-ii-2025:a002",
+        "case-guidance-237-outsourced-courier",
+        "case-third-04-registered-proprietor",
+        "case-spc-2024-wage-employer-burden",
+        "case-spc-2024-borrowed-contractor-license"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-borrowed-contractor-license"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-borrowed-contractor-license"
+      ],
+      "firstRelevantRank": 6,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0070",
+        "case-src-spc-20240125-wage:p0072"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0070",
+        "case-src-spc-20240125-wage:p0072"
+      ],
+      "returnedCitations": 66,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-02-04",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-borrowed-contractor-license",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-borrowed-contractor-license"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0070",
+        "case-src-spc-20240125-wage:p0074"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 38,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-03-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-inspection-arbitration-evidence",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-inspection-arbitration-evidence"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-inspection-arbitration-evidence"
+      ],
+      "firstRelevantRank": 5,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0109",
+        "case-src-spc-20240125-wage:p0111"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0109",
+        "case-src-spc-20240125-wage:p0111"
+      ],
+      "returnedCitations": 35,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-03-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-inspection-arbitration-evidence",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-inspection-arbitration-evidence"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-inspection-arbitration-evidence"
+      ],
+      "firstRelevantRank": 5,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0109",
+        "case-src-spc-20240125-wage:p0111"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0109",
+        "case-src-spc-20240125-wage:p0111"
+      ],
+      "returnedCitations": 35,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-03-03",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-inspection-arbitration-evidence",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-inspection-arbitration-evidence"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-inspection-arbitration-evidence"
+      ],
+      "firstRelevantRank": 5,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0111"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0111"
+      ],
+      "returnedCitations": 35,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-03-04",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-inspection-arbitration-evidence",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-spc-2024-inspection-arbitration-evidence"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0111",
+        "case-src-spc-20240125-wage:p0113"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-04-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-joint-project-wage",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-joint-project-wage"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0051",
+        "case-src-spc-20240125-wage:p0053"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 38,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-04-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-joint-project-wage",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-bankruptcy-wage-guarantee",
+        "labor-arbitration-law-2007:a003",
+        "case-spc-2024-overseas-arrears",
+        "labor-contract-law-2012:a005",
+        "case-spc-2024-borrowed-contractor-license",
+        "labor-arbitration-law-2007:a004"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-joint-project-wage"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0051",
+        "case-src-spc-20240125-wage:p0053"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-04-03",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-joint-project-wage",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-spc-2024-joint-project-wage"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0053"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-04-04",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-joint-project-wage",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-joint-project-wage"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0053",
+        "case-src-spc-20240125-wage:p0055"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 38,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-05-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-spc-2024-overseas-arrears",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a001",
+        "case-spc-2024-overseas-arrears",
+        "employment-relationship-notice-2005:a002",
+        "case-guidance-237-outsourced-courier",
+        "migrant-wage-payment-regulation-2019:a006"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-overseas-arrears"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-overseas-arrears"
+      ],
+      "firstRelevantRank": 3,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0044",
+        "case-src-spc-20241223-wage:p0046"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20241223-wage:p0044",
+        "case-src-spc-20241223-wage:p0046"
+      ],
+      "returnedCitations": 55,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-05-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-spc-2024-overseas-arrears",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-wage-employer-burden",
+        "labor-dispute-interpretation-i-2020:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a001"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-overseas-arrears"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-overseas-arrears"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0044",
+        "case-src-spc-20241223-wage:p0046"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20241223-wage:p0044",
+        "case-src-spc-20241223-wage:p0046"
+      ],
+      "returnedCitations": 39,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-05-03",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-spc-2024-overseas-arrears",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "labor-contract-law-2012:a005",
+        "case-spc-2024-anticipatory-wage-breach",
+        "labor-contract-law-2012:a008",
+        "case-spc-2024-borrowed-contractor-license",
+        "migrant-wage-payment-regulation-2019:a011"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-overseas-arrears"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-overseas-arrears"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0044",
+        "case-src-spc-20241223-wage:p0046"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20241223-wage:p0044",
+        "case-src-spc-20241223-wage:p0046"
+      ],
+      "returnedCitations": 37,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-05-04",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-spc-2024-overseas-arrears",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a006",
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a001"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-overseas-arrears"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-overseas-arrears"
+      ],
+      "firstRelevantRank": 3,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0046",
+        "case-src-spc-20241223-wage:p0048"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20241223-wage:p0046",
+        "case-src-spc-20241223-wage:p0048"
+      ],
+      "returnedCitations": 43,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-06-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-platform-wage-payment",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "firstRelevantRank": 3,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0079",
+        "case-src-spc-20240125-wage:p0081"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0079",
+        "case-src-spc-20240125-wage:p0081"
+      ],
+      "returnedCitations": 35,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-06-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-platform-wage-payment",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-online-overtime-pay",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "firstRelevantRank": 5,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0079",
+        "case-src-spc-20240125-wage:p0081"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0079",
+        "case-src-spc-20240125-wage:p0081"
+      ],
+      "returnedCitations": 33,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-06-03",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-platform-wage-payment",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "firstRelevantRank": 3,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0081",
+        "case-src-spc-20240125-wage:p0083"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0081",
+        "case-src-spc-20240125-wage:p0083"
+      ],
+      "returnedCitations": 35,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-06-04",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-platform-wage-payment",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "firstRelevantRank": 3,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0079",
+        "case-src-spc-20240125-wage:p0081"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0079",
+        "case-src-spc-20240125-wage:p0081"
+      ],
+      "returnedCitations": 35,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-07-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-wage-employer-burden",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a008"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-wage-employer-burden"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-wage-employer-burden"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0099",
+        "case-src-spc-20240125-wage:p0101"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0099",
+        "case-src-spc-20240125-wage:p0101"
+      ],
+      "returnedCitations": 43,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-07-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-wage-employer-burden",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-wage-employer-burden"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-wage-employer-burden"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0101"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0101"
+      ],
+      "returnedCitations": 35,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-07-03",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-wage-employer-burden",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a007",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a001"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-wage-employer-burden"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-wage-employer-burden"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0101",
+        "case-src-spc-20240125-wage:p0103"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0101",
+        "case-src-spc-20240125-wage:p0103"
+      ],
+      "returnedCitations": 42,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-07-04",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-wage-employer-burden",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-wage-employer-burden"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-wage-employer-burden"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0101"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20240125-wage:p0101"
+      ],
+      "returnedCitations": 35,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-08-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-spc-2025-mixed-employers",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-overseas-arrears",
+        "labor-contract-law-2012:a002",
+        "case-third-04-registered-proprietor",
+        "labor-contract-law-2012:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2025-mixed-employers"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2025-mixed-employers"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20250801-labor:p0023",
+        "case-src-spc-20250801-labor:p0025"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20250801-labor:p0023",
+        "case-src-spc-20250801-labor:p0025"
+      ],
+      "returnedCitations": 41,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-08-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-spc-2025-mixed-employers",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "case-spc-2024-online-overtime-pay",
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2025-mixed-employers"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2025-mixed-employers"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20250801-labor:p0023",
+        "case-src-spc-20250801-labor:p0025"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20250801-labor:p0023",
+        "case-src-spc-20250801-labor:p0025"
+      ],
+      "returnedCitations": 27,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-08-03",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-spc-2025-mixed-employers",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "migrant-wage-payment-regulation-2019:a007",
+        "case-spc-2024-overseas-arrears",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-anticipatory-wage-breach",
+        "labor-dispute-interpretation-i-2020:a002"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2025-mixed-employers"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2025-mixed-employers"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20250801-labor:p0023",
+        "case-src-spc-20250801-labor:p0027"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20250801-labor:p0023",
+        "case-src-spc-20250801-labor:p0027"
+      ],
+      "returnedCitations": 39,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-08-04",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-spc-2025-mixed-employers",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a001",
+        "case-guidance-238-registered-courier",
+        "employment-relationship-notice-2005:a002",
+        "case-third-04-registered-proprietor",
+        "employment-relationship-notice-2005:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2025-mixed-employers"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2025-mixed-employers"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-spc-20250801-labor:p0025"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20250801-labor:p0025"
+      ],
+      "returnedCitations": 55,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-09-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-01-platform-truck",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "employment-relationship-notice-2005:a001",
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a002",
+        "case-guidance-240-designated-driver-no-employment",
+        "labor-dispute-interpretation-i-2020:a001"
+      ],
+      "expectedRecordIds": [
+        "case-third-01-platform-truck"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0017",
+        "case-src-nanyang-20230609-third:p0025"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 68,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-09-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-01-platform-truck",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "labor-dispute-interpretation-i-2020:a001",
+        "case-guidance-240-designated-driver-no-employment",
+        "case-third-03-station-outsourcing",
+        "case-spc-2024-platform-taxi-mediation",
+        "case-third-01-platform-truck"
+      ],
+      "expectedRecordIds": [
+        "case-third-01-platform-truck"
+      ],
+      "matchedRecordIds": [
+        "case-third-01-platform-truck"
+      ],
+      "firstRelevantRank": 6,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0017",
+        "case-src-nanyang-20230609-third:p0025"
+      ],
+      "matchedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0017",
+        "case-src-nanyang-20230609-third:p0025"
+      ],
+      "returnedCitations": 79,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-09-03",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-01-platform-truck",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "employment-relationship-notice-2005:a001",
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a002",
+        "case-guidance-240-designated-driver-no-employment",
+        "labor-dispute-interpretation-i-2020:a001"
+      ],
+      "expectedRecordIds": [
+        "case-third-01-platform-truck"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0017",
+        "case-src-nanyang-20230609-third:p0024",
+        "case-src-nanyang-20230609-third:p0025"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 68,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-09-04",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-01-platform-truck",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "labor-contract-law-2012:a002",
+        "case-guidance-240-designated-driver-no-employment",
+        "labor-contract-law-2012:a003",
+        "case-third-03-station-outsourcing",
+        "labor-contract-law-2012:a004"
+      ],
+      "expectedRecordIds": [
+        "case-third-01-platform-truck"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0017",
+        "case-src-nanyang-20230609-third:p0021",
+        "case-src-nanyang-20230609-third:p0025"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 52,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-10-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-third-02-crowdsourced-courier",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "employment-relationship-notice-2005:a001",
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a002",
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a003"
+      ],
+      "expectedRecordIds": [
+        "case-third-02-crowdsourced-courier"
+      ],
+      "matchedRecordIds": [
+        "case-third-02-crowdsourced-courier"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0030",
+        "case-src-nanyang-20230609-third:p0038"
+      ],
+      "matchedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0030",
+        "case-src-nanyang-20230609-third:p0038"
+      ],
+      "returnedCitations": 45,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-10-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-third-02-crowdsourced-courier",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "labor-contract-law-2012:a002",
+        "case-third-03-station-outsourcing",
+        "labor-contract-law-2012:a003",
+        "case-guidance-240-designated-driver-no-employment",
+        "labor-contract-law-2012:a004"
+      ],
+      "expectedRecordIds": [
+        "case-third-02-crowdsourced-courier"
+      ],
+      "matchedRecordIds": [
+        "case-third-02-crowdsourced-courier"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0030",
+        "case-src-nanyang-20230609-third:p0034",
+        "case-src-nanyang-20230609-third:p0038"
+      ],
+      "matchedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0030",
+        "case-src-nanyang-20230609-third:p0034",
+        "case-src-nanyang-20230609-third:p0038"
+      ],
+      "returnedCitations": 52,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-10-03",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-third-02-crowdsourced-courier",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "labor-dispute-interpretation-i-2020:a001",
+        "case-guidance-240-designated-driver-no-employment",
+        "case-third-03-station-outsourcing",
+        "case-spc-2024-platform-taxi-mediation",
+        "case-third-01-platform-truck"
+      ],
+      "expectedRecordIds": [
+        "case-third-02-crowdsourced-courier"
+      ],
+      "matchedRecordIds": [
+        "case-third-02-crowdsourced-courier"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0038"
+      ],
+      "matchedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0038"
+      ],
+      "returnedCitations": 79,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-10-04",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-third-02-crowdsourced-courier",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-third-02-crowdsourced-courier"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0030",
+        "case-src-nanyang-20230609-third:p0038"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-11-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-03-station-outsourcing",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a001",
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a002",
+        "case-third-04-registered-proprietor",
+        "employment-relationship-notice-2005:a003"
+      ],
+      "expectedRecordIds": [
+        "case-third-03-station-outsourcing"
+      ],
+      "matchedRecordIds": [
+        "case-third-03-station-outsourcing"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0043",
+        "case-src-nanyang-20230609-third:p0050"
+      ],
+      "matchedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0043",
+        "case-src-nanyang-20230609-third:p0050"
+      ],
+      "returnedCitations": 45,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-11-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-03-station-outsourcing",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-03-station-outsourcing",
+        "labor-dispute-interpretation-i-2020:a001",
+        "case-third-02-crowdsourced-courier",
+        "labor-dispute-interpretation-ii-2025:a002",
+        "case-guidance-237-outsourced-courier",
+        "case-guidance-240-designated-driver-no-employment"
+      ],
+      "expectedRecordIds": [
+        "case-third-03-station-outsourcing"
+      ],
+      "matchedRecordIds": [
+        "case-third-03-station-outsourcing"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0043",
+        "case-src-nanyang-20230609-third:p0050"
+      ],
+      "matchedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0043",
+        "case-src-nanyang-20230609-third:p0050"
+      ],
+      "returnedCitations": 78,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-11-03",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-03-station-outsourcing",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a001",
+        "case-third-04-registered-proprietor",
+        "labor-contract-law-2012:a007",
+        "case-guidance-239-streamer-no-employment",
+        "labor-dispute-interpretation-ii-2025:a003"
+      ],
+      "expectedRecordIds": [
+        "case-third-03-station-outsourcing"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0043",
+        "case-src-nanyang-20230609-third:p0047"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 51,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-11-04",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-03-station-outsourcing",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-03-station-outsourcing",
+        "labor-dispute-interpretation-i-2020:a001",
+        "case-third-02-crowdsourced-courier",
+        "labor-dispute-interpretation-ii-2025:a002",
+        "case-guidance-237-outsourced-courier",
+        "case-guidance-240-designated-driver-no-employment"
+      ],
+      "expectedRecordIds": [
+        "case-third-03-station-outsourcing"
+      ],
+      "matchedRecordIds": [
+        "case-third-03-station-outsourcing"
+      ],
+      "firstRelevantRank": 1,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0043",
+        "case-src-nanyang-20230609-third:p0050"
+      ],
+      "matchedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0043",
+        "case-src-nanyang-20230609-third:p0050"
+      ],
+      "returnedCitations": 78,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-12-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-04-registered-proprietor",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a001",
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a002",
+        "case-third-04-registered-proprietor",
+        "employment-relationship-notice-2005:a003"
+      ],
+      "expectedRecordIds": [
+        "case-third-04-registered-proprietor"
+      ],
+      "matchedRecordIds": [
+        "case-third-04-registered-proprietor"
+      ],
+      "firstRelevantRank": 5,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0055",
+        "case-src-nanyang-20230609-third:p0063"
+      ],
+      "matchedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0055",
+        "case-src-nanyang-20230609-third:p0063"
+      ],
+      "returnedCitations": 45,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-12-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-04-registered-proprietor",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "labor-contract-law-2012:a002",
+        "case-third-03-station-outsourcing",
+        "labor-contract-law-2012:a003",
+        "case-guidance-240-designated-driver-no-employment",
+        "labor-contract-law-2012:a004"
+      ],
+      "expectedRecordIds": [
+        "case-third-04-registered-proprietor"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0055",
+        "case-src-nanyang-20230609-third:p0063"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 52,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-12-03",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-04-registered-proprietor",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "employment-relationship-notice-2005:a001",
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a002",
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a003"
+      ],
+      "expectedRecordIds": [
+        "case-third-04-registered-proprietor"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0062",
+        "case-src-nanyang-20230609-third:p0063"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 45,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-12-04",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-04-registered-proprietor",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-third-04-registered-proprietor"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0055",
+        "case-src-nanyang-20230609-third:p0059",
+        "case-src-nanyang-20230609-third:p0063"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-13-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-05-streamer-agency",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a001",
+        "case-guidance-238-registered-courier",
+        "employment-relationship-notice-2005:a002",
+        "case-third-04-registered-proprietor",
+        "employment-relationship-notice-2005:a003"
+      ],
+      "expectedRecordIds": [
+        "case-third-05-streamer-agency"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0068",
+        "case-src-nanyang-20230609-third:p0076"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 55,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-13-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-05-streamer-agency",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-third-05-streamer-agency"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0068",
+        "case-src-nanyang-20230609-third:p0075",
+        "case-src-nanyang-20230609-third:p0076"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-13-03",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-05-streamer-agency",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "labor-contract-law-2012:a002",
+        "case-third-04-registered-proprietor",
+        "employment-relationship-notice-2005:a001",
+        "case-guidance-238-registered-courier",
+        "employment-relationship-notice-2005:a002"
+      ],
+      "expectedRecordIds": [
+        "case-third-05-streamer-agency"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0068",
+        "case-src-nanyang-20230609-third:p0072",
+        "case-src-nanyang-20230609-third:p0076"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 57,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-13-04",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-05-streamer-agency",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-third-05-streamer-agency"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0075",
+        "case-src-nanyang-20230609-third:p0076"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-14-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-06-housekeeping-employee",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a001",
+        "case-guidance-238-registered-courier",
+        "employment-relationship-notice-2005:a002",
+        "case-third-04-registered-proprietor",
+        "employment-relationship-notice-2005:a003"
+      ],
+      "expectedRecordIds": [
+        "case-third-06-housekeeping-employee"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0081",
+        "case-src-nanyang-20230609-third:p0089"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 55,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-14-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-06-housekeeping-employee",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-third-06-housekeeping-employee"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0081",
+        "case-src-nanyang-20230609-third:p0089"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-14-03",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-06-housekeeping-employee",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "labor-contract-law-2012:a002",
+        "case-third-02-crowdsourced-courier",
+        "employment-relationship-notice-2005:a001",
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a002"
+      ],
+      "expectedRecordIds": [
+        "case-third-06-housekeeping-employee"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0081",
+        "case-src-nanyang-20230609-third:p0085",
+        "case-src-nanyang-20230609-third:p0089"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 47,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-14-04",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-third-06-housekeeping-employee",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-third-06-housekeeping-employee"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-nanyang-20230609-third:p0089"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-01-01",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "employment-relationship-notice-2005",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a001",
+        "case-third-04-registered-proprietor",
+        "employment-relationship-notice-2005:a002",
+        "case-guidance-238-registered-courier",
+        "labor-dispute-interpretation-ii-2025:a003"
+      ],
+      "expectedRecordIds": [
+        "employment-relationship-notice-2005:a001"
+      ],
+      "matchedRecordIds": [
+        "employment-relationship-notice-2005:a001"
+      ],
+      "firstRelevantRank": 2,
+      "expectedCitationRefs": [
+        "law-relationship-2005:p0007",
+        "law-relationship-2005:p0008",
+        "law-relationship-2005:p0009",
+        "law-relationship-2005:p0010"
+      ],
+      "matchedCitationRefs": [
+        "law-relationship-2005:p0007",
+        "law-relationship-2005:p0008",
+        "law-relationship-2005:p0009",
+        "law-relationship-2005:p0010"
+      ],
+      "returnedCitations": 58,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-provision-01-02",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "employment-relationship-notice-2005",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a006",
+        "case-third-03-station-outsourcing",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "employment-relationship-notice-2005:a002"
+      ],
+      "matchedRecordIds": [
+        "employment-relationship-notice-2005:a002"
+      ],
+      "firstRelevantRank": 2,
+      "expectedCitationRefs": [
+        "law-relationship-2005:p0011",
+        "law-relationship-2005:p0012",
+        "law-relationship-2005:p0013",
+        "law-relationship-2005:p0015",
+        "law-relationship-2005:p0016"
+      ],
+      "matchedCitationRefs": [
+        "law-relationship-2005:p0011",
+        "law-relationship-2005:p0012",
+        "law-relationship-2005:p0013",
+        "law-relationship-2005:p0015",
+        "law-relationship-2005:p0016"
+      ],
+      "returnedCitations": 45,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-provision-01-03",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "employment-relationship-notice-2005",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "employment-relationship-notice-2005:a003",
+        "labor-dispute-interpretation-ii-2025:a001",
+        "migrant-wage-payment-regulation-2019:a010"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-relationship-2005:p0020",
+        "law-judicial-ii-2025:p0020",
+        "law-migrant-wage-2019:p0092"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-02-01",
+      "taskType": "provision_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "labor-arbitration-law-2007",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-inspection-arbitration-evidence",
+        "labor-arbitration-law-2007:a004",
+        "case-spc-2024-wage-employer-burden",
+        "labor-arbitration-law-2007:a001",
+        "case-spc-2024-platform-wage-payment",
+        "labor-arbitration-law-2007:a002"
+      ],
+      "expectedRecordIds": [
+        "labor-arbitration-law-2007:a004"
+      ],
+      "matchedRecordIds": [
+        "labor-arbitration-law-2007:a004"
+      ],
+      "firstRelevantRank": 2,
+      "expectedCitationRefs": [
+        "law-arbitration-2007:p0068",
+        "law-arbitration-2007:p0071"
+      ],
+      "matchedCitationRefs": [
+        "law-arbitration-2007:p0068",
+        "law-arbitration-2007:p0071"
+      ],
+      "returnedCitations": 41,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-provision-02-02",
+      "taskType": "provision_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "labor-arbitration-law-2007",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-bankruptcy-wage-guarantee",
+        "labor-arbitration-law-2007:a004",
+        "case-spc-2024-overseas-arrears",
+        "labor-arbitration-law-2007:a003",
+        "case-spc-2024-borrowed-contractor-license",
+        "labor-contract-law-2012:a005"
+      ],
+      "expectedRecordIds": [
+        "labor-arbitration-law-2007:a004"
+      ],
+      "matchedRecordIds": [
+        "labor-arbitration-law-2007:a004"
+      ],
+      "firstRelevantRank": 2,
+      "expectedCitationRefs": [
+        "law-arbitration-2007:p0069"
+      ],
+      "matchedCitationRefs": [
+        "law-arbitration-2007:p0069"
+      ],
+      "returnedCitations": 35,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-provision-02-03",
+      "taskType": "provision_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "labor-arbitration-law-2007",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-electronic-evidence-support",
+        "labor-dispute-interpretation-i-2020:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "labor-arbitration-law-2007:a002"
+      ],
+      "expectedRecordIds": [
+        "labor-arbitration-law-2007:a002",
+        "labor-arbitration-law-2007:a005"
+      ],
+      "matchedRecordIds": [
+        "labor-arbitration-law-2007:a002"
+      ],
+      "firstRelevantRank": 6,
+      "expectedCitationRefs": [
+        "law-arbitration-2007:p0024",
+        "law-arbitration-2007:p0098"
+      ],
+      "matchedCitationRefs": [
+        "law-arbitration-2007:p0024"
+      ],
+      "returnedCitations": 38,
+      "failure": "missed_some_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-03-01",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "labor-contract-law-2012",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "labor-contract-law-2012:a002",
+        "case-third-04-registered-proprietor",
+        "employment-relationship-notice-2005:a001",
+        "case-guidance-238-registered-courier",
+        "employment-relationship-notice-2005:a002"
+      ],
+      "expectedRecordIds": [
+        "labor-contract-law-2012:a001",
+        "labor-contract-law-2012:a002"
+      ],
+      "matchedRecordIds": [
+        "labor-contract-law-2012:a002"
+      ],
+      "firstRelevantRank": 2,
+      "expectedCitationRefs": [
+        "law-contract-2012:p0033",
+        "law-contract-2012:p0036",
+        "law-contract-2012:p0037"
+      ],
+      "matchedCitationRefs": [
+        "law-contract-2012:p0036",
+        "law-contract-2012:p0037"
+      ],
+      "returnedCitations": 57,
+      "failure": "missed_some_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-03-02",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "labor-contract-law-2012",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a006",
+        "case-spc-2024-overseas-arrears",
+        "labor-contract-law-2012:a007",
+        "case-spc-2024-platform-wage-payment",
+        "labor-dispute-interpretation-ii-2025:a003"
+      ],
+      "expectedRecordIds": [
+        "labor-contract-law-2012:a003",
+        "labor-contract-law-2012:a004"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-contract-2012:p0039",
+        "law-contract-2012:p0064"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 37,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-03-03",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "labor-contract-law-2012",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "labor-contract-law-2012:a007",
+        "case-spc-2024-overseas-arrears",
+        "labor-contract-law-2012:a003",
+        "case-spc-2025-mixed-employers",
+        "labor-contract-law-2012:a008"
+      ],
+      "expectedRecordIds": [
+        "labor-contract-law-2012:a007"
+      ],
+      "matchedRecordIds": [
+        "labor-contract-law-2012:a007"
+      ],
+      "firstRelevantRank": 2,
+      "expectedCitationRefs": [
+        "law-contract-2012:p0231"
+      ],
+      "matchedCitationRefs": [
+        "law-contract-2012:p0231"
+      ],
+      "returnedCitations": 35,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-provision-04-01",
+      "taskType": "provision_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "labor-dispute-interpretation-i-2020",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "labor-dispute-interpretation-i-2020:a002",
+        "case-spc-2024-borrowed-contractor-license",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a002"
+      ],
+      "expectedRecordIds": [
+        "labor-dispute-interpretation-i-2020:a002"
+      ],
+      "matchedRecordIds": [
+        "labor-dispute-interpretation-i-2020:a002"
+      ],
+      "firstRelevantRank": 2,
+      "expectedCitationRefs": [
+        "law-judicial-i-2020:p0058"
+      ],
+      "matchedCitationRefs": [
+        "law-judicial-i-2020:p0058"
+      ],
+      "returnedCitations": 36,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-provision-04-02",
+      "taskType": "provision_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "labor-dispute-interpretation-i-2020",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "employment-relationship-notice-2005:a002",
+        "case-third-03-station-outsourcing",
+        "labor-dispute-interpretation-i-2020:a003",
+        "case-spc-2024-wage-employer-burden",
+        "employment-relationship-notice-2005:a001"
+      ],
+      "expectedRecordIds": [
+        "labor-dispute-interpretation-i-2020:a003",
+        "labor-arbitration-law-2007:a002",
+        "labor-arbitration-law-2007:a005"
+      ],
+      "matchedRecordIds": [
+        "labor-dispute-interpretation-i-2020:a003"
+      ],
+      "firstRelevantRank": 4,
+      "expectedCitationRefs": [
+        "law-judicial-i-2020:p0110",
+        "law-arbitration-2007:p0024",
+        "law-arbitration-2007:p0098"
+      ],
+      "matchedCitationRefs": [
+        "law-judicial-i-2020:p0110"
+      ],
+      "returnedCitations": 43,
+      "failure": "missed_some_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-04-03",
+      "taskType": "provision_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "labor-dispute-interpretation-i-2020",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-04-registered-proprietor",
+        "labor-contract-law-2012:a002",
+        "case-guidance-239-streamer-no-employment",
+        "labor-contract-law-2012:a003",
+        "case-spc-2025-mixed-employers",
+        "labor-contract-law-2012:a004"
+      ],
+      "expectedRecordIds": [
+        "labor-dispute-interpretation-i-2020:a004"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-judicial-i-2020:p0111"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 46,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-05-01",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "labor-dispute-interpretation-ii-2025",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a001",
+        "case-third-04-registered-proprietor",
+        "employment-relationship-notice-2005:a002",
+        "case-guidance-238-registered-courier",
+        "labor-dispute-interpretation-ii-2025:a003"
+      ],
+      "expectedRecordIds": [
+        "labor-dispute-interpretation-ii-2025:a003"
+      ],
+      "matchedRecordIds": [
+        "labor-dispute-interpretation-ii-2025:a003"
+      ],
+      "firstRelevantRank": 6,
+      "expectedCitationRefs": [
+        "law-judicial-ii-2025:p0022",
+        "law-judicial-ii-2025:p0024"
+      ],
+      "matchedCitationRefs": [
+        "law-judicial-ii-2025:p0022",
+        "law-judicial-ii-2025:p0024"
+      ],
+      "returnedCitations": 58,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-provision-05-02",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "labor-dispute-interpretation-ii-2025",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "labor-contract-law-2012:a007",
+        "case-spc-2024-overseas-arrears",
+        "labor-contract-law-2012:a003",
+        "case-spc-2025-mixed-employers",
+        "labor-contract-law-2012:a008"
+      ],
+      "expectedRecordIds": [
+        "labor-dispute-interpretation-ii-2025:a004"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-judicial-ii-2025:p0031"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-05-03",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "labor-dispute-interpretation-ii-2025",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-electronic-evidence-support",
+        "labor-arbitration-law-2007:a004",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "labor-dispute-interpretation-ii-2025:a007"
+      ],
+      "expectedRecordIds": [
+        "labor-dispute-interpretation-ii-2025:a007"
+      ],
+      "matchedRecordIds": [
+        "labor-dispute-interpretation-ii-2025:a007"
+      ],
+      "firstRelevantRank": 6,
+      "expectedCitationRefs": [
+        "law-judicial-ii-2025:p0068",
+        "law-judicial-ii-2025:p0069"
+      ],
+      "matchedCitationRefs": [
+        "law-judicial-ii-2025:p0068",
+        "law-judicial-ii-2025:p0069"
+      ],
+      "returnedCitations": 42,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-provision-06-01",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "labor-law-2018",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "labor-law-2018:a003",
+        "wage-payment-provisions-1994:a005"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-labor-2018:p0113",
+        "law-labor-2018:p0114",
+        "law-labor-2018:p0115",
+        "law-wage-payment-1994:p0020",
+        "law-wage-payment-1994:p0021",
+        "law-wage-payment-1994:p0022"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-06-02",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "labor-law-2018",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "labor-law-2018:a005",
+        "labor-contract-law-2012:a008"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-labor-2018:p0122",
+        "law-labor-2018:p0123",
+        "law-contract-2012:p0237",
+        "law-contract-2012:p0239"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-06-03",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "labor-law-2018",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "labor-law-2018:a006",
+        "wage-payment-provisions-1994:a001",
+        "wage-payment-provisions-1994:a002",
+        "wage-payment-provisions-1994:a003"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-labor-2018:p0130",
+        "law-wage-payment-1994:p0009",
+        "law-wage-payment-1994:p0010",
+        "law-wage-payment-1994:p0013"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-07-01",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "migrant-wage-payment-regulation-2019",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "matchedRecordIds": [
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "firstRelevantRank": 6,
+      "expectedCitationRefs": [
+        "law-migrant-wage-2019:p0075",
+        "law-migrant-wage-2019:p0076",
+        "law-migrant-wage-2019:p0077"
+      ],
+      "matchedCitationRefs": [
+        "law-migrant-wage-2019:p0075",
+        "law-migrant-wage-2019:p0076",
+        "law-migrant-wage-2019:p0077"
+      ],
+      "returnedCitations": 38,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-provision-07-02",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "migrant-wage-payment-regulation-2019",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "migrant-wage-payment-regulation-2019:a005",
+        "wage-payment-provisions-1994:a003"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-migrant-wage-2019:p0043",
+        "law-wage-payment-1994:p0013"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-07-03",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "migrant-wage-payment-regulation-2019",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "migrant-wage-payment-regulation-2019:a009"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-migrant-wage-2019:p0083",
+        "law-migrant-wage-2019:p0084"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-08-01",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "wage-payment-provisions-1994",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "wage-payment-provisions-1994:a002"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-wage-payment-1994:p0010",
+        "law-wage-payment-1994:p0011"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-08-02",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "wage-payment-provisions-1994",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "wage-payment-provisions-1994:a002"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-wage-payment-1994:p0012"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-provision-08-03",
+      "taskType": "provision_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "wage-payment-provisions-1994",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-guidance-238-registered-courier",
+        "migrant-wage-payment-regulation-2019:a006"
+      ],
+      "expectedRecordIds": [
+        "wage-payment-provisions-1994:a004"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "law-wage-payment-1994:p0015"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 50,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-no-answer-01-01",
+      "taskType": "no_answer",
+      "split": "dev",
+      "topic": "unspecified",
+      "groupId": "no-answer-consumer-goods",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-no-answer-01-02",
+      "taskType": "no_answer",
+      "split": "dev",
+      "topic": "unspecified",
+      "groupId": "no-answer-consumer-goods",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-no-answer-02-01",
+      "taskType": "no_answer",
+      "split": "test",
+      "topic": "unspecified",
+      "groupId": "no-answer-image-software",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "case-spc-2024-online-overtime-pay",
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "expectedRecordIds": [],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [],
+      "matchedCitationRefs": [],
+      "returnedCitations": 27,
+      "failure": "unexpected_results"
+    },
+    {
+      "taskId": "labor-eval-no-answer-02-02",
+      "taskType": "no_answer",
+      "split": "test",
+      "topic": "unspecified",
+      "groupId": "no-answer-image-software",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2025-mixed-employers",
+        "migrant-wage-payment-regulation-2019:a007",
+        "case-spc-2024-wage-employer-burden",
+        "case-guidance-237-outsourced-courier",
+        "case-spc-2024-platform-wage-payment"
+      ],
+      "expectedRecordIds": [],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [],
+      "matchedCitationRefs": [],
+      "returnedCitations": 58,
+      "failure": "unexpected_results"
+    },
+    {
+      "taskId": "labor-eval-no-answer-03-01",
+      "taskType": "no_answer",
+      "split": "dev",
+      "topic": "unspecified",
+      "groupId": "no-answer-cooking",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-no-answer-03-02",
+      "taskType": "no_answer",
+      "split": "dev",
+      "topic": "unspecified",
+      "groupId": "no-answer-cooking",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-no-answer-04-01",
+      "taskType": "no_answer",
+      "split": "dev",
+      "topic": "unspecified",
+      "groupId": "no-answer-astronomy",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-no-answer-04-02",
+      "taskType": "no_answer",
+      "split": "dev",
+      "topic": "unspecified",
+      "groupId": "no-answer-astronomy",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-no-answer-05-01",
+      "taskType": "no_answer",
+      "split": "test",
+      "topic": "unspecified",
+      "groupId": "no-answer-gardening",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-no-answer-05-02",
+      "taskType": "no_answer",
+      "split": "test",
+      "topic": "unspecified",
+      "groupId": "no-answer-gardening",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-15-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-platform-taxi-mediation",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-guidance-240-designated-driver-no-employment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-third-03-station-outsourcing",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-platform-taxi-mediation"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0037",
+        "case-src-spc-20241223-wage:p0039"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 53,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-15-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-platform-taxi-mediation",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "labor-dispute-interpretation-i-2020:a001",
+        "case-guidance-240-designated-driver-no-employment",
+        "case-third-03-station-outsourcing",
+        "case-spc-2024-platform-taxi-mediation",
+        "case-third-01-platform-truck"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-platform-taxi-mediation"
+      ],
+      "matchedRecordIds": [
+        "case-spc-2024-platform-taxi-mediation"
+      ],
+      "firstRelevantRank": 5,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0035",
+        "case-src-spc-20241223-wage:p0037"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20241223-wage:p0035",
+        "case-src-spc-20241223-wage:p0037"
+      ],
+      "returnedCitations": 79,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-16-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-unpaid-shareholder-capital",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-spc-2024-unpaid-shareholder-capital"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0072",
+        "case-src-spc-20241223-wage:p0073",
+        "case-src-spc-20241223-wage:p0075"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-16-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-unpaid-shareholder-capital",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-unpaid-shareholder-capital"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0073",
+        "case-src-spc-20241223-wage:p0075"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-17-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-actual-controller-execution",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-actual-controller-execution"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0082",
+        "case-src-spc-20241223-wage:p0084"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-17-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-actual-controller-execution",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-actual-controller-execution"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0084",
+        "case-src-spc-20241223-wage:p0086"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 38,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-18-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-flexible-seizure-wages",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-spc-2024-flexible-seizure-wages"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0094",
+        "case-src-spc-20241223-wage:p0095"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-18-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-flexible-seizure-wages",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-flexible-seizure-wages"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0092",
+        "case-src-spc-20241223-wage:p0095"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-19-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-shipyard-property-wages",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-shipyard-property-wages"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0104"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-19-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-shipyard-property-wages",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-shipyard-property-wages"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0102",
+        "case-src-spc-20241223-wage:p0104"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-20-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-execution-bankruptcy-wages",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-execution-bankruptcy-wages"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0111",
+        "case-src-spc-20241223-wage:p0113"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 38,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-20-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-execution-bankruptcy-wages",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-execution-bankruptcy-wages"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-wage:p0111",
+        "case-src-spc-20241223-wage:p0113"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-21-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-bankruptcy-wage-guarantee",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-bankruptcy-wage-guarantee"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0042",
+        "case-src-spc-20240125-wage:p0044"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 38,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-21-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-bankruptcy-wage-guarantee",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-bankruptcy-wage-guarantee"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0044"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 38,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-22-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-retired-worker-payment-order",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-spc-2024-retired-worker-payment-order"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0060",
+        "case-src-spc-20240125-wage:p0062"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-22-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-retired-worker-payment-order",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-retired-worker-payment-order"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0062",
+        "case-src-spc-20240125-wage:p0064"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-23-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-online-overtime-pay",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a001",
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a006"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-online-overtime-pay"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0089",
+        "case-src-spc-20240125-wage:p0091",
+        "case-src-spc-20240125-wage:p0093"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 43,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-23-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-online-overtime-pay",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-spc-2024-online-overtime-pay"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0089",
+        "case-src-spc-20240125-wage:p0091"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-24-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-collective-wage-mediation",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-collective-wage-mediation"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0118",
+        "case-src-spc-20240125-wage:p0120"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-24-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-collective-wage-mediation",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-collective-wage-mediation"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0118",
+        "case-src-spc-20240125-wage:p0120"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 38,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-25-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-electronic-evidence-support",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "labor-dispute-interpretation-i-2020:a002",
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-electronic-evidence-support"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0127",
+        "case-src-spc-20240125-wage:p0129"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 39,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-25-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-electronic-evidence-support",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-bankruptcy-wage-guarantee",
+        "labor-arbitration-law-2007:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "labor-contract-law-2012:a005"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-electronic-evidence-support"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0129"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 39,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-26-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-construction-union-settlement",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-spc-2024-construction-union-settlement"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0136",
+        "case-src-spc-20240125-wage:p0138"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-26-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-construction-union-settlement",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-bankruptcy-wage-guarantee",
+        "labor-arbitration-law-2007:a003",
+        "case-spc-2024-overseas-arrears",
+        "labor-contract-law-2012:a005",
+        "case-spc-2024-borrowed-contractor-license",
+        "labor-arbitration-law-2007:a004"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-construction-union-settlement"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0136",
+        "case-src-spc-20240125-wage:p0138",
+        "case-src-spc-20240125-wage:p0140"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-27-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-online-mediation-confirmation",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-online-mediation-confirmation"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0145",
+        "case-src-spc-20240125-wage:p0147"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-27-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-online-mediation-confirmation",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [],
+      "expectedRecordIds": [
+        "case-spc-2024-online-mediation-confirmation"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0147"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 0,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-28-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-union-hotline-wage-recovery",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-union-hotline-wage-recovery"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0154",
+        "case-src-spc-20240125-wage:p0156"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 38,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-28-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-spc-2024-union-hotline-wage-recovery",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-anticipatory-wage-breach",
+        "migrant-wage-payment-regulation-2019:a003",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a007"
+      ],
+      "expectedRecordIds": [
+        "case-spc-2024-union-hotline-wage-recovery"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20240125-wage:p0154",
+        "case-src-spc-20240125-wage:p0156"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 38,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-29-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-guidance-237-outsourced-courier",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "employment-relationship-notice-2005:a001",
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a002",
+        "case-guidance-240-designated-driver-no-employment",
+        "labor-dispute-interpretation-i-2020:a001"
+      ],
+      "expectedRecordIds": [
+        "case-guidance-237-outsourced-courier"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0033",
+        "case-src-spc-20241223-guidance:p0040"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 68,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-29-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-guidance-237-outsourced-courier",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a001",
+        "case-third-02-crowdsourced-courier",
+        "employment-relationship-notice-2005:a002",
+        "case-guidance-237-outsourced-courier",
+        "labor-dispute-interpretation-i-2020:a001"
+      ],
+      "expectedRecordIds": [
+        "case-guidance-237-outsourced-courier"
+      ],
+      "matchedRecordIds": [
+        "case-guidance-237-outsourced-courier"
+      ],
+      "firstRelevantRank": 5,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0032",
+        "case-src-spc-20241223-guidance:p0033",
+        "case-src-spc-20241223-guidance:p0036",
+        "case-src-spc-20241223-guidance:p0040"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0032",
+        "case-src-spc-20241223-guidance:p0033",
+        "case-src-spc-20241223-guidance:p0036",
+        "case-src-spc-20241223-guidance:p0040"
+      ],
+      "returnedCitations": 66,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-30-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-guidance-238-registered-courier",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "labor-dispute-interpretation-i-2020:a001",
+        "case-guidance-240-designated-driver-no-employment",
+        "case-third-03-station-outsourcing",
+        "case-spc-2024-platform-taxi-mediation",
+        "case-third-01-platform-truck"
+      ],
+      "expectedRecordIds": [
+        "case-guidance-238-registered-courier"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0053",
+        "case-src-spc-20241223-guidance:p0054",
+        "case-src-spc-20241223-guidance:p0061"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 79,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-30-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-guidance-238-registered-courier",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2025-mixed-employers",
+        "employment-relationship-notice-2005:a002",
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-guidance-238-registered-courier",
+        "migrant-wage-payment-regulation-2019:a006"
+      ],
+      "expectedRecordIds": [
+        "case-guidance-238-registered-courier"
+      ],
+      "matchedRecordIds": [
+        "case-guidance-238-registered-courier"
+      ],
+      "firstRelevantRank": 5,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0054",
+        "case-src-spc-20241223-guidance:p0061",
+        "case-src-spc-20241223-guidance:p0062"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0054",
+        "case-src-spc-20241223-guidance:p0061",
+        "case-src-spc-20241223-guidance:p0062"
+      ],
+      "returnedCitations": 50,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-31-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-guidance-239-streamer-no-employment",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a001",
+        "case-spc-2024-overseas-arrears",
+        "employment-relationship-notice-2005:a002",
+        "case-guidance-237-outsourced-courier",
+        "migrant-wage-payment-regulation-2019:a006"
+      ],
+      "expectedRecordIds": [
+        "case-guidance-239-streamer-no-employment"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0073",
+        "case-src-spc-20241223-guidance:p0074",
+        "case-src-spc-20241223-guidance:p0081"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 55,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-31-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "employment_relationship",
+      "groupId": "case-guidance-239-streamer-no-employment",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "labor-dispute-interpretation-ii-2025:a005",
+        "case-spc-2024-overseas-arrears",
+        "migrant-wage-payment-regulation-2019:a006",
+        "case-spc-2024-platform-wage-payment",
+        "labor-contract-law-2012:a007"
+      ],
+      "expectedRecordIds": [
+        "case-guidance-239-streamer-no-employment"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0075",
+        "case-src-spc-20241223-guidance:p0077",
+        "case-src-spc-20241223-guidance:p0081",
+        "case-src-spc-20241223-guidance:p0082"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 37,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-32-01",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-guidance-240-designated-driver-no-employment",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-third-02-crowdsourced-courier",
+        "employment-relationship-notice-2005:a001",
+        "case-third-03-station-outsourcing",
+        "employment-relationship-notice-2005:a002",
+        "case-guidance-240-designated-driver-no-employment",
+        "labor-dispute-interpretation-i-2020:a001"
+      ],
+      "expectedRecordIds": [
+        "case-guidance-240-designated-driver-no-employment"
+      ],
+      "matchedRecordIds": [
+        "case-guidance-240-designated-driver-no-employment"
+      ],
+      "firstRelevantRank": 5,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0095",
+        "case-src-spc-20241223-guidance:p0096",
+        "case-src-spc-20241223-guidance:p0103",
+        "case-src-spc-20241223-guidance:p0104"
+      ],
+      "matchedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0095",
+        "case-src-spc-20241223-guidance:p0096",
+        "case-src-spc-20241223-guidance:p0103",
+        "case-src-spc-20241223-guidance:p0104"
+      ],
+      "returnedCitations": 68,
+      "failure": null
+    },
+    {
+      "taskId": "labor-eval-case-32-02",
+      "taskType": "case_retrieval",
+      "split": "test",
+      "topic": "employment_relationship",
+      "groupId": "case-guidance-240-designated-driver-no-employment",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "labor-contract-law-2012:a007",
+        "case-spc-2024-overseas-arrears",
+        "labor-contract-law-2012:a003",
+        "case-spc-2025-mixed-employers",
+        "labor-contract-law-2012:a008"
+      ],
+      "expectedRecordIds": [
+        "case-guidance-240-designated-driver-no-employment"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20241223-guidance:p0097",
+        "case-src-spc-20241223-guidance:p0099",
+        "case-src-spc-20241223-guidance:p0103",
+        "case-src-spc-20241223-guidance:p0104"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-33-01",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-fourth-02-pregnancy-wage-difference",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-fourth-02-pregnancy-wage-difference"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20250416-fourth:p0036",
+        "case-src-spc-20250416-fourth:p0040",
+        "case-src-spc-20250416-fourth:p0044"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    },
+    {
+      "taskId": "labor-eval-case-33-02",
+      "taskType": "case_retrieval",
+      "split": "dev",
+      "topic": "wage_arrears",
+      "groupId": "case-fourth-02-pregnancy-wage-difference",
+      "method": "deterministic_keyword_topic_v1",
+      "retrievedIds": [
+        "case-spc-2024-wage-employer-burden",
+        "migrant-wage-payment-regulation-2019:a001",
+        "case-spc-2024-platform-wage-payment",
+        "migrant-wage-payment-regulation-2019:a002",
+        "case-spc-2024-inspection-arbitration-evidence",
+        "migrant-wage-payment-regulation-2019:a003"
+      ],
+      "expectedRecordIds": [
+        "case-fourth-02-pregnancy-wage-difference"
+      ],
+      "matchedRecordIds": [],
+      "firstRelevantRank": null,
+      "expectedCitationRefs": [
+        "case-src-spc-20250416-fourth:p0036",
+        "case-src-spc-20250416-fourth:p0043",
+        "case-src-spc-20250416-fourth:p0044"
+      ],
+      "matchedCitationRefs": [],
+      "returnedCitations": 35,
+      "failure": "missed_all_annotated_records"
+    }
+  ]
+}

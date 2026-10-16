@@ -1,0 +1,48 @@
+{
+  "datasetId": "anxin-labor-eval-v1",
+  "schemaVersion": 1,
+  "frozenAt": "2026-10-16",
+  "annotationStatus": "agent_curated_not_legal_expert_reviewed",
+  "queryOrigin": "agent_authored_source_grounded",
+  "sourceDatasetId": "anxin-labor-public-v1",
+  "sourceDataFingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a",
+  "tasksFile": "tasks.jsonl",
+  "tasksSha256": "c2f12cfd9bfc50e5e0aa4ec7789d64a29bfc77d75bde63656f7b7b12689f0684",
+  "counts": {
+    "tasks": 90,
+    "byTaskType": {
+      "case_retrieval": 56,
+      "provision_retrieval": 24,
+      "no_answer": 10
+    },
+    "bySplit": {
+      "test": 29,
+      "dev": 61
+    },
+    "groups": 27
+  },
+  "splitPolicy": "case_group_id for cases; primary law_id for provisions; scenario family for no_answer; each group assigned once before retrieval runs",
+  "caseTestGroups": [
+    "case-spc-2024-anticipatory-wage-breach",
+    "case-spc-2024-borrowed-contractor-license",
+    "case-spc-2025-mixed-employers",
+    "case-third-02-crowdsourced-courier"
+  ],
+  "provisionTestGroups": [
+    "labor-arbitration-law-2007",
+    "labor-dispute-interpretation-i-2020",
+    "wage-payment-provisions-1994"
+  ],
+  "noAnswerTestGroups": [
+    "no-answer-image-software",
+    "no-answer-gardening"
+  ],
+  "goldExhaustive": false,
+  "retrievalRanksReadDuringAnnotation": false,
+  "limitations": [
+    "Agent authored, not real user questions or human legal expert review",
+    "Known-positive record labels are not exhaustive and do not support precision or legal correctness claims",
+    "All source documents remain retrievable in both splits; this is grouped task evaluation, not a held-out document corpus",
+    "No-answer tasks are corpus unsupported scenarios, not general refusal policy tests"
+  ]
+}

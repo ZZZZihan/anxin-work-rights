@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-16",
+  "baseCommit": "78ed96aae8c694d72d1de5de55b223a9816ff835",
+  "node": "v26.11.0",
+  "python": "Python 3.14.7",
+  "datasetFingerprint": "94593cc65bc34e1d739f22b6a66c95e19ff768e083f435bada899fc86309ac8e",
+  "tasksSha256": "8f246287cc124d0d2da8007f84fd0d6bb8a2a5031c88a03cd0cea0fdadf027c0",
+  "productionRetrievalUnchanged": true,
+  "checkCommand": {
+    "command": "npm run check",
+    "result": "PASS",
+    "vitest": {
+      "passed": 125
+    },
+    "python": {
+      "passed": 10
+    },
+    "materialService": {
+      "passed": 23,
+      "skipped": 1,
+      "skipReason": "Linux Tesseract integration test skipped on macOS; actual macOS OCR test passed"
+    }
+  },
+  "isolatedHttp": {
+    "mode": "text",
+    "passed": 8,
+    "model": null,
+    "syntheticInputs": true
+  },
+  "independentReview": {
+    "agent": "review_eval",
+    "blockingFindingsRemaining": 0,
+    "fixedFindings": [
+      "Frozen evaluation manifest was not validated",
+      "Malformed coverage limitations accepted as string"
+    ],
+    "checks": {
+      "retrievalAndEvaluationTests": 33,
+      "pythonTests": 10,
+      "caseDateSourceReview": 4,
+      "proceduralCaseSourceReview": 7
+    }
+  },
+  "agentRequests": [
+    {
+      "agent": "research_patterns",
+      "role": "official case curation",
+      "model": "gpt-6.1-sol",
+      "reasoningEffort": "ultra"
+    },
+    {
+      "agent": "inspect_anxin",
+      "role": "independent question annotation, without retrieval scores",
+      "model": "gpt-6.1-sol",
+      "reasoningEffort": "ultra"
+    },
+    {
+      "agent": "review_eval",
+      "role": "independent technical review",
+      "model": "gpt-6.1-sol",
+      "reasoningEffort": "ultra"
+    }
+  ],
+  "agentRuntimeVerification": "Requested child settings recorded; actual runtime configuration of every child was not independently exposed.",
+  "scopeLimits": [
+    "No ranking changes or model inference",
+    "Agent authored queries and gold are not legal expert reviewed",
+    "No real private case documents",
+    "No merge, deployment, or user acceptance"
+  ],
+  "evidenceSha256": {
+    "negative-paths.json": "a8798aa918150a8d0af2ba67f42574bc40bbde7cc7d62aad148966df9d5b19c8",
+    "http-production.json": "1607665f2693ad69bb610b903e26f952c2eff00a00445a514f459a6a85ace16b",
+    "local-check.txt": "4bf1aa50b9f00c120ea4092389a7c07d93682965d6d4453612a9631455a57cdd"
+  },
+  "logNormalization": "Removed ANSI display escapes and trailing whitespace only; raw local output remains in output/data-eval/local-check.log",
+  "rawLocalCheckSha256": "8b99e4a813543be43a64df9d49bdb04bb059d550c434635bf3aa55829207b959"
+}

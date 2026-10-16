@@ -3,6 +3,7 @@
 import hashlib
 import json
 from collections import Counter
+from datetime import date
 from pathlib import Path
 
 def require(condition, message='validation failed'):
@@ -12,6 +13,7 @@ HERE = Path(__file__).resolve().parent
 DATASET = HERE.parent.parent
 sources = json.loads((HERE / 'sources.json').read_text(encoding='utf-8'))
 cases = json.loads((HERE / 'cases.json').read_text(encoding='utf-8'))
+coverage = json.loads((HERE / 'coverage.json').read_text(encoding='utf-8'))
 source_map = {s['id']: s for s in sources}
 laws = json.loads((HERE.parent / 'laws' / 'laws.json').read_text(encoding='utf-8'))
 law_map = {law['id']: law for law in laws}
@@ -34,7 +36,11 @@ for case in cases:
     require(case['source_id'] in source_map, 'validation failed')
     require(case['annotation_status'] == 'agent_curated_not_legal_expert_reviewed', 'validation failed')
     require(set(case['topics']) <= {'wage_arrears', 'employment_relationship'}, 'validation failed')
-    require(case['region'] is None and case['decision_date'] is None, 'validation failed')
+    require(case['region'] is None, 'case region must remain undisclosed rather than inferred from court location')
+    if case['decision_date'] is not None:
+        parsed_date = date.fromisoformat(case['decision_date'])
+        original_date = f'{parsed_date.year}年{parsed_date.month}月{parsed_date.day}日'
+        require(original_date in case['outcome']['text'], 'decision date must be explicit in the reported disposition')
     require(case['issue_disclosure'] in {'reported_in_source', 'not_explicit_in_source'})
     require(bool(case['issues']) == (case['issue_disclosure'] == 'reported_in_source'))
     for item in case['issues']:
@@ -75,5 +81,22 @@ for case in cases:
             require(law_map[rule['law_id']]['title'] == rule['name'], 'validation failed')
             require(sum((law['title'] == rule['name'] for law in laws)) == 1, 'validation failed')
 topics = Counter((t for case in cases for t in case['topics']))
-require(12 <= len(cases) <= 16 and all((topics[t] >= 5 for t in ['wage_arrears', 'employment_relationship'])), 'validation failed')
-print(json.dumps(dict(status='PASS', sources=len(sources), cases=len(cases), topics=topics, exact_field_extracts_checked=extract_count, evidence_materials=sum((len(c['evidence']) for c in cases)), cited_rules=sum((len(c['cited_rules']) for c in cases)), decision_dates_disclosed=0, case_regions_disclosed=0, issues_reported=sum(bool(c['issues']) for c in cases), issues_not_disclosed=sum(not c['issues'] for c in cases), linked_rules=sum(r['law_id'] is not None for c in cases for r in c['cited_rules'])), ensure_ascii=False, indent=2))
+require(30 <= len(cases) <= 40 and all((topics[t] >= 5 for t in ['wage_arrears', 'employment_relationship'])), 'case expansion coverage is outside the requested range')
+require(coverage['schema_version'] == 1 and coverage['annotation_status'] == 'agent_curated_not_legal_expert_reviewed', 'coverage metadata mismatch')
+coverage_map = {entry['case_group_id']: entry for entry in coverage['cases']}
+require(len(coverage_map) == len(coverage['cases']) == len(cases), 'coverage groups must be unique and complete')
+merits_stages = {'arbitration', 'merits_judgment', 'merits_and_execution'}
+other_stages = {'execution', 'execution_and_bankruptcy', 'bankruptcy', 'mediation', 'payment_order_and_mediation', 'mediation_and_arbitration_referral', 'coordinated_settlement', 'mediation_and_judicial_confirmation', 'administrative_coordination'}
+for case in cases:
+    entry = coverage_map.get(case['case_group_id'])
+    require(entry is not None and entry['topics'] == case['topics'], 'coverage topic/group mismatch')
+    require(entry['source_id'] == case['source_id'] and entry['source_url'] == source_map[case['source_id']]['url'], 'coverage source mismatch')
+    require(entry['stage'] in merits_stages | other_stages
+            and isinstance(entry['scenario'], str) and bool(entry['scenario'].strip()), 'coverage procedure/scenario missing')
+    require(isinstance(entry['limitations'], list) and bool(entry['limitations'])
+            and all(isinstance(item, str) and item.strip() for item in entry['limitations']),
+            'coverage limitations must be a nonempty list of nonempty strings')
+    require(type(entry['merits_supervision_eligible']) is bool, 'coverage merits eligibility must be boolean')
+    require(entry['merits_supervision_eligible'] == (entry['stage'] in merits_stages), 'non-merits stages must not supply merits supervision')
+require(coverage['uncovered'] and coverage['exclusions'], 'coverage gaps and exclusions must be explicit')
+print(json.dumps(dict(status='PASS', sources=len(sources), cases=len(cases), topics=topics, exact_field_extracts_checked=extract_count, evidence_materials=sum((len(c['evidence']) for c in cases)), cited_rules=sum((len(c['cited_rules']) for c in cases)), decision_dates_disclosed=sum(c['decision_date'] is not None for c in cases), case_regions_disclosed=sum(c['region'] is not None for c in cases), issues_reported=sum(bool(c['issues']) for c in cases), issues_not_disclosed=sum(not c['issues'] for c in cases), linked_rules=sum(r['law_id'] is not None for c in cases for r in c['cited_rules']), coverage_groups=len(coverage_map), stages=Counter(entry['stage'] for entry in coverage['cases'])), ensure_ascii=False, indent=2))

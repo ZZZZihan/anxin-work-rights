@@ -55,6 +55,9 @@ def build_index(manifest, loaded):
     sources = loaded["sources.jsonl"]
     cases = loaded["cases.jsonl"]
     provisions = loaded["provisions.jsonl"]
+    coverage = json.loads((ROOT / "data/labor-public-v1/curation/cases/coverage.json").read_text(encoding="utf-8"))
+    coverage_by_group = {entry["case_group_id"]: entry for entry in coverage["cases"]}
+    require(len(coverage_by_group) == len(cases), "case coverage must include every group exactly once")
     source_map, paragraphs = {}, {}
     for source in sources:
         sid = source["id"]
@@ -101,7 +104,13 @@ def build_index(manifest, loaded):
             sections.append({"field": "evidence", "text": item["description"]})
         require(set(case["outcome"]["refs"]) <= set(refs), f"outcome escapes record: {case['id']}")
         sections.append({"field": "outcome", "text": case["outcome"]["text"]})
-        notes = ["来源为官方典型案例汇编，未披露裁判地区和裁判日期；不是完整裁判文书。"]
+        missing = [label for field, label in (("region", "裁判地区"), ("decision_date", "裁判日期"))
+                   if case[field] is None]
+        notes = ["来源为官方案例公开材料；不是完整案卷。"
+                 + ("未披露" + "和".join(missing) + "。" if missing else "")]
+        entry = coverage_by_group.get(case["case_group_id"])
+        require(entry and entry["source_id"] == case["source_id"], "case coverage source mismatch")
+        notes.extend(entry["limitations"])
         for rule in case["cited_rules"]:
             require(rule["version_match"] == "not_determined" and rule["link_basis"] == "source_explicit",
                     f"unsupported version certainty: {case['id']}")

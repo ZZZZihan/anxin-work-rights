@@ -17,7 +17,7 @@ describe('public labor knowledge retrieval on frozen official records', () => {
   it('expands actual worker phrases into traceable cases and provisions', () => {
     const result = searchPublicKnowledge('张某在某某公司工作，没签劳动合同，公司欠薪，工资通过银行转账，有微信聊天和打卡。');
     expect(result.method).toBe('deterministic_keyword_topic_v1');
-    expect(result.fingerprint).toBe('e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a');
+    expect(result.fingerprint).toBe(JSON.parse(readFileSync(resolve(release, 'manifest.json'), 'utf8')).data_fingerprint);
     expect(result.expandedTerms).toContain('支付凭证');
     expect(result.expandedTerms).toContain('书面劳动合同');
     expect(result.hits.some((hit) => hit.kind === 'case')).toBe(true);
@@ -75,6 +75,17 @@ describe('public labor knowledge retrieval on frozen official records', () => {
     expect(result.hits.every((hit) => hit.topics.includes('wage_arrears'))).toBe(true);
     expect(searchPublicKnowledge('工资', { limit: 0 }).hits).toHaveLength(1);
     expect(searchPublicKnowledge('工资', { limit: Number.NaN }).hits.length).toBeLessThanOrEqual(6);
+  });
+
+  it('preserves disclosed dates and distinguishes enforcement or mediation from merits decisions', () => {
+    const guidance = getPublicKnowledgeRecord('case-guidance-237-outsourced-courier')!;
+    expect(guidance.decisionDate).toBe('2022-03-07');
+    expect(guidance.versionNote).not.toContain('未披露裁判地区和裁判日期');
+    expect(guidance.versionNote).toContain('未披露裁判地区');
+    expect(getPublicKnowledgeRecord('case-spc-2024-unpaid-shareholder-capital')!.versionNote)
+      .toContain('不能标注法院已经作出追加股东裁定');
+    expect(getPublicKnowledgeRecord('case-spc-2024-platform-taxi-mediation')!.versionNote)
+      .toContain('未作劳动关系实体认定');
   });
 
   it('every public record resolves exact frozen source paragraphs, never another case body', () => {

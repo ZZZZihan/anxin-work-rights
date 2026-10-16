@@ -1,0 +1,2080 @@
+{
+  "checkedAt": "2026-10-16",
+  "tasksSha256": "8f246287cc124d0d2da8007f84fd0d6bb8a2a5031c88a03cd0cea0fdadf027c0",
+  "taskCount": 128,
+  "positiveTaskCount": 118,
+  "goldRecordAssignments": 131,
+  "distinctGoldRecords": 64,
+  "distinctExpectedCitationRefs": 158,
+  "allStructuralChecksPassed": true,
+  "fieldChecks": {
+    "id": "128 non-empty unique strings; required task ID pattern; all original IDs preserved",
+    "taskType": "94 case_retrieval, 24 provision_retrieval, 10 no_answer; added 38 are case retrieval",
+    "split": "88 dev / 40 test; every case group, primary law group, no-answer family and each gold provision law has a single split",
+    "groupId": "46 groups; case IDs match source case_group_id; provision group is a gold law_id; no-answer has 5 stable scenario families",
+    "query": "128 unique non-empty Agent-authored queries; all original queries preserved; source-grounded reading performed without retrieval ranks",
+    "topic": "When present, only wage_arrears or employment_relationship; all case task topics occur in source case topics; reporting label only",
+    "expectedRecordIds": "All 118 positive tasks have real case/provision records; 10 no-answer tasks have empty arrays; gold is not exhaustive",
+    "expectedCitationRefs": "All refs exist as non-empty frozen source paragraphs; every cited ref belongs to at least one gold record; every gold record is covered by at least 1 own ref",
+    "annotationStatus": "All 128 equal agent_curated_not_legal_expert_reviewed",
+    "rationale": "All 128 non-empty; original rationales unchanged; explains annotation scope, not a legal expert answer",
+    "extraFields": "No per-task fields outside exact required fields plus optional topic"
+  },
+  "original90Revision": {
+    "initialSha256": "c2f12cfd9bfc50e5e0aa4ec7789d64a29bfc77d75bde63656f7b7b12689f0684",
+    "revisedSha256": "a6c8ef40a72ae8c1efe61e9dd6a448b6b5765a808fee8a29921f0de36b311e94",
+    "changedField": "split",
+    "changedTaskIds": [
+      "labor-eval-provision-08-01",
+      "labor-eval-provision-08-02",
+      "labor-eval-provision-08-03"
+    ],
+    "allOtherFieldsEqual": true,
+    "revised90EqualsFirst90Of128": true
+  },
+  "goldLawSplits": {
+    "employment-relationship-notice-2005": "dev",
+    "labor-arbitration-law-2007": "test",
+    "labor-contract-law-2012": "dev",
+    "labor-dispute-interpretation-i-2020": "test",
+    "labor-dispute-interpretation-ii-2025": "dev",
+    "labor-law-2018": "dev",
+    "migrant-wage-payment-regulation-2019": "dev",
+    "wage-payment-provisions-1994": "dev"
+  },
+  "newCases": {
+    "caseCount": 19,
+    "tasksPerCase": 2,
+    "devCaseGroups": 12,
+    "testCaseGroups": 7,
+    "sourceCurationFiles": [
+      {
+        "file": "curation/cases/cases.json",
+        "sha256": "70a2caf86ca576dfce584de649ecead716f485ea166ee7d6ba5ff69461ff838b"
+      },
+      {
+        "file": "curation/cases/coverage.json",
+        "sha256": "041a8c9a9c580c4a000b6fa6a03e8e88f930ba96247b7b88b473c3b031bab7c8"
+      },
+      {
+        "file": "curation/cases/sources.json",
+        "sha256": "1750eea3e1e31a6cb8d5bc27e0f46ebc3314412aff318ca6398f5d56be73f048"
+      }
+    ],
+    "old14CaseObjectsEqualBaseRelease": true
+  },
+  "proceduralCaseChecks": [
+    {
+      "caseGroupId": "case-spc-2024-platform-taxi-mediation",
+      "stage": "mediation",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-unpaid-shareholder-capital",
+      "stage": "execution",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-actual-controller-execution",
+      "stage": "execution",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-flexible-seizure-wages",
+      "stage": "execution",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-shipyard-property-wages",
+      "stage": "execution",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-execution-bankruptcy-wages",
+      "stage": "execution_and_bankruptcy",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-bankruptcy-wage-guarantee",
+      "stage": "bankruptcy",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-retired-worker-payment-order",
+      "stage": "payment_order_and_mediation",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-collective-wage-mediation",
+      "stage": "mediation_and_arbitration_referral",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-construction-union-settlement",
+      "stage": "coordinated_settlement",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-online-mediation-confirmation",
+      "stage": "mediation_and_judicial_confirmation",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    },
+    {
+      "caseGroupId": "case-spc-2024-union-hotline-wage-recovery",
+      "stage": "administrative_coordination",
+      "meritsSupervisionEligible": false,
+      "taskCount": 2,
+      "semanticScope": "Agent source reading: only disclosed process and results, not entity merits adjudication"
+    }
+  ],
+  "semanticReview": {
+    "reviewer": "Agent source reading, not human legal expert review",
+    "retrievalRanksRead": false,
+    "scope": "Reviewed 19 new case records, coverage stage limitations and the source paragraphs cited by the 38 added tasks. Initial 90 were previously source-read; this revision preserves all original fields except the 3 disclosed split changes.",
+    "limitations": [
+      "Structural membership and paragraph existence do not prove legal correctness or exhaustive relevance.",
+      "Procedural question limits were checked by Agent reading; no formal legal semantic verifier or legal expert approval."
+    ]
+  },
+  "taskChecks": [
+    {
+      "id": "labor-eval-case-01-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-anticipatory-wage-breach",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0054",
+            "case-src-spc-20241223-wage:p0056"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-01-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-anticipatory-wage-breach",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0054",
+            "case-src-spc-20241223-wage:p0056"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-01-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-anticipatory-wage-breach",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0054",
+            "case-src-spc-20241223-wage:p0056"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-01-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-anticipatory-wage-breach",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0056",
+            "case-src-spc-20241223-wage:p0058"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-02-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-borrowed-contractor-license",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0070",
+            "case-src-spc-20240125-wage:p0072"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-02-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-borrowed-contractor-license",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0070",
+            "case-src-spc-20240125-wage:p0072"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-02-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-borrowed-contractor-license",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0070",
+            "case-src-spc-20240125-wage:p0072"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-02-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-borrowed-contractor-license",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0070",
+            "case-src-spc-20240125-wage:p0074"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-03-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-inspection-arbitration-evidence",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0109",
+            "case-src-spc-20240125-wage:p0111"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-03-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-inspection-arbitration-evidence",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0109",
+            "case-src-spc-20240125-wage:p0111"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-03-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-inspection-arbitration-evidence",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0111"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-03-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-inspection-arbitration-evidence",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0111",
+            "case-src-spc-20240125-wage:p0113"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-04-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-joint-project-wage",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0051",
+            "case-src-spc-20240125-wage:p0053"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-04-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-joint-project-wage",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0051",
+            "case-src-spc-20240125-wage:p0053"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-04-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-joint-project-wage",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0053"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-04-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-joint-project-wage",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0053",
+            "case-src-spc-20240125-wage:p0055"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-05-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-overseas-arrears",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0044",
+            "case-src-spc-20241223-wage:p0046"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-05-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-overseas-arrears",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0044",
+            "case-src-spc-20241223-wage:p0046"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-05-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-overseas-arrears",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0044",
+            "case-src-spc-20241223-wage:p0046"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-05-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-overseas-arrears",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0046",
+            "case-src-spc-20241223-wage:p0048"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-06-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-platform-wage-payment",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0079",
+            "case-src-spc-20240125-wage:p0081"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-06-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-platform-wage-payment",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0079",
+            "case-src-spc-20240125-wage:p0081"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-06-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-platform-wage-payment",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0081",
+            "case-src-spc-20240125-wage:p0083"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-06-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-platform-wage-payment",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0079",
+            "case-src-spc-20240125-wage:p0081"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-07-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-wage-employer-burden",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0099",
+            "case-src-spc-20240125-wage:p0101"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-07-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-wage-employer-burden",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0101"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-07-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-wage-employer-burden",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0101",
+            "case-src-spc-20240125-wage:p0103"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-07-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-wage-employer-burden",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0101"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-08-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2025-mixed-employers",
+          "citedOwnRefs": [
+            "case-src-spc-20250801-labor:p0023",
+            "case-src-spc-20250801-labor:p0025"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-08-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2025-mixed-employers",
+          "citedOwnRefs": [
+            "case-src-spc-20250801-labor:p0023",
+            "case-src-spc-20250801-labor:p0025"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-08-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2025-mixed-employers",
+          "citedOwnRefs": [
+            "case-src-spc-20250801-labor:p0023",
+            "case-src-spc-20250801-labor:p0027"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-08-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2025-mixed-employers",
+          "citedOwnRefs": [
+            "case-src-spc-20250801-labor:p0025"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-09-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-01-platform-truck",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0017",
+            "case-src-nanyang-20230609-third:p0025"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-09-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-01-platform-truck",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0017",
+            "case-src-nanyang-20230609-third:p0025"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-09-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-01-platform-truck",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0017",
+            "case-src-nanyang-20230609-third:p0024",
+            "case-src-nanyang-20230609-third:p0025"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-09-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-01-platform-truck",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0017",
+            "case-src-nanyang-20230609-third:p0021",
+            "case-src-nanyang-20230609-third:p0025"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-10-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-02-crowdsourced-courier",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0030",
+            "case-src-nanyang-20230609-third:p0038"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-10-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-02-crowdsourced-courier",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0030",
+            "case-src-nanyang-20230609-third:p0034",
+            "case-src-nanyang-20230609-third:p0038"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-10-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-02-crowdsourced-courier",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0038"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-10-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-02-crowdsourced-courier",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0030",
+            "case-src-nanyang-20230609-third:p0038"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-11-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-03-station-outsourcing",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0043",
+            "case-src-nanyang-20230609-third:p0050"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-11-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-03-station-outsourcing",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0043",
+            "case-src-nanyang-20230609-third:p0050"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-11-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-03-station-outsourcing",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0043",
+            "case-src-nanyang-20230609-third:p0047"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-11-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-03-station-outsourcing",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0043",
+            "case-src-nanyang-20230609-third:p0050"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-12-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-04-registered-proprietor",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0055",
+            "case-src-nanyang-20230609-third:p0063"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-12-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-04-registered-proprietor",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0055",
+            "case-src-nanyang-20230609-third:p0063"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-12-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-04-registered-proprietor",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0062",
+            "case-src-nanyang-20230609-third:p0063"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-12-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-04-registered-proprietor",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0055",
+            "case-src-nanyang-20230609-third:p0059",
+            "case-src-nanyang-20230609-third:p0063"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-13-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-05-streamer-agency",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0068",
+            "case-src-nanyang-20230609-third:p0076"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-13-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-05-streamer-agency",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0068",
+            "case-src-nanyang-20230609-third:p0075",
+            "case-src-nanyang-20230609-third:p0076"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-13-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-05-streamer-agency",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0068",
+            "case-src-nanyang-20230609-third:p0072",
+            "case-src-nanyang-20230609-third:p0076"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-13-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-05-streamer-agency",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0075",
+            "case-src-nanyang-20230609-third:p0076"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-14-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-06-housekeeping-employee",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0081",
+            "case-src-nanyang-20230609-third:p0089"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-14-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-06-housekeeping-employee",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0081",
+            "case-src-nanyang-20230609-third:p0089"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-14-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-06-housekeeping-employee",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0081",
+            "case-src-nanyang-20230609-third:p0085",
+            "case-src-nanyang-20230609-third:p0089"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-14-04",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-third-06-housekeeping-employee",
+          "citedOwnRefs": [
+            "case-src-nanyang-20230609-third:p0089"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-01-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "employment-relationship-notice-2005:a001",
+          "citedOwnRefs": [
+            "law-relationship-2005:p0007",
+            "law-relationship-2005:p0008",
+            "law-relationship-2005:p0009",
+            "law-relationship-2005:p0010"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-01-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "employment-relationship-notice-2005:a002",
+          "citedOwnRefs": [
+            "law-relationship-2005:p0011",
+            "law-relationship-2005:p0012",
+            "law-relationship-2005:p0013",
+            "law-relationship-2005:p0015",
+            "law-relationship-2005:p0016"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-01-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "employment-relationship-notice-2005:a003",
+          "citedOwnRefs": [
+            "law-relationship-2005:p0020"
+          ]
+        },
+        {
+          "recordId": "labor-dispute-interpretation-ii-2025:a001",
+          "citedOwnRefs": [
+            "law-judicial-ii-2025:p0020"
+          ]
+        },
+        {
+          "recordId": "migrant-wage-payment-regulation-2019:a010",
+          "citedOwnRefs": [
+            "law-migrant-wage-2019:p0092"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-02-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-arbitration-law-2007:a004",
+          "citedOwnRefs": [
+            "law-arbitration-2007:p0068",
+            "law-arbitration-2007:p0071"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-02-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-arbitration-law-2007:a004",
+          "citedOwnRefs": [
+            "law-arbitration-2007:p0069"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-02-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-arbitration-law-2007:a002",
+          "citedOwnRefs": [
+            "law-arbitration-2007:p0024"
+          ]
+        },
+        {
+          "recordId": "labor-arbitration-law-2007:a005",
+          "citedOwnRefs": [
+            "law-arbitration-2007:p0098"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-03-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-contract-law-2012:a001",
+          "citedOwnRefs": [
+            "law-contract-2012:p0033"
+          ]
+        },
+        {
+          "recordId": "labor-contract-law-2012:a002",
+          "citedOwnRefs": [
+            "law-contract-2012:p0036",
+            "law-contract-2012:p0037"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-03-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-contract-law-2012:a003",
+          "citedOwnRefs": [
+            "law-contract-2012:p0039"
+          ]
+        },
+        {
+          "recordId": "labor-contract-law-2012:a004",
+          "citedOwnRefs": [
+            "law-contract-2012:p0064"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-03-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-contract-law-2012:a007",
+          "citedOwnRefs": [
+            "law-contract-2012:p0231"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-04-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-dispute-interpretation-i-2020:a002",
+          "citedOwnRefs": [
+            "law-judicial-i-2020:p0058"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-04-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-dispute-interpretation-i-2020:a003",
+          "citedOwnRefs": [
+            "law-judicial-i-2020:p0110"
+          ]
+        },
+        {
+          "recordId": "labor-arbitration-law-2007:a002",
+          "citedOwnRefs": [
+            "law-arbitration-2007:p0024"
+          ]
+        },
+        {
+          "recordId": "labor-arbitration-law-2007:a005",
+          "citedOwnRefs": [
+            "law-arbitration-2007:p0098"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-04-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-dispute-interpretation-i-2020:a004",
+          "citedOwnRefs": [
+            "law-judicial-i-2020:p0111"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-05-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-dispute-interpretation-ii-2025:a003",
+          "citedOwnRefs": [
+            "law-judicial-ii-2025:p0022",
+            "law-judicial-ii-2025:p0024"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-05-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-dispute-interpretation-ii-2025:a004",
+          "citedOwnRefs": [
+            "law-judicial-ii-2025:p0031"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-05-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-dispute-interpretation-ii-2025:a007",
+          "citedOwnRefs": [
+            "law-judicial-ii-2025:p0068",
+            "law-judicial-ii-2025:p0069"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-06-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-law-2018:a003",
+          "citedOwnRefs": [
+            "law-labor-2018:p0113",
+            "law-labor-2018:p0114",
+            "law-labor-2018:p0115"
+          ]
+        },
+        {
+          "recordId": "wage-payment-provisions-1994:a005",
+          "citedOwnRefs": [
+            "law-wage-payment-1994:p0020",
+            "law-wage-payment-1994:p0021",
+            "law-wage-payment-1994:p0022"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-06-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-law-2018:a005",
+          "citedOwnRefs": [
+            "law-labor-2018:p0122",
+            "law-labor-2018:p0123"
+          ]
+        },
+        {
+          "recordId": "labor-contract-law-2012:a008",
+          "citedOwnRefs": [
+            "law-contract-2012:p0237",
+            "law-contract-2012:p0239"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-06-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "labor-law-2018:a006",
+          "citedOwnRefs": [
+            "law-labor-2018:p0130"
+          ]
+        },
+        {
+          "recordId": "wage-payment-provisions-1994:a001",
+          "citedOwnRefs": [
+            "law-wage-payment-1994:p0009"
+          ]
+        },
+        {
+          "recordId": "wage-payment-provisions-1994:a002",
+          "citedOwnRefs": [
+            "law-wage-payment-1994:p0010"
+          ]
+        },
+        {
+          "recordId": "wage-payment-provisions-1994:a003",
+          "citedOwnRefs": [
+            "law-wage-payment-1994:p0013"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-07-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "migrant-wage-payment-regulation-2019:a007",
+          "citedOwnRefs": [
+            "law-migrant-wage-2019:p0075",
+            "law-migrant-wage-2019:p0076",
+            "law-migrant-wage-2019:p0077"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-07-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "migrant-wage-payment-regulation-2019:a005",
+          "citedOwnRefs": [
+            "law-migrant-wage-2019:p0043"
+          ]
+        },
+        {
+          "recordId": "wage-payment-provisions-1994:a003",
+          "citedOwnRefs": [
+            "law-wage-payment-1994:p0013"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-07-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "migrant-wage-payment-regulation-2019:a009",
+          "citedOwnRefs": [
+            "law-migrant-wage-2019:p0083",
+            "law-migrant-wage-2019:p0084"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-08-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "wage-payment-provisions-1994:a002",
+          "citedOwnRefs": [
+            "law-wage-payment-1994:p0010",
+            "law-wage-payment-1994:p0011"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-08-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "wage-payment-provisions-1994:a002",
+          "citedOwnRefs": [
+            "law-wage-payment-1994:p0012"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-provision-08-03",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "wage-payment-provisions-1994:a004",
+          "citedOwnRefs": [
+            "law-wage-payment-1994:p0015"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-no-answer-01-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [],
+      "noAnswerGoldArraysEmpty": true
+    },
+    {
+      "id": "labor-eval-no-answer-01-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [],
+      "noAnswerGoldArraysEmpty": true
+    },
+    {
+      "id": "labor-eval-no-answer-02-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [],
+      "noAnswerGoldArraysEmpty": true
+    },
+    {
+      "id": "labor-eval-no-answer-02-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [],
+      "noAnswerGoldArraysEmpty": true
+    },
+    {
+      "id": "labor-eval-no-answer-03-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [],
+      "noAnswerGoldArraysEmpty": true
+    },
+    {
+      "id": "labor-eval-no-answer-03-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [],
+      "noAnswerGoldArraysEmpty": true
+    },
+    {
+      "id": "labor-eval-no-answer-04-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [],
+      "noAnswerGoldArraysEmpty": true
+    },
+    {
+      "id": "labor-eval-no-answer-04-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [],
+      "noAnswerGoldArraysEmpty": true
+    },
+    {
+      "id": "labor-eval-no-answer-05-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [],
+      "noAnswerGoldArraysEmpty": true
+    },
+    {
+      "id": "labor-eval-no-answer-05-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [],
+      "noAnswerGoldArraysEmpty": true
+    },
+    {
+      "id": "labor-eval-case-15-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-platform-taxi-mediation",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0037",
+            "case-src-spc-20241223-wage:p0039"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-15-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-platform-taxi-mediation",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0035",
+            "case-src-spc-20241223-wage:p0037"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-16-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-unpaid-shareholder-capital",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0072",
+            "case-src-spc-20241223-wage:p0073",
+            "case-src-spc-20241223-wage:p0075"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-16-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-unpaid-shareholder-capital",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0073",
+            "case-src-spc-20241223-wage:p0075"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-17-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-actual-controller-execution",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0082",
+            "case-src-spc-20241223-wage:p0084"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-17-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-actual-controller-execution",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0084",
+            "case-src-spc-20241223-wage:p0086"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-18-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-flexible-seizure-wages",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0094",
+            "case-src-spc-20241223-wage:p0095"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-18-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-flexible-seizure-wages",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0092",
+            "case-src-spc-20241223-wage:p0095"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-19-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-shipyard-property-wages",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0104"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-19-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-shipyard-property-wages",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0102",
+            "case-src-spc-20241223-wage:p0104"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-20-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-execution-bankruptcy-wages",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0111",
+            "case-src-spc-20241223-wage:p0113"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-20-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-execution-bankruptcy-wages",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-wage:p0111",
+            "case-src-spc-20241223-wage:p0113"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-21-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-bankruptcy-wage-guarantee",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0042",
+            "case-src-spc-20240125-wage:p0044"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-21-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-bankruptcy-wage-guarantee",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0044"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-22-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-retired-worker-payment-order",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0060",
+            "case-src-spc-20240125-wage:p0062"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-22-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-retired-worker-payment-order",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0062",
+            "case-src-spc-20240125-wage:p0064"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-23-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-online-overtime-pay",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0089",
+            "case-src-spc-20240125-wage:p0091",
+            "case-src-spc-20240125-wage:p0093"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-23-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-online-overtime-pay",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0089",
+            "case-src-spc-20240125-wage:p0091"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-24-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-collective-wage-mediation",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0118",
+            "case-src-spc-20240125-wage:p0120"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-24-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-collective-wage-mediation",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0118",
+            "case-src-spc-20240125-wage:p0120"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-25-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-electronic-evidence-support",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0127",
+            "case-src-spc-20240125-wage:p0129"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-25-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-electronic-evidence-support",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0129"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-26-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-construction-union-settlement",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0136",
+            "case-src-spc-20240125-wage:p0138"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-26-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-construction-union-settlement",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0136",
+            "case-src-spc-20240125-wage:p0138",
+            "case-src-spc-20240125-wage:p0140"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-27-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-online-mediation-confirmation",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0145",
+            "case-src-spc-20240125-wage:p0147"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-27-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-online-mediation-confirmation",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0147"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-28-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-union-hotline-wage-recovery",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0154",
+            "case-src-spc-20240125-wage:p0156"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-28-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-spc-2024-union-hotline-wage-recovery",
+          "citedOwnRefs": [
+            "case-src-spc-20240125-wage:p0154",
+            "case-src-spc-20240125-wage:p0156"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-29-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-guidance-237-outsourced-courier",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-guidance:p0033",
+            "case-src-spc-20241223-guidance:p0040"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-29-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-guidance-237-outsourced-courier",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-guidance:p0032",
+            "case-src-spc-20241223-guidance:p0033",
+            "case-src-spc-20241223-guidance:p0036",
+            "case-src-spc-20241223-guidance:p0040"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-30-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-guidance-238-registered-courier",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-guidance:p0053",
+            "case-src-spc-20241223-guidance:p0054",
+            "case-src-spc-20241223-guidance:p0061"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-30-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-guidance-238-registered-courier",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-guidance:p0054",
+            "case-src-spc-20241223-guidance:p0061",
+            "case-src-spc-20241223-guidance:p0062"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-31-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-guidance-239-streamer-no-employment",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-guidance:p0073",
+            "case-src-spc-20241223-guidance:p0074",
+            "case-src-spc-20241223-guidance:p0081"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-31-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-guidance-239-streamer-no-employment",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-guidance:p0075",
+            "case-src-spc-20241223-guidance:p0077",
+            "case-src-spc-20241223-guidance:p0081",
+            "case-src-spc-20241223-guidance:p0082"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-32-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-guidance-240-designated-driver-no-employment",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-guidance:p0095",
+            "case-src-spc-20241223-guidance:p0096",
+            "case-src-spc-20241223-guidance:p0103",
+            "case-src-spc-20241223-guidance:p0104"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-32-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-guidance-240-designated-driver-no-employment",
+          "citedOwnRefs": [
+            "case-src-spc-20241223-guidance:p0097",
+            "case-src-spc-20241223-guidance:p0099",
+            "case-src-spc-20241223-guidance:p0103",
+            "case-src-spc-20241223-guidance:p0104"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-33-01",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-fourth-02-pregnancy-wage-difference",
+          "citedOwnRefs": [
+            "case-src-spc-20250416-fourth:p0036",
+            "case-src-spc-20250416-fourth:p0040",
+            "case-src-spc-20250416-fourth:p0044"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    },
+    {
+      "id": "labor-eval-case-33-02",
+      "schemaValid": true,
+      "goldCitationCoverage": [
+        {
+          "recordId": "case-fourth-02-pregnancy-wage-difference",
+          "citedOwnRefs": [
+            "case-src-spc-20250416-fourth:p0036",
+            "case-src-spc-20250416-fourth:p0043",
+            "case-src-spc-20250416-fourth:p0044"
+          ]
+        }
+      ],
+      "allRefsExistInSourceParagraphs": true,
+      "allRefsBelongToGoldRecords": true
+    }
+  ]
+}
