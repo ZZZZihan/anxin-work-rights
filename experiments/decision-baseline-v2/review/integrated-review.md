@@ -4,7 +4,7 @@
 
 结论：所审版本的 `REPORT.md` 与 `comparison.json` 在语义表、分母、逐题及分组配对和限制表述上相符，未发现阻止交付的整合问题。
 
-- `reporting/summarize.py --check` 通过，内存重现与已保存 comparison 逐字节一致。comparison SHA-256 为 `24c0b8403adc58ca3efc51b184ddacecb5f4359d1446f8076dfc2087ab3acb1a`；所审 REPORT SHA-256 为 `f79fa869665b531347c52412c936398f74176589eb6910be3d9983b85ffb8557`。
+- `reporting/summarize.py --check` 通过，内存重现与已保存 comparison 逐字节一致。comparison SHA-256 为 `24c0b8403adc58ca3efc51b184ddacecb5f4359d1446f8076dfc2087ab3acb1a`；所审 REPORT SHA-256 为 `f58941f0f0c71cac5ed9fbf3cf73b1774b69676d81c5eca19f493f96415d1f44`（复核期间补入 Issue #34 链接后已重新通读）。
 - 仓库归档与外部原件的 `semantic-batch1.json` 均为 `227502ad070723bcd395bb163e5f555e9007481a35881d0632a483004d2edf46`。168 条审查与 mapping、四臂案例一一对应，动作和问句结论均原样关联。另以独立内存计算重算各 cohort 的四项指标、逐题和完整二元组配对，均与 comparison 一致。
 - 四臂保留全 72、非耗尽 64、耗尽 8 条计划分母。v2 每臂 8 条真实程序旁路仅记系统收益，原始模型语义为 NA；DeepSeek v2 的一次请求失败继续记错并进入 64/72 分母和配对。完整二元组为全量 36 组、非耗尽 28 组、耗尽 0 组，切片后的 8 个单条组没有冒充完整组。
 
