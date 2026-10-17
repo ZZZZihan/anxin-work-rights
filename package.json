@@ -15,14 +15,15 @@
     "typecheck": "tsc --noEmit --pretty false",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern js --ignore-pattern screenshot.py",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run lint && npm test && npm run build && npm run data:check && npm run data:runtime:check && npm run test:materials",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build && npm run data:check && npm run data:runtime:check && npm run test:materials && npm run test:fact-runtime",
     "db:generate": "drizzle-kit generate",
     "data:build": "python3 -B scripts/public-data.py build",
     "data:check": "python3 -B scripts/public-data.py verify && python3 -B -m unittest discover -s scripts/tests -p test_public_data.py",
     "dev:materials": "node scripts/dev-materials.mjs",
     "data:runtime:check": "python3 -B scripts/build-public-index.py --check",
     "data:runtime:build": "python3 -B scripts/build-public-index.py",
-    "test:materials": "node --test scripts/fact-jobs.test.mjs scripts/material-runner.test.mjs scripts/material-service.test.mjs scripts/material-ocr-linux.test.mjs"
+    "test:materials": "node --test scripts/fact-jobs.test.mjs scripts/material-runner.test.mjs scripts/material-service.test.mjs scripts/material-ocr-linux.test.mjs",
+    "test:fact-runtime": "python3 -B scripts/fact_memory_runtime_test.py && python3 -B scripts/fact_api_transport_test.py && node --test scripts/fact-runtime-runner.test.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

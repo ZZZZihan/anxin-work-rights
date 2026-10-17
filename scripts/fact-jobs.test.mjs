@@ -21,8 +21,9 @@ function controlledRunner(readMemory = async () => ({ level: 1, swapUsed: 0 })) 
     now: () => time, readMemory,
     scheduleTimeout: (callback, delay) => schedule(callback, delay), cancelTimeout: id => timers.delete(id),
     scheduleInterval: (callback, delay) => schedule(callback, delay, true), cancelInterval: id => timers.delete(id),
-    spawnProcess: () => {
+    spawnProcess: (python, argv) => {
       const child = new EventEmitter();
+      child.python = python; child.argv = argv;
       child.stdin = new PassThrough(); child.stdout = new PassThrough(); child.stderr = new PassThrough();
       child.signals = []; child.kill = signal => { child.signals.push({ signal, at: time }); return true; };
       child.result = (finish = 'stop', raw = 'controlled raw answer') => child.stdout.write(JSON.stringify({ type: 'result', id: source.id, raw_output: raw, model: 'controlled-model', finish_reason: finish }) + '\n');
@@ -45,6 +46,21 @@ function controlledRunner(readMemory = async () => ({ level: 1, swapUsed: 0 })) 
     },
   };
 }
+
+test('service selects the bounded runtime and only forwards an explicit loopback port', async () => {
+  for (const config of [deepseek, { ...deepseek, tunnelPort: '15443' }, qwen]) {
+    const runner = controlledRunner();
+    const pending = runner.inference(source, config, new AbortController().signal);
+    await flush();
+    const child = runner.children[0];
+    assert.match(child.argv[0], /fact-runtime-v2\.py$/);
+    assert.equal(child.python, config.python);
+    if (config.tunnelPort) assert.deepEqual(child.argv.slice(-4), ['--connect-host', '127.0.0.1', '--connect-port', '15443']);
+    else assert(!child.argv.includes('--connect-host'));
+    child.result(); child.close();
+    assert.equal((await pending).finish_reason, 'stop');
+  }
+});
 
 test('Qwen preflight requires normal measurable memory before spawning', async t => {
   for (const sample of [{ level: 2, swapUsed: 0 }, { level: 4, swapUsed: 0 }, { level: 1, swapUsed: NaN }, { level: 0, swapUsed: 0 }, null]) await t.test(String(sample?.level), async () => {

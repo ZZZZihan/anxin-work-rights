@@ -36,9 +36,12 @@ export function createFactInference({ spawnProcess = spawn, readMemory = readMac
     }
     if (signal.aborted) throw fail('候选提取已取消。', 503);
     return new Promise((resolve, reject) => {
-      const args = [fileURLToPath(new URL('./fact-inference.py', import.meta.url)), '--backend', config.backend];
+      const args = [fileURLToPath(new URL('./fact-runtime-v2.py', import.meta.url)), '--backend', config.backend];
       if (config.backend === 'qwen') args.push('--model-path', config.modelPath, '--integrity-dir', config.integrityDir);
-      if (config.backend === 'deepseek') args.push('--key-file', config.keyFile);
+      if (config.backend === 'deepseek') {
+        args.push('--key-file', config.keyFile);
+        if (config.tunnelPort) args.push('--connect-host', '127.0.0.1', '--connect-port', String(config.tunnelPort));
+      }
       // Own cancellation instead of spawn's AbortError: queue ownership lasts until actual close.
       const child = spawnProcess(config.python, args, { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HF_HUB_OFFLINE: '1', TRANSFORMERS_OFFLINE: '1', HF_HUB_DISABLE_IMPLICIT_TOKEN: '1', HF_HUB_DISABLE_TELEMETRY: '1', PYTHONUNBUFFERED: '1' } });
       let out = '', size = 0, stopReason = null, exited = false, closed = false, monitoring = false, warningAt = null;
@@ -143,5 +146,5 @@ export function createFactJobs(config = {}, inference = infer) {
 export function factConfigFromEnvironment() {
   return { backend: process.env.ANXIN_FACTS_BACKEND || 'rules', python: process.env.ANXIN_FACTS_PYTHON,
     modelPath: process.env.ANXIN_FACTS_MODEL_PATH, integrityDir: process.env.ANXIN_FACTS_INTEGRITY_DIR,
-    keyFile: process.env.ANXIN_FACTS_KEY_FILE };
+    keyFile: process.env.ANXIN_FACTS_KEY_FILE, tunnelPort: process.env.ANXIN_FACTS_DEEPSEEK_TUNNEL_PORT };
 }
