@@ -1,0 +1,307 @@
+[保存说明：仅移除每行行尾空白，测试输出内容和顺序未变。]
+
+> anxin-work-rights@1.0.0 check
+> npm run typecheck && npm run lint && npm test && npm run build && npm run data:check && npm run data:runtime:check && npm run test:materials && npm run test:fact-runtime
+
+
+> anxin-work-rights@1.0.0 typecheck
+> tsc --noEmit --pretty false
+
+
+> anxin-work-rights@1.0.0 lint
+> eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern js --ignore-pattern screenshot.py
+
+
+> anxin-work-rights@1.0.0 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts
+
+ ✓ lib/legal.test.ts (3 tests) 2ms
+ ✓ lib/validation.test.ts (4 tests) 3ms
+ ✓ deploy/synthetic-http/stop-control.test.mjs (3 tests) 4ms
+ ✓ lib/draft-copies.test.ts (7 tests) 2ms
+ ✓ lib/client-uuid.test.ts (2 tests) 3ms
+ ✓ lib/client.test.ts (7 tests) 9ms
+ ✓ lib/material-facts-v5-eval.test.ts (7 tests) 6ms
+ ✓ lib/material-facts-v2.test.ts (27 tests) 16ms
+ ✓ lib/material-facts-v6-eval.test.ts (12 tests) 17ms
+ ✓ lib/material-facts-review.test.ts (31 tests) 20ms
+ ✓ lib/material-facts-v3.test.ts (95 tests) 25ms
+ ✓ lib/material-fact-source-review.test.ts (72 tests) 39ms
+ ✓ deploy/synthetic-http/material-config.test.mjs (9 tests) 449ms
+   ✓ Wrangler credentials remain private on both success and failure > suppresses both real child streams, disables disk logging and strips migration error payloads  393ms
+ ✓ deploy/local-cloud/readiness.test.mjs (9 tests) 668ms
+   ✓ actual isolated HTTPS certificate checks > enforces the wall-clock deadline even while HTTPS keeps sending bytes  406ms
+ ✓ lib/public-retrieval.test.ts (15 tests) 1048ms
+   ✓ public labor knowledge retrieval on frozen official records > rebuild verification matches the committed index without writing  545ms
+   ✓ public labor knowledge retrieval on frozen official records > rejects altered paragraph references and invented provision text before index output  472ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > retains the key for a DELETE retry when late-put cleanup fails
+evidence upload incomplete Error: synthetic late cleanup failure
+    at Object.delete (/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/lib/evidence-concurrency.test.ts:141:36)
+    at Module.POST (/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/app/api/evidence/route.ts:100:70)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/lib/evidence-concurrency.test.ts:149:13
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+ ✓ deploy/synthetic-http/environment.test.mjs (12 tests) 1333ms
+   ✓ session boundaries and worker identity > refuses occupied Worker ports and unrelated 401/other-instance readiness  304ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > rolls back cancellation if marking deletion fails and preserves the uploaded bytes
+evidence deletion incomplete Error: D1_ERROR: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at Module.DELETE (/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/app/api/evidence/route.ts:128:22)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/lib/evidence-concurrency.test.ts:170:15
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20 {
+  [cause]: Error: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+      at D1DatabaseSessionAlwaysPrimary._sendOrThrow (cloudflare-internal:d1-api:189:24)
+      at async cloudflare-internal:d1-api:137:19
+      at async #fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4923:18)
+      at async ProxyServer.fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4823:14) {
+    [cause]: undefined
+  }
+}
+
+ ✓ deploy/synthetic-http/regional-demo.test.mjs (14 tests) 1530ms
+ ✓ lib/evidence-concurrency.test.ts (4 tests) 1263ms
+ ✓ lib/server-schema.test.ts (4 tests) 2144ms
+   ✓ persisted local schema upgrades > upgrades a journal-free old database without losing drafts, records or file bytes  905ms
+   ✓ persisted local schema upgrades > adopts a fresh runtime-created database so later explicit migrations are harmless  439ms
+   ✓ persisted local schema upgrades > finishes a partial upgrade and preserves existing revisions and journal entries  412ms
+   ✓ persisted local schema upgrades > leaves production schemas to explicit migrations and can reopen a migrated database locally  387ms
+ ✓ lib/material-lifecycle-review.test.ts (5 tests) 2558ms
+   ✓ independent material lifecycle review regressions > independent: cancellation captures a job attached before deletion transaction starts  597ms
+   ✓ independent material lifecycle review regressions > independent: archival during submission cancels the late job and keeps analysis inaccessible  478ms
+   ✓ independent material lifecycle review regressions > independent: foreign deletion leaves owner records and original bytes intact  603ms
+   ✓ independent material lifecycle review regressions > independent: offline cache cleanup is reported while original and analysis deletion finish  619ms
+ ✓ lib/material-fact-cleanup.test.ts (9 tests) 3670ms
+   ✓ durable cancellation after case fact invalidation > retries a timed-out cancellation on the next owned case request after the fact row is gone  615ms
+   ✓ durable cancellation after case fact invalidation > preserves active work for a company/status no-op and an ordinary case step change  408ms
+   ✓ durable cancellation after case fact invalidation > does not drain another owner or another case even when this request has a pending job  429ms
+   ✓ durable cancellation after case fact invalidation > journals replacements but a pending old job cannot cancel the newer active job  314ms
+   ✓ durable cancellation after case fact invalidation > bounds retries and stops at the first unavailable service without dropping any queued IDs  475ms
+   ✓ durable cancellation after case fact invalidation > ignores local starting claims and invalid IDs while deletion still clears malformed old state  388ms
+   ✓ durable cancellation after case fact invalidation > uses identical local and explicit migration statements and upgrades the old 0004 schema safely  479ms
+ ✓ lib/material-analysis.test.ts (9 tests) 4716ms
+   ✓ material extraction boundaries and persisted ownership > uploads exact bytes, deduplicates starts, persists grounded fields and real public citations, and protects review revisions  783ms
+   ✓ material extraction boundaries and persisted ownership > rejects cross-user reads, starts and edits without service calls or state changes  609ms
+   ✓ material extraction boundaries and persisted ownership > preserves the original through service failure and recovers only through explicit retry  654ms
+   ✓ material extraction boundaries and persisted ownership > rejects changed original bytes before sending a job  391ms
+   ✓ material extraction boundaries and persisted ownership > does not revive results when a file is deleted while the provider returns  548ms
+   ✓ material extraction boundaries and persisted ownership > blocks archived case access and unsupported formats  388ms
+   ✓ material extraction boundaries and persisted ownership > cancels a job whose ID arrives only after the original was deleted  473ms
+   ✓ material extraction boundaries and persisted ownership > turns expired/unknown provider jobs into visible retryable failures  628ms
+ ✓ lib/material-fact-store.test.ts (27 tests) 16519ms
+   ✓ material facts API and transactional persistence > keeps extraction as candidates, binds actor to authentication, and persists raw provenance  663ms
+   ✓ material facts API and transactional persistence > persists empty extraction diagnostics without authorizing totals  571ms
+   ✓ material facts API and transactional persistence > persists the original amount span and exact normalization separately  561ms
+   ✓ material facts API and transactional persistence > binds cropped group quotes to the source before offering personal totals  622ms
+   ✓ material facts API and transactional persistence > keeps a source approximate amount non-exact when the model omits the qualifier  607ms
+   ✓ material facts API and transactional persistence > does not suggest a total from a cropped monetary token: 18000元 as 8000元  540ms
+   ✓ material facts API and transactional persistence > does not suggest a total from a cropped monetary token: 80000元 as 0000元  544ms
+   ✓ material facts API and transactional persistence > does not suggest a total from a cropped monetary token: 1000元/月 as 1000元  536ms
+   ✓ material facts API and transactional persistence > persists failed cleanup after completing a fact job and retries on the next owned read  556ms
+   ✓ material facts API and transactional persistence > requires explicit totals and commits integer arithmetic plus receipt in D1  752ms
+   ✓ material facts API and transactional persistence > does not produce a calculation receipt when the final SQL loses generation CAS  731ms
+   ✓ material facts API and transactional persistence > preserves exact cents for a negative sub-yuan difference  758ms
+   ✓ material facts API and transactional persistence > accepts explicit zero and rejects blank totals without modifying confirmation  798ms
+   ✓ material facts API and transactional persistence > invalidates confirmations from the first upload intent and blocks omitted new sources  795ms
+   ✓ material facts API and transactional persistence > clears derived private text at deletion and rejects late stale actions  607ms
+   ✓ material facts API and transactional persistence > makes archive/restore and company changes invalidate earlier authorizations  880ms
+   ✓ material facts API and transactional persistence > captures and cancels a fact job on case invalidation, but preserves a job on no-op changes  759ms
+   ✓ material facts API and transactional persistence > rejects stale concurrent revisions without a second write  566ms
+   ✓ material facts API and transactional persistence > cancels a job started while another upload changes the generation  465ms
+   ✓ material facts API and transactional persistence > keeps a late unattached job retryable when its first cancellation fails  497ms
+   ✓ material facts API and transactional persistence > claims re-extraction before a delayed service call and blocks concurrent calculation  824ms
+   ✓ material facts API and transactional persistence > expires an interrupted starting claim without querying a fabricated remote job  366ms
+   ✓ material facts API and transactional persistence > retains a failed job as retryable state without fabricating candidates  436ms
+   ✓ material facts API and transactional persistence > invalidates earlier confirmations even when a re-extraction cannot start  754ms
+   ✓ material facts API and transactional persistence > keeps malformed original model output for review while the source stays unresolved  481ms
+   ✓ material facts API and transactional persistence > preserves incomplete model output without accepting even syntactically valid candidates  484ms
+   ✓ material facts API and transactional persistence > blocks dispatch for malformed stored original blocks and rejects client-owned state  364ms
+
+ Test Files  23 passed (23)
+      Tests  387 passed (387)
+   Start at  16:35:21
+   Duration  17.45s (transform 1.09s, setup 0ms, collect 4.85s, tests 36.04s, environment 2ms, prepare 1.97s)
+
+
+> anxin-work-rights@1.0.0 build
+> vinext build
+
+
+  vinext build  (Vite 8.3.0)
+
+(node:5448) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[1/5] analyze client references...
+transforming...
+✓ 275 modules transformed.
+rendering chunks...
+✓ built in 313ms
+[2/5] analyze server references...
+transforming...
+✓ 190 modules transformed.
+rendering chunks...
+✓ built in 170ms
+[3/5] build rsc environment...
+transforming...
+✓ 266 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 347ms
+[4/5] build client environment...
+transforming...
+✓ 1699 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 662ms
+[5/5] build ssr environment...
+transforming...
+✓ 194 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 434ms
+[0m
+  Route (app)
+  ┌ ƒ /
+  ├ λ /api/bootstrap
+  ├ λ /api/cases
+  ├ λ /api/cases/:id/facts
+  ├ λ /api/chat
+  ├ λ /api/documents
+  ├ λ /api/evidence
+  ├ λ /api/evidence/:id/analysis
+  ├ λ /api/evidence/:id/download
+  ├ λ /api/knowledge
+  └ λ /api/synthetic-ready
+
+  λ API  ƒ Dynamic
+
+  Build complete. Run `vinext start` to start the production server.
+
+
+> anxin-work-rights@1.0.0 data:check
+> python3 -B scripts/public-data.py verify && python3 -B -m unittest discover -s scripts/tests -p test_public_data.py
+
+{
+  "status": "PASS",
+  "data_fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a",
+  "counts": {
+    "sources": 12,
+    "source_paragraphs": 1453,
+    "cases": 14,
+    "cases_by_topic": {
+      "employment_relationship": 8,
+      "wage_arrears": 8
+    },
+    "laws": 8,
+    "selected_provisions": 54,
+    "field_citations": 620,
+    "evidence_descriptions": 22,
+    "original_case_exhibits": 0,
+    "linked_rule_citations": 10,
+    "unlinked_rule_citations": 9,
+    "cases_with_undisclosed_region": 14,
+    "cases_with_undisclosed_decision_date": 14
+  }
+}
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 1.427s
+
+OK
+
+> anxin-work-rights@1.0.0 data:runtime:check
+> python3 -B scripts/build-public-index.py --check
+
+{"status": "PASS", "fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a", "bytes": 232203, "checkOnly": true}
+
+> anxin-work-rights@1.0.0 test:materials
+> node --test scripts/fact-jobs.test.mjs scripts/material-runner.test.mjs scripts/material-service.test.mjs scripts/material-ocr-linux.test.mjs
+
+✔ service selects the bounded runtime and only forwards an explicit loopback port (3.042833ms)
+▶ Qwen preflight requires normal measurable memory before spawning
+  ✔ 2 (0.257ms)
+  ✔ 4 (0.119584ms)
+  ✔ 1 (0.08025ms)
+  ✔ 0 (0.082084ms)
+  ✔ undefined (0.104792ms)
+✔ Qwen preflight requires normal measurable memory before spawning (1.563958ms)
+✔ cancellation during preflight never spawns a late model (0.167583ms)
+✔ external critical guard covers loading, escalates after 3 seconds, and waits for close (0.750417ms)
+✔ warning must remain continuous for 10 seconds and normal pressure resets it (0.6265ms)
+✔ swap guard uses pre-spawn baseline and stops only above 4 GiB growth (0.285833ms)
+✔ lost monitor fails closed even before any model telemetry (0.263167ms)
+✔ an in-flight memory sample cannot signal a child after successful exit (0.210125ms)
+✔ absolute 600-second timeout also bounds the remote backend (0.246916ms)
+✔ raw unfinished answers survive and a nonzero exit cannot authorize stop (0.588875ms)
+✔ UTF-8 split across pipe chunks preserves the exact raw Chinese answer (0.369333ms)
+✔ decoded Chinese output still obeys the byte limit instead of a character limit (0.915375ms)
+✔ output limit terminates with the same grace period and never exposes stderr (0.648292ms)
+✔ a missing executable rejects only after close and releases queue ownership (13.940292ms)
+✔ queue cancel and close hold ownership until the process actually closes (0.618041ms)
+✔ real child ignoring SIGTERM exits before cancellation permits the next process (3245.230416ms)
+✔ fact queue rejects caller-controlled backend and preserves rule candidates (1.940666ms)
+✔ bounded queue cancellation discards late results and unblocks shutdown (0.265ms)
+✔ real loopback fact HTTP requires token, blocks browser and arbitrary model config (23.6035ms)
+✔ TSV preserves page references, normalised left-top boxes, confidence and recognised text (4.068875ms)
+✔ TSV rejects ungrounded coordinates, missing dimensions, control text and oversized pages (0.392916ms)
+✔ image preflight checks PNG/JPEG dimensions before decoding (0.24625ms)
+✔ PDF preflight rejects encryption, page truncation and a large later page before rendering (0.662042ms)
+✔ private executable/language/library configuration is passed only to Tesseract (4.128875ms)
+✔ missing Chinese language/tool capabilities fail explicitly while TXT remains advertised (0.296125ms)
+✔ all PDF pages retain page IDs, bounded rendering arguments and citations; over-limit PDF never renders (2.800125ms)
+✔ PDF password errors and OCR timeouts expose stable errors, not subprocess paths or stderr (1.325083ms)
+✔ aborting a direct OCR child kills and settles it before caller cleanup (307.669167ms)
+✔ a missing direct executable closes and rejects without hanging startup (1.218666ms)
+﹣ real Linux Tesseract/Poppler recognises explicit synthetic PNG/PDF fixtures without model inference (0.1035ms) # Tesseract is the supported Linux runtime; macOS real OCR uses Apple Vision and is tested in material-service.test.mjs.
+✔ runner waits for close and records failure after parse error (3206.840333ms)
+✔ runner waits for close and records failure after stdout-write error (215.742666ms)
+✔ runner waits for close and records failure after stderr-write error (218.397083ms)
+✔ runner preserves stdout and stderr UTF-8 across byte boundaries (215.311375ms)
+✔ all routes require the caller token, reject browser origins and client parameters (35.807833ms)
+✔ TXT jobs run actual UTF-8 extraction and explicit rules with verbatim field citations (426.184ms)
+✔ model fields require allowed keys, existing blocks and exact original text (1.530375ms)
+✔ recorded real Apple HTTP misclassifications are rejected without adding or changing model fields (1.515333ms)
+✔ semantic model rejections are visible in job warnings and cannot be filled by rules (112.368458ms)
+✔ Ollama calls reject redirects and a model transport failure cannot become rule success (113.208917ms)
+✔ recorded synthetic Apple candidates can lose display ID prefixes while exact citations stay mandatory (0.648708ms)
+✔ temporary cleanup failures remain visible without hanging cancellation or the next job (120.161042ms)
+✔ an occupied listen port removes the newly created private service directory (1.871542ms)
+✔ job capacity is bounded and a restart cannot expose prior in-memory jobs (3315.25025ms)
+✔ deleting a ready job clears cached content and DELETE is idempotent (106.066792ms)
+✔ at most two jobs wait and deletion cancels running/queued OCR without reviving results (2881.13125ms)
+✔ real platform OCR recognises synthetic PNG/PDF, preserves bboxes, rejects broken images and six-page PDFs (3400.556791ms)
+ℹ tests 52
+ℹ suites 0
+ℹ pass 51
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 10694.734042
+
+> anxin-work-rights@1.0.0 test:fact-runtime
+> python3 -B scripts/fact_memory_runtime_test.py && python3 -B scripts/fact_api_transport_test.py && node --test scripts/fact-runtime-runner.test.mjs
+
+...........
+----------------------------------------------------------------------
+Ran 11 tests in 0.002s
+
+OK
+................
+----------------------------------------------------------------------
+Ran 16 tests in 0.105s
+
+OK
+✔ API runner preserves earlier response and rejects late success after deadline (176.081375ms)
+✔ API runner preserves earlier response and rejects late success after cancel (165.242084ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 473.959083

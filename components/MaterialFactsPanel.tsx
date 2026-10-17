@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Calculator, Check, Info, LoaderCircle, RefreshCw, ScanText, Undo2 } from 'lucide-react';
 import type { AmountField, Assertion, CandidateKind, FactAction, FactScope, MaterialFactsResponse, Qualifier } from '@/lib/material-fact-types';
-import { getCandidateRepresentation, isV2Candidate } from '@/lib/material-facts-v2';
+import { getCandidateRepresentation, getExtractionCoverage, isV2Candidate, isV3Candidate } from '@/lib/material-facts-v3';
 import './MaterialFactsPanel.css';
 
 const kinds: Record<CandidateKind, string> = { worker: '劳动者', employer: '用人单位', period: '期间', monthly_rate: '月工资标准', due_total: '应付总额候选', paid_total: '已付总额候选', arrears: '欠款表述', award: '裁判 / 命令支付', payment: '单笔付款', other_amount: '其他金额' };
@@ -153,24 +153,30 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
           {data.sources.map((source) => {
             const material = data.state.materials.find((item) => item.evidenceId === source.id);
             const candidates = data.candidates.filter((item) => item.evidenceId === source.id);
+            const coverage = material?.status === 'extracted' ? getExtractionCoverage(material) : null;
+            const legacyEmpty = material?.status === 'extracted' && !coverage && candidates.length === 0;
+            const extractionLabel = legacyEmpty ? '旧版提取无可用候选 · 需核对原文' : coverage?.status === 'empty' ? '未提取到候选 · 需核对原文' : coverage?.status === 'none_accepted' ? '候选均未通过核验 · 需核对原文' : coverage?.status === 'possible_missing' ? `${candidates.length} 条候选 · 可能有遗漏` : `${candidates.length} 条候选 · 待核对`;
             return <article className="fact-source-card" key={source.id}>
-              <div className="fact-source-heading"><div><strong>{source.name}</strong><span>{material?.status === 'excluded' ? '已说明与本次核算无关' : material?.status === 'extracted' ? `${candidates.length} 条候选 · ${material.backend ?? '来源已记录'}` : source.ready ? '原文已识别 · 待提取候选' : '原文尚未就绪'}</span></div><button className="material-text-button" onClick={() => onOpenSource(source.id)}>识别 / 对照原文</button></div>
+              <div className="fact-source-heading"><div><strong>{source.name}</strong><span>{material?.status === 'excluded' ? '已说明与本次核算无关' : material?.status === 'extracted' ? extractionLabel : source.ready ? '原文已识别 · 待提取候选' : '原文尚未就绪'}</span></div><button className="material-text-button" onClick={() => onOpenSource(source.id)}>识别 / 对照原文</button></div>
               <p className="fact-source-meta">原文件 SHA-256：<code>{source.sha256 ? source.sha256.slice(0, 16) : '上传尚未完成'}</code> · 原文版本 {source.analysisRevision}</p>
+              {coverage && coverage.status !== 'no_signal' && <div className="fact-conflict-note" role="status"><strong>{coverage.status === 'empty' ? '提取结果为空' : coverage.status === 'none_accepted' ? '候选暂不可用' : '请检查可能遗漏的信息'}</strong><p>{coverage.message}</p><p>请对照原文补充核实，必要时重新提取。提示不会补写事实或确认金额。</p>{coverage.signals.some(signal => !signal.covered) && <details><summary>查看待核对的原文线索</summary><ul>{coverage.signals.filter(signal => !signal.covered).slice(0, 12).map((signal, index) => <li key={`${signal.blockId}-${signal.start}-${index}`}>{signal.text}</li>)}</ul></details>}</div>}
+              {legacyEmpty && <div className="fact-conflict-note" role="status"><strong>旧版结果没有可用候选</strong><p>这不能证明材料中没有工资事实。请对照原文核实并重新提取；旧记录保持原样，未补写或确认金额。</p></div>}
               {material?.status === 'excluded' && <p className="fact-exclusion"><strong>排除依据：</strong>{material.exclusionReason}</p>}
               {candidates.map((candidate) => { const representation = getCandidateRepresentation(candidate); return <div className="fact-candidate" key={candidate.id}>
                 <div className="fact-candidate-heading"><strong>{representation ? meanings[representation.meaning] : kinds[candidate.kind]}：{candidate.value}</strong><span>{assertions[candidate.assertion]}{!representation && ` · ${qualifiers[candidate.qualifier]}`}</span></div>
                 {representation ? <>
-                  <p><strong>{scopes[representation.scope]}</strong>：{representation.subject ?? '原文未明确对应对象'} · 工资归属期间：{representation.period ?? '未明确，不推断'}</p>
+                  <p><strong>{scopes[representation.scope]}</strong>：{representation.subject ?? '原文未明确对应对象'}{representation.kind === 'money' ? ` · 工资归属期间：${representation.period ?? '未明确，不推断'}` : ' · 该日期对应的劳动者或受益群体'}</p>
                   <p>{completeness[representation.completeness]}{representation.rateUnit ? ` · ${rateUnits[representation.rateUnit]}` : ''}</p>
                   {representation.scope === 'group' && <p className="fact-conflict-note">这是群体范围的表述，不能将全部金额归给班组代表或某一个人。</p>}
                   {representation.meaning === 'contract_signing' && <p className="material-help">签约时间不证明实际工作或工资所属期间。</p>}
                 </> : <p>旧版候选：对象 {candidate.subject ?? '未明确'} · 期间 {candidate.period ?? '未明确'}。尚未区分个人与群体、完整与部分；请重新提取或对照原文核实。</p>}
-                {isV2Candidate(candidate) && candidate.reviewIssues.length > 0 && <div className="fact-conflict-note"><strong>需要进一步核对</strong><ul>{candidate.reviewIssues.map((issue, index) => <li key={`${issue.code}-${index}`}>{issue.message}</li>)}</ul></div>}
+                {(isV3Candidate(candidate) || isV2Candidate(candidate)) && candidate.reviewIssues.length > 0 && <div className="fact-conflict-note"><strong>需要进一步核对</strong><ul>{candidate.reviewIssues.map((issue, index) => <li key={`${issue.code}-${index}`}>{issue.message}</li>)}</ul></div>}
+                {isV3Candidate(candidate) && representation?.kind === 'money' && <p className={candidate.normalization.status === 'exact' ? 'material-help' : 'fact-conflict-note'}>{candidate.normalization.status === 'exact' ? `原文金额片段：${candidate.normalization.matchedText}；规范金额：${candidate.normalization.amount} 元，仍待核实。` : `未生成精确金额：${candidate.normalization.reason.replaceAll('value', '候选金额')}。原文已保留，不按 0 元处理。`}</p>}
                 <blockquote>{candidate.quote}</blockquote>
                 <p className="fact-source-meta">第 {candidate.page} 页 · 原文块 {candidate.blockId} · 字符位置 {candidate.start}–{candidate.end}{candidate.amount ? ` · 金额规范值 ${candidate.amount} 元` : ''}</p>
                 <label className="fact-check"><input type="checkbox" checked={reviewed[candidate.id] ?? false} disabled={disabled} onChange={(event) => { dirty.current = true; setReviewed((current) => ({ ...current, [candidate.id]: event.target.checked })); }} />我已阅读这条候选及其原文，理解其金额类型、主张身份与所属范围</label>
               </div>; })}
-              {material?.status === 'extracted' && !candidates.length && <p className="material-help">该材料没有通过字面与格式校验的候选。请对照原文判断是否缺失所需信息。</p>}
+
               {Boolean(material?.rejected.length) && <details className="fact-rejected"><summary>{material!.rejected.length} 条候选未通过校验</summary><ul>{material!.rejected.map((item) => <li key={item.index}>第 {item.index + 1} 条：{item.reason}</li>)}</ul></details>}
               {material?.raw !== null && material?.raw !== undefined && <details className="fact-raw"><summary>查看本次提取的原始回答</summary><p>处理方式：{material.backend}{material.model ? ` · ${material.model}` : ''}。字面校验通过仅说明引用位置可对照，仍需判断语义与材料真实性。</p><pre>{material.raw}</pre></details>}
               <div className="fact-source-actions"><button className="button button-secondary" disabled={disabled || running || !source.ready || !data.configured} onClick={() => void submit({ action: 'extract', evidenceId: source.id })}><ScanText size={16} />{material ? '重新提取候选' : '提取候选'}</button></div>

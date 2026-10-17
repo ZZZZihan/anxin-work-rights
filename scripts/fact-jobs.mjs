@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { buildExtractionMessages, extractRuleCandidates, validateFactSource } from '../lib/material-facts-v2.ts';
+import { buildExtractionMessages, extractRuleCandidates, validateFactSource } from '../lib/material-facts-v3.ts';
 
 const ttl = 5 * 60_000;
 const fail = (message, status = 400) => Object.assign(new Error(message), { status, code: 'FACT_JOB_FAILED' });

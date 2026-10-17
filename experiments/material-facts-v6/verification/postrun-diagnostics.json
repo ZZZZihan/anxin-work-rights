@@ -1,0 +1,230 @@
+{
+  "synthetic": true,
+  "not_model_evidence": true,
+  "training": false,
+  "parsing": [
+    {
+      "input": "工资共计8000元",
+      "rawValue": "工资共计8000元",
+      "status": "exact",
+      "amount": "8000.00",
+      "matchedText": "8000元",
+      "span": {
+        "start": 4,
+        "end": 9
+      },
+      "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+    },
+    {
+      "input": "税前28,000元",
+      "rawValue": "税前28,000元",
+      "status": "exact",
+      "amount": "28000.00",
+      "matchedText": "28,000元",
+      "span": {
+        "start": 2,
+        "end": 9
+      },
+      "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+    },
+    {
+      "input": "2024年7月工资费用8000元",
+      "rawValue": "2024年7月工资费用8000元",
+      "status": "exact",
+      "amount": "8000.00",
+      "matchedText": "8000元",
+      "span": {
+        "start": 11,
+        "end": 16
+      },
+      "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+    },
+    {
+      "input": "约8000元",
+      "rawValue": "约8000元",
+      "status": "approximate",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "原文是概数或金额界限，不转换为精确金额。"
+    },
+    {
+      "input": "8000至9000元",
+      "rawValue": "8000至9000元",
+      "status": "range",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "原文是金额区间，不选择其中一个端点。"
+    },
+    {
+      "input": "5000元另付500",
+      "rawValue": "5000元另付500",
+      "status": "multiple_amounts",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "金额原文还含无法解释为日期、计数或倍数的数字，可能有省略币种的另一笔金额。"
+    },
+    {
+      "input": "X元",
+      "rawValue": "X元",
+      "status": "masked",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "金额被遮盖或未明确，保留原文且不转换为零。"
+    },
+    {
+      "input": "0元",
+      "rawValue": "0元",
+      "status": "exact",
+      "amount": "0.00",
+      "matchedText": "0元",
+      "span": {
+        "start": 0,
+        "end": 2
+      },
+      "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+    },
+    {
+      "input": "二万三千零六十四元五角一分",
+      "rawValue": "二万三千零六十四元五角一分",
+      "status": "multiple_amounts",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "金额原文还含无法解释为日期、计数或倍数的数字，可能有省略币种的另一笔金额。"
+    },
+    {
+      "input": "人民币四万元",
+      "rawValue": "人民币四万元",
+      "status": "unsupported",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "金额写法、精度或数值范围不支持精确解析。"
+    },
+    {
+      "input": "四万元",
+      "rawValue": "四万元",
+      "status": "unsupported",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "金额写法、精度或数值范围不支持精确解析。"
+    },
+    {
+      "input": "约115万元工资",
+      "rawValue": "约115万元工资",
+      "status": "approximate",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "原文是概数或金额界限，不转换为精确金额。"
+    },
+    {
+      "input": "约115万元",
+      "rawValue": "约115万元",
+      "status": "approximate",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "原文是概数或金额界限，不转换为精确金额。"
+    }
+  ],
+  "local_diagnostics": [
+    {
+      "value": "工资共计8000元",
+      "amount": "8000.00",
+      "reviewIssues": [],
+      "normalization": {
+        "rawValue": "工资共计8000元",
+        "status": "exact",
+        "amount": "8000.00",
+        "matchedText": "8000元",
+        "span": {
+          "start": 4,
+          "end": 9
+        },
+        "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+      }
+    },
+    {
+      "value": "2024年2月1日至2024年2月28日",
+      "amount": null,
+      "reviewIssues": [],
+      "normalization": {
+        "rawValue": "2024年2月1日至2024年2月28日",
+        "status": "not_money",
+        "amount": null,
+        "matchedText": null,
+        "span": null,
+        "reason": "日期保留原文精度与边界，不作为金额解析。"
+      }
+    },
+    {
+      "value": "9000元",
+      "amount": null,
+      "reviewIssues": [],
+      "normalization": {
+        "rawValue": "9000元",
+        "status": "approximate",
+        "amount": null,
+        "matchedText": null,
+        "span": null,
+        "reason": "金额在原文中直接附着概数或界限修饰词；不能因 value 裁去修饰词就将其视为精确金额。"
+      }
+    }
+  ],
+  "empty": {
+    "heuristic": true,
+    "status": "empty",
+    "message": "本次返回空候选。启发式覆盖检查不能据此认定材料没有工资事实，请核对原文；未自动补取或确认。",
+    "rawCount": 0,
+    "acceptedCount": 0,
+    "rejectedCount": 0,
+    "signals": [
+      {
+        "kind": "money",
+        "blockId": "b1",
+        "text": "8000元",
+        "start": 9,
+        "end": 14,
+        "covered": false
+      },
+      {
+        "kind": "money",
+        "blockId": "b1",
+        "text": "9000元",
+        "start": 62,
+        "end": 67,
+        "covered": false
+      },
+      {
+        "kind": "date",
+        "blockId": "b1",
+        "text": "2024年1月1日",
+        "start": 15,
+        "end": 24,
+        "covered": false
+      },
+      {
+        "kind": "date",
+        "blockId": "b1",
+        "text": "2024年2月1日",
+        "start": 29,
+        "end": 38,
+        "covered": false
+      },
+      {
+        "kind": "date",
+        "blockId": "b1",
+        "text": "2024年2月28日",
+        "start": 39,
+        "end": 49,
+        "covered": false
+      }
+    ]
+  }
+}

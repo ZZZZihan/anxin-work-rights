@@ -103,8 +103,11 @@ try {
   assert.equal(current.fields.due.status, 'unknown');
   assert.deepEqual(current.fields.due.values, []);
   assert.deepEqual(new Set(current.candidates.filter(c => c.representation?.meaning === 'due_total').map(c => c.amount)), new Set(['1000.00', '1200.00']));
-  assert(current.candidates.every(c => c.schemaVersion === 2 && c.representation.scope === 'unknown'));
-  assert.equal(JSON.parse(current.state.materials[0].raw).schemaVersion, 2);
+  assert(current.candidates.every(c => c.schemaVersion === 3 && c.representation.scope === 'unknown'));
+  assert.equal(JSON.parse(current.state.materials[0].raw).schemaVersion, 3);
+  assert.equal(current.state.materials[0].coverage.heuristic, true);
+  assert(current.state.materials[0].coverage.message.length > 0);
+  assert(current.candidates.filter(c=>c.representation.kind==='money').every(c=>c.normalization.rawValue===c.value));
   assert.equal(current.fields.paid.status, 'unknown');
   observe('real_rules_extract_candidates_raw_unicode_locations_without_confirmation', { candidateCount: current.candidates.length, backend: current.state.materials[0].backend, sourceSha256: current.sources[0].sha256, originalBytesPreserved: true, syntheticInputs: true });
 

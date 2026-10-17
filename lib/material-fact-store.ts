@@ -1,8 +1,10 @@
 import type { RequestUser } from './auth';
 import { getDatabase } from './server';
 import { callMaterialService, materialServiceConfigured } from './material-service-client';
+import { enqueueMaterialFactCleanup, retryMaterialFactCleanup } from './material-fact-cleanup';
+import { reviewFactsAgainstSources } from './material-fact-source-review';
 import { validateMaterialResult } from './material-validation';
-import { applyFactAction, buildFactView, emptyFactState, ingestCandidates, prepareCalculation, synchronizeFacts, validateCandidateOutput, validateFactSource } from './material-facts-v2';
+import { applyFactAction, buildFactView, emptyFactState, ingestCandidates, prepareCalculation, synchronizeFacts, validateCandidateOutput, validateFactSource } from './material-facts-v3';
 import type { FactAction, FactSource, FactState, MaterialFactsResponse } from './material-fact-types';
 
 type SessionRow = { case_id: string; user_id: string; revision: number; state_json: string };
@@ -49,7 +51,8 @@ async function snapshot(user: RequestUser, id: string): Promise<Snapshot> {
     try { state = JSON.parse(row.state_json) as FactState; }
     catch { throw new FactStoreError('事实会话无法读取，请保留当前页面并联系维护者。', 503); }
   }
-  return { revision: row?.revision ?? 0, generation: owner.generation, state, sources: sourcesFromRows(result[2].results as unknown as SourceRow[]) };
+  const sources = sourcesFromRows(result[2].results as unknown as SourceRow[]);
+  return { revision: row?.revision ?? 0, generation: owner.generation, state: reviewFactsAgainstSources(state, sources), sources };
 }
 
 async function save(user: RequestUser, id: string, current: Snapshot, state: FactState): Promise<boolean> {
@@ -77,6 +80,7 @@ async function settings(): Promise<{ backend: string; configured: boolean }> {
 }
 
 async function response(current: Snapshot, stale = false): Promise<MaterialFactsResponse> {
+  current = { ...current, state: reviewFactsAgainstSources(current.state, current.sources) };
   return { revision: current.revision, generation: current.generation, stale, state: current.state,
     ...buildFactView(current.state, current.sources), sources: current.sources.map((source) => ({ id: source.id, name: source.name, sha256: source.sha256, analysisRevision: source.analysisRevision, ready: source.ready })), ...await settings() };
 }
@@ -87,16 +91,19 @@ async function synchronized(user: RequestUser, id: string): Promise<Snapshot> {
     const state = synchronizeFacts(current.state, current.generation, current.sources);
     if (current.revision && JSON.stringify(state) === JSON.stringify(current.state)) return current;
     if (await save(user, id, current, state)) {
-      if (current.state.job && !state.job) await cancelJob(current.state.job.id);
+      if (current.state.job && !state.job) await cancelJob(user, id, current.state.job.id);
       return { ...current, state, revision: current.revision + 1 };
     }
   }
   throw conflict();
 }
 
-async function cancelJob(id: string) {
-  if (id.startsWith('starting_')) return;
-  await callMaterialService(`/fact-jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => undefined);
+async function cancelJob(user: RequestUser, caseId: string, jobId: string) {
+  if (jobId.startsWith('starting_')) return;
+  // The DB trigger already captured replaced jobs. Explicit enqueue also covers
+  // a service-created job whose late ID lost the generation/revision CAS.
+  await enqueueMaterialFactCleanup(user.userId, caseId, jobId);
+  await retryMaterialFactCleanup(user.userId, caseId);
 }
 
 async function poll(user: RequestUser, id: string, current: Snapshot): Promise<Snapshot> {
@@ -127,24 +134,26 @@ async function poll(user: RequestUser, id: string, current: Snapshot): Promise<S
     if (!source) throw conflict();
     const batch = validateCandidateOutput(result.raw, source);
     state = ingestCandidates(current.state, source, batch, result.backend, user.userId, now(), result.model as string | null);
-    state = { ...state, job: null };
+    state = reviewFactsAgainstSources({ ...state, job: null }, current.sources);
   } catch (error) {
     state = { ...current.state, job: { ...active, ...failedOutput, status: 'failed', error: error instanceof Error ? error.message.slice(0, 500) : '候选提取服务暂不可用，请重试。' } };
   }
   // Matching revision + generation also binds the same job; a late completion
   // cannot overwrite a retry, another user action, or a changed material list.
   if (!await save(user, id, current, state)) throw conflict();
-  await cancelJob(active.id);
+  await cancelJob(user, id, active.id);
   return { ...current, state, revision: current.revision + 1 };
 }
 
 export async function readMaterialFacts(user: RequestUser, id: string): Promise<MaterialFactsResponse> {
   const current = await synchronized(user, id);
+  await retryMaterialFactCleanup(user.userId, id);
   return response(await poll(user, id, current));
 }
 
 export async function actOnMaterialFacts(user: RequestUser, id: string, revision: number, generation: number, action: FactAction): Promise<MaterialFactsResponse> {
   const current = await snapshot(user, id);
+  await retryMaterialFactCleanup(user.userId, id);
   if (current.revision !== revision || current.generation !== generation || current.state.generation !== generation) throw conflict();
   if (!revision) throw conflict();
   const at = now();
@@ -162,7 +171,7 @@ export async function actOnMaterialFacts(user: RequestUser, id: string, revision
     state = { ...state, job: { id: `starting_${Date.now()}_${crypto.randomUUID()}`, evidenceId: source.id, generation, status: 'running', error: null } };
     if (!await save(user, id, current, state)) throw conflict();
     const claimed: Snapshot = { ...current, state, revision: current.revision + 1 };
-    if (current.state.job) await cancelJob(current.state.job.id);
+    if (current.state.job) await cancelJob(user, id, current.state.job.id);
     let jobId: string;
     try {
       const job = await callMaterialService('/fact-jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source }) });
@@ -176,7 +185,7 @@ export async function actOnMaterialFacts(user: RequestUser, id: string, revision
       return response({ ...claimed, state, revision: claimed.revision + 1 });
     }
     state = { ...state, job: { id: jobId, evidenceId: source.id, generation, status: 'running', error: null } };
-    if (!await save(user, id, claimed, state)) { await cancelJob(jobId); throw conflict(); }
+    if (!await save(user, id, claimed, state)) { await cancelJob(user, id, jobId); throw conflict(); }
     return response({ ...claimed, state, revision: claimed.revision + 1 });
   } else if (action.action === 'calculate') {
     let plan;
@@ -196,7 +205,7 @@ export async function actOnMaterialFacts(user: RequestUser, id: string, revision
     return response(await synchronized(user, id));
   } else {
     if (!await save(user, id, current, state)) throw conflict();
-    if (current.state.job && !state.job) await cancelJob(current.state.job.id);
+    if (current.state.job && !state.job) await cancelJob(user, id, current.state.job.id);
   }
   return response({ ...current, state, revision: current.revision + 1 });
 }
