@@ -1,0 +1,219 @@
+{
+  "source_stage": "initial protocol/controller implementation; rerun after freeze if changed",
+  "checks": [
+    {
+      "check": "valid arithmetic proposal",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "reject underflow",
+      "passed": true,
+      "detail": {
+        "code": "numeric_representation_too_large",
+        "message": "Expanded JSON number is too large",
+        "path": "$"
+      }
+    },
+    {
+      "check": "reject rounded_long_fraction",
+      "passed": true,
+      "detail": {
+        "code": "money_precision",
+        "message": "Money may have at most two decimal places",
+        "path": "$.arguments.due"
+      }
+    },
+    {
+      "check": "reject NaN",
+      "passed": true,
+      "detail": {
+        "code": "nonfinite_number",
+        "message": "Non-standard JSON number is forbidden: NaN",
+        "path": "$"
+      }
+    },
+    {
+      "check": "reject Infinity",
+      "passed": true,
+      "detail": {
+        "code": "nonfinite_number",
+        "message": "Non-standard JSON number is forbidden: Infinity",
+        "path": "$"
+      }
+    },
+    {
+      "check": "reject bool",
+      "passed": true,
+      "detail": {
+        "code": "invalid_money_type",
+        "message": "Money must be a JSON number, not a boolean or string",
+        "path": "$.arguments.due"
+      }
+    },
+    {
+      "check": "reject numeric_string",
+      "passed": true,
+      "detail": {
+        "code": "invalid_money_type",
+        "message": "Money must be a JSON number, not a boolean or string",
+        "path": "$.arguments.due"
+      }
+    },
+    {
+      "check": "reject precision",
+      "passed": true,
+      "detail": {
+        "code": "money_precision",
+        "message": "Money may have at most two decimal places",
+        "path": "$.arguments.due"
+      }
+    },
+    {
+      "check": "reject negative",
+      "passed": true,
+      "detail": {
+        "code": "negative_money",
+        "message": "Due and paid must be nonnegative",
+        "path": "$.arguments.due"
+      }
+    },
+    {
+      "check": "reject large_exponent",
+      "passed": true,
+      "detail": {
+        "code": "numeric_representation_too_large",
+        "message": "Expanded JSON number is too large",
+        "path": "$"
+      }
+    },
+    {
+      "check": "reject duplicate root",
+      "passed": true,
+      "detail": {
+        "code": "duplicate_json_key",
+        "message": "Duplicate JSON key: action",
+        "path": "$"
+      }
+    },
+    {
+      "check": "reject duplicate nested",
+      "passed": true,
+      "detail": {
+        "code": "duplicate_json_key",
+        "message": "Duplicate JSON key: due",
+        "path": "$"
+      }
+    },
+    {
+      "check": "reject prefix",
+      "passed": true,
+      "detail": {
+        "code": "invalid_json",
+        "message": "Invalid JSON (JSONDecodeError)",
+        "path": "$"
+      }
+    },
+    {
+      "check": "reject invalid date",
+      "passed": true,
+      "detail": {
+        "code": "invalid_date",
+        "message": "Date is not a real calendar date",
+        "path": "$.arguments.period_end"
+      }
+    },
+    {
+      "check": "reject reversed period",
+      "passed": true,
+      "detail": {
+        "code": "reversed_period",
+        "message": "Period start must not be after period end",
+        "path": "$.arguments"
+      }
+    },
+    {
+      "check": "invalid trusted state {}",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "invalid trusted state {\"status\": \"TIMEOUT\", \"attempts\": true, \"max_attempts\": 2}",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "invalid trusted state {\"status\": \"TIMEOUT\", \"attempts\": 0, \"max_attempts\": 2}",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "invalid trusted state {\"status\": \"TIMEOUT\", \"attempts\": 3, \"max_attempts\": 2}",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "invalid trusted state {\"status\": \"TIMEOUT\", \"attempts\": 1, \"max_attempts\": 3}",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "invalid trusted state {\"status\": \"TIMEOUT\", \"attempts\": 1, \"max_attempts\": 2, \"extra\": null}",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "terminal preflight bypass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "success exact negative Decimal arithmetic",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "same-session success idempotency",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "changed completed args blocked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "tampered proposal blocked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "snapshot isolation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "no automatic retry",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "two-attempt hard limit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "concurrent in-flight bound",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "malformed tool result not success",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "passed": true,
+  "model_or_api_calls": 0,
+  "source_writes": false
+}

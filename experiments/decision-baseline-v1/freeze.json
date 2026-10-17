@@ -1,0 +1,69 @@
+{
+  "frozen_at": "2026-10-16T09:25:35.198110+00:00",
+  "training": false,
+  "synthetic": true,
+  "counts": {
+    "train": {
+      "cases": 24,
+      "groups": 12,
+      "actions": {
+        "ask_user": 11,
+        "call_tool": 11,
+        "report_tool_failure": 2
+      }
+    },
+    "dev": {
+      "cases": 12,
+      "groups": 6,
+      "actions": {
+        "ask_user": 5,
+        "call_tool": 6,
+        "report_tool_failure": 1
+      }
+    },
+    "test": {
+      "cases": 72,
+      "groups": 36,
+      "actions": {
+        "ask_user": 36,
+        "call_tool": 32,
+        "report_tool_failure": 4
+      }
+    }
+  },
+  "purpose": "Pre-LoRA one-step diagnostic baseline",
+  "test_separation": "Distinct authoring groups; rule implementer excluded test by instruction, not OS sandbox",
+  "sha256": {
+    "run.py": "1f14c31e58a1ca5bcaf372bde745786cc453777381bac3a9ba50c322d31c0848",
+    "rules.py": "29f11e4bee23cffd87a737abb2b38ac84f8c79973352c73b437d43a200caf9ba",
+    "test_evaluation.py": "ab432e632ccfd3f62577a035ee3a3e912d8ebd2bc15c22d400e0fbb46adc3568",
+    "common.py": "4a899d2f3d2f513dd5068de06b3d04b143b64e5652fd8a67381bd9cbfe4284e9",
+    "evaluate.py": "fac0fa90f5a6b8a830399a5d20549f40c89d7ca6a9a8fffea1a029c519341409",
+    "test_rules.py": "2a0e00d9d1e2b5e9ee495f1a75ed5a7012e7bdd14b0f65ca800de06d11b4246a",
+    "prepare.py": "1028417207bbddd610a99b1550cb54927fc585e51170c78681567079b497153f",
+    "prompt.txt": "c5ef5d8c2235e46746b5440971aa7d3ef41819ad56356b39814552e97c9cf979",
+    "CONTRACT.md": "256f8a6fea33eec98cff78e9b31a924a281231539239b1272afe3d0d530edc61",
+    "data/dev.inputs.jsonl": "100f292fe13f6d6a6a90aee7758f64d9a1b8b15b90e1fc0e025de8bb303e77ea",
+    "data/dev.labels.jsonl": "8e80d1e5c9e8bb3ddc2ea2c472d9a142d9fd2509349c576393afedad43bbb5c4",
+    "data/test.inputs.jsonl": "becd06a1671ac789f20180aa13741d49107265d6f63af568c2f1a07658b87f5b",
+    "data/test.labels.jsonl": "53f5156f726987de88c817fa024ac8291a797e0703d33ac63fd246131bbdd3c9",
+    "data/train.inputs.jsonl": "30bb1c538760251d1b3875bfbf34202e8895345996ed62c281987cbf698c0a76",
+    "data/train.labels.jsonl": "ed18ed6d22c8e10adcb35fbdfcc251dda77cce06d18e2c3321d790c32590aa19",
+    "data/train.sft.jsonl": "4cc99a75b31c906062404356744c6aa2824234639b88ec199a1416bc9b3700d7",
+    "provenance/rules-FREEZE.json": "db77d634eca3c1c2ba42d00c81ea9a2c5db00575a94f3be3558b39d40b394f1f"
+  },
+  "comparison": [
+    "frozen_rules",
+    "Qwen3-32B-4bit/no_adapter",
+    "deepseek-v4-pro/nonthinking"
+  ],
+  "scoring": "Exact action+missing+conflicts+question-field coverage+tool arguments; separate question-text review",
+  "primary_unit": "72 test decisions in 36 paired scenario groups; no claim of real-world population accuracy",
+  "no_post_test_tuning": true,
+  "limits": [
+    "All synthetic, agent authored and reviewed",
+    "Same broad task and authoring style across splits",
+    "No live interactive completion, OCR, RAG or legal evaluation",
+    "No LoRA or RL training"
+  ]
+}

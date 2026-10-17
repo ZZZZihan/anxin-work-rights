@@ -1,0 +1,1006 @@
+{
+  "reviewed_at": "2026-10-16T09:27:02.502028+00:00",
+  "reviewer_requested_model": "gpt-6.1-sol",
+  "reviewer_requested_reasoning": "ultra",
+  "runtime_configuration_independently_verified": false,
+  "scope": "108 synthetic labels and inference/scoring preflight; no model/API execution by reviewer",
+  "data_sha256": {
+    "train.inputs.jsonl": "30bb1c538760251d1b3875bfbf34202e8895345996ed62c281987cbf698c0a76",
+    "train.labels.jsonl": "ed18ed6d22c8e10adcb35fbdfcc251dda77cce06d18e2c3321d790c32590aa19",
+    "dev.inputs.jsonl": "100f292fe13f6d6a6a90aee7758f64d9a1b8b15b90e1fc0e025de8bb303e77ea",
+    "dev.labels.jsonl": "8e80d1e5c9e8bb3ddc2ea2c472d9a142d9fd2509349c576393afedad43bbb5c4",
+    "test.inputs.jsonl": "becd06a1671ac789f20180aa13741d49107265d6f63af568c2f1a07658b87f5b",
+    "test.labels.jsonl": "53f5156f726987de88c817fa024ac8291a797e0703d33ac63fd246131bbdd3c9"
+  },
+  "source_sha256": {
+    "common.py": "4a899d2f3d2f513dd5068de06b3d04b143b64e5652fd8a67381bd9cbfe4284e9",
+    "run.py": "1f14c31e58a1ca5bcaf372bde745786cc453777381bac3a9ba50c322d31c0848",
+    "evaluate.py": "fac0fa90f5a6b8a830399a5d20549f40c89d7ca6a9a8fffea1a029c519341409",
+    "test_evaluation.py": "ab432e632ccfd3f62577a035ee3a3e912d8ebd2bc15c22d400e0fbb46adc3568",
+    "prompt.txt": "c5ef5d8c2235e46746b5440971aa7d3ef41819ad56356b39814552e97c9cf979"
+  },
+  "manual_semantic_review_count": 108,
+  "blocking_data_findings": [],
+  "cross_split_group_overlap": [],
+  "cross_split_normalized_exact_duplicates": [],
+  "automated_checks": "108 structures and IDs; 9 existing tests; 6 additional in-memory adversarial probes",
+  "cases": [
+    {
+      "split": "train",
+      "number": 1,
+      "id": "c_d607e902b029",
+      "group_id": "g001",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "两项金额已确认，期间完全未给。"
+    },
+    {
+      "split": "train",
+      "number": 2,
+      "id": "c_800a106f2332",
+      "group_id": "g001",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "明确期间、应发总额和全部实付，可直接计算。"
+    },
+    {
+      "split": "train",
+      "number": 3,
+      "id": "c_b3c74fc5cb07",
+      "group_id": "g002",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "只给月薪，未给两个月确认应发总额。"
+    },
+    {
+      "split": "train",
+      "number": 4,
+      "id": "c_349ac107c921",
+      "group_id": "g002",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "两个月应发另有明确确认，实付零有效。"
+    },
+    {
+      "split": "train",
+      "number": 5,
+      "id": "c_ef7783bedb16",
+      "group_id": "g003",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "唯一转账可能是借款归还，工资归属未知。"
+    },
+    {
+      "split": "train",
+      "number": 6,
+      "id": "c_7d2235f3b3ad",
+      "group_id": "g003",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "工资归属和付款完整性均明确。"
+    },
+    {
+      "split": "train",
+      "number": 7,
+      "id": "c_d39a94e5a83a",
+      "group_id": "g004",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "核过全部渠道后明确实付零。"
+    },
+    {
+      "split": "train",
+      "number": 8,
+      "id": "c_d0caf76769dc",
+      "group_id": "g004",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "未查到账记录，实付不能当零。"
+    },
+    {
+      "split": "train",
+      "number": 9,
+      "id": "c_8adc73f59388",
+      "group_id": "g005",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "合并工资与报销且未拆分，工资总实付未知。"
+    },
+    {
+      "split": "train",
+      "number": 10,
+      "id": "c_e715423a71b1",
+      "group_id": "g005",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "合并款已拆出工资部分，排除报销。"
+    },
+    {
+      "split": "train",
+      "number": 11,
+      "id": "c_553091b9b7c2",
+      "group_id": "g006",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "主管与财务的同段应发未协调。"
+    },
+    {
+      "split": "train",
+      "number": 12,
+      "id": "c_8742b41b2f1b",
+      "group_id": "g006",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "用户明确作废旧应发，采用更正值。"
+    },
+    {
+      "split": "train",
+      "number": 13,
+      "id": "c_2d06e8c69b45",
+      "group_id": "g007",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "双方全部实付合计有未解释差额。"
+    },
+    {
+      "split": "train",
+      "number": 14,
+      "id": "c_3b7032ba34f0",
+      "group_id": "g007",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "补记现金后明确更正全部实付合计。"
+    },
+    {
+      "split": "train",
+      "number": 15,
+      "id": "c_65ec7d1e3416",
+      "group_id": "g008",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "金额已补齐，期间仍未找到。"
+    },
+    {
+      "split": "train",
+      "number": 16,
+      "id": "c_5cb52def5df3",
+      "group_id": "g008",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "多轮补齐期间，三项齐全。"
+    },
+    {
+      "split": "train",
+      "number": 17,
+      "id": "c_15d0b13133da",
+      "group_id": "g009",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "部分月份只有月薪且应发未确认。"
+    },
+    {
+      "split": "train",
+      "number": 18,
+      "id": "c_87ca91a06634",
+      "group_id": "g009",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "使用明确确认的部分月份应发。"
+    },
+    {
+      "split": "train",
+      "number": 19,
+      "id": "c_ed5ad3593e7f",
+      "group_id": "g010",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "分币金额明确，保留原精度。"
+    },
+    {
+      "split": "train",
+      "number": 20,
+      "id": "c_522ccadb709b",
+      "group_id": "g010",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "实付大于应发仍可算术回放。"
+    },
+    {
+      "split": "train",
+      "number": 21,
+      "id": "c_fb9cef57033e",
+      "group_id": "g011",
+      "expected_action": "report_tool_failure",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "机器工具状态已到上限。"
+    },
+    {
+      "split": "train",
+      "number": 22,
+      "id": "c_9ca578973fcf",
+      "group_id": "g011",
+      "expected_action": "report_tool_failure",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "工具上限优先，当前一步报告失败。"
+    },
+    {
+      "split": "train",
+      "number": 23,
+      "id": "c_1c8e15a5204a",
+      "group_id": "g012",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "三项事实都未知，各问一次。"
+    },
+    {
+      "split": "train",
+      "number": 24,
+      "id": "c_35762e483a2e",
+      "group_id": "g012",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "期间已知，仅两项金额未知。"
+    },
+    {
+      "split": "dev",
+      "number": 1,
+      "id": "c_f8ce52984c4c",
+      "group_id": "g013",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "报销与总款包含关系未明。"
+    },
+    {
+      "split": "dev",
+      "number": 2,
+      "id": "c_0a4597802377",
+      "group_id": "g013",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "报销另付，工资全额归属本段且完整。"
+    },
+    {
+      "split": "dev",
+      "number": 3,
+      "id": "c_9281dd807f77",
+      "group_id": "g014",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "两份有效材料的期间未协调。"
+    },
+    {
+      "split": "dev",
+      "number": 4,
+      "id": "c_75e003fa5781",
+      "group_id": "g014",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "期间明确纠正，金额重申归属新期间。"
+    },
+    {
+      "split": "dev",
+      "number": 5,
+      "id": "c_6dc3fbe6f5ad",
+      "group_id": "g015",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "一笔已知工资未证明全部付款完整。"
+    },
+    {
+      "split": "dev",
+      "number": 6,
+      "id": "c_344ca2b4f334",
+      "group_id": "g015",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "核全渠道后确认唯一工资款。"
+    },
+    {
+      "split": "dev",
+      "number": 7,
+      "id": "c_2e940aa5df82",
+      "group_id": "g016",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "月薪不能补足尚未出单的应发总额。"
+    },
+    {
+      "split": "dev",
+      "number": 8,
+      "id": "c_2f18cf5b7b16",
+      "group_id": "g016",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "多轮提供确认结算单，最后缺项补齐。"
+    },
+    {
+      "split": "dev",
+      "number": 9,
+      "id": "c_b3a8c9222199",
+      "group_id": "g017",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "宿舍押金是无关款项，排除。"
+    },
+    {
+      "split": "dev",
+      "number": 10,
+      "id": "c_b60111cb46e7",
+      "group_id": "g017",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "两项明确零值均有效。"
+    },
+    {
+      "split": "dev",
+      "number": 11,
+      "id": "c_ac276ddb9117",
+      "group_id": "g018",
+      "expected_action": "report_tool_failure",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "机器状态证实两次超时已耗尽机会。"
+    },
+    {
+      "split": "dev",
+      "number": 12,
+      "id": "c_b459e1769cc3",
+      "group_id": "g018",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "没有失败状态，应发仍未知。"
+    },
+    {
+      "split": "test",
+      "number": 1,
+      "id": "c_90818c45346a",
+      "group_id": "g019",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "季节描述无法确定核算期间。"
+    },
+    {
+      "split": "test",
+      "number": 2,
+      "id": "c_3b94df86700a",
+      "group_id": "g019",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "只有起日，止日仍缺。"
+    },
+    {
+      "split": "test",
+      "number": 3,
+      "id": "c_e4a3edf52699",
+      "group_id": "g020",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "月日已知而年份未确定。"
+    },
+    {
+      "split": "test",
+      "number": 4,
+      "id": "c_5e4c432806c7",
+      "group_id": "g020",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "年月已知但部分月起止未给。"
+    },
+    {
+      "split": "test",
+      "number": 5,
+      "id": "c_9dc06f3163bb",
+      "group_id": "g021",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "旧账期间不能用于当前新账。"
+    },
+    {
+      "split": "test",
+      "number": 6,
+      "id": "c_e8e334c2a27b",
+      "group_id": "g021",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "明确区分旧期间与本次期间。"
+    },
+    {
+      "split": "test",
+      "number": 7,
+      "id": "c_53b7ee3297b2",
+      "group_id": "g022",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "跨年关系已知而绝对年份未知。"
+    },
+    {
+      "split": "test",
+      "number": 8,
+      "id": "c_39da101cd3f3",
+      "group_id": "g022",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "跨年绝对日期及全部总额明确。"
+    },
+    {
+      "split": "test",
+      "number": 9,
+      "id": "c_8a8f86f374ab",
+      "group_id": "g023",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "有请假且结算未确认，月薪不足。"
+    },
+    {
+      "split": "test",
+      "number": 10,
+      "id": "c_a0d95d2da318",
+      "group_id": "g023",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "两个月月薪与大部分出勤仍非确认总额。"
+    },
+    {
+      "split": "test",
+      "number": 11,
+      "id": "c_d3003120200c",
+      "group_id": "g024",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "日费率和出勤不足以取代待定结算。"
+    },
+    {
+      "split": "test",
+      "number": 12,
+      "id": "c_f5dbc98ca096",
+      "group_id": "g024",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "已明确确认期间应发，费率仅背景。"
+    },
+    {
+      "split": "test",
+      "number": 13,
+      "id": "c_b062280c2e90",
+      "group_id": "g025",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "时费率乘小时不能替代未确认总额。"
+    },
+    {
+      "split": "test",
+      "number": 14,
+      "id": "c_d8787b6c34c0",
+      "group_id": "g025",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "单独确认了本次工资应发总额。"
+    },
+    {
+      "split": "test",
+      "number": 15,
+      "id": "c_2ddb5f830c53",
+      "group_id": "g026",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "调薪并有请假，期间总额未拿到。"
+    },
+    {
+      "split": "test",
+      "number": 16,
+      "id": "c_1b83ef125dac",
+      "group_id": "g026",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "中旬调薪且期间结算仍待核。"
+    },
+    {
+      "split": "test",
+      "number": 17,
+      "id": "c_353faa871342",
+      "group_id": "g027",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "计件数量未确认验收，应发未定。"
+    },
+    {
+      "split": "test",
+      "number": 18,
+      "id": "c_bc3cd28034b2",
+      "group_id": "g027",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "已确认计件结算及完整实付。"
+    },
+    {
+      "split": "test",
+      "number": 19,
+      "id": "c_23c8730ca5a1",
+      "group_id": "g028",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "只有止日，同时缺期间起日与应发。"
+    },
+    {
+      "split": "test",
+      "number": 20,
+      "id": "c_31023cb13f70",
+      "group_id": "g028",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "起止已明确，仍只缺应发。"
+    },
+    {
+      "split": "test",
+      "number": 21,
+      "id": "c_d19a5376c5ef",
+      "group_id": "g029",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "工资性质明确而所属期间未确定。"
+    },
+    {
+      "split": "test",
+      "number": 22,
+      "id": "c_839692ac36bf",
+      "group_id": "g029",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "排除旧月尾款后，归属及完整性明确。"
+    },
+    {
+      "split": "test",
+      "number": 23,
+      "id": "c_010d819052c8",
+      "group_id": "g030",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "转账可能为私人借款归还。"
+    },
+    {
+      "split": "test",
+      "number": 24,
+      "id": "c_8b6092520698",
+      "group_id": "g030",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "唯一收款为借款，工资明确零。"
+    },
+    {
+      "split": "test",
+      "number": 25,
+      "id": "c_12d69b0ad04b",
+      "group_id": "g031",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "银行部分已知而现金付款未查全。"
+    },
+    {
+      "split": "test",
+      "number": 26,
+      "id": "c_cf70c136ce9f",
+      "group_id": "g031",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "现金部分已知而银行付款未查全。"
+    },
+    {
+      "split": "test",
+      "number": 27,
+      "id": "c_4b3652f61fa7",
+      "group_id": "g032",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "已发一部分不构成金额或完整合计。"
+    },
+    {
+      "split": "test",
+      "number": 28,
+      "id": "c_06ce2d516f39",
+      "group_id": "g032",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "记得收过但金额和次数都未知。"
+    },
+    {
+      "split": "test",
+      "number": 29,
+      "id": "c_59e87f2dfd41",
+      "group_id": "g033",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "拟付款不能当作实际付款。"
+    },
+    {
+      "split": "test",
+      "number": 30,
+      "id": "c_217a38fc7fa0",
+      "group_id": "g033",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "已核实实付替代计划付款数字。"
+    },
+    {
+      "split": "test",
+      "number": 31,
+      "id": "c_f2a7238a7fa0",
+      "group_id": "g034",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "明确拆分合并款中的报销。"
+    },
+    {
+      "split": "test",
+      "number": 32,
+      "id": "c_450d6542dde0",
+      "group_id": "g034",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "工资与报销另付，无包含扣减。"
+    },
+    {
+      "split": "test",
+      "number": 33,
+      "id": "c_404b383517fb",
+      "group_id": "g035",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "两数字包含关系未明。"
+    },
+    {
+      "split": "test",
+      "number": 34,
+      "id": "c_018603f412c3",
+      "group_id": "g035",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "合并款内工资部分及完整性明确。"
+    },
+    {
+      "split": "test",
+      "number": 35,
+      "id": "c_67b68991c3d2",
+      "group_id": "g036",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "采购垫付款与工资尚未拆分。"
+    },
+    {
+      "split": "test",
+      "number": 36,
+      "id": "c_8c363cab9d5f",
+      "group_id": "g036",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "全额为垫款返还，工资明确零。"
+    },
+    {
+      "split": "test",
+      "number": 37,
+      "id": "c_da1830f90e47",
+      "group_id": "g037",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "押金退款另付，排除非工资。"
+    },
+    {
+      "split": "test",
+      "number": 38,
+      "id": "c_22bffbd6aec7",
+      "group_id": "g037",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "合并款明确拆出押金，工资部分完整。"
+    },
+    {
+      "split": "test",
+      "number": 39,
+      "id": "c_cd9ebc965c35",
+      "group_id": "g038",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "期前预发明确归属本段，可相加。"
+    },
+    {
+      "split": "test",
+      "number": 40,
+      "id": "c_763cdad06820",
+      "group_id": "g038",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "预发所属期间未知，总实付不确定。"
+    },
+    {
+      "split": "test",
+      "number": 41,
+      "id": "c_b5b313d396dc",
+      "group_id": "g039",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "较晚的来源未自动作废旧来源。"
+    },
+    {
+      "split": "test",
+      "number": 42,
+      "id": "c_ab873c62c768",
+      "group_id": "g039",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "明确作废旧表并确认新应发。"
+    },
+    {
+      "split": "test",
+      "number": 43,
+      "id": "c_959dbecae6e0",
+      "group_id": "g040",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "两个全量实付候选仍未协调。"
+    },
+    {
+      "split": "test",
+      "number": 44,
+      "id": "c_3d85e78db4c8",
+      "group_id": "g040",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "找到漏记现金并明确更正完整合计。"
+    },
+    {
+      "split": "test",
+      "number": 45,
+      "id": "c_a38c57786700",
+      "group_id": "g041",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "金额无争议但两套期间未统一。"
+    },
+    {
+      "split": "test",
+      "number": 46,
+      "id": "c_cec9cca92fa9",
+      "group_id": "g041",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "期间纠正且总额重申归属于新期间。"
+    },
+    {
+      "split": "test",
+      "number": 47,
+      "id": "c_ceab75515e1f",
+      "group_id": "g042",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "两个金额分别有未协调候选。"
+    },
+    {
+      "split": "test",
+      "number": 48,
+      "id": "c_7e96a951d722",
+      "group_id": "g042",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "两项金额均被显式更正，旧数作废。"
+    },
+    {
+      "split": "test",
+      "number": 49,
+      "id": "c_5f3fdc11c881",
+      "group_id": "g043",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "两个未撤销应发候选构成冲突。"
+    },
+    {
+      "split": "test",
+      "number": 50,
+      "id": "c_d4da87938579",
+      "group_id": "g043",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "完全没有应发候选，属于缺失。"
+    },
+    {
+      "split": "test",
+      "number": 51,
+      "id": "c_386c84dd6031",
+      "group_id": "g044",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "助手猜测未获用户确认，不可当事实。"
+    },
+    {
+      "split": "test",
+      "number": 52,
+      "id": "c_f3217712c3de",
+      "group_id": "g044",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "用户从确认单明确补出总额。"
+    },
+    {
+      "split": "test",
+      "number": 53,
+      "id": "c_f7a7f82b3817",
+      "group_id": "g045",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "期间和应发已补，实付仍未知。"
+    },
+    {
+      "split": "test",
+      "number": 54,
+      "id": "c_15f201c87251",
+      "group_id": "g045",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "全渠道工资实付补齐，最后缺项消除。"
+    },
+    {
+      "split": "test",
+      "number": 55,
+      "id": "c_6e23a8944206",
+      "group_id": "g046",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "期间补齐，应发差异仍未协调。"
+    },
+    {
+      "split": "test",
+      "number": 56,
+      "id": "c_e9d7a7351646",
+      "group_id": "g046",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "旧总额作废并补齐期间。"
+    },
+    {
+      "split": "test",
+      "number": 57,
+      "id": "c_b732319bcb86",
+      "group_id": "g047",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "纠正旧款为支出，重新确认工资零。"
+    },
+    {
+      "split": "test",
+      "number": 58,
+      "id": "c_cead0e5ae748",
+      "group_id": "g047",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "明确从零更正为新小数实付。"
+    },
+    {
+      "split": "test",
+      "number": 59,
+      "id": "c_e93d9c84dc8e",
+      "group_id": "g048",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "全部两笔工资可相加，金额精确到分。"
+    },
+    {
+      "split": "test",
+      "number": 60,
+      "id": "c_0db237be929f",
+      "group_id": "g048",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "全部工资分笔相加并排除另付报销。"
+    },
+    {
+      "split": "test",
+      "number": 61,
+      "id": "c_8a9db31e5345",
+      "group_id": "g049",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "完整历史仍无三项事实。"
+    },
+    {
+      "split": "test",
+      "number": 62,
+      "id": "c_0adbc114bac0",
+      "group_id": "g049",
+      "expected_action": "ask_user",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "多轮仅补齐日期，仍缺两个金额。"
+    },
+    {
+      "split": "test",
+      "number": 63,
+      "id": "c_793d774ca215",
+      "group_id": "g050",
+      "expected_action": "report_tool_failure",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "机器状态证实已用尽两次机会。"
+    },
+    {
+      "split": "test",
+      "number": 64,
+      "id": "c_59e4a8ba8dd2",
+      "group_id": "g050",
+      "expected_action": "report_tool_failure",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "用户提议再试不能越过冻结上限。"
+    },
+    {
+      "split": "test",
+      "number": 65,
+      "id": "c_8eaa464547c5",
+      "group_id": "g051",
+      "expected_action": "report_tool_failure",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "工具上限优先于未解决冲突。"
+    },
+    {
+      "split": "test",
+      "number": 66,
+      "id": "c_793076241962",
+      "group_id": "g051",
+      "expected_action": "report_tool_failure",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "工具上限优先于资料缺失。"
+    },
+    {
+      "split": "test",
+      "number": 67,
+      "id": "c_f363a43d35bc",
+      "group_id": "g052",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "分币差额应保持精度。"
+    },
+    {
+      "split": "test",
+      "number": 68,
+      "id": "c_0691255ccdab",
+      "group_id": "g052",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "实付较大产生负差额仍有效。"
+    },
+    {
+      "split": "test",
+      "number": 69,
+      "id": "c_ad35c5412c8e",
+      "group_id": "g053",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "单日起止和零应发均有效。"
+    },
+    {
+      "split": "test",
+      "number": 70,
+      "id": "c_779d7feb72d5",
+      "group_id": "g053",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "单日期间及明确零实付均有效。"
+    },
+    {
+      "split": "test",
+      "number": 71,
+      "id": "c_9091ce3085b3",
+      "group_id": "g054",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "跨年期间明确，无需月薪折算。"
+    },
+    {
+      "split": "test",
+      "number": 72,
+      "id": "c_8ab7b6e34ccc",
+      "group_id": "g054",
+      "expected_action": "call_tool",
+      "independent_verdict": "supported_by_visible_facts",
+      "note": "闰年跨月边界及小数总额有效。"
+    }
+  ],
+  "pending": [
+    "Actual baseline output questions and all failed outputs",
+    "Actual Qwen guard telemetry and outcome",
+    "Final frozen source snapshot and outcome receipts"
+  ]
+}

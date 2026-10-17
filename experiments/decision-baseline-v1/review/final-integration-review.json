@@ -1,0 +1,247 @@
+{
+  "review_type": "final independent read-only integration review",
+  "review_date": "2026-10-16",
+  "status": "passed_no_remaining_integration_blockers",
+  "blocking_current_result_errors": [],
+  "scope": {
+    "test_outputs": 216,
+    "independent_first_attempt_output_reviews": 144,
+    "separate_recovery_reviews": 1,
+    "data_rows_previously_reviewed": 108,
+    "training_performed": false,
+    "models_or_api_called_by_this_review": false,
+    "repository_files_modified_by_this_review": false,
+    "committed_or_pushed": false
+  },
+  "verified_numbers": {
+    "expected_actions": {
+      "ask_user": 36,
+      "call_tool": 32,
+      "report_tool_failure": 4
+    },
+    "blind_packet_counts": [
+      105,
+      40
+    ],
+    "mapping_counts": {
+      "deepseek": 61,
+      "rules": 44,
+      "qwen": 39,
+      "deepseek-recovery": 1
+    },
+    "backend_checks": {
+      "rules": {
+        "primary_correct": 55,
+        "business_semantic_correct": 55,
+        "strict_json": 72,
+        "contract_valid": 72,
+        "strict_json_and_primary": 55,
+        "diagnostic_correct": 55,
+        "semantic_only_pass_ids": [],
+        "diagnostic_only_pass_ids": [],
+        "both_in_group_semantically_correct": 24,
+        "reviewed": 44,
+        "deterministic_non_question": 28,
+        "expected_call_breakdown": {
+          "not_called": 5,
+          "correct_actual_call_and_arguments": 24,
+          "wrong_actual_tool_or_arguments": 3
+        },
+        "premature": 5,
+        "premature_denominator": 40,
+        "latency_seconds": {
+          "median": 8.012499893084168e-05,
+          "p95": 0.0003897499991580844,
+          "sum": 0.010331502737244591,
+          "includes_loading": false,
+          "concurrency": 1
+        }
+      },
+      "qwen": {
+        "primary_correct": 61,
+        "business_semantic_correct": 62,
+        "strict_json": 52,
+        "contract_valid": 70,
+        "strict_json_and_primary": 42,
+        "diagnostic_correct": 63,
+        "semantic_only_pass_ids": [
+          "c_3b94df86700a"
+        ],
+        "diagnostic_only_pass_ids": [
+          "c_b5b313d396dc",
+          "c_ceab75515e1f"
+        ],
+        "both_in_group_semantically_correct": 27,
+        "reviewed": 39,
+        "deterministic_non_question": 33,
+        "expected_call_breakdown": {
+          "correct_actual_call_and_arguments": 31,
+          "not_called": 1
+        },
+        "premature": 0,
+        "premature_denominator": 40,
+        "latency_seconds": {
+          "median": 6.18403991649393,
+          "p95": 8.064321291982196,
+          "sum": 468.0112990020716,
+          "includes_loading": false,
+          "concurrency": 1
+        }
+      },
+      "deepseek": {
+        "primary_correct": 33,
+        "business_semantic_correct": 71,
+        "strict_json": 71,
+        "contract_valid": 33,
+        "strict_json_and_primary": 33,
+        "diagnostic_correct": 71,
+        "semantic_only_pass_ids": [],
+        "diagnostic_only_pass_ids": [],
+        "both_in_group_semantically_correct": 35,
+        "reviewed": 61,
+        "deterministic_non_question": 11,
+        "expected_call_breakdown": {
+          "correct_actual_call_and_arguments": 32
+        },
+        "premature": 0,
+        "premature_denominator": 40,
+        "latency_seconds": {
+          "median": 2.435830895512481,
+          "p95": 3.8132440419867635,
+          "sum": 312.8507293298899,
+          "includes_loading": false,
+          "concurrency": 1
+        }
+      }
+    },
+    "api_checks": {
+      "attempts_by_run": {
+        "deepseek-dev-preflight": 1,
+        "deepseek-dev": 12,
+        "deepseek-test": 72,
+        "deepseek-recovery": 1
+      },
+      "successes_by_run": {
+        "deepseek-dev-preflight": 1,
+        "deepseek-dev": 12,
+        "deepseek-test": 71,
+        "deepseek-recovery": 1
+      },
+      "attempts_total": 86,
+      "successes_total": 85,
+      "usage": {
+        "prompt_tokens": 47583,
+        "completion_tokens": 7881,
+        "total_tokens": 55464,
+        "prompt_cache_hit_tokens": 37632,
+        "prompt_cache_miss_tokens": 9951
+      },
+      "peak_usd_decimal": "0.045999888",
+      "off_peak_usd_decimal": "0.022999944",
+      "billing_verified": false,
+      "timeout_billing_unknown": true
+    },
+    "resource_checks": {
+      "qwen_test_seconds": 475.2609756659949,
+      "qwen_peak_mlx_gib": 17.597866542637348,
+      "pressure_levels": [
+        1
+      ],
+      "swap_start_gib": 1.983642578125,
+      "swap_peak_gib": 1.983642578125,
+      "swap_end_gib": 1.944580078125,
+      "timeout_seconds": 122.47033591600484,
+      "recovery_seconds": 2.8736317500006407
+    }
+  },
+  "reproduction": {
+    "python_versions": [
+      "3.14.7",
+      "3.12.12"
+    ],
+    "all_216_primary_cases_and_diagnostics_recomputed": true,
+    "comparison_byte_identical": true,
+    "comparison_sha256": "222e7379ff8aebe31d271dea0cafb0d3067784632b306df1b60dcb20fce0b89d",
+    "frozen_hash_count_unchanged": 17,
+    "repository_files_unchanged_in_each_check": 120,
+    "missing_review_and_denominator_probes": [
+      {
+        "probe": "semantic row absent but mapping retained",
+        "rejected": true
+      },
+      {
+        "probe": "all traces of a primary-failure review removed",
+        "rejected": true
+      },
+      {
+        "probe": "all traces of a correct ask review removed",
+        "rejected": true
+      },
+      {
+        "probe": "first-attempt test rows truncated to 71",
+        "rejected": true
+      },
+      {
+        "probe": "retained real ask review has null question-text judgment",
+        "rejected": true
+      }
+    ],
+    "unit_tests": 37,
+    "unit_tests_passed_on_both_python_versions": true,
+    "unit_tests_run_in_review_directory_snapshot": true
+  },
+  "findings": [
+    {
+      "id": "SUMMARY-NULL-TEXT-REVIEW",
+      "priority": "P2",
+      "status": "fixed_and_independently_verified",
+      "file": "experiments/decision-baseline-v1/summarize.py",
+      "lines": [
+        36,
+        37,
+        69
+      ],
+      "description": "A retained review row for a real ask_user output can have question_text_adequate=null and still count as semantic success if business_action_correct=true. Replacing review_202 true with null only in memory was accepted and left Qwen at 62. All actual reviewed questions are explicitly boolean, so current reported numbers remain correct.",
+      "recommendation": "Require a boolean question-text judgment whenever the expected action is ask_user or actual questions are nonempty, unless a recorded transport error explains a failed action and null review.",
+      "current_file_lines": null,
+      "fix": "validate_review now requires explicit boolean text judgments for expected/actual questions; transport failure must be false/null with no output.",
+      "verification": "The original in-memory null mutation of review_202 is now rejected. Four other missing-review/partial-result probes are rejected. The true 145 reviews still pass, and comparison.json remains byte identical."
+    }
+  ],
+  "ci_review": {
+    "added_lines": [
+      25,
+      26
+    ],
+    "summary_generation_is_stdlib_only": true,
+    "does_not_load_model_or_call_api": true,
+    "git_diff_detects_changed_tracked_comparison_in_clean_ci_checkout": true,
+    "remote_github_ci_executed_by_this_review": false
+  },
+  "interpretation_limits": [
+    "Primary, exploratory metadata-ignoring diagnostic, and independent question-text semantic review remain distinct.",
+    "Semantic rates are retrospective independent Agent interpretation, not preregistered or human legal expert validation.",
+    "Two preference-style conflict questions remain inadequate under this review; accepting them changes only exploratory Qwen semantic score to 64/72.",
+    "One timeout remains a failed first attempt; separately successful recovery never replaces it.",
+    "API cost is an official-rate estimate on successful reported usage, not a verified invoice; failed-request billing is unknown.",
+    "Only 144 first-attempt outputs were manually read in blind review; 72 no-question outputs were checked deterministically.",
+    "Same-task synthetic authoring, 36 paired groups and tiny training candidates do not establish external generalization or 32B fine-tuning benefit.",
+    "Local npm, HTTP, token-decoding and process-exit claims are supported by saved parent-task evidence and earlier role reviews, not rerun in this final integration pass."
+  ],
+  "saved_success_request_messages_checked": 85,
+  "unique_success_response_ids_checked": 85,
+  "observed_request_response_models": [
+    "deepseek-v4-pro"
+  ],
+  "observed_success_fingerprints": [
+    "a307abda487cd1b463329ccb945ce396"
+  ],
+  "checked_sha256": {
+    "experiments/decision-baseline-v1/REPORT.md": "546ae2e127f5a19431afe7f942058a06e1e7d85ea3007049a15cfca31babb565",
+    "experiments/decision-baseline-v1/summarize.py": "e606be24637f71a00f3bca7ff878b82b2791b57354573d81d69c33442c20faeb",
+    "experiments/decision-baseline-v1/comparison.json": "222e7379ff8aebe31d271dea0cafb0d3067784632b306df1b60dcb20fce0b89d",
+    "experiments/decision-baseline-v1/test_summary_review.py": "f74cd7886fc9cfbff1cb17e2165db7b8e761543b94fc49df850a9f9c149a9c23",
+    ".github/workflows/ci.yml": "8a134ac0ee566379c089d024bd046f4cc537a3e5b9dc771540a33d9d8aff2b98"
+  },
+  "test_coverage_boundary": "37 unit checks and all 216 deterministic test assessments were independently rerun in this pass; npm/HTTP were not rerun."
+}

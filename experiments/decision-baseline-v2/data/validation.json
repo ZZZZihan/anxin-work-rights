@@ -1,0 +1,61 @@
+{
+  "status": "pass",
+  "record_count": 72,
+  "group_count": 36,
+  "group_sizes": {
+    "2": 36
+  },
+  "actions": {
+    "ask_user": 34,
+    "call_tool": 30,
+    "report_tool_failure": 8
+  },
+  "categories": {
+    "complete": 19,
+    "conflict": 9,
+    "missing_due": 7,
+    "missing_period": 8,
+    "mixed_payment": 8,
+    "multi_turn": 7,
+    "payment_attribution": 6,
+    "tool_failure": 8
+  },
+  "tool_states": {
+    "TIMEOUT:1/2": 8,
+    "TIMEOUT:2/2": 8,
+    "null": 56
+  },
+  "multi_turn_record_count": 16,
+  "date_literal_checks": 144,
+  "decimal_ledger_checks": 30,
+  "trusted_state_contrast_groups": 8,
+  "sha256": {
+    "test.inputs.jsonl": "203d8212603ab961008424242966803525f1d8bdc3ce874cdf189946eb2d2858",
+    "test.labels.jsonl": "bf1672efafd5940edf07a52efe6b2fd962dfae8ad1b979555753b25fb90f0ce9",
+    "AUTHORING.md": "446c7a5f28bb0f51d553f5bb8e2e99899cecfd04c853a4054c4c58b4a0bdbba6",
+    "build_dataset.py": "9257d07840b570fd98592ae60fe2dfa7f0c036ccc6147313290e352ce96c1a76",
+    "validate_dataset.py": "bb3843b7e5dfe9a6872c3b90171186298321a372d85c913fc83bd6731b45b1e9"
+  },
+  "inputs_labels_concatenated_sha256": "81f1549079980c80030d62358ef8bdc9e88feb6e77b1d17b0f6b2d4288449add",
+  "checks": [
+    "strict JSON and duplicate-key detection",
+    "exact inference/label/output schemas",
+    "opaque unique UUIDs and joined IDs",
+    "36 groups of exactly two records",
+    "no duplicate inference payloads",
+    "valid complete date literals and call-date ordering",
+    "all call dates and monetary facts grounded as explicit source tokens",
+    "30 exact Decimal wage-component sums and gap calculations",
+    "question fields equal missing union conflicts, without overlap",
+    "trusted exhausted timeout termination and isolated attempt-count contrasts",
+    "exact 30 call / 34 ask / 8 failure distribution",
+    "at least 12 multi-turn snapshots",
+    "JSONL matches independent authored source"
+  ],
+  "limitations": [
+    "Gold labels and rationales are independently Agent-authored synthetic judgments, not expert annotations.",
+    "Structural and decimal validation cannot establish legal correctness or empirical real-case performance.",
+    "36 paired authoring groups are not 72 independent real-world samples."
+  ],
+  "errors": []
+}
