@@ -1,0 +1,354 @@
+{
+  "scope": "deterministic injected proposal, not model inference and not held-out score",
+  "record": {
+    "id": "development-historical-unknown-due",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "development-historical-unknown-due",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "evidence",
+          "text": "开发情境的受控记录：agreed_due_total，状态 unknown；值 未核实。",
+          "sha256": "fc10655be155592d6fa98a4c3d8030952e7c14f0c0673b0c269753ba58d19d58"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 4500.00 元。",
+          "sha256": "458826679403f52819070a692c2c6d930a792b5a65ca9df40eef01d856233e3c"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "unknown",
+          "value": null,
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": false,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 44,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 unknown；值 未核实。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "4500.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 51,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 4500.00 元。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "actual": {
+    "raw_output": "{\"action\": \"call_tool\", \"tool\": \"calculate_wage_gap\", \"arguments\": {\"period_start\": \"2026-01-01\", \"period_end\": \"2026-01-31\", \"due\": 0, \"paid\": 4500}}",
+    "parsed": {
+      "accepted": true,
+      "strict_json": true,
+      "normalization": [],
+      "proposal": {
+        "action": "call_tool",
+        "tool": "calculate_wage_gap",
+        "arguments": {
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "due": 0,
+          "paid": 4500
+        }
+      },
+      "canonical": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "due": 0,
+            "paid": 4500
+          }
+        }
+      },
+      "error": null,
+      "raw": "{\"action\": \"call_tool\", \"tool\": \"calculate_wage_gap\", \"arguments\": {\"period_start\": \"2026-01-01\", \"period_end\": \"2026-01-31\", \"due\": 0, \"paid\": 4500}}"
+    },
+    "protocol_accepted": true,
+    "fact_revision": "4c61ed191fe04e8a3069ad4db55817aef6c6b694e2dcbae94a6512865efc9028",
+    "ungated": {
+      "dispatch": {
+        "status": "SUCCEEDED",
+        "canonical": {
+          "missing": [],
+          "conflicts": [],
+          "next_action": {
+            "type": "call_tool",
+            "questions": [],
+            "tool": "calculate_wage_gap",
+            "arguments": {
+              "period_start": "2026-01-01",
+              "period_end": "2026-01-31",
+              "due": 0,
+              "paid": 4500
+            }
+          }
+        },
+        "result": {
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "due": "0.00",
+          "paid": "4500.00",
+          "gap": "-4500.00"
+        },
+        "error": null,
+        "attempts": 1,
+        "max_attempts": 2,
+        "reused": false
+      },
+      "tool_calls": [
+        {
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "due": 0,
+          "paid": 4500
+        }
+      ],
+      "snapshot": {
+        "status": "SUCCEEDED",
+        "attempts": 1,
+        "max_attempts": 2,
+        "arguments": {
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-31",
+          "due": 0,
+          "paid": 4500
+        },
+        "in_flight": false,
+        "completed": true,
+        "trace": [
+          {
+            "event": "initialized",
+            "status": "READY",
+            "attempts": 0
+          },
+          {
+            "event": "attempt_started",
+            "attempts": 1,
+            "tool": "calculate_wage_gap",
+            "arguments": {
+              "period_start": "2026-01-01",
+              "period_end": "2026-01-31",
+              "due": 0,
+              "paid": 4500
+            }
+          },
+          {
+            "event": "attempt_finished",
+            "status": "SUCCEEDED",
+            "attempts": 1
+          }
+        ]
+      }
+    },
+    "guarded": {
+      "dispatch": {
+        "status": "BLOCKED_FACTS",
+        "canonical": {
+          "missing": [
+            "agreed_due_total"
+          ],
+          "conflicts": [],
+          "next_action": {
+            "type": "ask_user",
+            "questions": [
+              {
+                "field": "agreed_due_total",
+                "text": "请核实并确认该期间完整的应发工资总额。"
+              }
+            ],
+            "tool": null,
+            "arguments": null
+          }
+        },
+        "result": null,
+        "error": {
+          "code": "blocked_facts",
+          "message": "Every field must be confirmed for the current period before calculation",
+          "unresolved": {
+            "agreed_due_total": "unknown"
+          }
+        },
+        "attempts": 0,
+        "max_attempts": 2,
+        "reused": false,
+        "proposal": {
+          "action": "call_tool",
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-01-01",
+            "period_end": "2026-01-31",
+            "due": 0,
+            "paid": 4500
+          }
+        },
+        "proposal_canonical": {
+          "missing": [],
+          "conflicts": [],
+          "next_action": {
+            "type": "call_tool",
+            "questions": [],
+            "tool": "calculate_wage_gap",
+            "arguments": {
+              "period_start": "2026-01-01",
+              "period_end": "2026-01-31",
+              "due": 0,
+              "paid": 4500
+            }
+          }
+        },
+        "raw": "{\"action\": \"call_tool\", \"tool\": \"calculate_wage_gap\", \"arguments\": {\"period_start\": \"2026-01-01\", \"period_end\": \"2026-01-31\", \"due\": 0, \"paid\": 4500}}",
+        "fact_revision": "4c61ed191fe04e8a3069ad4db55817aef6c6b694e2dcbae94a6512865efc9028",
+        "expected_revision": "4c61ed191fe04e8a3069ad4db55817aef6c6b694e2dcbae94a6512865efc9028",
+        "case_id": "development-historical-unknown-due",
+        "gate": "BLOCKED_FACTS",
+        "executed": false
+      },
+      "tool_calls": [],
+      "snapshot": {
+        "status": "READY",
+        "attempts": 0,
+        "max_attempts": 2,
+        "arguments": null,
+        "in_flight": false,
+        "completed": false,
+        "trace": [
+          {
+            "event": "initialized",
+            "status": "READY",
+            "attempts": 0
+          }
+        ],
+        "fact_revision": "4c61ed191fe04e8a3069ad4db55817aef6c6b694e2dcbae94a6512865efc9028",
+        "case_id": "development-historical-unknown-due",
+        "guard_trace": [
+          {
+            "event": "guard_dispatch",
+            "status": "BLOCKED_FACTS",
+            "canonical": {
+              "missing": [
+                "agreed_due_total"
+              ],
+              "conflicts": [],
+              "next_action": {
+                "type": "ask_user",
+                "questions": [
+                  {
+                    "field": "agreed_due_total",
+                    "text": "请核实并确认该期间完整的应发工资总额。"
+                  }
+                ],
+                "tool": null,
+                "arguments": null
+              }
+            },
+            "result": null,
+            "error": {
+              "code": "blocked_facts",
+              "message": "Every field must be confirmed for the current period before calculation",
+              "unresolved": {
+                "agreed_due_total": "unknown"
+              }
+            },
+            "attempts": 0,
+            "max_attempts": 2,
+            "reused": false,
+            "proposal": {
+              "action": "call_tool",
+              "tool": "calculate_wage_gap",
+              "arguments": {
+                "period_start": "2026-01-01",
+                "period_end": "2026-01-31",
+                "due": 0,
+                "paid": 4500
+              }
+            },
+            "proposal_canonical": {
+              "missing": [],
+              "conflicts": [],
+              "next_action": {
+                "type": "call_tool",
+                "questions": [],
+                "tool": "calculate_wage_gap",
+                "arguments": {
+                  "period_start": "2026-01-01",
+                  "period_end": "2026-01-31",
+                  "due": 0,
+                  "paid": 4500
+                }
+              }
+            },
+            "raw": "{\"action\": \"call_tool\", \"tool\": \"calculate_wage_gap\", \"arguments\": {\"period_start\": \"2026-01-01\", \"period_end\": \"2026-01-31\", \"due\": 0, \"paid\": 4500}}",
+            "fact_revision": "4c61ed191fe04e8a3069ad4db55817aef6c6b694e2dcbae94a6512865efc9028",
+            "expected_revision": "4c61ed191fe04e8a3069ad4db55817aef6c6b694e2dcbae94a6512865efc9028",
+            "case_id": "development-historical-unknown-due",
+            "gate": "BLOCKED_FACTS",
+            "executed": false
+          }
+        ]
+      }
+    }
+  }
+}

@@ -27,8 +27,11 @@ python3 -B experiments/decision-baseline-v3/freeze.py
 python3 -B experiments/decision-baseline-v3/data/validate_dataset.py
 python3 -B -m unittest discover -s experiments/decision-baseline-v3 -p 'test_*.py'
 python3 -B experiments/decision-baseline-v3/reporting.py --check
+python3 -B experiments/decision-baseline-v3/replication/reproduce.py --check
 ```
 
-macOS与CI的UTF-8环境已验证；非UTF-8系统请设置 `PYTHONUTF8=1`。正式输入/代码哈希不变，结果目录不可覆盖。需要重复推理时创建单独新目录，不替换本轮首次回答。
+主运行报告与网络中断后追加的完整补充运行分别复现；补充登记见 `replication/registration.json`，两轮DeepSeek结果不混拼，Qwen证据在补充报告中复用原运行。
+
+本机macOS的UTF-8环境已验证，CI执行相同的离线复现；非UTF-8系统请设置 `PYTHONUTF8=1`。正式输入/代码哈希不变，结果目录不可覆盖。需要重复推理时创建单独新目录，不替换本轮首次回答。
 
 API凭据仅从权限私有的本机文件读取；本库不提供密钥。Qwen依赖本地MLX运行时和已校验的模型快照，离线评分无需这些依赖。合法计算率、网络错误和语义审查分别报告；零危险输出不等同于已经证明100%拦截能力。
