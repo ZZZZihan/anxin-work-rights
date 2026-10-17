@@ -1,0 +1,2548 @@
+{
+  "planned_documents": 8,
+  "expected_facts": 50,
+  "returned": 8,
+  "completed": 8,
+  "native_json": 8,
+  "protocol_valid": 8,
+  "exact_documents": 0,
+  "raw_candidates": 59,
+  "accepted_candidates": 58,
+  "rejected_candidates": 1,
+  "review_issues": 0,
+  "metrics": {
+    "raw_basic": {
+      "tp": 28,
+      "fp": 31,
+      "fn": 22,
+      "precision": 0.4745762711864407,
+      "recall": 0.56,
+      "f1": 0.5137614678899083
+    },
+    "raw_relational": {
+      "tp": 26,
+      "fp": 33,
+      "fn": 24,
+      "precision": 0.4406779661016949,
+      "recall": 0.52,
+      "f1": 0.47706422018348627
+    },
+    "raw_strict": {
+      "tp": 15,
+      "fp": 44,
+      "fn": 35,
+      "precision": 0.2542372881355932,
+      "recall": 0.3,
+      "f1": 0.27522935779816515
+    },
+    "accepted_basic": {
+      "tp": 28,
+      "fp": 30,
+      "fn": 22,
+      "precision": 0.4827586206896552,
+      "recall": 0.56,
+      "f1": 0.5185185185185185
+    },
+    "accepted_relational": {
+      "tp": 26,
+      "fp": 32,
+      "fn": 24,
+      "precision": 0.4482758620689655,
+      "recall": 0.52,
+      "f1": 0.48148148148148145
+    },
+    "accepted_strict": {
+      "tp": 15,
+      "fp": 43,
+      "fn": 35,
+      "precision": 0.25862068965517243,
+      "recall": 0.3,
+      "f1": 0.2777777777777778
+    }
+  },
+  "cases": [
+    {
+      "id": "mf6-spc-2025-ren",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 8,
+      "accepted_count": 8,
+      "rejected": [],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "possible_missing",
+        "message": "原文仍有可能未覆盖的金额或日期线索，包括金额期间可能缺少独立日期候选。此为启发式提示，请人工核对。",
+        "rawCount": 8,
+        "acceptedCount": 8,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "人民币二万元",
+            "start": 545,
+            "end": 551,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2022年1月",
+            "start": 152,
+            "end": 159,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2024年2月28日",
+            "start": 335,
+            "end": 345,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v6-spc-2025-ren:1:0",
+          "rawValue": "910万余元",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        },
+        {
+          "id": "v6-spc-2025-ren:1:1",
+          "rawValue": "30万余元",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        },
+        {
+          "id": "v6-spc-2025-ren:1:2",
+          "rawValue": "二万元",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额写法、精度或数值范围不支持精确解析。"
+        }
+      ],
+      "raw_relational": {
+        "tp": 4,
+        "fp": 4,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 1
+          },
+          {
+            "expected": 4,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 7
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "accepted_relational": {
+        "tp": 4,
+        "fp": 4,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 1
+          },
+          {
+            "expected": 4,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 7
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "raw_basic": {
+        "tp": 4,
+        "fp": 4,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 1
+          },
+          {
+            "expected": 4,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 7
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "raw_strict": {
+        "tp": 3,
+        "fp": 5,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 1
+          },
+          {
+            "expected": 4,
+            "actual": 2
+          }
+        ],
+        "missing": [
+          1,
+          3
+        ],
+        "extra": [
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "accepted_basic": {
+        "tp": 4,
+        "fp": 4,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 1
+          },
+          {
+            "expected": 4,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 7
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "accepted_strict": {
+        "tp": 3,
+        "fp": 5,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 1
+          },
+          {
+            "expected": 4,
+            "actual": 2
+          }
+        ],
+        "missing": [
+          1,
+          3
+        ],
+        "extra": [
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "focus_confusions": {
+        "raw": [],
+        "accepted": []
+      },
+      "attribute_errors": [
+        {
+          "actual": 7,
+          "expected": 3,
+          "mismatches": [
+            "assertion"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf6-spc-2025-feng",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 6,
+      "accepted_count": 6,
+      "rejected": [],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "no_signal",
+        "message": "启发式检查未发现额外覆盖线索；这不证明提取完整，也不构成事实或计算授权。",
+        "rawCount": 6,
+        "acceptedCount": 6,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2023年9月7日",
+            "start": 170,
+            "end": 179,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v6-spc-2025-feng:1:0",
+          "rawValue": "42万余元",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        },
+        {
+          "id": "v6-spc-2025-feng:1:1",
+          "rawValue": "人民币四十二万余元",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        },
+        {
+          "id": "v6-spc-2025-feng:1:2",
+          "rawValue": "人民币六万元",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额写法、精度或数值范围不支持精确解析。"
+        },
+        {
+          "id": "v6-spc-2025-feng:1:3",
+          "rawValue": "人民币四万元",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额写法、精度或数值范围不支持精确解析。"
+        }
+      ],
+      "raw_relational": {
+        "tp": 1,
+        "fp": 5,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "accepted_relational": {
+        "tp": 1,
+        "fp": 5,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "raw_basic": {
+        "tp": 1,
+        "fp": 5,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "raw_strict": {
+        "tp": 1,
+        "fp": 5,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "accepted_basic": {
+        "tp": 1,
+        "fp": 5,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "accepted_strict": {
+        "tp": 1,
+        "fp": 5,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "focus_confusions": {
+        "raw": [],
+        "accepted": []
+      },
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf6-spc-2025-weng",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 5,
+      "accepted_count": 5,
+      "rejected": [],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "possible_missing",
+        "message": "原文仍有可能未覆盖的金额或日期线索，包括金额期间可能缺少独立日期候选。此为启发式提示，请人工核对。",
+        "rawCount": 5,
+        "acceptedCount": 5,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "3.3万元",
+            "start": 89,
+            "end": 94,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2020年9月",
+            "start": 68,
+            "end": 75,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2021年2月",
+            "start": 76,
+            "end": 83,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2022年1月25日",
+            "start": 233,
+            "end": 243,
+            "covered": false
+          },
+          {
+            "kind": "wage_period",
+            "blockId": "b01",
+            "text": "2020年9月至2021年2月",
+            "start": 68,
+            "end": 83,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v6-spc-2025-weng:1:0",
+          "rawValue": "3.3万元",
+          "status": "exact",
+          "amount": "33000.00",
+          "matchedText": "3.3万元",
+          "span": {
+            "start": 0,
+            "end": 5
+          },
+          "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+        }
+      ],
+      "raw_relational": {
+        "tp": 0,
+        "fp": 5,
+        "fn": 4,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "accepted_relational": {
+        "tp": 0,
+        "fp": 5,
+        "fn": 4,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "raw_basic": {
+        "tp": 2,
+        "fp": 3,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0
+          },
+          {
+            "expected": 3,
+            "actual": 4
+          }
+        ],
+        "missing": [
+          0,
+          2
+        ],
+        "extra": [
+          1,
+          2,
+          3
+        ]
+      },
+      "raw_strict": {
+        "tp": 0,
+        "fp": 5,
+        "fn": 4,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "accepted_basic": {
+        "tp": 2,
+        "fp": 3,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0
+          },
+          {
+            "expected": 3,
+            "actual": 4
+          }
+        ],
+        "missing": [
+          0,
+          2
+        ],
+        "extra": [
+          1,
+          2,
+          3
+        ]
+      },
+      "accepted_strict": {
+        "tp": 0,
+        "fp": 5,
+        "fn": 4,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "focus_confusions": {
+        "raw": [],
+        "accepted": []
+      },
+      "attribute_errors": [
+        {
+          "actual": 0,
+          "expected": 1,
+          "mismatches": [
+            "subject",
+            "period"
+          ]
+        },
+        {
+          "actual": 4,
+          "expected": 3,
+          "mismatches": [
+            "subject"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf6-spc-2025-tourism",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 8,
+      "accepted_count": 8,
+      "rejected": [],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "possible_missing",
+        "message": "原文仍有可能未覆盖的金额或日期线索，包括金额期间可能缺少独立日期候选。此为启发式提示，请人工核对。",
+        "rawCount": 8,
+        "acceptedCount": 8,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "5万元",
+            "start": 292,
+            "end": 295,
+            "covered": true
+          },
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "人民币四万元",
+            "start": 561,
+            "end": 567,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2024年4月9日",
+            "start": 307,
+            "end": 316,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v6-spc-2025-tourism:1:0",
+          "rawValue": "41万余元",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        },
+        {
+          "id": "v6-spc-2025-tourism:1:1",
+          "rawValue": "5万元",
+          "status": "exact",
+          "amount": "50000.00",
+          "matchedText": "5万元",
+          "span": {
+            "start": 0,
+            "end": 3
+          },
+          "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+        },
+        {
+          "id": "v6-spc-2025-tourism:1:2",
+          "rawValue": "四万元",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额写法、精度或数值范围不支持精确解析。"
+        },
+        {
+          "id": "v6-spc-2025-tourism:1:3",
+          "rawValue": "二万元",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额写法、精度或数值范围不支持精确解析。"
+        }
+      ],
+      "raw_relational": {
+        "tp": 3,
+        "fp": 5,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "accepted_relational": {
+        "tp": 3,
+        "fp": 5,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "raw_basic": {
+        "tp": 3,
+        "fp": 5,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "raw_strict": {
+        "tp": 3,
+        "fp": 5,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "accepted_basic": {
+        "tp": 3,
+        "fp": 5,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "accepted_strict": {
+        "tp": 3,
+        "fp": 5,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "focus_confusions": {
+        "raw": [],
+        "accepted": []
+      },
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf6-spc-2024-wang-investment",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 14,
+      "accepted_count": 13,
+      "rejected": [
+        {
+          "index": 7,
+          "reason": "引用不存在，或引用不包含候选原文值"
+        }
+      ],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "possible_missing",
+        "message": "原文仍有可能未覆盖的金额或日期线索，包括金额期间可能缺少独立日期候选。此为启发式提示，请人工核对。",
+        "rawCount": 14,
+        "acceptedCount": 13,
+        "rejectedCount": 1,
+        "signals": [
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2016年12月",
+            "start": 69,
+            "end": 77,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2020年12月",
+            "start": 110,
+            "end": 118,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2020年9月",
+            "start": 169,
+            "end": 176,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2021年12月",
+            "start": 185,
+            "end": 193,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2019年11月",
+            "start": 197,
+            "end": 205,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2020年12月",
+            "start": 206,
+            "end": 214,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2023年12月",
+            "start": 220,
+            "end": 228,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2020年12月",
+            "start": 233,
+            "end": 241,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2020年12月",
+            "start": 275,
+            "end": 283,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2022年3月",
+            "start": 291,
+            "end": 298,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2020年12月",
+            "start": 328,
+            "end": 336,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2019年11月",
+            "start": 351,
+            "end": 359,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2020年11月",
+            "start": 360,
+            "end": 368,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2020年12月",
+            "start": 16,
+            "end": 24,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2019年11月",
+            "start": 27,
+            "end": 35,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2020年11月",
+            "start": 36,
+            "end": 44,
+            "covered": false
+          },
+          {
+            "kind": "wage_period",
+            "blockId": "b01",
+            "text": "2019年11月至2020年12月",
+            "start": 197,
+            "end": 214,
+            "covered": true
+          },
+          {
+            "kind": "wage_period",
+            "blockId": "b01",
+            "text": "2020年12月",
+            "start": 110,
+            "end": 118,
+            "covered": false
+          },
+          {
+            "kind": "wage_period",
+            "blockId": "b01",
+            "text": "2019年11月至2020年11月",
+            "start": 351,
+            "end": 368,
+            "covered": false
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v6-spc-2024-wang-investment:1:8",
+          "rawValue": "2019年11月至2020年12月的其他工资",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        },
+        {
+          "id": "v6-spc-2024-wang-investment:1:9",
+          "rawValue": "2020年12月基本工资",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        },
+        {
+          "id": "v6-spc-2024-wang-investment:1:10",
+          "rawValue": "2020年12月工资（含基本工资、其他工资）",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        },
+        {
+          "id": "v6-spc-2024-wang-investment:1:11",
+          "rawValue": "2019年11月至2020年11月的其他工资",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        },
+        {
+          "id": "v6-spc-2024-wang-investment:1:12",
+          "rawValue": "2020年12月工资",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        },
+        {
+          "id": "v6-spc-2024-wang-investment:1:13",
+          "rawValue": "2019年11月至2020年11月的其他工资",
+          "status": "unsupported",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "未找到唯一且受支持的精确金额，保留原文供核对。"
+        }
+      ],
+      "raw_relational": {
+        "tp": 7,
+        "fp": 7,
+        "fn": 4,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 7,
+            "actual": 1
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          },
+          {
+            "expected": 5,
+            "actual": 4
+          },
+          {
+            "expected": 4,
+            "actual": 5
+          },
+          {
+            "expected": 6,
+            "actual": 6
+          }
+        ],
+        "missing": [
+          1,
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ]
+      },
+      "accepted_relational": {
+        "tp": 7,
+        "fp": 6,
+        "fn": 4,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 7,
+            "actual": 1
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          },
+          {
+            "expected": 5,
+            "actual": 4
+          },
+          {
+            "expected": 4,
+            "actual": 5
+          },
+          {
+            "expected": 6,
+            "actual": 6
+          }
+        ],
+        "missing": [
+          1,
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "raw_basic": {
+        "tp": 7,
+        "fp": 7,
+        "fn": 4,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 7,
+            "actual": 1
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          },
+          {
+            "expected": 5,
+            "actual": 4
+          },
+          {
+            "expected": 4,
+            "actual": 5
+          },
+          {
+            "expected": 6,
+            "actual": 6
+          }
+        ],
+        "missing": [
+          1,
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ]
+      },
+      "raw_strict": {
+        "tp": 3,
+        "fp": 11,
+        "fn": 8,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 7,
+            "actual": 1
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          }
+        ],
+        "missing": [
+          1,
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ]
+      },
+      "accepted_basic": {
+        "tp": 7,
+        "fp": 6,
+        "fn": 4,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 7,
+            "actual": 1
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          },
+          {
+            "expected": 5,
+            "actual": 4
+          },
+          {
+            "expected": 4,
+            "actual": 5
+          },
+          {
+            "expected": 6,
+            "actual": 6
+          }
+        ],
+        "missing": [
+          1,
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "accepted_strict": {
+        "tp": 3,
+        "fp": 10,
+        "fn": 8,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 7,
+            "actual": 1
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          }
+        ],
+        "missing": [
+          1,
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ]
+      },
+      "focus_confusions": {
+        "raw": [],
+        "accepted": []
+      },
+      "attribute_errors": [
+        {
+          "actual": 3,
+          "expected": 3,
+          "mismatches": [
+            "assertion"
+          ]
+        },
+        {
+          "actual": 4,
+          "expected": 5,
+          "mismatches": [
+            "assertion"
+          ]
+        },
+        {
+          "actual": 5,
+          "expected": 4,
+          "mismatches": [
+            "assertion"
+          ]
+        },
+        {
+          "actual": 6,
+          "expected": 6,
+          "mismatches": [
+            "assertion"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf6-spc-2024-shoes-69",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 0,
+      "accepted_count": 0,
+      "rejected": [],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "empty",
+        "message": "本次返回空候选。启发式覆盖检查不能据此认定材料没有工资事实，请核对原文；未自动补取或确认。",
+        "rawCount": 0,
+        "acceptedCount": 0,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "59.6万元",
+            "start": 104,
+            "end": 110,
+            "covered": false
+          },
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "51.5万元",
+            "start": 126,
+            "end": 132,
+            "covered": false
+          },
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "111.1万元",
+            "start": 140,
+            "end": 147,
+            "covered": false
+          },
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "105.7万元",
+            "start": 403,
+            "end": 410,
+            "covered": false
+          }
+        ]
+      },
+      "normalization": [],
+      "raw_relational": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 5,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "extra": []
+      },
+      "accepted_relational": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 5,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "extra": []
+      },
+      "raw_basic": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 5,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "extra": []
+      },
+      "raw_strict": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 5,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "extra": []
+      },
+      "accepted_basic": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 5,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "extra": []
+      },
+      "accepted_strict": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 5,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "extra": []
+      },
+      "focus_confusions": {
+        "raw": [],
+        "accepted": []
+      },
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf6-tjbh-2025-806",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 10,
+      "accepted_count": 10,
+      "rejected": [],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "possible_missing",
+        "message": "原文仍有可能未覆盖的金额或日期线索，包括金额期间可能缺少独立日期候选。此为启发式提示，请人工核对。",
+        "rawCount": 10,
+        "acceptedCount": 10,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2022年9月1日",
+            "start": 8,
+            "end": 17,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2022年11月1日",
+            "start": 31,
+            "end": 41,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2023年11月9日",
+            "start": 61,
+            "end": 71,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2024年8月1日",
+            "start": 91,
+            "end": 100,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2025年4月30日",
+            "start": 152,
+            "end": 162,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2025年4月30日",
+            "start": 173,
+            "end": 183,
+            "covered": true
+          },
+          {
+            "kind": "money",
+            "blockId": "b03",
+            "text": "367.82元",
+            "start": 223,
+            "end": 230,
+            "covered": true
+          },
+          {
+            "kind": "money",
+            "blockId": "b03",
+            "text": "人民币367.82 元",
+            "start": 314,
+            "end": 325,
+            "covered": false
+          },
+          {
+            "kind": "money",
+            "blockId": "b03",
+            "text": "叁佰陆拾柒元捌角贰分",
+            "start": 326,
+            "end": 336,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b03",
+            "text": "2025年4月30日",
+            "start": 44,
+            "end": 54,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b03",
+            "text": "2025年5月",
+            "start": 81,
+            "end": 88,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b03",
+            "text": "2025年4月",
+            "start": 93,
+            "end": 100,
+            "covered": true
+          },
+          {
+            "kind": "wage_period",
+            "blockId": "b02",
+            "text": "2025年",
+            "start": 152,
+            "end": 157,
+            "covered": false
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v6-tjbh-2025-806:1:8",
+          "rawValue": "367.82元",
+          "status": "exact",
+          "amount": "367.82",
+          "matchedText": "367.82元",
+          "span": {
+            "start": 0,
+            "end": 7
+          },
+          "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+        },
+        {
+          "id": "v6-tjbh-2025-806:1:9",
+          "rawValue": "367.82 元",
+          "status": "exact",
+          "amount": "367.82",
+          "matchedText": "367.82 元",
+          "span": {
+            "start": 0,
+            "end": 8
+          },
+          "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+        }
+      ],
+      "raw_relational": {
+        "tp": 9,
+        "fp": 1,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 1,
+            "actual": 1
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          },
+          {
+            "expected": 4,
+            "actual": 4
+          },
+          {
+            "expected": 5,
+            "actual": 5
+          },
+          {
+            "expected": 6,
+            "actual": 6
+          },
+          {
+            "expected": 7,
+            "actual": 7
+          },
+          {
+            "expected": 11,
+            "actual": 9
+          }
+        ],
+        "missing": [
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          8
+        ]
+      },
+      "accepted_relational": {
+        "tp": 9,
+        "fp": 1,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 1,
+            "actual": 1
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          },
+          {
+            "expected": 4,
+            "actual": 4
+          },
+          {
+            "expected": 5,
+            "actual": 5
+          },
+          {
+            "expected": 6,
+            "actual": 6
+          },
+          {
+            "expected": 7,
+            "actual": 7
+          },
+          {
+            "expected": 11,
+            "actual": 9
+          }
+        ],
+        "missing": [
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          8
+        ]
+      },
+      "raw_basic": {
+        "tp": 9,
+        "fp": 1,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 1,
+            "actual": 1
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          },
+          {
+            "expected": 4,
+            "actual": 4
+          },
+          {
+            "expected": 5,
+            "actual": 5
+          },
+          {
+            "expected": 6,
+            "actual": 6
+          },
+          {
+            "expected": 7,
+            "actual": 7
+          },
+          {
+            "expected": 11,
+            "actual": 9
+          }
+        ],
+        "missing": [
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          8
+        ]
+      },
+      "raw_strict": {
+        "tp": 3,
+        "fp": 7,
+        "fn": 9,
+        "pairs": [
+          {
+            "expected": 6,
+            "actual": 6
+          },
+          {
+            "expected": 7,
+            "actual": 7
+          },
+          {
+            "expected": 11,
+            "actual": 9
+          }
+        ],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          8
+        ]
+      },
+      "accepted_basic": {
+        "tp": 9,
+        "fp": 1,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 1,
+            "actual": 1
+          },
+          {
+            "expected": 2,
+            "actual": 2
+          },
+          {
+            "expected": 3,
+            "actual": 3
+          },
+          {
+            "expected": 4,
+            "actual": 4
+          },
+          {
+            "expected": 5,
+            "actual": 5
+          },
+          {
+            "expected": 6,
+            "actual": 6
+          },
+          {
+            "expected": 7,
+            "actual": 7
+          },
+          {
+            "expected": 11,
+            "actual": 9
+          }
+        ],
+        "missing": [
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          8
+        ]
+      },
+      "accepted_strict": {
+        "tp": 3,
+        "fp": 7,
+        "fn": 9,
+        "pairs": [
+          {
+            "expected": 6,
+            "actual": 6
+          },
+          {
+            "expected": 7,
+            "actual": 7
+          },
+          {
+            "expected": 11,
+            "actual": 9
+          }
+        ],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          8,
+          9,
+          10
+        ],
+        "extra": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          8
+        ]
+      },
+      "focus_confusions": {
+        "raw": [
+          {
+            "actual": 4,
+            "possible_expected": [
+              4,
+              5
+            ],
+            "ambiguous": true,
+            "errors": []
+          },
+          {
+            "actual": 5,
+            "possible_expected": [
+              4,
+              5
+            ],
+            "ambiguous": true,
+            "errors": []
+          }
+        ],
+        "accepted": [
+          {
+            "actual": 4,
+            "possible_expected": [
+              4,
+              5
+            ],
+            "ambiguous": true,
+            "errors": []
+          },
+          {
+            "actual": 5,
+            "possible_expected": [
+              4,
+              5
+            ],
+            "ambiguous": true,
+            "errors": []
+          }
+        ]
+      },
+      "attribute_errors": [
+        {
+          "actual": 0,
+          "expected": 0,
+          "mismatches": [
+            "assertion"
+          ]
+        },
+        {
+          "actual": 1,
+          "expected": 1,
+          "mismatches": [
+            "assertion"
+          ]
+        },
+        {
+          "actual": 2,
+          "expected": 2,
+          "mismatches": [
+            "assertion"
+          ]
+        },
+        {
+          "actual": 3,
+          "expected": 3,
+          "mismatches": [
+            "assertion"
+          ]
+        },
+        {
+          "actual": 4,
+          "expected": 4,
+          "mismatches": [
+            "assertion"
+          ]
+        },
+        {
+          "actual": 5,
+          "expected": 5,
+          "mismatches": [
+            "assertion"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf6-nyzy-2026-zhang",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 8,
+      "accepted_count": 8,
+      "rejected": [],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "no_signal",
+        "message": "启发式检查未发现额外覆盖线索；这不证明提取完整，也不构成事实或计算授权。",
+        "rawCount": 8,
+        "acceptedCount": 8,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "2900万元",
+            "start": 97,
+            "end": 103,
+            "covered": true
+          },
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "500万元",
+            "start": 136,
+            "end": 141,
+            "covered": true
+          },
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "115万元",
+            "start": 242,
+            "end": 247,
+            "covered": true
+          },
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "人民币30000元",
+            "start": 391,
+            "end": 400,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2024年3月",
+            "start": 82,
+            "end": 89,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2025年7月",
+            "start": 217,
+            "end": 224,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v6-nyzy-2026-zhang:1:0",
+          "rawValue": "2900万元劳务费",
+          "status": "exact",
+          "amount": "29000000.00",
+          "matchedText": "2900万元",
+          "span": {
+            "start": 0,
+            "end": 6
+          },
+          "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+        },
+        {
+          "id": "v6-nyzy-2026-zhang:1:1",
+          "rawValue": "近500万元劳务费",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "原文是概数或金额界限，不转换为精确金额。"
+        },
+        {
+          "id": "v6-nyzy-2026-zhang:1:2",
+          "rawValue": "约115万元工资",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "原文是概数或金额界限，不转换为精确金额。"
+        },
+        {
+          "id": "v6-nyzy-2026-zhang:1:3",
+          "rawValue": "人民币30000元",
+          "status": "exact",
+          "amount": "30000.00",
+          "matchedText": "人民币30000元",
+          "span": {
+            "start": 0,
+            "end": 9
+          },
+          "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+        }
+      ],
+      "raw_relational": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 4,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "accepted_relational": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 4,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "raw_basic": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 4,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "raw_strict": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 4,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "accepted_basic": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 4,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "accepted_strict": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0
+          },
+          {
+            "expected": 4,
+            "actual": 3
+          }
+        ],
+        "missing": [
+          1,
+          2,
+          3
+        ],
+        "extra": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "focus_confusions": {
+        "raw": [],
+        "accepted": []
+      },
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": false
+    }
+  ]
+}

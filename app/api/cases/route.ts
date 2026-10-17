@@ -1,5 +1,6 @@
 import { getRequestUser, unauthorized } from '@/lib/auth';
 import { cleanText, ensureUserSeed, getDatabase, jsonError, rowToCase } from '@/lib/server';
+import { retryMaterialFactCleanup } from '@/lib/material-fact-cleanup';
 
 import { isRecord, statusForStep, validAmount, validDate } from '@/lib/validation';
 
@@ -94,18 +95,18 @@ export async function PATCH(request: Request) {
 
   updates.push({ column: 'updated_at', value: new Date().toISOString() });
   const sql = `UPDATE cases SET ${updates.map((item) => `${item.column} = ?`).join(', ')} WHERE id = ? AND user_id = ?`;
-  const result = await getDatabase()
-    .prepare(sql)
-    .bind(...updates.map((item) => item.value), id, user.userId)
-    .run();
+  // D1 triggers journal an old remote job before invalidation deletes its fact
+  // state, in the same transaction as this owner-scoped case update.
+  const result = await getDatabase().prepare(sql).bind(...updates.map((item) => item.value), id, user.userId).run();
   if ((result.meta.changes ?? 0) === 0) return jsonError('未找到这个案件。', 404);
+  const processingCleanupPending = await retryMaterialFactCleanup(user.userId, id);
 
   const row = await getDatabase()
     .prepare('SELECT * FROM cases WHERE id = ? AND user_id = ?')
     .bind(id, user.userId)
     .first<Record<string, unknown>>();
   if (!row) return jsonError('案件更新后未能读取。', 500);
-  return Response.json({ case: rowToCase(row) });
+  return Response.json({ case: rowToCase(row), processingCleanupPending });
 }
 
 function validateFields(body: Record<string, unknown>): string | null {

@@ -71,7 +71,7 @@ export default function Cases({
     const nextStep = activeCase.currentStep + 1;
     const nextStatus = statusForStep(nextStep);
     try {
-      const result = await apiRequest<{ case: WorkCase }>('/api/cases', {
+      const result = await apiRequest<{ case: WorkCase; processingCleanupPending?: boolean }>('/api/cases', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,7 +95,7 @@ export default function Cases({
     archivePending.current = true;
     setSavingArchive(true);
     try {
-      const result = await apiRequest<{ case: WorkCase }>('/api/cases', {
+      const result = await apiRequest<{ case: WorkCase; processingCleanupPending?: boolean }>('/api/cases', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: activeCase.id, status: 'archived' }),
@@ -107,7 +107,7 @@ export default function Cases({
       } : current);
       const next = filtered.find((item) => item.id !== activeCase.id);
       setActiveCaseId(next?.id ?? '');
-      notify('案件已归档。');
+      notify(result.processingCleanupPending ? '案件已归档；后台提取尚未确认停止，请检查识别服务。' : '案件已归档。');
     } catch (error) {
       notify(error instanceof Error ? error.message : '归档失败。', 'error');
     } finally {
@@ -121,7 +121,7 @@ export default function Cases({
     archivePending.current = true;
     setSavingArchive(true);
     try {
-      const result = await apiRequest<{ case: WorkCase }>('/api/cases', {
+      const result = await apiRequest<{ case: WorkCase; processingCleanupPending?: boolean }>('/api/cases', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: activeCase.id, status: statusForStep(activeCase.currentStep) }),
       });
@@ -131,7 +131,7 @@ export default function Cases({
         archivedCases: current.archivedCases.filter((item) => item.id !== result.case.id),
       } : current);
       setActiveCaseId(result.case.id);
-      setFilter('all'); notify('案件已恢复。');
+      setFilter('all'); notify(result.processingCleanupPending ? '案件已恢复；旧后台提取尚未确认停止，请检查识别服务。' : '案件已恢复。');
     } catch (error) { notify(error instanceof Error ? error.message : '恢复失败。', 'error'); }
     finally { archivePending.current = false; setSavingArchive(false); }
   };
@@ -321,12 +321,13 @@ function CaseDialog({
     event.preventDefault();
     setSaving(true);
     try {
-      const result = await apiRequest<{ case: WorkCase }>('/api/cases', {
+      const result = await apiRequest<{ case: WorkCase; processingCleanupPending?: boolean }>('/api/cases', {
         method: value ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...(value ? { id: value.id } : {}), ...form }),
       });
       onSaved(result.case);
+      if (result.processingCleanupPending) notify('案件已保存，旧候选提取任务的停止仍待服务恢复后确认。', 'error');
     } catch (error) {
       notify(error instanceof Error ? error.message : '保存失败。', 'error');
     } finally {
