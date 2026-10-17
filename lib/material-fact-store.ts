@@ -2,7 +2,7 @@ import type { RequestUser } from './auth';
 import { getDatabase } from './server';
 import { callMaterialService, materialServiceConfigured } from './material-service-client';
 import { validateMaterialResult } from './material-validation';
-import { applyFactAction, buildFactView, emptyFactState, ingestCandidates, prepareCalculation, synchronizeFacts, validateCandidateOutput } from './material-facts';
+import { applyFactAction, buildFactView, emptyFactState, ingestCandidates, prepareCalculation, synchronizeFacts, validateCandidateOutput, validateFactSource } from './material-facts-v2';
 import type { FactAction, FactSource, FactState, MaterialFactsResponse } from './material-fact-types';
 
 type SessionRow = { case_id: string; user_id: string; revision: number; state_json: string };
@@ -154,6 +154,9 @@ export async function actOnMaterialFacts(user: RequestUser, id: string, revision
   if (action.action === 'extract') {
     const source = current.sources.find((item) => item.id === action.evidenceId && item.ready);
     if (!source) throw new FactStoreError('请先在材料清单完成该文件的原文识别。', 409);
+    // Reject oversized material before claiming an extraction or losing prior confirmation.
+    try { validateFactSource(source); }
+    catch (error) { throw new FactStoreError(error instanceof Error ? error.message : '请拆分材料后再提取。', 400); }
     // Claim the extraction intent before any external request. A simultaneous
     // calculation must already see all previous authorizations invalidated.
     state = { ...state, job: { id: `starting_${Date.now()}_${crypto.randomUUID()}`, evidenceId: source.id, generation, status: 'running', error: null } };

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Calculator, Check, Info, LoaderCircle, RefreshCw, ScanText, Undo2 } from 'lucide-react';
 import type { AmountField, Assertion, CandidateKind, FactAction, FactScope, MaterialFactsResponse, Qualifier } from '@/lib/material-fact-types';
+import { getCandidateRepresentation, isV2Candidate } from '@/lib/material-facts-v2';
 import './MaterialFactsPanel.css';
 
 const kinds: Record<CandidateKind, string> = { worker: '劳动者', employer: '用人单位', period: '期间', monthly_rate: '月工资标准', due_total: '应付总额候选', paid_total: '已付总额候选', arrears: '欠款表述', award: '裁判 / 命令支付', payment: '单笔付款', other_amount: '其他金额' };
@@ -10,6 +11,10 @@ const assertions: Record<Assertion, string> = { claimed: '一方主张', admitte
 const qualifiers: Record<Qualifier, string> = { wage_period: '工资期间', employment_period: '任职期间', contract_period: '合同期间', other_period: '其他期间', gross: '税前', net: '实发 / 税后', partial: '部分金额', unknown: '口径未明' };
 const emptyScope: FactScope = { worker: '', employer: '', start: '', end: '' };
 const emptyAmount = () => ({ amount: '', note: '', complete: false, verified: false });
+const meanings: Record<string, string> = { due_total: '应付总额表述', paid_total: '已付总额表述', payment: '单笔 / 部分支付', arrears: '欠付表述', award: '裁判 / 命令支付', rate: '工资计价标准', other_money: '其他金额', employment_period: '实际工作期间', wage_period: '工资所属期间', contract_signing: '合同签订时间', contract_performance: '约定履行期间', payment_date: '付款时间', other_date: '其他日期' };
+const scopes: Record<string, string> = { individual: '个人', group: '班组 / 多人合计', organization: '单位', unknown: '归属未明' };
+const completeness: Record<string, string> = { complete: '原文表述为累计完整，仍待核实', partial: '单笔或部分，不能代替完整总额', unknown: '完整性未明', not_applicable: '此类别不判断工资总额完整性' };
+const rateUnits: Record<string, string> = { month: '每月', day: '每天', hour: '每小时', piece: '每件', unknown: '计价单位未明' };
 type Props = { caseId: string; evidenceVersion: string; onOpenSource: (id: string) => void; notify: (message: string, tone?: 'success' | 'error') => void };
 
 export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSource, notify }: Props) {
@@ -29,6 +34,7 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
   const alive = useRef(true);
   const requestSequence = useRef(0);
   const dirty = useRef(false);
+  const scopeDirty = useRef(false);
 
   const accept = useCallback((body: MaterialFactsResponse, fromMutation = false) => {
     const previous = dataRef.current;
@@ -38,7 +44,10 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
       setAmounts((current) => ({ due: { ...current.due, complete: false, verified: false }, paid: { ...current.paid, complete: false, verified: false } }));
       if (dirty.current) setDraftNotice('材料或核算范围已变化。输入草稿仍保留，请重新核对候选和完整性后保存。');
     }
-    if (!previous) setScope(body.state.scope ?? emptyScope);
+    if (!previous || !scopeDirty.current) {
+      setScope(body.state.scope ?? emptyScope);
+      if (previous && JSON.stringify(body.state.scope) !== JSON.stringify(previous.state.scope)) setScopeNote('');
+    }
     dataRef.current = body;
     setData(body);
   }, []);
@@ -103,7 +112,7 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
       const result = await request({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...action, revision: current.revision, generation: current.generation }) });
       if (!alive.current) return;
       accept(result, true);
-      if (action.action === 'confirm_scope') { setScopeVerified(false); setReviewed({}); setAmounts((values) => ({ due: { ...values.due, complete: false, verified: false }, paid: { ...values.paid, complete: false, verified: false } })); }
+      if (action.action === 'confirm_scope') { scopeDirty.current = false; setScope(result.state.scope ?? emptyScope); setScopeNote(''); setScopeVerified(false); setReviewed({}); setAmounts((values) => ({ due: { ...values.due, complete: false, verified: false }, paid: { ...values.paid, complete: false, verified: false } })); }
       if (action.action === 'confirm_amount') setAmounts((values) => ({ ...values, [action.field]: emptyAmount() }));
       if (action.action === 'extract' || action.action === 'exclude_source' || action.action === 'revoke') { setReviewed({}); setScopeVerified(false); setAmounts((values) => ({ due: { ...values.due, complete: false, verified: false }, paid: { ...values.paid, complete: false, verified: false } })); }
       if (action.action === 'extract' && result.state.job?.status === 'failed') notify('候选提取未开始；旧金额确认已失效，请恢复服务后重试。', 'error');
@@ -148,13 +157,19 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
               <div className="fact-source-heading"><div><strong>{source.name}</strong><span>{material?.status === 'excluded' ? '已说明与本次核算无关' : material?.status === 'extracted' ? `${candidates.length} 条候选 · ${material.backend ?? '来源已记录'}` : source.ready ? '原文已识别 · 待提取候选' : '原文尚未就绪'}</span></div><button className="material-text-button" onClick={() => onOpenSource(source.id)}>识别 / 对照原文</button></div>
               <p className="fact-source-meta">原文件 SHA-256：<code>{source.sha256 ? source.sha256.slice(0, 16) : '上传尚未完成'}</code> · 原文版本 {source.analysisRevision}</p>
               {material?.status === 'excluded' && <p className="fact-exclusion"><strong>排除依据：</strong>{material.exclusionReason}</p>}
-              {candidates.map((candidate) => <div className="fact-candidate" key={candidate.id}>
-                <div className="fact-candidate-heading"><strong>{kinds[candidate.kind]}：{candidate.value}</strong><span>{assertions[candidate.assertion]} · {qualifiers[candidate.qualifier]}</span></div>
-                <p>对应劳动者：{candidate.subject ?? '原文未明确'} · 所属期间：{candidate.period ?? '原文未明确'}</p>
+              {candidates.map((candidate) => { const representation = getCandidateRepresentation(candidate); return <div className="fact-candidate" key={candidate.id}>
+                <div className="fact-candidate-heading"><strong>{representation ? meanings[representation.meaning] : kinds[candidate.kind]}：{candidate.value}</strong><span>{assertions[candidate.assertion]}{!representation && ` · ${qualifiers[candidate.qualifier]}`}</span></div>
+                {representation ? <>
+                  <p><strong>{scopes[representation.scope]}</strong>：{representation.subject ?? '原文未明确对应对象'} · 工资归属期间：{representation.period ?? '未明确，不推断'}</p>
+                  <p>{completeness[representation.completeness]}{representation.rateUnit ? ` · ${rateUnits[representation.rateUnit]}` : ''}</p>
+                  {representation.scope === 'group' && <p className="fact-conflict-note">这是群体范围的表述，不能将全部金额归给班组代表或某一个人。</p>}
+                  {representation.meaning === 'contract_signing' && <p className="material-help">签约时间不证明实际工作或工资所属期间。</p>}
+                </> : <p>旧版候选：对象 {candidate.subject ?? '未明确'} · 期间 {candidate.period ?? '未明确'}。尚未区分个人与群体、完整与部分；请重新提取或对照原文核实。</p>}
+                {isV2Candidate(candidate) && candidate.reviewIssues.length > 0 && <div className="fact-conflict-note"><strong>需要进一步核对</strong><ul>{candidate.reviewIssues.map((issue, index) => <li key={`${issue.code}-${index}`}>{issue.message}</li>)}</ul></div>}
                 <blockquote>{candidate.quote}</blockquote>
                 <p className="fact-source-meta">第 {candidate.page} 页 · 原文块 {candidate.blockId} · 字符位置 {candidate.start}–{candidate.end}{candidate.amount ? ` · 金额规范值 ${candidate.amount} 元` : ''}</p>
                 <label className="fact-check"><input type="checkbox" checked={reviewed[candidate.id] ?? false} disabled={disabled} onChange={(event) => { dirty.current = true; setReviewed((current) => ({ ...current, [candidate.id]: event.target.checked })); }} />我已阅读这条候选及其原文，理解其金额类型、主张身份与所属范围</label>
-              </div>)}
+              </div>; })}
               {material?.status === 'extracted' && !candidates.length && <p className="material-help">该材料没有通过字面与格式校验的候选。请对照原文判断是否缺失所需信息。</p>}
               {Boolean(material?.rejected.length) && <details className="fact-rejected"><summary>{material!.rejected.length} 条候选未通过校验</summary><ul>{material!.rejected.map((item) => <li key={item.index}>第 {item.index + 1} 条：{item.reason}</li>)}</ul></details>}
               {material?.raw !== null && material?.raw !== undefined && <details className="fact-raw"><summary>查看本次提取的原始回答</summary><p>处理方式：{material.backend}{material.model ? ` · ${material.model}` : ''}。字面校验通过仅说明引用位置可对照，仍需判断语义与材料真实性。</p><pre>{material.raw}</pre></details>}
@@ -169,8 +184,8 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
           {data.state.scope && <p className="fact-confirmation">已确认：{data.state.scope.worker} · {data.state.scope.employer} · {data.state.scope.start} 至 {data.state.scope.end}</p>}
           {data.state.scopeReview && <p className="fact-confirmation">范围核实依据：{data.state.scopeReview.note}<br />确认时间：{data.state.scopeReview.at}</p>}
           <form onSubmit={(event) => { event.preventDefault(); void submit({ action: 'confirm_scope', scope, note: scopeNote, verified: true }); }}>
-            <div className="fact-scope-fields">{(['worker', 'employer', 'start', 'end'] as const).map((key) => <label className="field" key={key}><span>{{ worker: '劳动者全名', employer: '用人单位全名', start: '工资期间开始', end: '工资期间结束' }[key]}</span><input type={key === 'start' || key === 'end' ? 'date' : 'text'} value={scope[key]} required maxLength={200} disabled={disabled || running} onChange={(event) => { dirty.current = true; setScopeVerified(false); setScope((current) => ({ ...current, [key]: event.target.value })); }} /></label>)}</div>
-            <label className="field"><span>范围核实依据 / 冲突处理说明</span><textarea value={scopeNote} maxLength={500} required rows={2} disabled={disabled || running} onChange={(event) => { dirty.current = true; setScopeNote(event.target.value); }} placeholder="说明如何核实主体与工资期间；文书有多个主体或期间时请说明取舍" /></label>
+            <div className="fact-scope-fields">{(['worker', 'employer', 'start', 'end'] as const).map((key) => <label className="field" key={key}><span>{{ worker: '劳动者全名', employer: '用人单位全名', start: '工资期间开始', end: '工资期间结束' }[key]}</span><input type={key === 'start' || key === 'end' ? 'date' : 'text'} value={scope[key]} required maxLength={200} disabled={disabled || running} onChange={(event) => { dirty.current = true; scopeDirty.current = true; setScopeVerified(false); setScope((current) => ({ ...current, [key]: event.target.value })); }} /></label>)}</div>
+            <label className="field"><span>范围核实依据 / 冲突处理说明</span><textarea value={scopeNote} maxLength={500} required rows={2} disabled={disabled || running} onChange={(event) => { dirty.current = true; scopeDirty.current = true; setScopeNote(event.target.value); }} placeholder="说明如何核实主体与工资期间；文书有多个主体或期间时请说明取舍" /></label>
             <label className="fact-check"><input type="checkbox" checked={scopeVerified} disabled={disabled || running} onChange={(event) => setScopeVerified(event.target.checked)} />我已核实劳动者、用人单位与工资期间；任职或合同期间已单独辨认</label>
             <button className="button button-primary" disabled={disabled || running || !scopeVerified} type="submit"><Check size={16} />确认核算范围</button>
           </form>
@@ -178,7 +193,7 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
 
         <section className="fact-amounts" aria-label="完整金额确认">
           <h3>3. 核实并输入本期完整总额</h3>
-          <p className="material-help">单笔付款、月薪、欠款主张和裁判支付额不能直接替代完整应付 / 已付总额。请统一税前或实发等金额口径；空白保持未知，明确 0 元时才填写 0。</p>
+          <p className="material-help">班组合计不能当作个人金额；单笔付款、计价标准、欠款主张和裁判支付额不能直接替代完整应付 / 已付总额。请统一税前或实发等金额口径；空白保持未知，明确 0 元时才填写 0。</p>
           <div className="fact-amount-grid">{(['due', 'paid'] as const).map((field) => {
             const view = data.fields[field];
             const draft = amounts[field];

@@ -1,5 +1,6 @@
 import { getRequestUser, unauthorized } from '@/lib/auth';
 import { cleanText, ensureUserSeed, getDatabase, jsonError, rowToCase } from '@/lib/server';
+import { callMaterialService } from '@/lib/material-service-client';
 
 import { isRecord, statusForStep, validAmount, validDate } from '@/lib/validation';
 
@@ -94,18 +95,32 @@ export async function PATCH(request: Request) {
 
   updates.push({ column: 'updated_at', value: new Date().toISOString() });
   const sql = `UPDATE cases SET ${updates.map((item) => `${item.column} = ?`).join(', ')} WHERE id = ? AND user_id = ?`;
-  const result = await getDatabase()
-    .prepare(sql)
-    .bind(...updates.map((item) => item.value), id, user.userId)
-    .run();
+  const companyUpdate = updates.find(item => item.column === 'company');
+  const statusUpdate = updates.find(item => item.column === 'status');
+  // Capture the owned job in the same transaction that may delete its fact state.
+  // A no-op or ordinary step change must not cancel an unrelated active job.
+  const changed = await getDatabase().batch([
+    getDatabase().prepare(`SELECT json_extract(f.state_json,'$.job.id') AS job_id
+      FROM cases c JOIN case_material_facts f ON f.case_id=c.id AND f.user_id=c.user_id
+      WHERE c.id=? AND c.user_id=? AND
+        ((?=1 AND c.company IS NOT ?) OR (?=1 AND (c.status='archived') != (?='archived')))`)
+      .bind(id, user.userId, companyUpdate ? 1 : 0, companyUpdate?.value ?? null, statusUpdate ? 1 : 0, statusUpdate?.value ?? null),
+    getDatabase().prepare(sql).bind(...updates.map((item) => item.value), id, user.userId),
+  ]);
+  const result = changed[1];
   if ((result.meta.changes ?? 0) === 0) return jsonError('未找到这个案件。', 404);
+  const invalidatedJob = changed[0].results[0] as { job_id: string | null } | undefined;
+  let processingCleanupPending = false;
+  if (invalidatedJob?.job_id && /^[a-zA-Z0-9_-]{1,100}$/.test(invalidatedJob.job_id) && !invalidatedJob.job_id.startsWith('starting_')) {
+    await callMaterialService(`/fact-jobs/${encodeURIComponent(invalidatedJob.job_id)}`, { method: 'DELETE' }).catch(() => { processingCleanupPending = true; });
+  }
 
   const row = await getDatabase()
     .prepare('SELECT * FROM cases WHERE id = ? AND user_id = ?')
     .bind(id, user.userId)
     .first<Record<string, unknown>>();
   if (!row) return jsonError('案件更新后未能读取。', 500);
-  return Response.json({ case: rowToCase(row) });
+  return Response.json({ case: rowToCase(row), processingCleanupPending });
 }
 
 function validateFields(body: Record<string, unknown>): string | null {

@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { buildExtractionMessages, extractRuleCandidates, validateFactSource } from '../lib/material-facts.ts';
+import { buildExtractionMessages, extractRuleCandidates, validateFactSource } from '../lib/material-facts-v2.ts';
 
 const ttl = 5 * 60_000;
 const fail = (message, status = 400) => Object.assign(new Error(message), { status, code: 'FACT_JOB_FAILED' });
@@ -122,7 +122,8 @@ export function createFactJobs(config = {}, inference = infer) {
       prune();
       if (!configured || closed) throw fail('候选模型尚未配置。', 503);
       if (!payload || Object.keys(payload).length !== 1 || !payload.source) throw fail('只接受服务端提供的材料文本。');
-      validateFactSource(payload.source);
+      try { validateFactSource(payload.source); }
+      catch (error) { throw fail(error instanceof Error ? error.message : '材料文本不符合提取要求。', 400); }
       if (!payload.source.ready || !payload.source.blocks.length) throw fail('材料文字尚未就绪。');
       if (jobs.size >= 32 || queue.length + Number(processing) >= 3) throw fail('候选提取队列已满。', 429);
       let resolveDone;
