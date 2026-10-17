@@ -126,6 +126,9 @@ export async function DELETE(request: Request) {
     // Removing the visible record must not forget the operation UUID: an
     // in-flight put or delayed retry may still arrive after DELETE succeeds.
     const deletion = await db.batch([
+      db.prepare(`SELECT json_extract(f.state_json,'$.job.id') AS job_id
+        FROM case_material_facts f JOIN evidence_files e ON e.case_id=f.case_id AND e.user_id=f.user_id
+        WHERE e.id=? AND e.user_id=?`).bind(id, user.userId),
       db.prepare(
         `INSERT OR IGNORE INTO evidence_upload_cancellations (id, user_id, object_key, cancelled_at)
          SELECT id, user_id, object_key, ? FROM evidence_files WHERE id = ? AND user_id = ?`,
@@ -138,7 +141,8 @@ export async function DELETE(request: Request) {
         .bind(id, user.userId),
     ]);
     // Read the job ID inside the transaction after blocking new attachments.
-    const analysisJob = deletion[2].results[0] as { job_id: string | null } | undefined;
+    const factJob = deletion[0].results[0] as { job_id: string | null } | undefined;
+    const analysisJob = deletion[3].results[0] as { job_id: string | null } | undefined;
     const cancellation = await db.prepare('SELECT object_key FROM evidence_upload_cancellations WHERE id = ? AND user_id = ?')
       .bind(id, user.userId).first<{ object_key: string | null }>();
     if (!cancellation) return jsonError('未找到这个证据记录。', 404);
@@ -147,6 +151,11 @@ export async function DELETE(request: Request) {
       // Its authenticated, bounded temporary cache is also cancelled when reachable.
       const { callMaterialService } = await import('@/lib/material-service-client');
       await callMaterialService(`/jobs/${encodeURIComponent(analysisJob.job_id)}`, { method: 'DELETE' })
+        .catch(() => { processingCleanupPending = true; });
+    }
+    if (factJob?.job_id && /^[0-9a-f-]{36}$/.test(factJob.job_id)) {
+      const { callMaterialService } = await import('@/lib/material-service-client');
+      await callMaterialService(`/fact-jobs/${encodeURIComponent(factJob.job_id)}`, { method: 'DELETE' })
         .catch(() => { processingCleanupPending = true; });
     }
     if (cancellation.object_key) await getFilesBucket().delete(cancellation.object_key);

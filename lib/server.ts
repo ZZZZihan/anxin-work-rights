@@ -9,6 +9,7 @@ import type {
 } from './types';
 import type { RequestUser } from './auth';
 import { materialSchemaStatements } from './material-schema';
+import { materialFactSchemaStatements } from './material-fact-schema';
 
 let schemaPromise: Promise<void> | null = null;
 
@@ -81,6 +82,7 @@ const schemaStatements = [
   'CREATE INDEX IF NOT EXISTS documents_user_idx ON document_drafts (user_id)',
   'CREATE INDEX IF NOT EXISTS documents_case_idx ON document_drafts (case_id)',
   'CREATE UNIQUE INDEX IF NOT EXISTS documents_owner_case_type_idx ON document_drafts (user_id, case_id, type)',
+  ...materialFactSchemaStatements,
 ];
 
 export function getDatabase(): D1Database {
@@ -140,6 +142,7 @@ async function upgradeLocalSchema(): Promise<void> {
       '0001_mighty_fantastic_four.sql',
       '0002_evidence_upload_cancellations.sql',
       '0003_material_analyses.sql',
+      '0004_material_facts.sql',
     ].map((name) => db.prepare('INSERT OR IGNORE INTO d1_migrations (name) VALUES (?)').bind(name)),
   ]);
 }
