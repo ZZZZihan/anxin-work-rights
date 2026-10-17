@@ -20,6 +20,7 @@ import { createOperationId } from '@/lib/client-uuid';
 import type { EvidenceFile } from '@/lib/types';
 import type { SharedViewProps } from '../types';
 import MaterialAnalysisPanel from '../MaterialAnalysisPanel';
+import MaterialFactsPanel from '../MaterialFactsPanel';
 
 const categories = ['劳动关系', '工资支付', '考勤加班', '解除经过', '工伤材料', '沟通记录', '其他材料'];
 
@@ -281,6 +282,17 @@ export default function Evidence({
           onClose={() => setSelectedMaterial(null)}
         />
       )}
+
+      <MaterialFactsPanel
+        key={activeCase.id}
+        caseId={activeCase.id}
+        evidenceVersion={evidence.map((item) => `${item.id}:${item.status}`).join('|')}
+        notify={notify}
+        onOpenSource={(id) => {
+          setSelectedMaterial({ caseId: activeCase.id, id });
+          window.setTimeout(() => document.getElementById('material-analysis-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        }}
+      />
     </div>
   );
 }

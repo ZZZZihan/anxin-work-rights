@@ -4,7 +4,7 @@
 
 ## 启动与操作
 
-需要 Node.js 22.13+、Python 3.10+。图片和 PDF 识别支持 macOS 与 Linux：macOS 使用 Swift 命令行工具及 Apple Vision/PDFKit，首次运行会在私有临时目录编译助手；Linux 使用本机 Tesseract、`chi_sim` 简体中文语言包及 Poppler 的 `pdfinfo`/`pdftoppm`，启动前需安装并配置这些工具，服务不会自行下载。其他平台可用 UTF-8 TXT 演示文本链路。依赖与私有安装路径见[提取服务说明](material-extractor.md)。
+需要 Node.js 22.18+、Python 3.10+。图片和 PDF 识别支持 macOS 与 Linux：macOS 使用 Swift 命令行工具及 Apple Vision/PDFKit，首次运行会在私有临时目录编译助手；Linux 使用本机 Tesseract、`chi_sim` 简体中文语言包及 Poppler 的 `pdfinfo`/`pdftoppm`，启动前需安装并配置这些工具，服务不会自行下载。其他平台可用 UTF-8 TXT 演示文本链路。依赖与私有安装路径见[提取服务说明](material-extractor.md)。
 
 ```bash
 npm ci
@@ -41,6 +41,33 @@ ANXIN_MATERIAL_MODEL=<本机模型名> npm run dev:materials
 切换模型配置只作用于新任务；已保存结果保留当时的引擎信息和人工核对内容。比较不同模式时，请重新上传合成样例，避免覆盖已有核对结果。
 
 ## 出处与数据边界
+
+### 新增：候选事实与本期总额确认
+
+证据清单下新增“材料 → 候选 → 用户确认”。它独立于上方 OCR 字段勾选：先读取每份材料的文字，再提取有原文位置的候选；用户确认劳动者、单位、工资期间，核实完整应付/已付总额并说明冲突取舍后，才能计算差额。未知留空，确实未支付时显式输入0。单笔付款、月薪、欠款主张或判付金额都不自动变成完整总额。
+
+默认候选后端为 `rules`。以下是新候选服务配置，与旧 `ANXIN_MATERIAL_MODEL` 分开，切换后重启本地启动器：
+
+```bash
+# 已下载并完成哈希核验的 Apple Silicon / MLX 模型
+ANXIN_FACTS_BACKEND=qwen \
+ANXIN_FACTS_PYTHON=/absolute/venv/bin/python \
+ANXIN_FACTS_MODEL_PATH=/absolute/Qwen3-32B-4bit \
+ANXIN_FACTS_INTEGRITY_DIR=/absolute/model-integrity-receipts \
+npm run dev:materials
+
+# 会将材料文字发送至 DeepSeek 官方 API；只处理已授权发送的材料
+ANXIN_FACTS_BACKEND=deepseek \
+ANXIN_FACTS_PYTHON=/absolute/python \
+ANXIN_FACTS_KEY_FILE=/private/path/key-file \
+npm run dev:materials
+```
+
+key文件必须仅本用户可读（权限600）；不放进项目、共享目录或日志。Qwen需要已有 `source-manifest.json` / `weights-verification.json` 完整哈希核验及匹配的文件指纹；启动器不会下载或修复模型。网站和评测共用同一候选内核与推理脚本。模型仅输出候选，无法通过回答设置确认状态。失败显示错误并保留已有材料，不替换为另一个模型。
+
+新候选队列每次1个进程、最多2个等待任务、最多32条短期记录，完成后5分钟清除。Qwen外部监测覆盖模型加载和生成，内存异常或600秒超时停止自己的进程；不关闭其他应用。新材料、重新提取、范围变化和撤回会使旧金额确认/计算失效。删除材料会清除案件事实缓存及待处理任务，500条有界动作元数据不是永久审计账本。当前范围和金额确认保留认证用户、时间及核实依据；程序不能证明用户说明的真实性。
+
+隔离HTTP验收：`node scripts/material-http-runner.mjs --facts`。真实公开文书对比及运行限制见[候选评测 v4](../experiments/material-facts-v4/README.md)。这条新增链路尚未部署；下方旧 OCR 发布记录不构成新链路部署证据。
 
 公开索引固定为首版数据库的 14 个典型案例和 54 条条文，涉及 8 份规范文件、12 个官方来源；数据库 fingerprint 为 `e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a`。每个命中都能追到源段落和 URL。案例属于官方典型案例汇编，不能当作已取得原始裁判文书。版本说明沿用采集库，未核实的现行性不会标成「现行有效」。
 
