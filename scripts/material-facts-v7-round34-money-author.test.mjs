@@ -1,0 +1,117 @@
+// ROUND34 synthetic module checks: no model, HTTP, scorer or historical CLI.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const OWN = fileURLToPath(new URL('../', import.meta.url));
+const BASE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
+const PATCH = resolve(process.env.MATERIAL_FACT_PATCH_ROOT || OWN);
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-round34-postfix-currency-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+await cp(resolve(BASE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+for (const name of ['material-money-v4.ts','material-fact-source-review.ts']) await cp(resolve(PATCH, 'lib', name), resolve(temporary, 'lib', name));
+const load = file => import(pathToFileURL(resolve(temporary, 'lib', file)).href);
+const { normalizeMoneyValueV4: parse, normalizeCandidateValueV4: normalize } = await load('material-money-v4.ts');
+const { ingestRuntimeCandidates, validateRuntimeCandidateOutput } = await load('material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates, validateCandidateOutput } = await load('material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
+const AT = '2026-10-19T00:00:00.000Z';
+const length = value => Array.from(value).length;
+
+function fixture(expression, value = expression, { fullQuote = false, nextBlock = null, subject = '王甲', owner = subject, meaning = 'other_money', rateUnit = null } = {}) {
+  const text = '😀' + owner + '工资' + expression + (nextBlock === null ? '。' : '');
+  const source = { id: 'round34-postfix-currency', name: '合成姓名与完整费率单位', sha256: 'c'.repeat(64), analysisRevision: 1, ready: true,
+    blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }] };
+  if (nextBlock !== null) source.blocks.push({ id: 'b2', page: 1, text: nextBlock + '。', bbox: null, confidence: null });
+  const candidate = { kind: 'money', value, quote: fullQuote ? text : value, blockId: 'b1', subject, scope: 'individual',
+    meaning, completeness: 'not_applicable', period: null, rateUnit, assertion: 'narrated' };
+  return { source, candidate, raw: JSON.stringify({ schemaVersion: 3, candidates: [candidate] }) };
+}
+
+function pipeline(f, amount) {
+  const original = structuredClone(f);
+  assert.equal(validateCandidateOutput(f.raw, f.source).candidates.length, 1, 'all eleven candidate fields and envelope are valid');
+  assert.equal(validateRuntimeCandidateOutput(f.raw, f.source).candidates.length, 1, 'ambiguous money stays reviewable');
+  const check = fact => {
+    assert(fact); assert.equal(fact.amount, amount); assert.deepEqual(fact.representation, f.candidate);
+    assert.equal(fact.value, f.candidate.value); assert.equal(fact.quote, f.candidate.quote);
+    assert.equal(fact.normalization.rawValue, f.candidate.value);
+    const text = f.source.blocks.find(block=>block.id===f.candidate.blockId).text, start = length(text.slice(0, text.indexOf(f.candidate.quote)));
+    assert.deepEqual([fact.start, fact.end], [start, start + length(f.candidate.quote)]);
+    assert.equal(Array.from(text).slice(fact.start, fact.end).join(''), f.candidate.quote);
+  };
+  const fresh = ingestRuntimeCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'round34-author', AT);
+  assert.equal(fresh.materials[0].raw, f.raw); check(fresh.materials[0].candidates[0]);
+  assert.deepEqual(fresh.confirmations, { due: null, paid: null }); assert.equal(fresh.calculation, null);
+  const history = ingestCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'round34-author', AT);
+  const fact = history.materials[0].candidates[0]; assert(fact);
+  fact.amount = amount ?? '4000.00'; fact.normalization = { rawValue: fact.value, status: 'exact', amount: fact.amount,
+    matchedText: fact.value, span: { start: 0, end: length(fact.value) }, reason: 'Synthetic persisted exact amount.' };
+  const stored = structuredClone(history), reviewed = reviewFactsAgainstSources(history, [f.source]);
+  check(reviewed.materials[0].candidates[0]); assert.equal(reviewed.materials[0].raw, f.raw);
+  assert.deepEqual(history, stored); assert.deepEqual(reviewed.history, stored.history);
+  fact.amount = null; fact.normalization = { rawValue: fact.value, status: 'unsupported', amount: null,
+    matchedText: null, span: null, reason: 'Synthetic stored unsupported; never auto-upgrade.' };
+  const unavailable = structuredClone(history), rechecked = reviewFactsAgainstSources(history, [f.source]);
+  assert.equal(rechecked.materials[0].candidates[0].amount, null); assert.deepEqual(history, unavailable);
+  assert.deepEqual(rechecked.history, unavailable.history); assert.deepEqual(f, original);
+}
+
+
+const rate = { meaning:'rate', rateUnit:'month' };
+for (const owner of ['王近','王约','王約','李近','李约']) {
+ for (const fullQuote of [false,true]) test('literal unique title owner is not a qualifier '+JSON.stringify({owner,fullQuote}),()=>{
+  const f=fixture('4000元','4000元',{owner,subject:owner,fullQuote});
+  assert.equal(normalize({...f.candidate,quote:f.source.blocks[0].text}).amount,'4000.00');
+  pipeline(f,'4000.00');
+ });
+ test('full candidate value keeps raw title subject '+owner,()=>{
+  const value=owner+'工资4000元';const c=fixture(value,value,{owner:'',subject:owner}).candidate;c.quote=value;
+  assert.equal(normalize(c).amount,'4000.00');assert.equal(normalize(c).normalization.rawValue,value);
+  assert.equal(parse(value).amount,null,'a pure parser has no anchored candidate subject context');
+ });
+}
+for (const [owner,subject] of [['王甲约','王甲约'],['工资约','工资约'],['大约','大约'],['将近','将近'],['王甲约','王约'],['王近','李近'],['王近和王近','王近']])
+ for(const fullQuote of [false,true])test('untrusted or non-unique subject cannot swallow modifier '+JSON.stringify({owner,subject,fullQuote}),()=>{
+  const f=fixture('4000元','4000元',{owner,subject,fullQuote});
+  assert.equal(normalize({...f.candidate,quote:f.source.blocks[0].text}).amount,null);
+  if(owner.includes(subject)) pipeline(f,null);
+  else {
+   assert.equal(validateRuntimeCandidateOutput(f.raw,f.source).candidates.length,0,'missing source subject is rejected by the real schema');
+   const state=ingestRuntimeCandidates(emptyFactState(1),f.source,{raw:f.raw},'synthetic','round34-author',AT);
+   assert.equal(state.materials[0].raw,f.raw);assert.equal(state.materials[0].candidates.length,0);
+  }
+ });
+for(const owner of ['王近','王约'])for(const modifier of ['约','近','大约','不少于','可能'])for(const fullQuote of [false,true])test('real qualifier after complete owner remains '+JSON.stringify({owner,modifier,fullQuote}),()=>pipeline(fixture(modifier+'4000元','4000元',{owner,subject:owner,fullQuote}),null));
+for(const tail of ['月亮','月份','小时候','小時候','小时工','日历','天数','件数','月‍份','月 份','小 時 候']){
+ const unit=/小时|小時|小 时|小 時/u.test(tail)?'hour':/日|天/u.test(tail)?'day':tail.startsWith('件')?'piece':'month';
+ test('incomplete denominator full literal is not supported '+tail,()=>assert.equal(parse('4000元/'+tail).amount,null));
+ for(const value of ['4000元','4000元/'+(unit==='hour'?'小时':unit==='day'?'日':unit==='piece'?'件':'月')])for(const fullQuote of [false,true]){
+  if(!('4000元/'+tail).includes(value))continue;
+  test('incomplete denominator crop fullsource '+JSON.stringify({tail,value,fullQuote}),()=>{
+   const f=fixture('4000元/'+tail,value,{...rate,rateUnit:unit,fullQuote});
+   assert.equal(normalize({...f.candidate,quote:f.source.blocks[0].text}).amount,null);pipeline(f,null);
+  });
+ }
+ for(const fullQuote of [false,true])test('incomplete denominator adjacent source '+JSON.stringify({tail,fullQuote}),()=>pipeline(fixture('4000元','4000元',{...rate,rateUnit:unit,fullQuote,nextBlock:'/'+tail}),null));
+}
+for(const [suffix,unit] of [['/月','month'],['/小时','hour'],['/小時','hour'],['/日','day'],['/天','day'],['/件','piece'],['／ 小 時','hour'],['每月','month'],['每小时','hour']])for(const fullQuote of [false,true])test('complete supported denominator '+JSON.stringify({suffix,unit,fullQuote}),()=>{
+ pipeline(fixture('4000元'+suffix,'4000元',{meaning:'rate',rateUnit:unit,fullQuote}),'4000.00');
+ pipeline(fixture('4000元'+suffix,'4000元',{meaning:'rate',rateUnit:unit==='hour'?'month':'hour',fullQuote}),null);
+ pipeline(fixture('4000元'+suffix,'4000元',{fullQuote}),null);
+});
+for(const [suffix,unit] of [['/月计','month'],['/小时计算','hour'],['/月支付','month'],['每月支付','month']])test('finite rate prose still preserves supported enum '+suffix,()=>pipeline(fixture('4000元'+suffix,'4000元',{meaning:'rate',rateUnit:unit,fullQuote:true}),'4000.00'));
+for(const [suffix,unit] of [['/月待定','month'],['/小时？','hour'],['/小時不詳','hour'],['/月亮待定','month'],['/年','unknown']])test('rate unknown unsupported and wrong role stay null '+suffix,()=>pipeline(fixture('4000元'+suffix,'4000元',{meaning:'rate',rateUnit:unit,fullQuote:true}),null));
+for(const tail of ['。王乙工资/月亮','，王乙支付400元','。王近工资另议'])test('independent sentence does not supply denominator or owner qualifier '+tail,()=>pipeline(fixture('4000元'+tail,'4000元',{fullQuote:true}),'4000.00'));
+for(const expression of ['4000元','4000元一次性支付','4000元每月15日支付','4000元按月15日支付'])test('exact wage and payment schedule control '+expression,()=>pipeline(fixture(expression,'4000元',{fullQuote:true}),'4000.00'));
+for(const expression of ['约4000元','4000元待定','4000元港币','4000元至5000元','4000元的2倍','4000元5角'])test('existing guard remains unavailable '+expression,()=>pipeline(fixture(expression,'4000元',{fullQuote:true}),null));
+
+for(const owner of ['王近','王约'])for(const layout of ['line','block'])test('unique name remains anchored across wage layout '+JSON.stringify({owner,layout}),()=>{
+ const f=fixture('4000元','4000元',{owner,subject:owner,fullQuote:false});
+ if(layout==='line')f.source.blocks[0].text='😀'+owner+'\n工资4000元。';
+ else {f.source.blocks[0].text='😀'+owner+'工资';f.source.blocks.push({...f.source.blocks[0],id:'b2',text:'4000元。'});f.candidate.blockId='b2';}
+ f.raw=JSON.stringify({schemaVersion:3,candidates:[f.candidate]});pipeline(f,'4000.00');
+});
