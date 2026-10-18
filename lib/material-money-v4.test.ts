@@ -247,3 +247,43 @@ describe('adjacent currency, modifier and ordinary-word boundaries', () => {
     expect(normalizeCandidateValueV4(money({ quote: '王甲工资四万元，王乙工资1000美元' })).amount).toBe('40000.00');
   });
 });
+
+describe('repeated RMB range endpoint regression', () => {
+  it.each([
+    ['人民币3万元', '王甲工资人民币3万元至人民币4万元'],
+    ['4万元', '王甲工资人民币3万元至人民币4万元'],
+    ['三万元', '王甲工资人民币三万元到人民币四万元'],
+    ['四万元', '王甲工资人民币三万元到人民币四万元'],
+  ])('never makes cropped endpoint %s exact in %s', (value, quote) => {
+    expect(normalizeCandidateValueV4(money({ value, quote }))).toMatchObject({ value, amount: null, normalization: { rawValue: value, status: 'range', span: null } });
+  });
+  it.each([
+    ['三万元', '王甲工资人民币三万元到人民幣四万元'], ['四万元', '王甲工资人民币三万元到人民幣四万元'],
+    ['30000元', '王甲工资CNY30000元~RMB40000元'], ['40000元', '王甲工资CNY30000元~RMB40000元'],
+    ['30000元', '王甲工资￥30000元～￥40000元'], ['40000元', '王甲工资￥30000元～￥40000元'],
+    ['3万元', '王甲工资人民币3万元至ＲＭＢ４万元'], ['4万元', '王甲工资人民币３万元至人民币4万元'],
+    ['3万元', '王甲工资人民币3万元至人民\u200d币4万元'], ['4万元', '王甲工资人民\u200d币3万元至人民币4万元'],
+    ['3万元', '王甲工资人民币3万元 \u200d至 \u200d人民币4万元'], ['4万元', '王甲工资人民币3万元 \u200d至 \u200d人民币4万元'],
+    ['3万元', '王甲工资人民币3万元至　人民币 4万元'], ['4万元', '王甲工资人民币3万元至　人民币 4万元'],
+    ['人民币4万元', '王甲工资人民币3万元至人民币4万元'],
+    ['30000', '王甲工资30000元至人民币40000元'], ['40000', '王甲工资30000元至人民币40000元'],
+    ['30000', '王甲工资30000人民币至40000人民币'], ['40000', '王甲工资30000CNY至40000RMB'],
+    ['4元', '王甲工资3元五角至人民币4元'],
+  ])('preserves the range modifier around exact-looking %s in %s', (value, quote) => {
+    expect(normalizeCandidateValueV4(money({ value, quote }))).toMatchObject({ value, amount: null, normalization: { rawValue: value, status: 'range', span: null } });
+  });
+  it.each([
+    '人民币3万元至人民币4万元', '人民币三万元到人民幣四万元', 'CNY30000元~RMB40000元', '￥30000元～￥40000元',
+    '人民币3万元至ＲＭＢ４万元', '人民\u200d币3万元至人民\u200d币4万元', '人民币3万元 \u200d至 \u200d人民币4万元',
+    '人民币3万元至　人民币 4万元', '30000人民币至40000人民币', '30000CNY至40000RMB', '3元五角至人民币4元',
+  ])('keeps the complete range %s unavailable without changing its raw text', value => {
+    expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: value, status: 'range', amount: null, matchedText: null, span: null });
+    expect(canonicalMonetaryExpression(value)).toBeNull();
+  });
+  it.each([
+    '王甲工资人民币3万元，王乙工资人民币4万元', '王甲工资人民币3万元。王乙工资人民币4万元',
+    '王甲工资人民币3万元\n王乙工资人民币4万元', '王甲工资人民币3万元到期支付', '王甲持人民币3万元至法院办理领款',
+  ])('does not turn an independent exact event into a range in %s', quote => {
+    expect(normalizeCandidateValueV4(money({ value: '人民币3万元', quote })).amount).toBe('30000.00');
+  });
+});

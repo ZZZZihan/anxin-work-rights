@@ -107,7 +107,7 @@ function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: Candidate
   return new RegExp(`^(?:[元圆]\\s*)?[${numerals}]+\\s*[角分]`, 'u').test(edges.after);
 }
 
-function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization): RateUnit | null {
+function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null): RateUnit | null {
   const edges = monetaryEdges(context, normalized);
   if (!edges) return null;
   const before = edges.before.split(/[，,。！？!?；;\n\r]/u).at(-1)!, after = edges.after.split(/[，,。！？!?；;\n\r]/u)[0];
@@ -116,9 +116,14 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   if (suffix) return units[suffix[1]];
   const prefix = before.match(/(?:每\s*(小时|月|日|天|时|件)|(月|日|时)(?:薪|工资)|小时工资|计件(?:单价|工资)?)(?:为|是|计|共|合计|工资|薪酬|薪资|金额|人民币|[¥￥]|\s)*$/u);
   if (!prefix) return null;
-  // “2026年1月工资1000元” names the wage period, not a monthly rate.
+  // “2026年1月工资1000元” and “上月工资1000元” name wage periods,
+  // not monthly rates. Explicit 每月 or /月 still takes precedence.
   // Only the naked 月/日/时工资 alternative can collide with a calendar token.
-  if (prefix[2] && /[0-9０-９零〇一二三四五六七八九十百千万两正腊臘]$/u.test(before.slice(0, prefix.index).replace(/[^\S\r\n]+$/u, ''))) return null;
+  const calendarPrefix = before.slice(0, prefix.index).replace(/[^\S\r\n]+$/u, '');
+  if (prefix[2] && /[0-9０-９零〇一二三四五六七八九十百千万两正腊臘]$/u.test(calendarPrefix)) return null;
+  if (prefix[2] === '月' && prefix[0].startsWith('月工资')
+    && /(?:上(?:一?个)?|下(?:一?个)?|本|当|该|这(?:个)?)$/u.test(calendarPrefix)
+    && !(subject && calendarPrefix.endsWith(subject))) return null;
   return prefix[1] ? units[prefix[1]] : prefix[2] ? units[prefix[2]] : prefix[0].startsWith('小时') ? 'hour' : 'piece';
 }
 
@@ -171,7 +176,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       else if (truncatedMoneyToken(context, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
       };
-      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization))) sourceNormalized = {
+      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject))) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着费率单位，与当前总额角色或已声明费率单位冲突，未生成精确金额。', 'rate_unit_mismatch'),
       };
       else if (!sourceMoneyHasExplicitRmbCurrency(context, sourceNormalized.normalization)) sourceNormalized = {

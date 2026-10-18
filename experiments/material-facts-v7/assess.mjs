@@ -12,6 +12,22 @@ const modes = ['basic', 'relational', 'strict'];
 const variants = (label, index) => [label.expected[index], ...(label.acceptable_alternatives ?? []).filter(item => item.expected_index === index).flatMap(item => item.candidates)];
 const contains = (a, b) => a.start <= b.start && a.end >= b.end;
 
+// An event anchor is evidence for a monetary/date fragment, not permission to
+// replace that fragment with arbitrary surrounding narrative. Preserve offsets;
+// these finite wrappers affect alignment only, never value/attribute equality.
+function permittedContainment(kind, position, anchor, text) {
+  if (!contains(anchor, position) && !contains(position, anchor)) return false;
+  const outer = contains(anchor, position) ? anchor : position;
+  const inner = outer === anchor ? position : anchor;
+  const points = Array.from(text);
+  const before = points.slice(outer.start, inner.start).join('');
+  const after = points.slice(inner.end, outer.end).join('');
+  if (kind === 'money') return /^\s*(?:(?:人民币|RMB|CNY|[¥￥])\s*)?$/iu.test(before)
+    && /^\s*(?:整|正)?\s*(?:(?:工资|劳务费|劳动报酬)\s*)?$/u.test(after);
+  return /^\s*(?:自|从|截至)?\s*$/u.test(before)
+    && /^\s*(?:起|止|前|后|间|期间)?\s*$/u.test(after);
+}
+
 function canonical(candidate) {
   if (!object(candidate) || !['money', 'date'].includes(candidate.kind) || typeof candidate.value !== 'string') return null;
   if (candidate.kind === 'date') return `date:${candidate.value}`;
@@ -47,7 +63,7 @@ export function resolveCandidateEvent(candidate, input, label) {
   const possibleEvents = new Set();
   for (const position of positions) {
     const matched = label.events.filter(event => event.anchors.some(anchor => anchor.blockId === position.blockId
-      && (contains(anchor, position) || contains(position, anchor))));
+      && permittedContainment(candidate.kind, position, anchor, block.text)));
     if (matched.length !== 1) return { status: matched.length ? 'ambiguous_event' : 'unregistered_position', event: null, positions };
     possibleEvents.add(matched[0].id);
   }
