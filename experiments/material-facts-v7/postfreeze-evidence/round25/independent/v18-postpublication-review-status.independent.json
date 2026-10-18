@@ -1,0 +1,61 @@
+{
+  "schema": "material-facts-v7-v18-postpublication-review-status/1",
+  "source": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round25/pr45-reviews-after-resolution.json",
+  "source_sha256": "5b3cf833e547713576a83001026dd128e7227d691d9e8c57d4a6028cb87daf82",
+  "source_class": "Read-only parent-captured GitHub review query; not a fresh independent remote CI or product validation",
+  "application_head": "ec8dc649f3857771003eeafe0d87df1645635ded",
+  "unresolved": [
+    {
+      "thread": "PRRT_kwDOVApLyM6tqTcY",
+      "comments": [
+        {
+          "databaseId": 4306968604,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Recognize labels before postposed uncertainty markers**\n\nFresh evidence after the postposed-uncertainty fix is that a cropped `4000元` in `4000元（金额待核实）`, `4000元金额待定`, or `4000元（数额未知）` still retains `amount: \"4000.00\"` and `status: \"exact\"`. This regex permits brackets before the marker but not the common intervening `金额`/`数额` labels, so source review fails to downgrade an explicitly uncertain amount; allow a finite amount-label bridge before these markers.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306968604"
+        }
+      ]
+    },
+    {
+      "thread": "PRRT_kwDOVApLyM6tqTcd",
+      "comments": [
+        {
+          "databaseId": 4306968610,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Detect 按-unit rates after the amount**\n\nFresh evidence beyond the repaired pre-amount forms is that `工资4000元按月计`, `4000元按日计`, and `4000元按件计酬` are still normalized as exact totals because this suffix grammar recognizes `/月` and `每月` but not `按月`. A mislabeled `due_total` therefore keeps `4000.00`, while a correctly labeled rate receives a generic unresolved-attribution issue; include the supported `按小时|按月|按日|按天|按时|按件` suffix forms in both rate checks.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306968610"
+        }
+      ]
+    },
+    {
+      "thread": "PRRT_kwDOVApLyM6tqTci",
+      "comments": [
+        {
+          "databaseId": 4306968616,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Fold remaining traditional wage-label glyphs**\n\nFresh evidence after the traditional no-amount fix is that `實付工資`, `工資合計`, and `薪酬總額` still classify as `undetermined`, and `validateRuntimeCandidateOutput` accepts each as a money candidate with no amount, whereas the simplified equivalents are rejected. The detection-only folding omits `實`, `總`, `額`, and `計`, so extend this map to keep accepted extraction coverage from being inflated by traditional amount-free wage descriptions.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306968616"
+        }
+      ]
+    },
+    {
+      "thread": "PRRT_kwDOVApLyM6tqTck",
+      "comments": [
+        {
+          "databaseId": 4306968619,
+          "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Treat comparison symbols as amount bounds**\n\nSymbolic bounds are not included in the shared qualifier grammar: `normalizeMoneyValueV4('≤4000元')`, `≥4000元`, `<4000元`, `>4000元`, `≦4000元`, and `≧4000元` all return exact `4000.00`, and a cropped `4000元` from the same source remains exact as well. These expressions state upper or lower limits rather than fixed amounts, so recognize the bounded comparison symbols alongside the lexical prefix qualifiers.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306968619"
+        }
+      ]
+    },
+    {
+      "thread": "PRRT_kwDOVApLyM6tqTcm",
+      "comments": [
+        {
+          "databaseId": 4306968622,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Reject standalone currency denominations**\n\nComplete values containing only a denomination, such as `人民币`, `人民幣`, `RMB`, `CNY`, `元`, `圆`, or `￥`, fall through as `monetary` or `undetermined`, so `validateRuntimeCandidateOutput` accepts them as money candidates despite there being no amount expression. The broad explicit-currency branch should retain masked values such as `人民币未知`, but a bounded denomination-only value should be classified as `not_monetary` to avoid inflating accepted extraction coverage.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306968622"
+        }
+      ]
+    }
+  ],
+  "independent_round26_reproductions": "Pending; do not mix these newly reported findings with passed Round25 two-finding scope.",
+  "v18_artifact_immutable": true
+}

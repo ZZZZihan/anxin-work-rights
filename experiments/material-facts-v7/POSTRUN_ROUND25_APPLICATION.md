@@ -14,3 +14,20 @@
 追加中间证据（不覆盖前述检查点）：固定 f16 的同190项隔离HTTP为185通过5失败、cleanup通过；新增失败为相邻块“整人民币5角”仍返回4000.00。2953中间版本同190项188通过2失败，除了该原有漏，还误拒完整4000元整后的英文句点。188初始及186初始报告继续单独保留，不能与190项混作同一对照。
 
 主侧2953完整检查实际退出0：1789 Vitest、5448运行时通过/1平台跳过、材料67通过/1平台跳过、Python9+11+16；其后2e0中间版本完整检查退出0，运行时5629通过/1跳过。两版均因随后发现有限包装组合边界而未作为最终交付版本。日志分别保存在round25/root-code/app-full-check-intermediate-2953.log与app-full-check-intermediate-2e0d.log。中间绿色测试不能替代后续实际反例或最终整合检查。
+
+
+最终应用提交 ec8dc649f3857771003eeafe0d87df1645635ded（正常提交，未改写历史）。3产品文件SHA：money=d571894efd596fdf1ed8e28aac1bd4e367e3c8ce0b6ba59428b8b9905be8c390；source=b214b4e47fad22463970f0989d5b1b3ebeba487d4a07290bb39c34af03f1c5a5；runtime=cbf7c724c30568ed1c5640410d6027baaed47503a4a09b7e39ed4e2ff0bd2bbc。终止字最多一个、后置明确人民币标签最多一个，第二标签立即保守拒绝；普通句读正控与.5/数值续写分开。
+
+最终同190项HTTP为190通过、cleanup通过；固定f16的185通过5失败及中间2953的188通过2失败均保留。非实现者接口证据核对单独追加。主侧Node24.22定向590通过，完整检查退出0：1789 Vitest、5636运行时通过/1平台跳过、材料67通过/1平台跳过、Python9+11+16。非实现者27项在Node24.19与26.11各通过，源码前后hash一致，见ROUND25_APPLICATION_REVIEW_FINAL_INDEPENDENT.md。作者同526管线断言固定f16为430通过96失败→526通过；另3组合断言/1212组合单元只算有限合成检查，不计自然材料或独立旧版失败。
+
+实验分支通过正常merge 01bda64整合相同应用文件，package保留87应用脚本与42实验脚本共129；所有lib文件和HTTP runner与ec8逐字相同。应用CI运行39125905377完成后另附实际状态；v18及实验整合全检仍待后续记录，以上不代表它们已经完成。
+
+
+应用精确ec8的[CI39125905377](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39125905377)已SUCCESS：Linux运行时5637全部通过、材料68全部通过，包含190项v7 HTTP、清理、中文图像/PDF OCR及其他完整HTTP。下载12份文件（含完整log与各artifact）并逐SHA索引于round25/root-code/ci-pr45-ec8-artifact-index.json。两条P2分别回复4306965023/4306965125并依据代码、固定旧版反例、最终HTTP和精确CI解决，不因outdated自动解决。
+
+[HTTP190非实现部分的独立证据复核](postfreeze-evidence/round25/http190-review/http190-final-review.md)核对191份raw/candidates/finish_reason三次字节相同，去新增8份还原旧183；旧181非重启观察逐项一致。最终189份持久化快照重启不变，955认证调用记录、382条持久化后任务退休有对应DELETE200。该复核者参与runtime去重实现，因此只声明接口夹具/证据核对；产品独立复核由另一Agent完成。真实历史unsupported不升与forcedexact降级断言分别记录。
+
+v18另存manifest 67cfc9e3746d5de87492bebe903da1d773fa39e50da056978104b0b8a32c99aa，73current/70v17 archive。主侧write及check均退出0、model_requests=0；规则/DeepSeek逐字等v17，Qwen仅年假804.60的精确归一化和对应提示变化，全部六指标计数不变。原首跑/输入/gold/失败/v1–v17未覆盖；人工业务验收仍未完成。
+
+
+独立v18最终回执为ARTIFACT_PASS_APPLICATION_BLOCKED：73当前/70历史/原60/216评分分区、实际5门禁均通过，214.096秒包含两个真实CLI负测，详见POSTRUN_ROUND25_INDEPENDENT.md。ec8随后出现五条未解决审查（1P1、4P2）：比较符号上/下界、金额标签后的未知、后置按单位费率、繁体无金额工资名词、单独币种词。v18保持不可变检查点，进入ROUND26；应用CI成功不能覆盖这些新反例，实验整合完整检查仍待完成。
