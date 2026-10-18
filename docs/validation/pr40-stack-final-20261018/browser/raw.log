@@ -1,0 +1,17 @@
+### Ran Playwright code
+```js
+await (async (page) => {
+ const headers={"oai-authenticated-user-id":"independent-browser-owner","oai-authenticated-user-email":"independent@synthetic.test"};
+ const current=await (await page.request.get('http://127.0.0.1:63531/api/cases/3175b33b-687a-496c-a569-cbb41dbb33a4/facts',{headers})).json();
+ const candidate=current.candidates.find(x=>x.value==='8000元');
+ if(candidate.normalization.status!=='approximate'||candidate.amount!==null)throw new Error('Approximate source produced exact amount');
+ if(current.fields.due.values.length)throw new Error('Unavailable amount became suggestion');
+ const first=page.locator('.fact-candidate').first();
+ if(!(await first.textContent()).includes('未生成精确金额')||!(await first.textContent()).includes('不按 0 元处理'))throw new Error('Unavailable explanation hidden');
+ const raw=page.locator('.fact-raw pre').first();
+ if(await raw.textContent()!==current.state.materials[0].raw)throw new Error('Raw differs from server persisted original');
+ await first.screenshot({path:'output/playwright/pr40-final-browser/unavailable-amount.png'});
+ await page.locator('.fact-raw').first().screenshot({path:'output/playwright/pr40-final-browser/raw-preserved.png'});
+ console.log(JSON.stringify({scenario:'raw_and_unavailable_amount',status:'PASS',generation:current.generation,revision:current.revision,normalization:candidate.normalization.status,amount:candidate.amount,dueSuggestionValues:current.fields.due.values,rawExactMatch:true,explicitManualConfirmations:{due:current.state.confirmations.due.amount,paid:current.state.confirmations.paid.amount},canCalculate:current.canCalculate}));
+})(page);
+```

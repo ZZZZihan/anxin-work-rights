@@ -1,0 +1,17 @@
+### Result
+{"scenario":"running_recovery_warnings","status":"PASS","submitWarning":"提交回执暂未收到，正在核对已提交任务；请勿重复提取。","pollWarning":"候选任务状态暂时无法读取，正在重试；请勿重复提取。","toast":"已提交候选提取请求，结果会自动更新。","runningControlsDisabled":true,"normalRefreshReenabled":true,"interception":"Only job.error/status for display injected after genuine successful Worker responses at browser fetch boundary; real network recovery proved separately by9HTTP"}
+### Ran Playwright code
+```js
+await (async (page) => {
+ const submitWarning='提交回执暂未收到，正在核对已提交任务；请勿重复提取。';const pollWarning='候选任务状态暂时无法读取，正在重试；请勿重复提取。';
+ await page.evaluate(({submitWarning})=>{const real=window.fetch.bind(window);window.__warningMode='submission';window.__savedUIJob=null;window.fetch=async(...args)=>{const[url,init]=args;const response=await real(...args);if(!String(url).endsWith('/facts')||!response.ok)return response;const body=await response.clone().json();const isExtract=init?.method==='POST'&&JSON.parse(init.body).action==='extract';if(isExtract){window.__savedUIJob=structuredClone(body.state.job);body.state.job.error=submitWarning;}else if(window.__warningMode&&(!init?.method||init.method==='GET'))body.state.job={...window.__savedUIJob,status:'running',error:window.__warningMode==='submission'?submitWarning:'候选任务状态暂时无法读取，正在重试；请勿重复提取。'};else return response;return new Response(JSON.stringify(body),{status:response.status,headers:{'Content-Type':'application/json'}});};},{submitWarning});
+ await page.locator('.fact-source-card').filter({hasText:'synthetic-browser-source.txt'}).getByRole('button',{name:'重新提取候选',exact:true}).click();
+ await page.getByRole('status').filter({hasText:submitWarning}).waitFor();const toast=await page.locator('.toast').textContent();if(!toast.includes('已提交候选提取请求，结果会自动更新。'))throw new Error('Extraction toast claims acknowledged start');
+ if(!await page.getByRole('textbox',{name:'劳动者全名',exact:true}).isDisabled())throw new Error('Running job did not disable scope editing');
+ await page.locator('.material-progress').filter({hasText:submitWarning}).screenshot({path:'output/playwright/pr40-final-browser/submit-recovery-warning.png'});
+ await page.evaluate(()=>window.__warningMode='poll');await page.getByRole('button',{name:'重新读取状态',exact:true}).click();await page.getByRole('status').filter({hasText:pollWarning}).waitFor();
+ await page.locator('.material-progress').filter({hasText:pollWarning}).screenshot({path:'output/playwright/pr40-final-browser/poll-recovery-warning.png'});
+ await page.evaluate(()=>window.__warningMode=null);await page.getByRole('button',{name:'重新读取状态',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('.fact-scope input[type=text]')?.disabled);
+ return {scenario:'running_recovery_warnings',status:'PASS',submitWarning,pollWarning,toast:toast.trim(),runningControlsDisabled:true,normalRefreshReenabled:true,interception:'Only job.error/status for display injected after genuine successful Worker responses at browser fetch boundary; real network recovery proved separately by9HTTP'};
+})(page);
+```

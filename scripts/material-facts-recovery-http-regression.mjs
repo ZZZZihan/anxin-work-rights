@@ -171,6 +171,40 @@ try {
   }
   assert(db, 'Disposable persistent D1 file must exist.'); db.exec('PRAGMA busy_timeout=5000'); await startWorker();
 
+  await runScenario('definitive_real_service_capacity_rejection_is_terminal_and_explicit_retry_recovers', async detail => {
+    const item = await fixture('queue-capacity-rejection'), occupied = [];
+    const source = { id: 'synthetic-capacity-source', name: 'synthetic.txt', sha256: 'd'.repeat(64), analysisRevision: 1, ready: true,
+      blocks: [{ id: 'b1', page: 1, text: '合成容量回归：本期完整应付工资1000元。' }] };
+    try {
+      // Fill the actual service's bounded result records. No HTTP status is
+      // fabricated: admission itself must return 429 before reserving the UUID.
+      for (let index = 0; index < 32; index++) {
+        const jobId = randomUUID(); occupied.push(jobId); ownedJobIds.add(jobId);
+        const admitted = await remote('/fact-jobs', 'POST', { jobId, source }); assert.equal(admitted.status, 202);
+      }
+      const start = calls.length, rejected = await extract(item), row = stored(item.caseId);
+      const submission = calls.slice(start).find(call => call.method === 'POST');
+      const missing = await remote(`/fact-jobs/${submission.requestedJobId}`);
+      Object.assign(detail, { admissionStatus: submission.upstreamStatus, extractionHttpStatus: rejected.status,
+        rejectedJobId: submission.requestedJobId, remoteLookupStatus: missing.status, storedJob: row.state.job });
+      assert.equal(submission.upstreamStatus, 429); assert.equal(missing.status, 404);
+      assert.equal(rejected.status, 200, 'A definitive service rejection must return a terminal snapshot, never accepted/running.');
+      assert.equal(row.state.job.status, 'failed'); assert.match(row.state.job.error, /稍后|繁忙|其他材料|已满/u);
+      assert.equal(row.state.materials.length, 0); assert.equal(audits(row.state), 0); assert.equal(rejected.body.canCalculate, false);
+      const reread = await request(item.path); assert.equal(reread.status, 200); assert.equal(reread.body.state.job.status, 'failed');
+      detail.nonexistentJobPolls = calls.slice(start).filter(call => call.method === 'GET' && call.path === `/fact-jobs/${submission.requestedJobId}`).length;
+      assert.equal(detail.nonexistentJobPolls, 0, 'A known rejected submission must not enter the lost-response recovery window.');
+      for (const id of occupied.splice(0)) await remote(`/fact-jobs/${id}`, 'DELETE');
+      const retried = await extract(item, reread.body); assert.equal(retried.status, 202);
+      assert.notEqual(retried.body.state.job.id, submission.requestedJobId);
+      const final = await complete(item); assert.equal(final.status, 200); assert.equal(final.body.state.job, null);
+      assert.equal(final.body.state.materials.length, 1); assert.equal(audits(final.body.state), 1);
+      detail.explicitRetryStatus = retried.status; detail.finalMaterialCount = final.body.state.materials.length;
+      detail.servicePostCount = calls.slice(start).filter(call => call.method === 'POST').length;
+      assert.equal(detail.servicePostCount, 2, 'Only the user-requested retry may issue another POST.');
+    } finally { for (const id of occupied) await remote(`/fact-jobs/${id}`, 'DELETE'); }
+  });
+
   for (const fault of ['503_after_accept', 'drop_after_accept']) await runScenario(`recover_accepted_POST_${fault}`, async detail => {
     const item = await fixture(fault); const start = calls.length; nextPostFault = fault;
     const began = await extract(item); const persisted = stored(item.caseId); const submission = calls.slice(start).find(call => call.method === 'POST');
@@ -247,7 +281,7 @@ finally {
   await cleanup('close_real_rules_service', async () => { if (service) await bounded(service.close(), 10_000, 'Real rules service did not close.'); });
   await cleanup('remove_temporary_D1_R2_and_private_configuration', async () => { if (temp) await rm(temp, { recursive: true, force: true }); });
   process.removeListener('SIGINT', onInterrupt); process.removeListener('SIGTERM', onTerminate);
-  const failed = !!setupFailure || !!cleanupFailures.length || observations.length !== 9 || observations.some(item => item.status !== 'PASS');
+  const failed = !!setupFailure || !!cleanupFailures.length || observations.length !== 10 || observations.some(item => item.status !== 'PASS');
   await writeFile(output, JSON.stringify({ status: failed ? 'FAIL' : 'PASS', mode: 'fact-network-recovery', boundary: 'production Worker HTTP + disposable persistent D1/R2 + real rules service + controlled authenticated loopback fault proxy', actualModelInference: false, syntheticInputs: true, recordedAt: new Date().toISOString(), observations, setupFailure, cleanup: { status: cleanupFailures.length ? 'FAIL' : 'PASS', failures: cleanupFailures }, calls, limitation: 'Service caller-ID idempotency and cancellation tombstones are process-local and bounded by their configured TTL/capacity; this runner does not claim persistence across service restart or actual model inference.' }, null, 2) + '\n');
   console[failed ? 'error' : 'log'](JSON.stringify({ status: failed ? 'FAIL' : 'PASS', mode: 'fact-network-recovery', passed: observations.filter(item => item.status === 'PASS').length, failed: observations.filter(item => item.status === 'FAIL').length, output }));
   if (failed) process.exitCode = 1;

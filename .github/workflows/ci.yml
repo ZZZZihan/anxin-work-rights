@@ -49,6 +49,10 @@ jobs:
         run: |
           node experiments/material-facts-v4/verify.mjs
           node experiments/material-facts-v4-replication-20261017/verify.mjs
+          node experiments/material-facts-v5/verify.mjs
+          node experiments/material-facts-v5/summarize.mjs --check
+          node experiments/material-facts-v6/verify.mjs
+          node experiments/material-facts-v6/summarize.mjs --check
       - name: Install Chinese OCR and PDF tools
         run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim poppler-utils
       - run: npm run check
@@ -81,6 +85,8 @@ jobs:
         run: node scripts/material-http-runner.mjs
       - name: Material candidates and user-confirmed facts over production HTTP
         run: ANXIN_MATERIAL_REPORT=output/materials/http-facts.json node scripts/material-http-runner.mjs --facts
+      - name: Durable fact-job cancellation and late-result isolation over production HTTP
+        run: node scripts/material-facts-cancel-http-regression.mjs
       - name: Concurrent fact polling and stale-result isolation over production HTTP
         run: node scripts/material-facts-poll-http-regression.mjs
       - name: Fact task network recovery HTTP regression
@@ -95,5 +101,6 @@ jobs:
             output/materials/http-production.json
             output/materials/http-images.json
             output/materials/http-facts.json
+            output/materials/http-fact-cancel.json
             output/materials/http-fact-poll.json
             output/materials/http-fact-recovery.json

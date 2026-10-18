@@ -1,0 +1,95 @@
+{
+  "task": "PR40 explicit submission refusal versus unknown acknowledgement",
+  "reviewComment": 4305467482,
+  "base": "d845854d0e2a2fc7e3d9a27316d4a7bef40cec0a",
+  "worktree": "/Users/xuzihan/Documents/Projects/国创/anxin-pr40-submit-rejection",
+  "files": {
+    "lib/material-service-errors.ts": "d3ff58c04183ed1cdf413c1fadf39a72f32e01182c54fef2dea1278e7e307b0c",
+    "lib/material-service-client.ts": "d34de31eba7b63331112a83200a680a18caa26dfbeb44795cac00af86e33a112",
+    "lib/material-fact-store.ts": "761c94a52512954137b506e596e2ea777bad80a616f4468b095af05ee3f2dc72",
+    "lib/material-service-client.test.ts": "edbb03a5c80ea7cf6071422ed6533ccfb5f59f22e18f2d7a4813cc36262005d3"
+  },
+  "before": {
+    "clientTests": {
+      "total": 41,
+      "passed": 3,
+      "failed": 38
+    },
+    "log": "/tmp/anxin-pr40-submit-rejection-client-before.log"
+  },
+  "after": {
+    "initialClient": {
+      "passed": 41,
+      "total": 41,
+      "log": "/tmp/anxin-pr40-submit-rejection-client-after.log"
+    },
+    "focused": {
+      "files": 5,
+      "passed": 118,
+      "total": 118,
+      "includesOriginalClientTests": 41,
+      "log": "/tmp/anxin-pr40-submit-rejection-focused.log"
+    },
+    "finalClient": {
+      "passed": 45,
+      "total": 45,
+      "includesOriginalClientTests": 41,
+      "newErrorStreamCleanupTests": 4,
+      "log": "/tmp/anxin-pr40-submit-rejection-client-final.log"
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/anxin-pr40-submit-rejection-typecheck.log"
+    },
+    "scopedEslint": {
+      "exitCode": 0,
+      "log": "/tmp/anxin-pr40-submit-rejection-eslint.log"
+    },
+    "gitDiffCheck": {
+      "exitCode": 0
+    }
+  },
+  "contract": {
+    "explicitRejection": "MaterialServiceHttpError with 400<=status<500; persist failed with same UUID and return terminal snapshot; no GET recovery or automatic POST",
+    "unknownOutcome": "network error, timeout, malformed successful acknowledgement, and HTTP 5xx retain running same UUID and existing GET recovery; no automatic POST",
+    "httpErrorBodies": "known HTTP error status precedes parsing; no private error response copied; unused body cancellation is best effort and never awaited",
+    "cas": "existing claimed revision + owner + source generation guard unchanged; late response cannot overwrite replacement state",
+    "confirmations": "state after applyFactAction extract retained; revoked authorizations never restored"
+  },
+  "limits": [
+    "Unit tests use controlled fetch boundary, not a live HTTP sidecar.",
+    "Original route/D1 tests mock the client; independent actual-client route/D1 tests belong to currency_fix.",
+    "Root owns final full npm run check and built Worker plus real service HTTP regression.",
+    "No production, commit, push or merge performed."
+  ],
+  "independentReview": {
+    "agent": "currency_fix",
+    "reportedBaseline": {
+      "passed": 13,
+      "failed": 18,
+      "total": 31
+    },
+    "reportedAfter": {
+      "passed": 31,
+      "failed": 0,
+      "total": 31
+    },
+    "boundary": "Real route handlers + disposable D1 + actual material-service-client; fetch boundary controlled; independently executed by currency_fix, not repeated by this agent.",
+    "coverage": [
+      "explicit HTTP 4xx, including damaged/unreadable/oversized error body",
+      "seven unknown acknowledgement recovery cases",
+      "owner isolation",
+      "replacement source, replacement job and later manual authorization CAS",
+      "prior confirmations never restored"
+    ],
+    "blockingFindings": "none reported in static review of product changes",
+    "artifacts": {
+      "test": "/Users/xuzihan/Documents/Projects/国创/anxin-pr40-submit-rejection-review/lib/material-fact-submit-rejection-independent.test.ts",
+      "minimalBefore": "/tmp/anxin-pr40-submit-rejection-before-minimal.json",
+      "before": "/tmp/anxin-pr40-submit-rejection-before-full.json",
+      "after": "/tmp/anxin-pr40-submit-rejection-after-full.json",
+      "report": "/tmp/anxin-pr40-submit-rejection-independent-review.json",
+      "testPatch": "/tmp/anxin-pr40-submit-rejection-independent.patch"
+    }
+  }
+}

@@ -1,0 +1,551 @@
+{
+  "mode": "independent-runtime-edge-review",
+  "assertedChecks": 38,
+  "status": "PASS",
+  "reports": [
+    {
+      "name": "unitless",
+      "text": "😀王甲2024年7月完整应付工资合计8000。",
+      "value": "8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "unitless-zero",
+      "text": "😀王甲2024年7月完整应付工资合计0。",
+      "value": "0",
+      "amount": null,
+      "issues": [
+        {
+          "code": "local_context_ambiguous",
+          "message": "候选引文在原始文本块中无法唯一定位，未选择首个位置提供金额提示。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "currency-other-amount",
+      "text": "😀王甲2024年7月完整应付工资合计8000，另一工人工资9000元。",
+      "value": "8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "currency-u2028",
+      "text": "😀王甲2024年7月完整应付工资合计8000 元。",
+      "value": "8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "currency-u2029",
+      "text": "😀王甲2024年7月完整应付工资合计8000 人民币。",
+      "value": "8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "cropped-fullwidth-region",
+      "text": "😀王甲2024年7月完整应付工资合计ＪＰ￥8000。",
+      "value": "￥8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "cropped-region-spaces",
+      "text": "😀王甲2024年7月完整应付工资合计J.P. ¥8000。",
+      "value": "¥8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "cropped-mixed-prefix",
+      "text": "😀王甲2024年7月完整应付工资合计USD（人民币）8000。",
+      "value": "8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "cropped-mixed-suffix",
+      "text": "😀王甲2024年7月完整应付工资合计8000元（ＨＫＤ）。",
+      "value": "8000元",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "cropped-financial-currency",
+      "text": "😀王甲2024年7月完整应付工资合计港幣捌仟元整。",
+      "value": "捌仟元整",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "word-yuandan-bare",
+      "text": "😀王甲2024年7月完整应付工资合计8000元旦发放。",
+      "value": "8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "word-yuandan-cropped-unit",
+      "text": "😀王甲2024年7月完整应付工资合计8000元旦发放。",
+      "value": "8000元",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "word-yuanxiao-bare",
+      "text": "😀王甲2024年7月完整应付工资合计8000元宵发放。",
+      "value": "8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "word-yuanxiao-cropped-unit",
+      "text": "😀王甲2024年7月完整应付工资合计8000元宵发放。",
+      "value": "8000元",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "ordinary",
+      "text": "😀王甲2024年7月完整应付工资合计8000元。",
+      "value": "8000",
+      "amount": "8000.00",
+      "issues": [],
+      "due": [
+        "8000.00"
+      ]
+    },
+    {
+      "name": "unicode-rmb-prefix",
+      "text": "😀王甲2024年7月完整应付工资合计ＲＭＢ：8000。",
+      "value": "8000",
+      "amount": "8000.00",
+      "issues": [],
+      "due": [
+        "8000.00"
+      ]
+    },
+    {
+      "name": "unicode-cny-suffix",
+      "text": "😀王甲2024年7月完整应付工资合计8000（ＣＮＹ）。",
+      "value": "8000",
+      "amount": "8000.00",
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "financial",
+      "text": "😀王甲2024年7月完整应付工资合计捌仟元整。",
+      "value": "捌仟元整",
+      "amount": "8000.00",
+      "issues": [],
+      "due": [
+        "8000.00"
+      ]
+    },
+    {
+      "name": "independent-yen-before-yuandan",
+      "text": "😀王甲2024年7月完整应付工资合计¥8000元旦发放。",
+      "value": "8000",
+      "amount": "8000.00",
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "independent-yen-before-yuanxiao",
+      "text": "😀王甲2024年7月完整应付工资合计¥8000元宵发放。",
+      "value": "8000元",
+      "amount": "8000.00",
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "payment-as-employment",
+      "text": "王甲于2024年7月收到工资。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "signing-as-wages",
+      "text": "王甲于2024年7月签订合同。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "mixed-two-events",
+      "text": "王甲2024年7月收到工资并任职。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "cropped-tail-date",
+      "text": "王甲2024年7月31日入职。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "cropped-head-date",
+      "text": "王甲自2024年7月起入职。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "cross-event-date",
+      "text": "王甲2024年7月签订合同并于2024年8月入职。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "contract_signing_as_employment",
+          "message": "候选绑定的源文局部日期事件含签约表述，请核对是否确为任职日期；此为词法线索，不自动改变日期角色。"
+        },
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "no-role",
+      "text": "王甲2024年7月日期。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "matching-employment",
+      "text": "王甲2024年7月入职。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": []
+    },
+    {
+      "name": "matching-wages",
+      "text": "王甲工资所属期间为2024年7月。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": []
+    },
+    {
+      "name": "matching-contract",
+      "text": "王甲合同有效期为自2024年7月至2025年6月。",
+      "value": "自2024年7月至2025年6月",
+      "amount": null,
+      "issues": []
+    },
+    {
+      "name": "matching-receipt",
+      "text": "王甲实际领取工资日期为2024年7月。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": []
+    },
+    {
+      "name": "matching-other",
+      "text": "王甲调薪生效日为2024年7月。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": []
+    },
+    {
+      "name": "matching-wage-coverage",
+      "text": "王甲工资支付覆盖期间为2024年7月。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": []
+    },
+    {
+      "name": "matching-parallel-wage-periods",
+      "text": "王甲工资所属期间为2024年7月、8月。",
+      "value": "2024年7月、8月",
+      "amount": null,
+      "issues": []
+    },
+    {
+      "name": "cropped-parallel-periods",
+      "text": "王甲工资所属期间为2024年7月、8月。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "parallel-payment-not-wages",
+      "text": "王甲2024年7月、8月收到工资。",
+      "value": "2024年7月、8月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "payer-not-payment-date",
+      "text": "王甲2024年7月支付工资。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "payer-not-employment",
+      "text": "王甲2024年7月支付工资。",
+      "value": "2024年7月",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ]
+    },
+    {
+      "name": "word-starting-yuan",
+      "exploratory": true,
+      "text": "😀王甲2024年7月完整应付工资合计8000元旦发放。",
+      "value": "8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "zero-width-regional",
+      "exploratory": true,
+      "text": "😀王甲2024年7月完整应付工资合计JP​¥8000。",
+      "value": "¥8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "zero-width-currency",
+      "exploratory": true,
+      "text": "😀王甲2024年7月完整应付工资合计USD​¥8000。",
+      "value": "¥8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    },
+    {
+      "name": "regional-prefix-hyphen",
+      "exploratory": true,
+      "text": "😀王甲2024年7月完整应付工资合计JP-¥8000。",
+      "value": "¥8000",
+      "amount": null,
+      "issues": [
+        {
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+        },
+        {
+          "code": "source_amount_context_mismatch",
+          "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"
+        }
+      ],
+      "due": []
+    }
+  ]
+}

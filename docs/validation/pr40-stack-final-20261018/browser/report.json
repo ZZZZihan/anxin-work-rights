@@ -1,0 +1,161 @@
+{
+  "scope": "PR40 pre-merge independent real browser acceptance; local production build only",
+  "head": "75d45464b7178afb3d499828467023cb6dd13774",
+  "recordedAt": "2026-10-18T02:14:11.093018+00:00",
+  "build": {
+    "status": "PASS",
+    "exitCode": 0,
+    "log": "/tmp/anxin-pr40-final-browser-build.log",
+    "logSHA256": "879d08a688538910cff8d49c12016f0fa536769e1b28e614bd3c0d52e3d7254d"
+  },
+  "environment": {
+    "browser": "headed Chromium via Playwright CLI",
+    "actualWorker": true,
+    "actualD1": true,
+    "actualR2": true,
+    "actualRulesService": true,
+    "syntheticOnly": true,
+    "actualMLXInference": false,
+    "actualDeepSeekInference": false,
+    "productionAccess": false
+  },
+  "observations": [
+    {
+      "name": "unavailable_approximate_amount",
+      "status": "PASS",
+      "serverNormalization": "approximate",
+      "serverAmount": null,
+      "dueSuggestionValues": [],
+      "visibleExplanation": [
+        "未生成精确金额",
+        "不按 0 元处理",
+        "需要进一步核对"
+      ],
+      "artifact": "unavailable-amount.png"
+    },
+    {
+      "name": "raw_preserved",
+      "status": "PASS",
+      "uiRawEqualsServerMaterialRaw": true,
+      "sourceQuote": "完整应付工资8000元",
+      "sourceContext": "8000元左右",
+      "artifact": "raw-preserved.png"
+    },
+    {
+      "name": "clean_scope_refresh",
+      "status": "PASS",
+      "generation": 6,
+      "revision": 8,
+      "serverWorker": "服务端干净范围更新",
+      "displayedWorker": "服务端干净范围更新",
+      "note": "",
+      "trigger": "Another real API session saved scope; manual UI refresh",
+      "artifact": "clean-scope-refresh.png"
+    },
+    {
+      "name": "dirty_scope_refresh",
+      "status": "PASS",
+      "generation": 6,
+      "revision": 9,
+      "serverWorker": "服务端再次更新的已确认范围",
+      "draftWorker": "未保存的范围劳动者草稿",
+      "draftNote": "未保存的范围核实依据草稿",
+      "scopeVerified": false,
+      "editable": true,
+      "trigger": "Another real API scope save then manual UI refresh",
+      "artifact": "dirty-scope-preserved.png"
+    },
+    {
+      "name": "current500_preserves_draft",
+      "status": "PASS",
+      "draftWorker": "未保存的范围劳动者草稿",
+      "draftNote": "未保存的范围核实依据草稿",
+      "editable": true,
+      "interception": "Next facts POST replaced by synthetic500 at browser fetch boundary, no server mutation claimed",
+      "artifact": "current500-draft.png"
+    },
+    {
+      "name": "late_real409_ignored_after_newGET",
+      "status": "PASS",
+      "oldRequest": {
+        "generation": 6,
+        "revision": 9,
+        "status": 409
+      },
+      "newGet": {
+        "generation": 10,
+        "revision": 12
+      },
+      "draftPreserved": true,
+      "errorCount": 0,
+      "sourceCountAfter": 3,
+      "interception": "Real server409 caused by another real API session, held at browser fetch return; actual UI uploads triggered newerGET",
+      "artifact": "late409-ignored.png"
+    },
+    {
+      "name": "late_completed_calculation_ignored",
+      "status": "PASS",
+      "held": {
+        "generation": 10,
+        "revision": 18,
+        "due": "8000.00",
+        "paid": "0.00",
+        "gap": "8000.00",
+        "receiptId": "1b36b0c6-82d8-4035-95bf-5bd745217171"
+      },
+      "newGet": {
+        "generation": 12,
+        "revision": 19,
+        "calculation": null,
+        "canCalculate": false
+      },
+      "receiptVisible": false,
+      "calculationDisabled": true,
+      "errorCount": 0,
+      "interception": "Genuine completed server calculation response held at browser fetch return; one actual UI upload triggered newerGET",
+      "artifact": "late-success-ignored.png"
+    },
+    {
+      "name": "submission_recovery_warning_visible",
+      "status": "PASS",
+      "message": "提交回执暂未收到，正在核对已提交任务；请勿重复提取。",
+      "toast": "已提交候选提取请求，结果会自动更新。",
+      "runningControlsDisabled": true,
+      "interception": "Only job.error/status modified after genuine Worker response at page fetch boundary; display contract only, real lost-ack recovery is9HTTP evidence",
+      "artifact": "submit-recovery-warning.png"
+    },
+    {
+      "name": "poll_recovery_warning_visible",
+      "status": "PASS",
+      "message": "候选任务状态暂时无法读取，正在重试；请勿重复提取。",
+      "normalRefreshReenabledControls": true,
+      "interception": "Only running job display response fields injected at page fetch boundary; real transient transport recovery is9HTTP evidence",
+      "artifact": "poll-recovery-warning.png"
+    }
+  ],
+  "allScreenshotsIndependentlyViewed": true,
+  "console": "During genuine409 one expected resource error was observed; final console query reported0 messages/errors/warnings; no uncaught client exception observed.",
+  "harnessIssuesNotProductFailures": [
+    "Initial CLI run-code supplied statements instead of required async function; corrected before browser test operations.",
+    "Initial page.request used relative URL, then omitted authenticated synthetic-owner headers; failed before assertions/setup mutation. Corrected to explicit loopbackURL and synthetic headers.",
+    "In409scenario combined chooser script was paused byCLI modal detection. ExplicitCLI upload completed it; two synthetic new files actually uploaded, generation6to10. Preserved both and reported sourceCount3. Subsequent calculation scenario used separate chooser/upload commands and one upload (generation10to12)."
+  ],
+  "limits": [
+    "No final mergedmainSHA claim. Parent reported a later service ready-resultTTL P2 still being repaired; this browser acceptance covers the tested UI/Worker behavior, not that pending serviceTTL fix.",
+    "Rawapproximate8000 candidate never supplies a numeric suggestion. For the response-race fixture, due8000 and paid0 were explicitly entered through authenticated confirmation API as synthetic manual facts; no claim that approximate source legally proves8000.",
+    "All data synthetic; rules backend real but noMLX/DeepSeek inference, remote deployment or human business acceptance.",
+    "Nine observations are targeted browser scenarios; not exhaustive natural-language or concurrency coverage.",
+    "The500andrunning-warning scenarios use declared browser response-boundary injections; they are not proof of real network failure behavior."
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "observedTemporaryDirectories": 1,
+    "remainingTemporaryDirectories": [],
+    "runnerPID": 55025,
+    "browserClosed": true,
+    "runnerExitCode": 0,
+    "serviceStopped": true,
+    "workerStopped": true
+  },
+  "configuration": "Child requested gpt-6.1-sol / ultra; tool request visibility does not attest backend runtime configuration."
+}

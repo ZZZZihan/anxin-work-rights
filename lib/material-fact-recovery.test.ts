@@ -16,7 +16,7 @@ const headers = { 'oai-authenticated-user-id': 'owner', 'oai-authenticated-user-
 const request = (body?: unknown) => new Request('http://127.0.0.1/api/cases/recovery-case/facts', {
   method: body ? 'POST' : 'GET', headers, ...(body ? { body: JSON.stringify(body) } : {}),
 });
-const ready = { status: 'ready', result: { raw: JSON.stringify({ candidates: [] }), backend: 'controlled-test-fixture', model: null, finish_reason: 'stop' } };
+const ready = { status: 'ready', result: { raw: JSON.stringify({ schemaVersion: 3, candidates: [] }), backend: 'controlled-test-fixture', model: null, finish_reason: 'stop' } };
 let reply: unknown;
 type JobMetadata = { startedAt?: string; pollFailureSince?: string; submissionPending?: boolean };
 async function stored() {

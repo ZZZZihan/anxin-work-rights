@@ -21,3 +21,8 @@
 主 Agent 独立检查：整合的 npm run check exit 0（161 Vitest；30 Node fact-runtime 项包含 16 页面竞态与 12 assessor 反证；材料、数据、类型、lint、构建及 Python runtime 均通过；macOS 上 Linux OCR 一项平台跳过）。独立复跑 6 项并发和 12 项 assessor 回归通过。同步已合并 #31 后，正式只读 v1 校验及 v4/replication 冻结检查通过，历史数据和报告未改。
 
 本次 HTTP 使用合成材料与 rules 服务，没有外部模型推理；没有真实业务/法律专家人工验收。浏览器、提交与 CI 的最终结果在后续记录中分别标注。Agent 配置请求沿用 gpt-6.1-sol / ultra，无法独立核验实际后端路由。
+
+
+## 独立浏览器补充
+
+[四场景报告](browser/report.json) 与截图保留实际 Worker、隔离 D1/R2、实际规则提取后的页面行为。已完成的旧计算响应晚于新材料 GET 时不会恢复旧差额；当前合成 500 保留可编辑草稿；真实 D1 409 保留草稿并暂停编辑；真实旧 409 晚于新材料 GET 时不会重新锁页。构建是 `9a99a1d` 加 Panel 补丁（SHA256 `630006bfc6a9fdbf5a654c1097e80c5a327454ac9c2a96bc663731bdb04c8529`），并非最终合并 SHA。测试操作中的等待/元素引用失误单独保留，未计为产品通过或产品缺陷。最终主分支版本需另行核对。

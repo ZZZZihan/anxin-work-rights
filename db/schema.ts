@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const profiles = sqliteTable('profiles', {
   userId: text('user_id').primaryKey(),
@@ -86,6 +86,14 @@ export const caseMaterialFacts = sqliteTable('case_material_facts', {
   stateJson: text('state_json').notNull(),
   updatedAt: text('updated_at').notNull(),
 }, (table) => [index('material_facts_user_idx').on(table.userId)]);
+
+// Cancellation survives fact invalidation; never persist source/model text here.
+export const caseMaterialFactCleanup = sqliteTable('case_material_fact_cleanup', {
+  userId: text('user_id').notNull(),
+  caseId: text('case_id').notNull(),
+  jobId: text('job_id').notNull(),
+  queuedAt: text('queued_at').notNull(),
+}, table => [primaryKey({ columns: [table.userId, table.caseId, table.jobId] })]);
 
 export const chatMessages = sqliteTable(
   'chat_messages',

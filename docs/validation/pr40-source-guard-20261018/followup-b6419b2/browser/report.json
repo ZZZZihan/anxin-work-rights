@@ -1,0 +1,131 @@
+{
+  "status": "PASS",
+  "recordedAt": "2026-10-18T01:04:27.592Z",
+  "boundary": "production dist + independent local Worker/D1 + headed Chromium; direct synthetic analysis/fact seed; no model or OCR inference",
+  "gitHead": "b6419b2c36444171356a2c22fe8107bbfe1da411",
+  "sourceSha256": {
+    "coverage": "ab4b4ee52126b204327b6930a0675a1e5b43db3fedce06d0ec752feb833b47c4",
+    "store": "420866bcf69565574b55dc9199aa08158f9ba631e725bfaf890be78198ff66d7"
+  },
+  "distSha256": "ac3070bb17d6c988d02dca183c3510b1b33dc7d101b26f2973ab49b7bacb5bf7",
+  "distModifiedAt": "2026-10-18T01:03:41.569Z",
+  "fixture": {
+    "source": {
+      "id": "89700a38-cfb3-4765-a0bb-f64eb9200318",
+      "name": "合成同段重复金额与月份.txt",
+      "sha256": "2cd775557b6cb230f4a519d3dddbd050389e32f782d9bd777319794d9bc26d4f",
+      "analysisRevision": 1,
+      "ready": true,
+      "blocks": [
+        {
+          "id": "b1",
+          "page": 1,
+          "text": "王甲2024年7月完整应付工资8000元。李乙2024年7月完整应付工资8000元。",
+          "bbox": null,
+          "confidence": null
+        }
+      ]
+    },
+    "rawCandidateCount": 2,
+    "extractedSubjects": [
+      "王甲",
+      "王甲"
+    ],
+    "expectedOmittedSubject": "李乙"
+  },
+  "api": {
+    "status": 200,
+    "sourceCoverageStatus": "possible_missing",
+    "signals": [
+      {
+        "kind": "money",
+        "blockId": "b1",
+        "text": "8000元",
+        "start": 15,
+        "end": 20,
+        "covered": true
+      },
+      {
+        "kind": "money",
+        "blockId": "b1",
+        "text": "8000元",
+        "start": 36,
+        "end": 41,
+        "covered": false
+      },
+      {
+        "kind": "date",
+        "blockId": "b1",
+        "text": "2024年7月",
+        "start": 2,
+        "end": 9,
+        "covered": true
+      },
+      {
+        "kind": "date",
+        "blockId": "b1",
+        "text": "2024年7月",
+        "start": 23,
+        "end": 30,
+        "covered": false
+      },
+      {
+        "kind": "wage_period",
+        "blockId": "b1",
+        "text": "2024年7月",
+        "start": 2,
+        "end": 9,
+        "covered": true
+      }
+    ],
+    "persistedFrozenCoverageStatus": "no_signal",
+    "derivedCoveragePersisted": false,
+    "rawPreserved": true,
+    "rawCount": 2,
+    "confirmations": {
+      "due": null,
+      "paid": null
+    },
+    "canCalculate": false
+  },
+  "browser": {
+    "status": "PASS",
+    "candidateCount": 2,
+    "rawCandidateCount": 2,
+    "rawSubjects": [
+      "王甲",
+      "王甲"
+    ],
+    "omittedSignals": [
+      "8000元",
+      "2024年7月"
+    ],
+    "dueInput": "",
+    "paidInput": "",
+    "checkedCheckboxes": 0,
+    "calculateDisabled": true,
+    "headed": true,
+    "cssWidth": 1200,
+    "cardScreenshotHeight": 1800,
+    "amountScreenshotHeight": 1400,
+    "screenshots": [
+      "01-duplicate-occurrence-coverage-and-raw.png",
+      "02-no-automatic-confirmation.png"
+    ],
+    "visualReview": "Both screenshots inspected; labels, uncovered second literals, two raw candidates and empty confirmations readable",
+    "console": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "uiApiIntercepted": false
+  },
+  "cleanup": {
+    "status": "PASS",
+    "databaseRemoved": true,
+    "readyMetadataRemoved": true,
+    "fixtureMetadataRemoved": true,
+    "workerUnavailable": true,
+    "browserSessionClosed": true
+  },
+  "completedAt": "2026-10-18T01:06:19.004Z"
+}

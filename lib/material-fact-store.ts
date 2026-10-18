@@ -1,8 +1,12 @@
 import type { RequestUser } from './auth';
 import { getDatabase } from './server';
 import { callMaterialService, materialServiceConfigured } from './material-service-client';
+import { MaterialServiceHttpError } from './material-service-errors';
+import { enqueueMaterialFactCleanup, retryMaterialFactCleanup } from './material-fact-cleanup';
+import { reviewFactsAgainstSources } from './material-fact-source-review';
 import { validateMaterialResult } from './material-validation';
-import { applyFactAction, buildFactView, emptyFactState, ingestCandidates, prepareCalculation, synchronizeFacts, validateCandidateOutput } from './material-facts';
+import { applyFactAction, buildFactView, emptyFactState, prepareCalculation, synchronizeFacts, validateFactSource } from './material-facts-v3';
+import { ingestRuntimeCandidates } from './material-fact-runtime-ingest';
 import type { FactAction, FactSource } from './material-fact-types';
 import type { RuntimeFactState as FactState, RuntimeMaterialFactsResponse as MaterialFactsResponse } from './material-fact-runtime-types';
 
@@ -12,6 +16,15 @@ type Snapshot = { revision: number; generation: number; state: FactState; source
 export class FactStoreError extends Error { constructor(message: string, public status = 400) { super(message); } }
 const conflict = () => new FactStoreError('材料或确认版本已变化，当前草稿未保存。请重新加载后再核对。', 409);
 const now = () => new Date().toISOString();
+function serializeStoredFactState(state: FactState): string {
+  // Coverage from current source blocks is a response diagnostic, never a new
+  // stored extraction or a migration of a historical v2 record.
+  return JSON.stringify({ ...state, materials: state.materials.map(material => {
+    const stored = { ...material } as typeof material & { sourceCoverage?: unknown };
+    delete stored.sourceCoverage;
+    return stored;
+  }) });
+}
 const accessCondition = `EXISTS (SELECT 1 FROM cases c JOIN case_material_generations g ON g.case_id=c.id AND g.user_id=c.user_id
   WHERE c.id=case_material_facts.case_id AND c.user_id=case_material_facts.user_id AND c.status!='archived' AND g.generation=?)`;
 
@@ -50,11 +63,12 @@ async function snapshot(user: RequestUser, id: string): Promise<Snapshot> {
     try { state = JSON.parse(row.state_json) as FactState; }
     catch { throw new FactStoreError('事实会话无法读取，请保留当前页面并联系维护者。', 503); }
   }
-  return { revision: row?.revision ?? 0, generation: owner.generation, state, sources: sourcesFromRows(result[2].results as unknown as SourceRow[]) };
+  const sources = sourcesFromRows(result[2].results as unknown as SourceRow[]);
+  return { revision: row?.revision ?? 0, generation: owner.generation, state: reviewFactsAgainstSources(state, sources), sources };
 }
 
 async function save(user: RequestUser, id: string, current: Snapshot, state: FactState): Promise<boolean> {
-  const json = JSON.stringify(state);
+  const json = serializeStoredFactState(state);
   if (current.revision === 0) {
     const result = await getDatabase().prepare(`INSERT INTO case_material_facts(case_id,user_id,revision,state_json,updated_at)
       SELECT ?,?,1,?,? WHERE EXISTS (SELECT 1 FROM cases c JOIN case_material_generations g ON g.case_id=c.id AND g.user_id=c.user_id
@@ -78,6 +92,7 @@ async function settings(): Promise<{ backend: string; configured: boolean }> {
 }
 
 async function response(current: Snapshot, stale = false): Promise<MaterialFactsResponse> {
+  current = { ...current, state: reviewFactsAgainstSources(current.state, current.sources) };
   return { revision: current.revision, generation: current.generation, stale, state: current.state,
     ...buildFactView(current.state, current.sources), sources: current.sources.map((source) => ({ id: source.id, name: source.name, sha256: source.sha256, analysisRevision: source.analysisRevision, ready: source.ready })), ...await settings() };
 }
@@ -88,16 +103,19 @@ async function synchronized(user: RequestUser, id: string): Promise<Snapshot> {
     const state = synchronizeFacts(current.state, current.generation, current.sources);
     if (current.revision && JSON.stringify(state) === JSON.stringify(current.state)) return current;
     if (await save(user, id, current, state)) {
-      if (current.state.job && !state.job) await cancelJob(current.state.job.id);
+      if (current.state.job && !state.job) await cancelJob(user, id, current.state.job.id);
       return { ...current, state, revision: current.revision + 1 };
     }
   }
   throw conflict();
 }
 
-async function cancelJob(id: string) {
-  if (id.startsWith('starting_')) return;
-  await callMaterialService(`/fact-jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => undefined);
+async function cancelJob(user: RequestUser, caseId: string, jobId: string) {
+  if (jobId.startsWith('starting_')) return;
+  // The DB trigger already captured replaced jobs. Explicit enqueue also covers
+  // a service-created job whose late ID lost the generation/revision CAS.
+  await enqueueMaterialFactCleanup(user.userId, caseId, jobId);
+  await retryMaterialFactCleanup(user.userId, caseId);
 }
 
 // Three serial slots can each use the inference's ten-minute deadline. A
@@ -133,7 +151,7 @@ async function persistPoll(user: RequestUser, id: string, current: Snapshot, sta
     if (latest.revision === current.revision + 1 && (completed || failed || recovering)) return latest;
     throw conflict();
   }
-  if (!state.job || state.job.status === 'failed') await cancelJob(active.id);
+  if (!state.job || state.job.status === 'failed') await cancelJob(user, id, active.id);
   return { ...current, state, revision: current.revision + 1 };
 }
 
@@ -186,19 +204,21 @@ async function poll(user: RequestUser, id: string, current: Snapshot): Promise<S
     if (result.finish_reason !== undefined && result.finish_reason !== 'stop') throw new Error(`模型回答未完整结束（${String(result.finish_reason).slice(0, 80)}），本次原回答仅供复查，请重新提取。`);
     const source = current.sources.find((item) => item.id === active.evidenceId && item.ready);
     if (!source) throw conflict();
-    const batch = validateCandidateOutput(result.raw, source);
-    state = { ...ingestCandidates(current.state, source, batch, result.backend, user.userId, now(), result.model), job: null };
+    state = ingestRuntimeCandidates(current.state, source, { raw: result.raw }, result.backend, user.userId, now(), result.model);
+    state = reviewFactsAgainstSources({ ...state, job: null }, current.sources);
   } catch (error) { state = failed(error instanceof Error ? error.message : '候选提取结果无法解析，请重新提取。'); }
   return persistPoll(user, id, current, state);
 }
 
 export async function readMaterialFacts(user: RequestUser, id: string): Promise<MaterialFactsResponse> {
   const current = await synchronized(user, id);
+  await retryMaterialFactCleanup(user.userId, id);
   return response(await poll(user, id, current));
 }
 
 export async function actOnMaterialFacts(user: RequestUser, id: string, revision: number, generation: number, action: FactAction): Promise<MaterialFactsResponse> {
   const current = await snapshot(user, id);
+  await retryMaterialFactCleanup(user.userId, id);
   if (current.revision !== revision || current.generation !== generation || current.state.generation !== generation) throw conflict();
   if (!revision) throw conflict();
   const at = now();
@@ -208,27 +228,37 @@ export async function actOnMaterialFacts(user: RequestUser, id: string, revision
   if (action.action === 'extract') {
     const source = current.sources.find((item) => item.id === action.evidenceId && item.ready);
     if (!source) throw new FactStoreError('请先在材料清单完成该文件的原文识别。', 409);
+    // Reject oversized material before claiming an extraction or losing prior confirmation.
+    try { validateFactSource(source); }
+    catch (error) { throw new FactStoreError(error instanceof Error ? error.message : '请拆分材料后再提取。', 400); }
     // Claim the extraction intent before any external request. A simultaneous
     // calculation must already see all previous authorizations invalidated.
     const jobId = crypto.randomUUID();
     state = { ...state, job: { id: jobId, evidenceId: source.id, generation, status: 'running', error: null, startedAt: at, submissionPending: true } };
     if (!await save(user, id, current, state)) throw conflict();
     const claimed: Snapshot = { ...current, state, revision: current.revision + 1 };
-    if (current.state.job) await cancelJob(current.state.job.id);
+    if (current.state.job) await cancelJob(user, id, current.state.job.id);
     try {
       const job = await callMaterialService('/fact-jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source, jobId }) });
       if (job.jobId !== jobId) {
         // A mismatched/old sidecar must not silently defeat recoverability.
-        if (typeof job.jobId === 'string' && /^[a-zA-Z0-9_-]{1,100}$/.test(job.jobId)) await cancelJob(job.jobId);
+        if (typeof job.jobId === 'string' && /^[a-zA-Z0-9_-]{1,100}$/.test(job.jobId)) await cancelJob(user, id, job.jobId);
         throw new Error('候选提取服务未确认本次任务编号。');
       }
       state = { ...state, job: { ...state.job!, submissionPending: false } };
-    } catch {
-      // The service may already have accepted this exact UUID. Keep it and
-      // reconcile with GET; never resubmit automatically or invent a result.
-      state = { ...state, job: { ...state.job!, submissionPending: false, pollFailureSince: now(), error: '提交回执暂未收到，正在核对已提交任务；请勿重复提取。' } };
+    } catch (error) {
+      if (error instanceof MaterialServiceHttpError && error.status >= 400 && error.status < 500) {
+        // A definitive rejection did not create this task. Persist the failed
+        // extraction intent, including its revoked confirmations, and stop
+        // polling a UUID the service never accepted.
+        state = { ...state, job: { ...state.job!, status: 'failed', submissionPending: false, error: error.message } };
+      } else {
+        // A timeout, damaged acknowledgement or 5xx can follow acceptance of
+        // this UUID. Reconcile with GET; never resubmit or invent a result.
+        state = { ...state, job: { ...state.job!, submissionPending: false, pollFailureSince: now(), error: '提交回执暂未收到，正在核对已提交任务；请勿重复提取。' } };
+      }
     }
-    if (!await save(user, id, claimed, state)) { await cancelJob(jobId); throw conflict(); }
+    if (!await save(user, id, claimed, state)) { await cancelJob(user, id, jobId); throw conflict(); }
     return response({ ...claimed, state, revision: claimed.revision + 1 });
   } else if (action.action === 'calculate') {
     let plan;
@@ -242,13 +272,13 @@ export async function actOnMaterialFacts(user: RequestUser, id: string, revision
         FROM (SELECT CAST(? AS INTEGER)-CAST(? AS INTEGER) AS gap_cents)),
       'at', ?, 'actor', ?, 'generation', ?, 'receiptId', ?)),revision=revision+1,updated_at=?
       WHERE case_id=? AND user_id=? AND revision=? AND ${accessCondition}`)
-      .bind(JSON.stringify(state), state.confirmations.due!.amount, state.confirmations.paid!.amount, plan.dueCents, plan.paidCents,
+      .bind(serializeStoredFactState(state), state.confirmations.due!.amount, state.confirmations.paid!.amount, plan.dueCents, plan.paidCents,
         at, user.userId, generation, receiptId, at, id, user.userId, revision, generation).run();
     if (!saved.meta.changes) throw conflict();
     return response(await synchronized(user, id));
   } else {
     if (!await save(user, id, current, state)) throw conflict();
-    if (current.state.job && !state.job) await cancelJob(current.state.job.id);
+    if (current.state.job && !state.job) await cancelJob(user, id, current.state.job.id);
   }
   return response({ ...current, state, revision: current.revision + 1 });
 }

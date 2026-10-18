@@ -1,0 +1,128 @@
+✔ caller job ID: finished-result expiry leaves a full replay-window tombstone (2.499708ms)
+✖ finished result retention: a tab returning after six minutes recovers the unchanged raw result (0.912459ms)
+✖ finished result retention: the complete 31-minute window is readable before expiry becomes 410 (0.271833ms)
+✖ finished result retention: queued and late completions each keep a full window after finishing (0.488667ms)
+✔ finished result retention: cancellation immediately hides work and discards a late completion (1.075625ms)
+✖ finished result retention: 32 cached jobs remain bounded and expiry restores capacity (0.976458ms)
+✖ finished result retention: failed jobs also remain recoverable for the full window (0.262958ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 2
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 175.071417
+
+✖ failing tests:
+
+test at scripts/fact-jobs.test.mjs:365:1
+✖ finished result retention: a tab returning after six minutes recovers the unchanged raw result (0.912459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + null
+  - {
+  -   result: {
+  -     backend: 'rules',
+  -     finish_reason: 'stop',
+  -     model: null,
+  -     raw: '{"candidates":[{"kind":"due_total","value":"5000元","quote":"应发工资5000元","blockId":"b1","subject":null,"period":null,"qualifier":"unknown","assertion":"unknown"},{"kind":"paid_total","value":"0元","quote":"累计已付0元","blockId":"b1","subject":null,"period":null,"qualifier":"unknown","assertion":"unknown"}]}'
+  -   },
+  -   status: 'ready'
+  - }
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-pr36-result-retention/scripts/fact-jobs.test.mjs:373:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: { status: 'ready', result: { raw: '{"candidates":[{"kind":"due_total","value":"5000元","quote":"应发工资5000元","blockId":"b1","subject":null,"period":null,"qualifier":"unknown","assertion":"unknown"},{"kind":"paid_total","value":"0元","quote":"累计已付0元","blockId":"b1","subject":null,"period":null,"qualifier":"unknown","assertion":"unknown"}]}', backend: 'rules', model: null, finish_reason: 'stop' } },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/fact-jobs.test.mjs:378:1
+✖ finished result retention: the complete 31-minute window is readable before expiry becomes 410 (0.271833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + null
+  - {
+  -   result: {
+  -     backend: 'rules',
+  -     finish_reason: 'stop',
+  -     model: null,
+  -     raw: '{"candidates":[{"kind":"due_total","value":"5000元","quote":"应发工资5000元","blockId":"b1","subject":null,"period":null,"qualifier":"unknown","assertion":"unknown"},{"kind":"paid_total","value":"0元","quote":"累计已付0元","blockId":"b1","subject":null,"period":null,"qualifier":"unknown","assertion":"unknown"}]}'
+  -   },
+  -   status: 'ready'
+  - }
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-pr36-result-retention/scripts/fact-jobs.test.mjs:385:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: { status: 'ready', result: { raw: '{"candidates":[{"kind":"due_total","value":"5000元","quote":"应发工资5000元","blockId":"b1","subject":null,"period":null,"qualifier":"unknown","assertion":"unknown"},{"kind":"paid_total","value":"0元","quote":"累计已付0元","blockId":"b1","subject":null,"period":null,"qualifier":"unknown","assertion":"unknown"}]}', backend: 'rules', model: null, finish_reason: 'stop' } },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/fact-jobs.test.mjs:397:1
+✖ finished result retention: queued and late completions each keep a full window after finishing (0.488667ms)
+  TypeError [Error]: Cannot read properties of null (reading 'status')
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-pr36-result-retention/scripts/fact-jobs.test.mjs:411:52)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at scripts/fact-jobs.test.mjs:457:1
+✖ finished result retention: 32 cached jobs remain bounded and expiry restores capacity (0.976458ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-pr36-result-retention/scripts/fact-jobs.test.mjs:465:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/fact-jobs.test.mjs:485:1
+✖ finished result retention: failed jobs also remain recoverable for the full window (0.262958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + null
+  - {
+  -   error: {
+  -     code: 'FACT_JOB_FAILED',
+  -     message: '候选提取未完成，请检查模型配置或稍后重试。'
+  -   },
+  -   status: 'failed'
+  - }
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-pr36-result-retention/scripts/fact-jobs.test.mjs:494:12)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: { status: 'failed', error: { code: 'FACT_JOB_FAILED', message: '候选提取未完成，请检查模型配置或稍后重试。' } },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

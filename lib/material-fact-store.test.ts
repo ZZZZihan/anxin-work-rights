@@ -9,6 +9,7 @@ const bindings = vi.hoisted(() => ({ DB: undefined as unknown as D1Database, ser
 vi.mock('cloudflare:workers', () => ({ env: bindings }));
 vi.mock('./material-service-client', () => ({ materialServiceConfigured: () => true, callMaterialService: bindings.service }));
 import { GET, POST } from '../app/api/cases/[id]/facts/route';
+import { PATCH as patchCase } from '../app/api/cases/route';
 
 let mf: Miniflare;
 const headers = (user = 'owner') => ({ 'oai-authenticated-user-id': user, 'oai-authenticated-user-email': `${user}@synthetic.test` });
@@ -16,9 +17,9 @@ const context = { params: Promise.resolve({ id: 'fact-case' }) };
 const request = (method = 'GET', body?: unknown, user = 'owner') => new Request('http://127.0.0.1/api/cases/fact-case/facts', { method, headers: headers(user), ...(body ? { body: JSON.stringify(body) } : {}) });
 const scope = { worker: '张三', employer: '合成测试单位', start: '2026-01-01', end: '2026-01-31' };
 const note = '合成集成测试：已核对同一劳动者同一工资期间的完整金额，统一为税前口径。';
-const raw = JSON.stringify({ candidates: [
-  { kind: 'due_total', value: '1000元', quote: '本期完整应付工资1000元', blockId: 'b1', subject: '张三', period: '2026年1月', qualifier: 'gross', assertion: 'narrated' },
-  { kind: 'paid_total', value: '200元', quote: '本期完整已付工资200元', blockId: 'b1', subject: '张三', period: '2026年1月', qualifier: 'gross', assertion: 'narrated' },
+const raw = JSON.stringify({ schemaVersion: 3, candidates: [
+  { kind: 'money', meaning: 'due_total', scope: 'individual', completeness: 'complete', rateUnit: null, value: '1000元', quote: '本期完整应付工资1000元', blockId: 'b1', subject: '张三', period: '2026年1月', assertion: 'narrated' },
+  { kind: 'money', meaning: 'paid_total', scope: 'individual', completeness: 'complete', rateUnit: null, value: '200元', quote: '本期完整已付工资200元', blockId: 'b1', subject: '张三', period: '2026年1月', assertion: 'narrated' },
 ] });
 
 async function addSource(id = 'source-1', ready = true) {
@@ -88,6 +89,245 @@ describe('material facts API and transactional persistence', () => {
     const forged = await act(current, { action: 'confirm_scope', scope, note, verified: true, actor: 'model' });
     expect(forged.status).toBe(400);
     expect((await act(current, { action: 'calculate' }, 'other')).status).toBe(404);
+  });
+
+  it('persists empty extraction diagnostics without authorizing totals', async () => {
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => path === '/health' ? { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } } : path === '/fact-jobs' ? { jobId: JSON.parse(String(init?.body)).jobId } : { status:'ready',result:{raw:JSON.stringify({schemaVersion:3,candidates:[]}),backend:'controlled-test-fixture',model:null} });
+    const before=await read();
+    expect((await act(before,{action:'extract',evidenceId:'source-1'})).status).toBe(202);
+    const current=await read();
+    expect(current.candidates).toHaveLength(0);
+    expect(current.state.materials[0]).toMatchObject({coverage:{status:'empty',heuristic:true,rawCount:0,acceptedCount:0}});
+    expect(current.fields.due.status).toBe('unknown');
+    expect(current.fields.paid.status).toBe('unknown');
+    expect(current.canCalculate).toBe(false);
+    expect((await read()).state.materials[0]).toEqual(current.state.materials[0]);
+  });
+
+  it('returns an actionable 400 for ready OCR over the extraction limit without claiming a job or clearing scope', async () => {
+    const blocks = Array.from({ length: 9 }, (_, index) => ({ id: `long-${index}`, page: 1,
+      text: '字'.repeat(index === 8 ? 1 : 3000), bbox: null, confidence: null }));
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks',json(?)) WHERE evidence_id='source-1'`)
+      .bind(JSON.stringify(blocks)).run();
+    let current = await read();
+    expect(current.sources[0].ready).toBe(true);
+    current = await (await act(current, { action: 'confirm_scope', scope, note, verified: true })).json() as MaterialFactsResponse;
+    bindings.service.mockClear();
+    const rejected = await act(current, { action: 'extract', evidenceId: 'source-1' });
+    expect(rejected.status).toBe(400);
+    const rejectionBody = await rejected.json() as { error: string };
+    expect(rejectionBody.error).toMatch(/24000.*分份/);
+    expect(bindings.service.mock.calls.some(([path]) => path === '/fact-jobs')).toBe(false);
+    const after = await read();
+    expect(after.revision).toBe(current.revision);
+    expect(after.state).toEqual(current.state);
+    expect(after.state.scope).toEqual(scope);
+    expect(after.state.job).toBeNull();
+  });
+
+  it('keeps an exact observation after an approximate duplicate through the real polling store without rewriting historical results', async () => {
+    const clauses = ['张三2026年1月完整应付工资约1000元', '张三2026年1月完整应付工资1000元'];
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`).bind(clauses.join('。') + '。').run();
+    const template = JSON.parse(raw).candidates[0];
+    const answer = JSON.stringify({ schemaVersion: 3, candidates: [
+      { ...template, quote: clauses[0] }, { ...template, quote: '原文不存在' }, { ...template, quote: clauses[1] },
+    ] });
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => path === '/health' ? { capabilities: { factConfigured: true } }
+      : init?.method === 'DELETE' ? { ok: true } : path === '/fact-jobs' ? { jobId: JSON.parse(String(init?.body)).jobId }
+        : { status: 'ready', result: { raw: answer, backend: 'controlled-test-fixture', model: null } });
+    const before = await read();
+    expect((await act(before, { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
+    const current = await read(), material = current.state.materials[0];
+    expect(material.raw).toBe(answer);
+    expect(material.candidates.map(candidate => [candidate.id, candidate.amount])).toEqual([['source-1:1:0', null], ['source-1:1:2', '1000.00']]);
+    expect(material.rejected).toEqual([{ index: 1, reason: '引用不存在，或引用不包含候选原文值' }]);
+    expect(current.state.confirmations).toEqual({ due: null, paid: null });
+    expect(current.canCalculate).toBe(false);
+    expect((await read()).state.materials[0].candidates).toEqual(material.candidates);
+
+    // Previously stored acceptance/rejection records retain their historical meaning.
+    // A new extraction uses the runtime fix; GET does not silently reparse old raw.
+    const row = await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>();
+    const historical = JSON.parse(row!.state_json);
+    historical.materials[0].candidates = historical.materials[0].candidates.slice(0, 1);
+    historical.materials[0].rejected.push({ index: 2, reason: 'historical frozen duplicate rejection' });
+    const historicalJson = JSON.stringify(historical);
+    await bindings.DB.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=?').bind(historicalJson, 'fact-case').run();
+    const reread = await read();
+    expect(reread.state.materials[0].candidates).toHaveLength(1);
+    expect(reread.state.materials[0].raw).toBe(answer);
+    expect(reread.state.materials[0].rejected.at(-1)).toEqual({ index: 2, reason: 'historical frozen duplicate rejection' });
+    expect((await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>())!.state_json).toBe(historicalJson);
+  });
+
+  it('returns current coverage for a nonempty historical v2 record without storing a derived display diagnostic', async () => {
+    await extracted();
+    const row = await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>();
+    const legacy = JSON.parse(row!.state_json), material = legacy.materials[0];
+    material.schemaVersion = 2;
+    delete material.coverage;
+    delete material.sourceCoverage;
+    material.candidates = material.candidates.slice(0, 1);
+    material.candidates[0].schemaVersion = 2;
+    delete material.candidates[0].normalization;
+    material.raw = JSON.stringify({ schemaVersion: 2, candidates: [material.candidates[0].representation] });
+    const legacyJson = JSON.stringify(legacy);
+    await bindings.DB.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=?').bind(legacyJson, 'fact-case').run();
+    const readStored = async () => (await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>())!.state_json;
+    let current = await read();
+    expect(current.state.materials[0]).toMatchObject({ schemaVersion: 2, raw: material.raw, sourceCoverage: { status: 'possible_missing', acceptedCount: 1 } });
+    expect(await readStored()).toBe(legacyJson);
+    current = await (await act(current, { action: 'confirm_scope', scope, note, verified: true })).json() as MaterialFactsResponse;
+    for (const field of ['due', 'paid']) current = await (await act(current, { action: 'confirm_amount', field, amount: field === 'due' ? '1000' : '200', note, complete: true, verified: true, reviewedCandidateIds: current.candidates.map(candidate => candidate.id) })).json() as MaterialFactsResponse;
+    expect((await act(current, { action: 'calculate' })).status).toBe(200);
+    const stored = JSON.parse(await readStored()).materials[0];
+    expect(stored).toMatchObject({ schemaVersion: 2, raw: material.raw });
+    expect(Object.hasOwn(stored, 'sourceCoverage')).toBe(false);
+    expect(Object.hasOwn(stored, 'coverage')).toBe(false);
+    expect((await read()).state.materials[0]).toMatchObject({ sourceCoverage: { status: 'possible_missing' } });
+  });
+
+  it('returns source attribution warnings for non-total and date candidates after persistence reload', async () => {
+    const text = '张三2026年1月资料待核。李四2026年2月月薪1000元。李四2026年2月15日入职。';
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`).bind(text).run();
+    const modelOutput = JSON.parse(raw), first = modelOutput.candidates[0];
+    modelOutput.candidates = [
+      { ...first, quote: '1000元', meaning: 'rate', completeness: 'not_applicable', rateUnit: 'month' },
+      { ...first, kind: 'date', value: '2026年2月15日', quote: '2026年2月15日', meaning: 'employment_period', completeness: 'not_applicable', period: null },
+    ];
+    const answer = JSON.stringify(modelOutput);
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => path === '/health' ? { capabilities: { factConfigured: true } }
+      : init?.method === 'DELETE' ? { ok: true } : path === '/fact-jobs' ? { jobId: JSON.parse(String(init?.body)).jobId }
+        : { status: 'ready', result: { raw: answer, backend: 'controlled-test-fixture', model: null } });
+    const current = await extracted();
+    for (const candidate of current.candidates) expect(candidate).toMatchObject({ reviewIssues: expect.arrayContaining([expect.objectContaining({ code: 'source_relation_unresolved' })]) });
+    expect(current.state.materials[0].raw).toBe(answer);
+    expect((await read()).candidates).toEqual(current.candidates);
+    expect(current.canCalculate).toBe(false);
+  });
+
+  it('persists the original amount span and exact normalization separately', async () => {
+    const parsed=JSON.parse(raw);parsed.candidates[0].value='本期完整应付工资1000元';
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => path === '/health' ? { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } } : path === '/fact-jobs' ? { jobId: JSON.parse(String(init?.body)).jobId } : {status:'ready',result:{raw:JSON.stringify(parsed),backend:'controlled-test-fixture',model:null}});
+    const current=await extracted();
+    expect(current.candidates[0]).toMatchObject({value:'本期完整应付工资1000元',amount:'1000.00',normalization:{rawValue:'本期完整应付工资1000元',matchedText:'1000元',status:'exact',amount:'1000.00'}});
+    expect((await read()).candidates[0]).toEqual(current.candidates[0]);
+    expect(current.canCalculate).toBe(false);
+  });
+
+  it('binds cropped group quotes to the source before offering personal totals', async () => {
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`)
+      .bind('张三班组10人在合成测试单位的2026年1月本期完整应付工资1000元，本期完整已付工资200元。').run();
+    let current = await extracted();
+    expect(current.candidates[0]).toMatchObject({ value: '1000元', quote: '本期完整应付工资1000元', reviewIssues: expect.arrayContaining([expect.objectContaining({ code: 'scope_text_mismatch' })]) });
+    const response = await act(current, { action: 'confirm_scope', scope, note, verified: true });
+    expect(response.status).toBe(200);
+    current = await response.json() as MaterialFactsResponse;
+    expect(current.fields.due).toMatchObject({ status: 'unknown', values: [] });
+    expect(current.state.materials[0].raw).toBe(raw);
+    expect(current.state.confirmations.due).toBeNull();
+    expect(current.canCalculate).toBe(false);
+    expect((await read()).candidates[0]).toEqual(current.candidates[0]);
+  });
+
+  it('keeps a source approximate amount non-exact when the model omits the qualifier', async () => {
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`)
+      .bind('张三在合成测试单位的2026年1月本期完整应付工资约1000元，本期完整已付工资200元。').run();
+    const modelOutput = JSON.parse(raw);
+    modelOutput.candidates[0].quote = '1000元';
+    const rawAnswer = JSON.stringify(modelOutput);
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
+      if (init?.method === 'DELETE') return { ok: true };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
+      return { status: 'ready', result: { raw: rawAnswer, backend: 'controlled-test-fixture', model: null } };
+    });
+    let current = await extracted();
+    expect(current.candidates[0]).toMatchObject({ value: '1000元', quote: '1000元', amount: null, normalization: { status: 'approximate', amount: null } });
+    expect(current.candidates[1].amount).toBe('200.00');
+    current = await (await act(current, { action: 'confirm_scope', scope, note, verified: true })).json() as MaterialFactsResponse;
+    expect(current.fields.due.values).toEqual([]);
+    expect(current.state.materials[0].raw).toBe(rawAnswer);
+    expect((await read()).candidates[0]).toEqual(current.candidates[0]);
+  });
+
+  it.each([
+    ['group header', '张三班组十名工人，2026年1月应付工资合计1000元。', '1000元'],
+    ['other worker', '张三2026年1月工资待核。李四2026年2月完整应付工资1000元。', '1000元'],
+    ['partial due', '张三2026年1月部分应付工资1000元。', '1000元'],
+    ['postposed partial', '张三2026年1月应付工资合计1000元，加班工资另计。', '1000元'],
+    ['foreign currency', '张三2026年1月完整应付工资1000美元。', '1000'],
+  ])('persists and rechecks PR40 %s without exposing an available personal total', async (_name, text, value) => {
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`).bind(text).run();
+    const modelOutput = JSON.parse(raw);
+    modelOutput.candidates = [{ ...modelOutput.candidates[0], value, quote: value }];
+    const rawAnswer = JSON.stringify(modelOutput);
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
+      if (init?.method === 'DELETE') return { ok: true };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
+      return { status: 'ready', result: { raw: rawAnswer, backend: 'controlled-test-fixture', model: null } };
+    });
+    expect((await act(await read(), { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
+    let current = await read();
+    expect(current.candidates).toHaveLength(1);
+    current = await (await act(current, { action: 'confirm_scope', scope, note, verified: true })).json() as MaterialFactsResponse;
+    expect(current.fields.due).toMatchObject({ status: 'unknown', values: [] });
+    expect(current.canCalculate).toBe(false);
+    expect(current.state.materials[0].raw).toBe(rawAnswer);
+    expect(current.candidates[0]).toMatchObject({ value, quote: value, representation: modelOutput.candidates[0] });
+    expect((await read()).candidates).toEqual(current.candidates);
+    // Reload from D1, not the in-memory extraction batch; source review remains enforced.
+    const row = await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>();
+    expect(JSON.parse(row!.state_json).materials[0].raw).toBe(rawAnswer);
+    const confirmation = await act(current, { action: 'confirm_amount', field: 'due', amount: '900', note, complete: true, verified: true, reviewedCandidateIds: current.candidates.map(candidate => candidate.id) });
+    expect(confirmation.status).toBe(200);
+    current = await confirmation.json() as MaterialFactsResponse;
+    expect(current.fields.due.confirmation?.amount).toBe('900.00');
+    expect(current.fields.due.values).toEqual([]);
+    expect(current.state.materials[0].raw).toBe(rawAnswer);
+  });
+
+  it.each([['18000元', '8000元'], ['80000元', '0000元'], ['1000元/月', '1000元']])('does not suggest a total from a cropped monetary token: %s as %s', async (sourceAmount, croppedValue) => {
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`)
+      .bind(`张三在合成测试单位的2026年1月本期完整应付工资${sourceAmount}，本期完整已付工资200元。`).run();
+    const modelOutput = JSON.parse(raw);
+    modelOutput.candidates[0].value = croppedValue;
+    modelOutput.candidates[0].quote = croppedValue;
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
+      if (init?.method === 'DELETE') return { ok: true };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
+      return { status: 'ready', result: { raw: JSON.stringify(modelOutput), backend: 'controlled-test-fixture', model: null } };
+    });
+    let current = await extracted();
+    expect(current.candidates[0].amount).toBeNull();
+    current = await (await act(current, { action: 'confirm_scope', scope, note, verified: true })).json() as MaterialFactsResponse;
+    expect(current.fields.due.values).toEqual([]);
+    expect(current.state.confirmations.due).toBeNull();
+    expect(current.canCalculate).toBe(false);
+  });
+
+  it('persists failed cleanup after completing a fact job and retries on the next owned read', async () => {
+    let offline = true;
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
+      if (init?.method === 'DELETE') { if (offline) throw new Error('synthetic cleanup timeout'); return { ok: true }; }
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
+      return { status: 'ready', result: { raw, backend: 'controlled-test-fixture', model: null } };
+    });
+    const current = await extracted();
+    expect(current.state.job).toBeNull();
+    expect(current.state.materials[0].raw).toBe(raw);
+    // Follow actual owned requests: retry must not need the old fact-state ID.
+    const actualJobId = JSON.parse(String(bindings.service.mock.calls.find(([path]) => path === '/fact-jobs')![1]!.body)).jobId;
+    const attempts = () => bindings.service.mock.calls.filter(([path, init]) => path === `/fact-jobs/${actualJobId}` && init?.method === 'DELETE').length;
+    expect(attempts()).toBe(1);
+    offline = false;
+    expect((await read()).candidates).toEqual(current.candidates);
+    expect(attempts()).toBe(2);
+    await read();
+    expect(attempts()).toBe(2);
   });
 
   it('requires explicit totals and commits integer arithmetic plus receipt in D1', async () => {
@@ -176,6 +416,33 @@ describe('material facts API and transactional persistence', () => {
     expect((await read()).generation).toBeGreaterThan(restored.generation);
   });
 
+  it('captures and cancels a fact job on case invalidation, but preserves a job on no-op changes', async () => {
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
+      if (init?.method === 'DELETE') return { ok: true };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
+      return { status: 'running' };
+    });
+    let current = await read();
+    let currentJobId: string;
+    expect((await act(current, { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
+    const patch = (body: object) => patchCase(new Request('http://127.0.0.1/api/cases', { method: 'PATCH', headers: headers(), body: JSON.stringify({ id: 'fact-case', ...body }) }));
+    currentJobId = JSON.parse(String(bindings.service.mock.calls.find(([path]) => path === '/fact-jobs')![1]!.body)).jobId;
+    bindings.service.mockClear();
+    expect((await patch({ company: '合成测试单位' })).status).toBe(200);
+    expect(bindings.service.mock.calls.some(([path, init]) => path === `/fact-jobs/${currentJobId}` && init?.method === 'DELETE')).toBe(false);
+    expect((await patch({ status: 'archived' })).status).toBe(200);
+    expect(bindings.service).toHaveBeenCalledWith(`/fact-jobs/${currentJobId}`, { method: 'DELETE' });
+    expect(await bindings.DB.prepare('SELECT state_json FROM case_material_facts').first()).toBeNull();
+    expect((await patch({ status: 'collecting' })).status).toBe(200);
+    current = await read();
+    expect((await act(current, { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
+    currentJobId = JSON.parse(String(bindings.service.mock.calls.find(([path]) => path === '/fact-jobs')![1]!.body)).jobId;
+    bindings.service.mockClear();
+    expect((await patch({ company: '新合成测试单位' })).status).toBe(200);
+    expect(bindings.service).toHaveBeenCalledWith(`/fact-jobs/${currentJobId}`, { method: 'DELETE' });
+  });
+
   it('rejects stale concurrent revisions without a second write', async () => {
     const current = await extracted();
     const both = await Promise.all([act(current, { action: 'confirm_scope', scope, note, verified: true }), act(current, { action: 'exclude_source', evidenceId: 'source-1', reason: note })]);
@@ -199,6 +466,34 @@ describe('material facts API and transactional persistence', () => {
     expect((await pending).status).toBe(409);
     expect(bindings.service).toHaveBeenCalledWith(`/fact-jobs/${submittedId}`, { method: 'DELETE' });
     expect((await read()).state.job).toBeNull();
+  });
+
+  it('keeps a late unattached job retryable when its first cancellation fails', async () => {
+    const current = await read();
+    let release!: (value: unknown) => void;
+    let entered!: () => void;
+    let offline = true;
+    const called = new Promise<void>((resolve) => { entered = resolve; });
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === '/fact-jobs') { entered(); return new Promise((resolve) => { release = resolve; }); }
+      if (init?.method === 'DELETE') { if (offline) throw new Error('synthetic late cancel timeout'); return { ok: true }; }
+      return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
+    });
+    const pending = act(current, { action: 'extract', evidenceId: 'source-1' });
+    await called;
+    await addSource('late-id-racing-upload', false);
+    const submittedId = JSON.parse(String(bindings.service.mock.calls.find(([path]) => path === '/fact-jobs')![1]!.body)).jobId;
+    release({ jobId: submittedId });
+    expect((await pending).status).toBe(409);
+    const attempts = () => bindings.service.mock.calls.filter(([path, init]) => path === `/fact-jobs/${submittedId}` && init?.method === 'DELETE').length;
+    expect(attempts()).toBe(1);
+    offline = false;
+    const latest = await read();
+    expect(attempts()).toBe(2);
+    expect(latest.state.job).toBeNull();
+    expect(latest.state.materials.flatMap(item => item.candidates)).toEqual([]);
+    await read();
+    expect(attempts()).toBe(2);
   });
 
   it('claims re-extraction before a delayed service call and blocks concurrent calculation', async () => {

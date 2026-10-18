@@ -1,0 +1,26 @@
+### Ran Playwright code
+```js
+await (async (page) => {
+ const headers={"oai-authenticated-user-id":"independent-browser-owner","oai-authenticated-user-email":"independent@synthetic.test"};
+ const path='http://127.0.0.1:63531/api/cases/3175b33b-687a-496c-a569-cbb41dbb33a4/facts';
+ const worker=page.getByRole('textbox',{name:'劳动者全名',exact:true});
+ const note=page.getByRole('textbox',{name:'范围核实依据 / 冲突处理说明',exact:true});
+ const check=page.getByRole('checkbox',{name:'我已核实劳动者、用人单位与工资期间；任职或合同期间已单独辨认',exact:true});
+ const mutate=async(workerName)=>{const current=await(await page.request.get(path,{headers})).json();const response=await page.request.post(path,{headers,data:{action:'confirm_scope',scope:{worker:workerName,employer:'独立浏览器合成单位',start:'2026-01-01',end:'2026-01-31'},note:'合成软件回归：另一会话人工核实范围；非真实案件。',verified:true,generation:current.generation,revision:current.revision}});if(response.status()!==200)throw new Error('Scope setup failed');return response.json();};
+ const clean=await mutate('服务端干净范围更新');
+ await page.getByRole('button',{name:'重新读取状态',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('.fact-scope input[type=text]')?.value==='服务端干净范围更新');
+ if(await note.inputValue()!=='')throw new Error('Clean note not cleared');
+ await page.locator('.fact-scope').screenshot({path:'output/playwright/pr40-final-browser/clean-scope-refresh.png'});
+ console.log(JSON.stringify({scenario:'clean_scope_refresh',status:'PASS',generation:clean.generation,revision:clean.revision,worker:await worker.inputValue(),note:await note.inputValue()}));
+ await worker.fill('未保存的范围劳动者草稿');await note.fill('未保存的范围核实依据草稿');await check.check();
+ const changed=await mutate('服务端再次更新的已确认范围');
+ await page.getByRole('button',{name:'重新读取状态',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('.fact-scope')?.textContent.includes('已确认：服务端再次更新的已确认范围'));
+ if(await worker.inputValue()!=='未保存的范围劳动者草稿'||await note.inputValue()!=='未保存的范围核实依据草稿')throw new Error('Dirty scope draft overwritten');
+ if(await check.isChecked())throw new Error('Old verification remained checked');
+ if(await worker.isDisabled())throw new Error('Refreshed draft stayed disabled');
+ await page.locator('.fact-scope').screenshot({path:'output/playwright/pr40-final-browser/dirty-scope-preserved.png'});
+ console.log(JSON.stringify({scenario:'dirty_scope_refresh',status:'PASS',generation:changed.generation,revision:changed.revision,confirmedWorker:changed.state.scope.worker,draftWorker:await worker.inputValue(),draftNote:await note.inputValue(),verified:await check.isChecked(),editable:!await worker.isDisabled()}));
+})(page);
+```

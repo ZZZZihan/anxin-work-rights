@@ -15,7 +15,7 @@ const headers = (user = 'owner') => ({ 'oai-authenticated-user-id': user, 'oai-a
 const context = { params: Promise.resolve({ id: 'fact-case' }) };
 const request = (method = 'GET', body?: unknown, user = 'owner') => new Request('http://127.0.0.1/api/cases/fact-case/facts', { method, headers: headers(user), ...(body ? { body: JSON.stringify(body) } : {}) });
 const note = '合成集成测试：已核对同一劳动者同一工资期间的完整金额，统一为税前口径。';
-const raw = JSON.stringify({ candidates: [] });
+const raw = JSON.stringify({ schemaVersion: 3, candidates: [] });
 
 async function addSource(id = 'source-1', ready = true) {
   await bindings.DB.prepare(`INSERT INTO evidence_files (id,user_id,case_id,name,category,size,mime_type,status,note,object_key,content_hash,uploaded_at)

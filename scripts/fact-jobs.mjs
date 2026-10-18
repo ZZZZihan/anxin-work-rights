@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { buildExtractionMessages, extractRuleCandidates, validateFactSource } from '../lib/material-facts.ts';
+import { buildExtractionMessages, extractRuleCandidates, validateFactSource } from '../lib/material-facts-v3.ts';
 
 // Persisted callers can resume a job for 31 minutes. Give every completed job
 // that full recovery window, measured after it finishes rather than admission.
@@ -153,7 +153,7 @@ export function createFactJobs(config = {}, inference = infer, { now = Date.now 
       const suppliedId = Object.hasOwn(payload, 'jobId');
       if (suppliedId && !isFactJobId(payload.jobId)) throw fail('候选任务标识须为有效的小写 UUID。');
       try { validateFactSource(payload.source); }
-      catch (error) { throw fail(error.message); }
+      catch (error) { throw fail(error instanceof Error ? error.message : '材料文本不符合提取要求。', 400); }
       if (!payload.source.ready || !payload.source.blocks.length) throw fail('材料文字尚未就绪。');
       const fingerprint = sourceFingerprint(payload.source);
       const id = suppliedId ? payload.jobId : randomUUID();

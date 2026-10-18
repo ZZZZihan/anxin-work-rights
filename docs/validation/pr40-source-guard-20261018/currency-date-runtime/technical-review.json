@@ -1,0 +1,48 @@
+{
+  "mode": "independent-technical-review",
+  "worktree": "/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts",
+  "head": "2d37c6b9e6258153099476313dc4c634bf9994c8",
+  "reviewedProductHashes": {
+    "lib/material-fact-currency-review.ts": "73f8aea84dee183f1b8ee02b21fb7babb1b973d8ac02533470d57f89088c52fb",
+    "lib/material-fact-source-review.ts": "e8688f44e33d2b860fe92870dbeed2161e1df714ac9b3541677151dd43fea348",
+    "lib/material-fact-event-review.ts": "6266aa769459619181aeba3cda262efdf8912f8a94a0edc3bccea2254fe4a181"
+  },
+  "blockingFindingsRemaining": [],
+  "findingClosedDuringReview": {
+    "class": "P2 currency crop with invisible formatting characters",
+    "firstObservation": "USD\\u200B¥8000 or JP\\u200B¥8000 with value/quote=¥8000 retained exact 8000.00 RMB precision. Relationship warning blocked due suggestions, but the Panel still displayed normalized yuan.",
+    "firstObservedCurrencyHelperSha256": "cc35cd3b385c4026639d21f7a6812b00ceaa4c981bb508ec1bcb6981e00e7afa",
+    "rootFix": "Currency detection copies now use NFKC and remove Unicode Cf after computing original source offsets; line boundaries remain intact.",
+    "independentRetest": "4/4 PASS: USD/JP with ZWSP, USD with ZWJ and suffix USD after WORD JOINER now have null amount/normalization.amount, unsupported status, no due suggestion and unchanged raw/representation.",
+    "evidence": "/tmp/anxin-pr40-currency-zero-width-regression.json"
+  },
+  "nonBlockingBoundaries": [],
+  "lexicalBoundaryClosedDuringReview": {
+    "initialObservation": "The 元 inside 元旦 could previously provide exact 8000.00 precision, although a relationship warning withheld total suggestions.",
+    "rootFix": "The supported unit boundary excludes explicit non-currency words and checks the token's unit character together with its original source edge. Independent RMB markers remain valid.",
+    "independentRetest": "元旦 and 元宵, each with value=8000 or value=8000元, now have null precision. ¥8000元旦 and ¥8000元宵 positive controls keep 8000.00 because the independent symbol establishes currency. All raw and representations remain unchanged."
+  },
+  "checks": {
+    "finalFocusedSuite": {"files": 6, "tests": 338, "passed": 338, "failed": 0, "exitCode": 0, "log": "/tmp/anxin-pr40-currency-date-audit-final.log"},
+    "independentRuntimeEdges": {"assertedChecks": 38, "result": "PASS", "report": "/tmp/anxin-pr40-currency-date-review.json", "runner": "/tmp/anxin-pr40-currency-date-review.mts"},
+    "independentCfRegression": {"checks": 4, "passed": 4, "failed": 0, "exitCode": 0, "log": "/tmp/anxin-pr40-currency-zero-width-regression-after.log", "runner": "/tmp/anxin-pr40-currency-zero-width-regression.mts"}
+  },
+  "acceptanceEvidence": [
+    "Bare zero, grouped/decimal amounts and multipliers do not acquire RMB precision without an attached supported marker.",
+    "Currency from another amount, clause, line, U+2028 or U+2029 is not borrowed.",
+    "Attached RMB/CNY, fullwidth equivalents, yuan symbols and financial Chinese literals keep positive precision.",
+    "Cropped regional yen and mixed foreign markers are unavailable, including Unicode formatting-character separators after the root correction.",
+    "Date meaning must match its own explicit local event; receipt, signing, performance, wage coverage, actual employment and injury/raise events are not interchangeable.",
+    "Cropped calendar components/interval boundaries, a second date, mixed event roles, payer dates and dates without an event all retain review warnings.",
+    "Final date helper accepts full parallel wage periods and explicit wage-payment coverage labels; cropping the second period remains unresolved.",
+    "Existing real D1 API tests pass extract/reload/scope review and independently attested manual due=9000 and paid=0 calculation; raw remains stored.",
+    "Actual user confirmations, explicit zero, scope and audit are preserved when a date role needs review; frozen v2 state is not upgraded or rewritten."
+  ],
+  "scopeAndLimits": [
+    "Production files were read only. All new reviewer scripts/reports are in /tmp; no commit, push or deployment.",
+    "Frozen v3 and types were not edited by the reviewer; Git product diff remains limited to root-owned currency/event/source guards.",
+    "Date acceptance is a conservative finite vocabulary, not a complete language or calendar validity parser; unsupported prose remains for human review.",
+    "No new browser or production HTTP environment was launched. D1 API evidence comes from executed focused tests; actual Panel wording was checked in source, not a newly rendered browser.",
+    "Full project check is root-owned and was not rerun by this reviewer."
+  ]
+}
