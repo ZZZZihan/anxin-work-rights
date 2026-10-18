@@ -127,12 +127,12 @@ test('an explicit monthly rate survives, and a model subject cannot swallow 每�
   checkMoney(moneyObservations(sourceFor('😀王甲每月工资4000元。'), '4000元', { subject: '王甲每月' }), null);
 });
 for (const subject of ['王和平', '何和', '周及'])
-  test('a conjunction glyph inside one individual name is not a coordinated group: ' + subject, () => {
+  test('ROUND37 internal coordination requires review; terminal name glyphs stay supported: ' + subject, () => {
     const source = sourceFor('😀' + subject + '2026年1月全部应付工资合计4000元。');
     const rows = moneyObservations(source, '4000元', { subject, meaning: 'due_total', completeness: 'complete', period: '2026年1月' });
     checkMoney(rows, '4000.00');
     for (const row of rows) for (const fact of [row.fresh, row.storedExact])
-      assert(!fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), JSON.stringify(fact.reviewIssues));
+      assert.equal(fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), subject === '王和平', JSON.stringify(fact.reviewIssues));
   });
 test('an actual coordinated subject still cannot be certified as one individual', () => {
   const source = sourceFor('😀王甲和李乙2026年1月全部应付工资合计4000元。');

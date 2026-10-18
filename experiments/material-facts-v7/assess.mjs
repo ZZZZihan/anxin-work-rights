@@ -26,9 +26,9 @@ function permittedContainment(kind, position, anchor, text) {
     && /^\s*(?:整|正)?\s*(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/u.test(after);
   // Fold only the finite date boundary view. The original source, value,
   // quote and code-point offsets, and literal date equality remain unchanged.
-  const dateBoundary = value => value.replace(/[從後間]/gu, glyph => ({ 從: '从', 後: '后', 間: '间' })[glyph]);
-  return /^\s*(?:自|从|截至)?\s*$/u.test(dateBoundary(before))
-    && /^\s*(?:起|止|前|后|间|期间)?\s*$/u.test(dateBoundary(after));
+  const dateBoundary = value => value.replace(/[從後間為]/gu, glyph => ({ 從: '从', 後: '后', 間: '间', 為: '为' })[glyph]);
+  return /^\s*(?:自|从|截至|截止至|截止到|截止|到|至)?\s*$/u.test(dateBoundary(before))
+    && /^\s*(?:以前|以后|之前|之后|为止|起|止|前|后|间|期间)?\s*$/u.test(dateBoundary(after));
 }
 
 function canonical(candidate) {
