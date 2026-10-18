@@ -1,0 +1,82 @@
+"""Assemble append-only author handoff; no project operation is started."""
+from pathlib import Path
+import datetime
+import hashlib
+import json
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+P = Path(__file__).resolve().parent
+BASE = OWN / '.scratch/issue42/round40/baseline-5374'
+EVENT = OWN / 'lib/material-fact-event-review.ts'
+TEST = OWN / 'scripts/material-facts-v7-round40-date-author.test.mjs'
+sha = lambda data: hashlib.sha256(data).hexdigest()
+load = lambda name: json.loads((P / name).read_text())
+
+
+def save(name, data):
+    with (P / name).open('xb') as stream:
+        stream.write(data if isinstance(data, bytes) else (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode())
+
+
+manifest = load('baseline-5374-lib-manifest.json')
+for row in manifest['files']:
+    assert sha((BASE / row['path']).read_bytes()) == row['sha256']
+assert EVENT.read_bytes() == (P / 'event.date-only.final.ts.snapshot').read_bytes()
+assert TEST.read_bytes() == (P / 'locked-author-script.before-tests.mjs.snapshot').read_bytes()
+before = load('baseline-node24.receipt.json')
+green = [load('final-node24.receipt.json'), load('final-node26.receipt.json')]
+assert before['exit_code'] == 1 and before['counts']['pass'] == 22 and before['counts']['fail'] == 8
+assert all(row['exit_code'] == 0 and row['counts']['pass'] == 30 and row['counts']['fail'] == 0 for row in green)
+regressions = load('scoped-regressions.receipt.json')
+assert all(row['exit_code'] == 0 for row in regressions['checks'])
+save('material-facts-v7-round40-date-author.test.mjs.snapshot', TEST.read_bytes())
+data_patch = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/experiments/material-facts-v7/postfreeze-evidence/round40/totals-author/totals-exact-5374.patch')
+save('data-totals-patch.readonly.snapshot', data_patch.read_bytes())
+receipt = {'schema': 'round40-date-author-handoff/1', 'at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+           'status': 'AUTHOR_LIGHT_PASS_PENDING_PARENT_INTEGRATION',
+           'baseline': {'head': manifest['head'], 'event_sha256': sha((BASE / 'lib/material-fact-event-review.ts').read_bytes()),
+                        'all_77_baseline_lib_blobs_rehashed_unchanged': True},
+           'product': {'path': str(EVENT), 'sha256': sha(EVENT.read_bytes()), 'patch': 'event-date-exact-5374.patch',
+                       'patch_sha256': sha((P / 'event-date-exact-5374.patch').read_bytes())},
+           'author_test': {'path': str(TEST), 'sha256': sha(TEST.read_bytes()), 'locked_before_first_run': True},
+           'actual_before': before, 'actual_after': green, 'old_pure_event_regression_and_lint': regressions,
+           'changes': ['Complete wage-period list permits 与 after the existing 與 detection fold.',
+                       'Yearless payment month/day is bounded to ordinary 1–12 month and 1–31 day spelling, including existing Chinese digits and NFKC.',
+                       'New month/day point is accepted only in the existing individual owner + wage + 于/在 + 支付/发放/给付/付清 layout. No year is inferred.',
+                       'Receipt/deadline/recurring/subject/total/money role code remains the exact baseline.'],
+           'actual_test_boundaries': ['Full/minimal quotes; fresh and stored-read date facts preserve representation/raw/CP offsets.',
+                                      'Invalid month/day, negation, other owner, wrong role/scope, cropped parallel list, other event and page break retain review warnings.',
+                                      'All dates stay amount null, due/paid suggestions empty, confirmations null and canCalculate false.',
+                                      'This is a finite attribution envelope, not a general calendar validator or proof of an actual payment.'],
+           'nonimplementer_static_review': {'data_totals_patch_sha256': sha(data_patch.read_bytes()),
+                                           'result': 'No blocker found in the finite complete-individual-total hunk; date code untouched. Author tests were not rerun by this reviewer.'},
+           'not_executed': ['actual scorer', 'historical CLI', 'application fullcheck', 'HTTP', 'build', 'model', 'browser/human acceptance'],
+           'ownership': 'Only OWN product/test/evidence written. Shared CODE/ROOT and frozen files untouched. Parent must integrate this date patch by hunk with DATA money-role patch.',
+           'configuration': 'Requested GPT-6.1 Sol / ultra; actual backend not independently verified.'}
+save('round40-date-author.final.receipt.json', receipt)
+save('ROUND40_DATE_AUTHOR.md', f'''# R40 日期两项作者交付
+
+限定的两处日期修复通过轻量作者验证，等待主侧精确整合。源码 SHA256 为 `{receipt['product']['sha256']}`；锁定脚本 SHA256 为 `{receipt['author_test']['sha256']}`。
+
+固定提交5374d667的同一30项脚本实际 **22通过/8失败，exit1**；只叠本日期补丁后，Node24.22.0和Node26.11.0分别实际 **30通过/0失败，exit0**。三套原纯日期模块共151项通过，限定ESLint退出0。修前原始失败日志、整份旧OWN事件模块、精确Git基线、最后补丁和运行日志均保留。
+
+完整并列工资期间加入“与”（“與”走原检测副本折叠）。无年份支付日期只在既有“个人主体＋工资＋于/在＋月日＋支付/发放/给付/付清”的完整封套中支持，不补年份。新增月日语法限定1–12月、1–31日，是有限原文关系语法，不承担通用历法校验。原收款、期限、每月日程、主体及金额角色代码不改。
+
+全/最小quote、fresh/历史只读都实际保留原文、representation和CP偏移。非法新月日、否定、别主体、角色/范围错标、并列期间裁剪、其他句子和跨页控制继续待核。日期仍amount=null、due/paid建议为空、确认值为空、canCalculate=false，不代表实际付钱或金额授权。
+
+另外只读静核DATA总额补丁：应发/实发仅经complete individual总额严格gate，不放入任意工资正文；日期代码不改。本作者未执行DATA作者suite。共享文件均未写，root应将两方补丁按hunk合并，再做实际整合验证。
+
+未运行scorer、历史CLI、全量检查、HTTP、build、模型或人工验收。请求配置GPT-6.1 Sol/ultra，backend未独立核验。
+'''.encode())
+files = []
+for path in sorted(P.rglob('*')):
+    if not path.is_file() or path.name == 'copy-index.round40-date-author.json':
+        continue
+    rel = str(path.relative_to(P))
+    data = path.read_bytes()
+    files.append({'source': str(path), 'relative': rel, 'destination': rel + ('.snapshot' if path.suffix in {'.py', '.mjs', '.ts', '.js'} else ''),
+                  'bytes': len(data), 'sha256': sha(data)})
+save('copy-index.round40-date-author.json', {'schema': 'evidence-whitelist/1', 'source_root': str(P), 'count': len(files), 'files': files})
+for name in ['round40-date-author.final.receipt.json', 'ROUND40_DATE_AUTHOR.md', 'copy-index.round40-date-author.json']:
+    print(name, sha((P / name).read_bytes()))
+print(json.dumps({'files': len(files)}))

@@ -1,0 +1,67 @@
+from pathlib import Path
+import hashlib, json, re, subprocess
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money')
+ROOT = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+EV = OWN / 'experiments/material-facts-v7/postfreeze-evidence/round40/v30-prepared'
+PREP = OWN / '.scratch/round40-v30-prepared'
+E = Path('experiments/material-facts-v7')
+HEAD = 'e4fadabefd6e11a4e2f38834255467138009566a'
+sha = lambda b: hashlib.sha256(b).hexdigest()
+fixed = lambda p: subprocess.check_output(['git', 'show', f'{HEAD}:{p}'], cwd=ROOT)
+p = json.loads((EV / 'preparation.json').read_bytes())
+a = json.loads((PREP / E / 'correction-code-v29/manifest.json').read_bytes())
+v29 = json.loads((PREP / E / 'corrections-v29/manifest.json').read_bytes())
+assert a['files'] == v29['code_sha256'] and len(a['files']) == 106
+assert a['correction_manifest_sha256'] == sha((PREP / E / 'corrections-v29/manifest.json').read_bytes())
+for path, digest in a['files'].items():
+    assert sha((PREP / E / 'correction-code-v29' / (path + '.snapshot')).read_bytes()) == digest, path
+
+old_names = ['historical-execution-v1.mjs', 'historical-execution-policy-v1.mjs'] + [
+    f'historical-v{i}-execution.mjs' for i in range(9, 29)]
+for name in old_names:
+    assert (PREP / E / name).read_bytes() == fixed(E / name), name
+policy = (PREP / E / 'historical-execution-policy-v1.mjs').read_text()
+assert 'ROOT_BUDGET_MS = 15 * 60 * 1000' in policy
+assert 'CLEANUP_RESERVE_MS = 2000' in policy
+controller = (PREP / E / 'corrective-assessment-v30.mjs').read_text()
+assert controller.count('await computeCorrection(root)') == 1
+assert controller.index('await withCorrectionV29Code') < controller.index('await computeCorrection(root)')
+assert 'first_run_and_corrections_' + '_'.join(f'v{i}' for i in range(1, 30)) + '_preserved' in controller
+assert "schema: 'material-facts-v7-postfreeze-correction-manifest/30'" in controller
+
+refs = {'ORIGINAL': E / 'result-manifest.json', 'V28': E / 'corrections-v28/manifest.json',
+    'V29': E / 'corrections-v29/manifest.json', 'V9_BRIDGE': E / 'historical-v9-execution.mjs',
+    'V28_BRIDGE': E / 'historical-v28-execution.mjs', 'POLICY': E / 'historical-execution-policy-v1.mjs',
+    'ADAPTER': E / 'historical-execution-v1.mjs'}
+constants = []
+for path, expected in p['files'].items():
+    text = (PREP / path).read_text()
+    assert sha(text.encode()) == expected, path
+    for name, digest in re.findall(r"const ([A-Z0-9_]+) = '([0-9a-f]{64})';", text):
+        assert name in refs, (path, name)
+        assert digest == sha(fixed(refs[name])), (path, name)
+        constants.append({'file': path, 'constant': name, 'sha256': digest, 'source': str(refs[name])})
+for version in [29, 30]:
+    text = (PREP / f'scripts/material-facts-v7-correction-v{version}-gates-independent.test.mjs').read_text()
+    values = re.search(r'\.\.\.\[([^]]+)\]\.map', text)[1]
+    assert [int(v.strip()) for v in values.split(',')] == list(range(2, version + 1)), version
+    count = 106 if version == 29 else 109
+    assert f'.length, {count})' in text
+    if version == 30:
+        assert 'restores all 106 historical dependencies' in text
+        assert "historicalV29Target(resolve(ROOT, E, 'corrective-assessment-v30.mjs'), ['--check']), null)" in text
+union = set(v29['code_sha256']) | {str(E / f) for f in [
+    'historical-v29-execution.mjs', 'verify-correction-v29.mjs', 'corrective-assessment-v30.mjs']}
+assert len(union) == 109
+before = json.loads((EV / 'protected-root-before.json').read_bytes())
+changed = [path for path, digest in before.items() if sha((ROOT / path).read_bytes()) != digest]
+assert not changed, changed
+result = {'status': 'PASS', 'archive_paths': 106, 'snapshot_files_plus_manifest': 107,
+    'expected_current_union': 109, 'named_constant_hash_bindings': constants,
+    'old_policy_bridges_unchanged': old_names, 'root_budget_ms': 900000, 'cleanup_reserve_ms': 2000,
+    'protected_root_paths_unchanged': len(before), 'version_arrays': '2..29 and 2..30 complete',
+    'controller_current_compute_calls': 1, 'actual_historical_cli_executed': False,
+    'write_check_executed': False, 'currentgate_executed': False, 'model_requests': 0}
+(EV / 'static-audit.json').write_text(json.dumps(result, indent=2) + '\n')
+print(json.dumps({k: v for k, v in result.items() if k not in ['named_constant_hash_bindings', 'old_policy_bridges_unchanged']}))

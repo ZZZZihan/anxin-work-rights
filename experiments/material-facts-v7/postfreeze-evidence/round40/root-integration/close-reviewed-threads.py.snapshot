@@ -1,0 +1,22 @@
+from pathlib import Path
+import json,subprocess
+D=Path('.scratch/issue42/round40/review-replies');D.mkdir(parents=True,exist_ok=True)
+sha='6d081321b24b9fadd0088d6cc5b6c60e985eda26'
+rows=[
+(4308393728,'PRRT_kwDOVApLyM6ttsrj','共享限定词检查现覆盖紧贴金额的为/作为上限、下限及繁体、同页布局，精确值保持null。最终35项同基线12P23F→35P；小时单位后以上/为上限也不能被裁掉。独立技术复核和实际HTTP历史exact重审已覆盖。','scripts/material-facts-v7-round40-limits-author.test.mjs'),
+(4308393734,'PRRT_kwDOVApLyM6ttsrl','有限小时单位现在允许每个小时、/个小时及繁体，仍要求完整词法与正确rateUnit。同步修复后置unknown和限定词语法，待定/以上不能因新增别名被丢掉。30项同基线16P14F→30P，actual HTTP合法小时与待定分别有正负控制。','scripts/material-facts-v7-round40-hour-author.test.mjs'),
+(4308393738,'PRRT_kwDOVApLyM6ttsrp','完整月日可在原有个人工资于/在…支付/发放/给付/付清事件中作为payment_date，不补年份；错主体、裁剪、否定和其他角色保持核对。与并列期间修复共30项同基线22P8F→30P，另一Agent组合复核和HTTP实际读取通过。','scripts/material-facts-v7-round40-date-author.test.mjs'),
+(4308393742,'PRRT_kwDOVApLyM6ttsrr','完整工资期间列表的有限连接词加入与；既有日期检测折叠同时覆盖與。完整列表仍须属于同一主体事件，不能把裁剪单月或他人日期拼接进去。日期30项作者与非实现者组合检查通过，HTTP保留2026年1月与2月原值。','scripts/material-facts-v7-round40-date-author.test.mjs'),
+(4308393745,'PRRT_kwDOVApLyM6ttsrt','应发/实发仅在严格完整个人工资总额路径支持，要求原文同主体、期间、完整合计及对应due/paid角色，不泛化为任意款项归属。32项24P8F→32P，独立7项及HTTP confirm_scope检查通过：仅提供4000/3500建议值，金额确认仍空、canCalculate=false。','scripts/material-facts-v7-round40-totals-author.test.mjs'),
+(4308483360,'PRRT_kwDOVApLyM6tt6bs','双倍/雙倍已纳入现有附着算式路径，包括的/金额名有限连接；完整及裁剪金额都不再采用操作数为结果，也不自行算出双倍。17项同基线6P11F→17P，非实现者复核及HTTP历史exact降null通过。','scripts/material-facts-v7-round40-double-author.test.mjs'),
+(4308483364,'PRRT_kwDOVApLyM6tt6bw','比较用的前置人民币别名复用有限RMB/CNY/¥/￥语法，保留限定词种类和位置，raw/span及可计算金额不变。作者36项通过；新增独立12项精确基线9P3F→12P，实际六层评分控制确认相同金额键仍不能跨事件、借歧义锚点或用重复预测填另一事件。','scripts/material-facts-v7-round40-canonical-independent.test.mjs'),
+(4308483374,'PRRT_kwDOVApLyM6tt6b1','金额两侧紧贴括号及有限币种包装时，按正负含义未明保守置空，未自行解释成负数。完整value、裁剪quote/value、同页邻块都检查两侧；普通括号说明/跨页控制保持。29项作者、独立有限攻击及HTTP新提取/旧exact读取通过，raw/CP和原DB记录保持。','scripts/material-facts-v7-round40-parentheses-author.test.mjs'),
+]
+for comment,thread,detail,path in rows:
+ body=f'已在 `{sha}` 修复。{detail}\n\n[自动回归](https://github.com/ZZZZihan/anxin-work-rights/blob/{sha}/{path})；[该精确提交CI已成功](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39161803412)。最终同一HTTP runner在精确旧提交专用构建467P14F→修后481P，原始模型输出与失败保留。以上是合成技术验证及技术复核，不是人工业务验收；未训练、未部署。'
+ req={'body':body}; request=D/f'{comment}.request.json';response=D/f'{comment}.response.json';assert not response.exists();request.write_text(json.dumps(req,ensure_ascii=False,indent=2)+'\n')
+ r=subprocess.run(['gh','api',f'repos/ZZZZihan/anxin-work-rights/pulls/45/comments/{comment}/replies','--input',str(request)],capture_output=True,text=True);response.write_text(r.stdout);(D/f'{comment}.stderr.log').write_text(r.stderr);r.check_returncode();reply=json.loads(r.stdout)
+ mutation={'query':'mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{id isResolved}}}','variables':{'id':thread}}
+ (D/f'{comment}.resolve.request.json').write_text(json.dumps(mutation,indent=2)+'\n')
+ r=subprocess.run(['gh','api','graphql','--input','-'],input=json.dumps(mutation),capture_output=True,text=True);(D/f'{comment}.resolve.response.json').write_text(r.stdout);r.check_returncode();d=json.loads(r.stdout);assert 'errors' not in d,d;assert d['data']['resolveReviewThread']['thread']['isResolved']
+ print(comment,reply['id'],'resolved',flush=True)

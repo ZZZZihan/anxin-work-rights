@@ -1,0 +1,76 @@
+"""Owned exact-5374 integration of reviewed hunks; only bounded light suites."""
+from pathlib import Path
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import time
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+DATA = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data')
+MONEY = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money')
+P = Path(__file__).resolve().parent
+BASE = OWN / '.scratch/issue42/round40/baseline-5374'
+UNION = OWN / '.scratch/issue42/round40/date-total-range-double-review-tree'
+sha = lambda data: hashlib.sha256(data).hexdigest()
+NODE = '/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node'
+
+
+def save(name, data):
+    with (P / name).open('xb') as stream:
+        stream.write(data if isinstance(data, bytes) else (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode())
+
+
+assert not UNION.exists()
+shutil.copytree(BASE / 'lib', UNION / 'lib')
+baseline = (BASE / 'lib/material-fact-event-review.ts').read_text()
+own = (OWN / 'lib/material-fact-event-review.ts').read_text()
+data = (DATA / 'lib/material-fact-event-review.ts').read_text()
+assert sha(data.encode()) == '5b8969d0f369afa391d49b535d7bb6a4d2a04bcc77f92c03a1d5178f31cef8ee'
+lines = own.splitlines(keepends=True)
+# Apply the exact date delta to DATA's money-only file, without using any other DATA WIP.
+combo = data.replace('(?:[、及和]${dateInterval', '(?:[、及和与]${dateInterval')
+short = next(line for line in lines if line.startswith('const shortDate ='))
+index = lines.index(short)
+addition = ''.join(lines[index + 1:index + 4])
+assert addition.startswith('// Preserve') and addition.endswith('\n')
+combo = combo.replace(short, short + addition)
+old = "  if (point.test(value) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)"
+new = "  if ((point.test(value) || monthDayPaymentDate.test(value)) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)"
+assert combo.count(old) == 1
+combo = combo.replace(old, new)
+assert 'monthDayPaymentDate = ' in combo
+(UNION / 'lib/material-fact-event-review.ts').write_text(combo)
+save('data-event.money-only.ts.snapshot', data.encode())
+save('event.date-and-totals.integration.ts.snapshot', combo.encode())
+modules = {'material-fact-range-review.ts': 'eedd69e2459bcba03211d0fdb9807c4279a37d67191db1530e7cbd32bbbc7a91',
+           'material-fact-arithmetic-review.ts': '4e940c0cf22bffe0a09a6e53681a7369f21b971a48f0fb85ec16a128f30a8864'}
+for name, expected in modules.items():
+    blob = (MONEY / 'lib' / name).read_bytes()
+    assert sha(blob) == expected
+    (UNION / 'lib' / name).write_bytes(blob)
+    save(name + '.snapshot', blob)
+    diff = subprocess.run(['git', 'diff', '--no-index', '--', str(BASE / 'lib' / name), str(UNION / 'lib' / name)], capture_output=True)
+    assert diff.returncode == 1
+    save(name + '.exact-5374.patch', diff.stdout)
+tests = [DATA / 'scripts/material-facts-v7-round40-totals-author.test.mjs',
+         OWN / 'scripts/material-facts-v7-round40-date-author.test.mjs',
+         OWN / 'scripts/material-facts-v7-round40-total-gate-independent.test.mjs',
+         MONEY / 'scripts/material-facts-v7-round40-limits-author.test.mjs',
+         MONEY / 'scripts/material-facts-v7-round40-double-author.test.mjs']
+for path in tests:
+    save(path.name + '.snapshot', path.read_bytes())
+env = dict(os.environ, MATERIAL_FACT_TEST_ROOT=str(UNION), MATERIAL_FACT_EVENT_FILE=str(UNION / 'lib/material-fact-event-review.ts'), MATERIAL_FACT_PATCH_ROOT=str(UNION))
+start = time.monotonic()
+result = subprocess.run([NODE, '--test', '--test-reporter=tap', *map(str, tests)], env=env, capture_output=True, timeout=60)
+save('integrated-light-node24.stdout.tap', result.stdout)
+save('integrated-light-node24.stderr.log', result.stderr)
+counts = {key: int(re.findall(rf'^# {key} (\d+)$', result.stdout.decode(), re.M)[-1]) for key in ['tests', 'pass', 'fail', 'skipped', 'cancelled']}
+save('integrated-light-node24.execution.json', {'exit_code': result.returncode, 'duration_seconds': time.monotonic() - start,
+                                             'counts': counts, 'private_root': str(UNION),
+                                             'source_hashes': {name: sha((UNION / 'lib' / name).read_bytes()) for name in ['material-fact-event-review.ts', *modules]},
+                                             'test_hashes': {path.name: sha(path.read_bytes()) for path in tests}})
+print(json.dumps({'exit_code': result.returncode, 'counts': counts, 'event_combo_sha256': sha(combo.encode())}))
+assert result.returncode == 0, 'Keep original failure; do not silently overwrite or relax assertions.'

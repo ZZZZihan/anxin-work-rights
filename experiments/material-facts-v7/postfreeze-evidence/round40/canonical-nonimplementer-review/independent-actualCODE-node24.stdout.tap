@@ -1,0 +1,50 @@
+✔ RMB aliases have one qualified comparison key without creating a calculation amount (39.750667ms)
+✔ qualifier words, sides, direction and exactness are retained (5.69025ms)
+✔ foreign, conflicting, duplicate and narrative wrappers do not acquire RMB alias keys (0.431959ms)
+✔ two literal RMB aliases may match only within their one registered statement event (6.988917ms)
+✔ equal RMB alias keys cannot cross from one statement event to another (0.840541ms)
+✔ two predictions in one event cannot consume a single reference twice (5.377292ms)
+✖ two predictions for event one cannot fill the equal-amount event-two reference (4.834666ms)
+✔ two separately evidenced events retain their two separate true positives (5.707541ms)
+✔ unregistered RMB alias occurrence cannot borrow the registered original occurrence (0.755458ms)
+✔ an ambiguous bare quote repeated in different source events stays unmatched (0.568208ms)
+✔ same-event upper and lower bounds cannot become equal through currency aliases (3.394541ms)
+✔ a date with the same literal day still cannot cross source events (2.706375ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 11
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 168.966125
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-round40-canonical-independent.test.mjs:77:1
+✖ two predictions for event one cannot fill the equal-amount event-two reference (4.834666ms)
+  AssertionError [ERR_ASSERTION]: accepted_basic
+  + actual - expected
+  
+    [
+      1,
+  +   0,
+      1,
+  -   1
+    ]
+  
+      at all (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-round40-canonical-independent.test.mjs:34:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-round40-canonical-independent.test.mjs:78:3)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 1, 0, 1 ],
+    expected: [ 1, 1, 1 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

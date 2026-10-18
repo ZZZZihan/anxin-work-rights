@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""Read-only v30 preparation audit. Does not import or execute assessment code."""
+from pathlib import Path
+import hashlib
+import json
+import re
+import sys
+
+PREP = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/.scratch/round40-v30-prepared')
+ROOT = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+AUTHOR = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round40/v30-prepared')
+E = 'experiments/material-facts-v7'
+sha = lambda b: hashlib.sha256(b).hexdigest()
+load = lambda p: json.loads(p.read_bytes())
+index_bytes = (AUTHOR / 'copy-index.json').read_bytes()
+assert sha(index_bytes) == '714a5a1da38fd53b2ced499725ed3153736e06cf09d3ef68b3d805f4bd5b2973'
+index = json.loads(index_bytes)
+listed = index['allowed_files']
+assert len(listed) == 147
+assert len({x['destination'] for x in listed}) == len(listed)
+for item in listed:
+    assert sha(Path(item['source']).read_bytes()) == item['sha256'], item['source']
+six = {item['destination']: item['sha256'] for item in listed if item['kind'] == 'tool_or_test'}
+assert len(six) == 6
+archive_root = PREP / E / 'correction-code-v29'
+archive = load(archive_root / 'manifest.json')
+assert sha((archive_root / 'manifest.json').read_bytes()) == 'a439eae6f2cb90b3aaa7d0414efbd2de4a9042b96ab21c4b9b1122a5276d9827'
+historical_bytes = (ROOT / E / 'corrections-v29/manifest.json').read_bytes()
+historical = json.loads(historical_bytes)
+assert sha(historical_bytes) == 'd66b3c2ccb1897c08168fc16372d2aafc35ca75d3ced64debbe5fa6fd536c74c'
+assert (PREP / E / 'corrections-v29/manifest.json').read_bytes() == historical_bytes
+assert archive['schema'] == 'material-facts-v7-correction-code/29'
+assert archive['correction_directory'] == 'corrections-v29'
+assert archive['storage_suffix'] == '.snapshot'
+assert archive['correction_manifest_sha256'] == sha(historical_bytes)
+assert historical['schema'] == 'material-facts-v7-postfreeze-correction-manifest/29'
+assert archive['files'] == historical['code_sha256']
+assert len(archive['files']) == 106
+expected_files = {'manifest.json'} | {p + '.snapshot' for p in archive['files']}
+actual_files = {str(p.relative_to(archive_root)) for p in archive_root.rglob('*') if p.is_file()}
+assert actual_files == expected_files
+for path, digest in archive['files'].items():
+    assert sha((archive_root / (path + '.snapshot')).read_bytes()) == digest, path
+new_code = [f'{E}/historical-v29-execution.mjs', f'{E}/verify-correction-v29.mjs', f'{E}/corrective-assessment-v30.mjs']
+assert not set(new_code) & set(archive['files'])
+assert len(set(archive['files']) | set(new_code)) == 109
+
+constants = {
+    'ORIGINAL': f'{E}/result-manifest.json',
+    'V28': f'{E}/corrections-v28/manifest.json',
+    'V29': f'{E}/corrections-v29/manifest.json',
+    'V9_BRIDGE': f'{E}/historical-v9-execution.mjs',
+    'V28_BRIDGE': f'{E}/historical-v28-execution.mjs',
+    'POLICY': f'{E}/historical-execution-policy-v1.mjs',
+    'ADAPTER': f'{E}/historical-execution-v1.mjs',
+}
+constant_checks = []
+for path in six:
+    text = (PREP / path).read_text()
+    for name, digest in re.findall(r"const ([A-Z][A-Z0-9_]*) = '([a-f0-9]{64})';", text):
+        assert name in constants, name
+        assert sha((ROOT / constants[name]).read_bytes()) == digest, (path, name)
+        constant_checks.append({'path': path, 'constant': name, 'source': constants[name], 'sha256': digest})
+    if 'gates-independent.test.mjs' in path:
+        version = 29 if 'correction-v29-' in path else 30
+        versions = [int(v) for v in re.search(r'\.\.\.\[([\d, ]+)\]\.map\(version', text)[1].split(',')]
+        assert versions == list(range(2, version + 1)), (path, versions)
+        assert "assert.equal(failure.status, 1" in text
+        assert "Correction v%d manifest bytes changed" % version in text
+        assert "timeout: 960000" in text
+        assert f"'material-facts-v7-postfreeze-correction-manifest/{version}'" in text
+        assert f"'material-facts-v7-postfreeze-correction/{version}'" in text
+        assert f'length, {106 if version == 29 else 109}' in text
+
+old_bridge = (ROOT / E / 'historical-v28-execution.mjs').read_text()
+new_bridge = (PREP / E / 'historical-v29-execution.mjs').read_text()
+assert old_bridge.replace('v28', 'v29').replace('V28', 'V29') == new_bridge
+old_verify = (ROOT / E / 'verify-correction-v28.mjs').read_text()
+new_verify = (PREP / E / 'verify-correction-v29.mjs').read_text()
+assert old_verify.replace('twenty-eighth', 'twenty-ninth').replace('v28', 'v29').replace('V28', 'V29') == new_verify
+controller = (PREP / E / 'corrective-assessment-v30.mjs').read_text()
+assert controller.count('await computeCorrection(root)') == 1
+assert controller.index('runHistoricalV29CheckSync(') < controller.index('await computeCorrection(root)')
+assert "['--check']" in controller and 'withCorrectionV29Code' in controller
+assert 'await publishArtifacts(directory' in controller
+assert 'sha(JSON.stringify(manifest, null, 2)' in controller
+assert "'corrective-assessment-v29.mjs'" in new_bridge and "args[0] !== '--check'" in new_bridge
+assert 'deadline = state.deadline_ms - CLEANUP_RESERVE_MS' in new_bridge
+assert 'nativeExecFileSync(process.execPath' in new_bridge
+assert 'rootBudgetStartedMs()' in new_bridge
+assert 'ROOT_BUDGET_MS' in new_bridge
+
+baseline = load(AUTHOR / 'protected-root-before.json')
+assert baseline == load(AUTHOR / 'protected-root-after.json')
+assert len(baseline) == 2014
+current_protected = {p: sha((ROOT / p).read_bytes()) for p in baseline}
+assert current_protected == baseline
+all_inputs = {str(Path(x['source'])): sha(Path(x['source']).read_bytes()) for x in listed}
+for path in [f'{E}/historical-execution-policy-v1.mjs', f'{E}/historical-execution-v1.mjs', f'{E}/historical-v28-execution.mjs']:
+    assert (PREP / path).read_bytes() == (ROOT / path).read_bytes(), path
+    all_inputs[str(PREP / path)] = sha((PREP / path).read_bytes())
+all_inputs[str(PREP / E / 'corrections-v29/manifest.json')] = sha(historical_bytes)
+output = {
+    'status': 'PASS', 'review_kind': 'read_only_prepared_tooling_static_and_hash',
+    'author_copy_index_files': len(listed), 'tool_and_test_files': six,
+    'archived_v29_paths': 106, 'archive_files_including_manifest': len(actual_files),
+    'v30_dependency_union': 109, 'archive_manifest_sha256': sha((archive_root / 'manifest.json').read_bytes()),
+    'v29_manifest_sha256': sha(historical_bytes), 'named_constant_checks': constant_checks,
+    'protected_root_count': len(current_protected), 'protected_root_sha256': current_protected,
+    'review_inputs_sha256': all_inputs, 'historical_cli_executed': False,
+    'scorer_executed': False, 'model_requests': 0,
+}
+json.dump(output, sys.stdout, ensure_ascii=False, indent=2)
+print()

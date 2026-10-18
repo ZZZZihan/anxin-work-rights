@@ -1,0 +1,30 @@
+diff --git "a/Users/xuzihan/Documents/Projects/\345\233\275\345\210\233/anxin-facts-v7-review/.scratch/issue42/round40/baseline-5374/lib/material-fact-event-review.ts" "b/Users/xuzihan/Documents/Projects/\345\233\275\345\210\233/anxin-facts-v7-review/lib/material-fact-event-review.ts"
+index 8fd31fd..4c76686 100644
+--- a/lib/material-fact-event-review.ts
++++ b/lib/material-fact-event-review.ts
+@@ -13,12 +13,15 @@ const dateCues: [DateMeaning, RegExp][] = [
+ const dateNumber = '[0-9〇零一二三四五六七八九十百千两]';
+ const calendarDate = `(?:${dateNumber}{2,4}年(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?)?|[0-9]{4}[-/.][0-9]{1,2}(?:[-/.][0-9]{1,2})?)`;
+ const shortDate = `(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?|${dateNumber}{1,3}日)`;
++// Preserve a complete source month/day without inventing a missing year. This
++// finite point form is used only by the existing explicit wage-payment layout.
++const monthDayPaymentDate = /^(?:[1-9]|1[0-2]|[一二三四五六七八九]|十[一二]?)月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)日$/u;
+ const intervalEnd = `(?:${calendarDate}|${shortDate}|今)`;
+ const dateInterval = (start: string) => `(?:自|从|截至|截止至|截止到|截止|到|至)?${start}(?:(?:起)?(?:至|到|—|–|-|~|～)${intervalEnd})?(?:以前|以后|之前|之后|为止|起|止|前|后)?`;
+ const completeDate = new RegExp(`^${dateInterval(calendarDate)}$`, 'u');
+ // The protocol permits parallel wage periods as one continuous source literal;
+ // retain the complete list instead of accepting a cropped first month/range.
+-const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及和]${dateInterval(`(?:${calendarDate}|${shortDate})`)})+$`, 'u');
++const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及和与]${dateInterval(`(?:${calendarDate}|${shortDate})`)})+$`, 'u');
+ const compact = (text: string) => text.normalize('NFKC').replace(/\s+/gu, '');
+ // Recurring payment days are explicit source dates, without an invented year or
+ // month. Keep their finite valid day range separate from other calendar roles.
+@@ -114,7 +117,7 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
+   // An explicit wage payment date is supported without inferring that payment
+   // happened. The date role, located beneficiary and whole verb envelope stay
+   // separate from money receipt and complete paid-total authorization.
+-  if (point.test(value) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)
++  if ((point.test(value) || monthDayPaymentDate.test(value)) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)
+     && /^(?:支付|发放|给付|付清)$/u.test(right)) return true;
+   const deadline = new RegExp(`^${calendarDate}(?:以前|之前|前)$`, 'u');
+   if (deadline.test(value) && new RegExp(`^(?:的)?${wage}(?:应|须|需|必须)?(?:于|在)$`, 'u').test(left)

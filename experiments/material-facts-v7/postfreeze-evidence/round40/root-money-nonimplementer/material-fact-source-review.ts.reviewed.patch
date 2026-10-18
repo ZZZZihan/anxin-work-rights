@@ -1,0 +1,20 @@
+--- fixed5374/lib/material-fact-source-review.ts
++++ capturedCODE/lib/material-fact-source-review.ts
+@@ -145,7 +145,7 @@
+     || attachedMoneyQualifierStatus(left, right) !== null || isMoneyRangeEndpoint(left, edges.matched, right)
+     || hasUnfinishedMoneyRangeAfter(right) || hasUnsupportedMoneySuffixRate(right) || hasPostposedMoneyUncertainty(right)
+     || sourcePostposedRate(right) !== null || sourceHasUnsupportedRate(left)
+-    || hasUnsafeWholeMoneyContinuation(raw, normalized, right)
++    || hasUnsafeWholeMoneyContinuation(raw, normalized, right, left)
+     || truncatedMoneyToken(context, normalized, right, left);
+   for (const direction of [-1, 1]) {
+     let previous = block;
+@@ -414,7 +414,7 @@
+       else if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization, raw.subject)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着外币或不支持的币种标记，当前规范化不进行币种转换。', 'unsupported'),
+       };
+-      else if (layout && hasUnsafeWholeMoneyContinuation(raw, sourceNormalized.normalization, layout.after)) sourceNormalized = {
++      else if (layout && hasUnsafeWholeMoneyContinuation(raw, sourceNormalized.normalization, layout.after, layout.before)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文完整金额终止词后仍附着数字、币种、费率或不确定续文，未将裁剪值作为精确金额。', 'unsupported'),
+       };
+       else if (layout && isMoneyRangeEndpoint(layout.before, layout.matched, layout.after)) sourceNormalized = {

@@ -1,0 +1,1147 @@
+commit 6d081321b24b9fadd0088d6cc5b6c60e985eda26
+Author:     xuqi <zihan4602@gmail.com>
+AuthorDate: Mon Oct 19 04:06:28 2026 +0800
+Commit:     xuqi <zihan4602@gmail.com>
+CommitDate: Mon Oct 19 04:06:28 2026 +0800
+
+    fix: 完善金额界限和符号检查及工资日期关联
+
+diff --git a/lib/material-fact-arithmetic-review.ts b/lib/material-fact-arithmetic-review.ts
+index 51016bc..1354680 100644
+--- a/lib/material-fact-arithmetic-review.ts
++++ b/lib/material-fact-arithmetic-review.ts
+@@ -46,6 +46,10 @@ const PREFIX_FACTOR = new RegExp(`${FACTOR}${CONTINUATION_BRIDGE}$`, 'u');
+ const PREFIX_UNKNOWN_OPERAND = new RegExp(`(?:${UNKNOWN_OPERAND}|${COEFFICIENT_OPERAND})${CONTINUATION_BRIDGE}$`, 'u');
+ const SUFFIX_MULTIPLIER = new RegExp(`^${OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
+ const SUFFIX_EXPLICIT_MULTIPLIER = new RegExp(`^${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
++// 双倍 is an explicit twofold multiplier. Keep it on the existing 的/noun
++// and same-line multiplier paths; it never supplies a computed amount.
++const DOUBLE_MULTIPLIER = `[双雙]${LINE}*倍`;
++const SUFFIX_DOUBLE_MULTIPLIER = new RegExp(`^${DOUBLE_MULTIPLIER}`, 'u');
+ const SUFFIX_FRACTION = new RegExp(`^(?:${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${EXPLICIT_OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
+ const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
+ // Half proportions have no leading numeric factor. They are operands only
+@@ -100,7 +104,7 @@ const LEADING_FACTOR_WRAPPERS = new RegExp(`^(?:${WRAPPER_ATOM}|${LINE})*`, 'u')
+ const AMOUNT_NOUN = ['工资', '基本工资', '月工资', '工资款', '工资总额', '应发工资', '应付工资', '实发工资', '欠付工资', '拖欠工资',
+   '薪资', '薪酬', '奖金', '津贴', '补贴', '劳务费', '劳动报酬', '加班费', '经济补偿金', '赔偿金']
+   .map(noun => Array.from(noun).join(`${LINE}*`)).join('|');
+-const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${DOUBLING}|${HALVING}|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${PROPORTION})`, 'u');
++const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${DOUBLING}|${HALVING}|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${DOUBLE_MULTIPLIER}|${PROPORTION})`, 'u');
+ 
+ function detectionView(value: string): string {
+   const glyphs: Record<string, string> = { 貳: '贰', 參: '叁', 陸: '陆', 獎: '奖', 終: '终', 費: '费', 資: '资', 績: '绩', 貼: '贴', 補: '补', 勞: '劳', 務: '务', 動: '动', 報: '报', 經: '经', 濟: '济', 償: '偿', 賠: '赔', 減: '减', 當: '当', 實: '实', 應: '应', 約: '约', 適: '适', 計: '计', 發: '发', 齡: '龄', 數: '数', 係: '系' };
+@@ -140,14 +144,14 @@ export function hasAttachedMoneyArithmetic(before: string, after: string): boole
+     suffix = suffix.slice(noun[0].length);
+     if (!suffix.startsWith('的')) {
+       if (suffixIsOperation(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
+-      const multiplier = suffix.match(SUFFIX_MULTIPLIER) ?? suffix.match(SUFFIX_PROPORTION);
++      const multiplier = suffix.match(SUFFIX_MULTIPLIER) ?? suffix.match(SUFFIX_DOUBLE_MULTIPLIER) ?? suffix.match(SUFFIX_PROPORTION);
+       return multiplier !== null && !/[\r\n\u2028\u2029]/u.test(bridge + noun[0] + multiplier[0]);
+     }
+   }
+   if (suffix.startsWith('的')) {
+     suffix = suffix.slice(1).replace(LEADING_FACTOR_WRAPPERS, '');
+-    return SUFFIX_EXPLICIT_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix) || SUFFIX_PROPORTION.test(suffix);
++    return SUFFIX_EXPLICIT_MULTIPLIER.test(suffix) || SUFFIX_DOUBLE_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix) || SUFFIX_PROPORTION.test(suffix);
+   }
+   if (suffixIsOperation(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
+-  return !/[\r\n\u2028\u2029]/u.test(bridge) && (SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_PROPORTION.test(suffix));
++  return !/[\r\n\u2028\u2029]/u.test(bridge) && (SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_DOUBLE_MULTIPLIER.test(suffix) || SUFFIX_PROPORTION.test(suffix));
+ }
+diff --git a/lib/material-fact-event-review.ts b/lib/material-fact-event-review.ts
+index 8fd31fd..2514c9b 100644
+--- a/lib/material-fact-event-review.ts
++++ b/lib/material-fact-event-review.ts
+@@ -13,20 +13,23 @@ const dateCues: [DateMeaning, RegExp][] = [
+ const dateNumber = '[0-9〇零一二三四五六七八九十百千两]';
+ const calendarDate = `(?:${dateNumber}{2,4}年(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?)?|[0-9]{4}[-/.][0-9]{1,2}(?:[-/.][0-9]{1,2})?)`;
+ const shortDate = `(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?|${dateNumber}{1,3}日)`;
++// Preserve a complete source month/day without inventing a missing year. This
++// finite point form is used only by the existing explicit wage-payment layout.
++const monthDayPaymentDate = /^(?:[1-9]|1[0-2]|[一二三四五六七八九]|十[一二]?)月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)日$/u;
+ const intervalEnd = `(?:${calendarDate}|${shortDate}|今)`;
+ const dateInterval = (start: string) => `(?:自|从|截至|截止至|截止到|截止|到|至)?${start}(?:(?:起)?(?:至|到|—|–|-|~|～)${intervalEnd})?(?:以前|以后|之前|之后|为止|起|止|前|后)?`;
+ const completeDate = new RegExp(`^${dateInterval(calendarDate)}$`, 'u');
+ // The protocol permits parallel wage periods as one continuous source literal;
+ // retain the complete list instead of accepting a cropped first month/range.
+-const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及和]${dateInterval(`(?:${calendarDate}|${shortDate})`)})+$`, 'u');
++const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及和与]${dateInterval(`(?:${calendarDate}|${shortDate})`)})+$`, 'u');
+ const compact = (text: string) => text.normalize('NFKC').replace(/\s+/gu, '');
+ // Recurring payment days are explicit source dates, without an invented year or
+ // month. Keep their finite valid day range separate from other calendar roles.
+ const recurringPaymentDate = /^每(?:个|個)?月(?:第)?(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)[日号號]$/u;
+ // Fold only detection copies of the existing money-role vocabulary, after raw
+ // subject/period offsets are located. No source text or candidate is rewritten.
+-const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总', 額: '额', 計: '计', 實: '实', 幣: '币', 圓: '圆', 稅: '税', 間: '间', 補: '补', 貼: '贴', 預: '预', 賠: '赔', 償: '偿', 決: '决', 給: '给', 單: '单', 標: '标', 準: '准', 費: '费', 時: '时', 領: '领', 為: '为' };
+-const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
++const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总', 額: '额', 計: '计', 實: '实', 發: '发', 幣: '币', 圓: '圆', 稅: '税', 間: '间', 補: '补', 貼: '贴', 預: '预', 賠: '赔', 償: '偿', 決: '决', 給: '给', 單: '单', 標: '标', 準: '准', 費: '费', 時: '时', 領: '领', 為: '为' };
++const moneyRole = (text: string) => compact(text).replace(/[應資總額計實發幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
+ // Date-only cue/bridge aliases, after literal owner/value positions are found.
+ // Folding never changes the subject, date literal, quote or source offsets.
+ const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 辭: '辞', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须', 給: '给', 畢: '毕', 帳: '账', 賬: '账' };
+@@ -114,7 +117,7 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
+   // An explicit wage payment date is supported without inferring that payment
+   // happened. The date role, located beneficiary and whole verb envelope stay
+   // separate from money receipt and complete paid-total authorization.
+-  if (point.test(value) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)
++  if ((point.test(value) || monthDayPaymentDate.test(value)) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)
+     && /^(?:支付|发放|给付|付清)$/u.test(right)) return true;
+   const deadline = new RegExp(`^${calendarDate}(?:以前|之前|前)$`, 'u');
+   if (deadline.test(value) && new RegExp(`^(?:的)?${wage}(?:应|须|需|必须)?(?:于|在)$`, 'u').test(left)
+@@ -150,8 +153,8 @@ export function hasSupportedTotalRelationship(raw: RawCandidateV3, text: string,
+   // Matching just a month inside a longer interval, or borrowing another worker/amount,
+   // leaves unrecognized text here. Completeness must also be explicit in this same event.
+   if (!/(?:完整|全部|总额|总计|合计|共计|累计)/u.test(role)) return false;
+-  if (raw.meaning === 'due_total' ? !/应付/u.test(role) || /已付|实付|已支付/u.test(role) : !/已付|实付|已支付/u.test(role) || /应付/u.test(role)) return false;
+-  if (!/^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|人民币|RMB|CNY|[¥￥]|完整|全部|总额|总计|合计|共计|累计|应付|已支付|已付|实付|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)) return false;
++  if (raw.meaning === 'due_total' ? !/应付|应发/u.test(role) || /已付|实付|已支付|实发/u.test(role) : !/已付|实付|已支付|实发/u.test(role) || /应付|应发/u.test(role)) return false;
++  if (!/^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|人民币|RMB|CNY|[¥￥]|完整|全部|总额|总计|合计|共计|累计|应付|应发|已支付|已付|实付|实发|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)) return false;
+   // Do not silently ignore a second event, a missing wage component or a qualification
+   // following the number inside this clause. Currency precision is reviewed separately.
+   return /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*$/iu.test(moneyRole(after));
+@@ -206,6 +209,12 @@ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: stri
+   // Never add their nouns to the generic wage envelope: receiving compensation
+   // or materials money does not establish a wage payment or complete total.
+   if (raw.meaning === 'other_money' && /^(?:的)?(?:实际)?(?:收到|领取)(?:(?:经|經)(?:济|濟)补偿金|补偿金|赔偿金|[奖獎]金|费用|押金|保[证證]金|[罚罰](?:款|金)|材料款)(?:为|是|计)?(?:人民币|RMB|CNY|[¥￥])?$/iu.test(role)) return supportedSuffix;
++  // 应发/实发 are supported only as complete individual wage totals. Reuse
++  // the stricter same-owner/period/event gate instead of admitting these new
++  // words into arbitrary non-total attribution or inferring actual receipt.
++  if (/应发|实发/u.test(role)) return raw.scope === 'individual' && raw.completeness === 'complete'
++    && (raw.meaning === 'due_total' || raw.meaning === 'paid_total')
++    && hasSupportedTotalRelationship(raw, text, normalized);
+   return /^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|应得|补贴|交通补贴|人民币|RMB|CNY|[¥￥]|完整|全部|部分|总额|总计|合计|共计|累计|应付|已支付|已付|实付|支付|付款|收到|领取|拖欠|欠付|尚欠|欠薪|欠款|裁决|判决|判付|裁判|赔偿|补偿|给付|月薪|日薪|时薪|每月|每日|每天|每小时|每件|单价|标准|费率|本次|此次|该笔|单笔|一笔|先付|预付|预支|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)
+     && supportedSuffix;
+ }
+diff --git a/lib/material-fact-range-review.ts b/lib/material-fact-range-review.ts
+index ca2cb64..963acfd 100644
+--- a/lib/material-fact-range-review.ts
++++ b/lib/material-fact-range-review.ts
+@@ -9,12 +9,15 @@ export const MONEY_BOUND_PREFIX = `(?:不得少于|不得低于|不得超过|不
+ const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;
+ // Explicit ordinary continuations keep their word boundary; other unknown prose
+ // remains conservative. Do not exempt genuine lower bounds such as 起价.
+-export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|(?:[及或]\\s*)?(?:以上(?!\\s*(?:海|述|文|表|班))|以下(?!\\s*(?:列|述|文|表|内容)))|以内(?!\\s*(?:部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵))|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
++// A named limit must be directly attached through its explicit copula. The
++// finite words may cross layout whitespace, never another owner or sentence.
++const NAMED_LIMIT_SUFFIX = '(?:为|作\\s*为)\\s*(?:上\\s*限|下\\s*限)';
++export const MONEY_BOUND_SUFFIX = `(?:${NAMED_LIMIT_SUFFIX}|(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|(?:[及或]\\s*)?(?:以上(?!\\s*(?:海|述|文|表|班))|以下(?!\\s*(?:列|述|文|表|内容)))|以内(?!\\s*(?:部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵))|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
+ 
+ /** Fold a detection copy only; never use this text for source positions. */
+ export function moneyQualifierDetectionView(text: string): string {
+-  return text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[約餘滿於達內頂頭許萬開兩億貳參陸過將]/gu,
+-    character => ({ 約: '约', 餘: '余', 滿: '满', 於: '于', 達: '达', 內: '内', 頂: '顶', 頭: '头', 許: '许', 萬: '万', 開: '开', 兩: '两', 億: '亿', 貳: '贰', 參: '叁', 陸: '陆', 過: '过', 將: '将' })[character]!);
++  return text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[約餘滿於達內頂頭許萬開兩億貳參陸過將為]/gu,
++    character => ({ 約: '约', 餘: '余', 滿: '满', 於: '于', 達: '达', 內: '内', 頂: '顶', 頭: '头', 許: '许', 萬: '万', 開: '开', 兩: '两', 億: '亿', 貳: '贰', 參: '叁', 陸: '陆', 過: '过', 將: '将', 為: '为' })[character]!);
+ }
+ const view = (text: string) => moneyQualifierDetectionView(text).replace(/\s+/gu, ' ');
+ const SPACE = String.raw`\s*`;
+@@ -58,7 +61,7 @@ const ATTACHED_SIGNED = new RegExp(`(?:负数|負數|负值|負值|正数|正數
+ const NEGATIVE_ANNOTATION_TAIL = `(?:记${SPACE}录|記${SPACE}錄|金${SPACE}[额額])`;
+ const ATTACHED_NEGATIVE_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[(]${SPACE})?(?:(?:金额|金額|数值|數值)${SPACE})?(?:(?:为|為|是)${SPACE})?[负負]${SPACE}(?:[数數]|值)(?:(?!\\p{L}|\\p{N})|(?=${NEGATIVE_ANNOTATION_TAIL}))`, 'iu');
+ const ATTACHED_INDEFINITE = new RegExp(`(?:数|數|几|幾)${CURRENCY_BRIDGE}$`, 'iu');
+-const ATTACHED_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:(?:[/／]|每)${SPACE}(?:小时|[个個]?月|日|天|时|件)${SPACE})?${MONEY_BOUND_SUFFIX}`, 'iu');
++const ATTACHED_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:(?:[/／]|每)${SPACE}(?:[个個]?(?:小时|月)|日|天|时|件)${SPACE})?${MONEY_BOUND_SUFFIX}`, 'iu');
+ // A comparison's left operand is no more an exact total than its right one.
+ // The same finite unit/currency wrappers may intervene; punctuation cannot.
+ const ATTACHED_COMPARISON_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}${COMPARISON_BOUND}`, 'iu');
+diff --git a/lib/material-fact-source-review.ts b/lib/material-fact-source-review.ts
+index f2f290c..885b40f 100644
+--- a/lib/material-fact-source-review.ts
++++ b/lib/material-fact-source-review.ts
+@@ -145,7 +145,7 @@ function sourceMoneyLayoutEdges(context: AnchoredSourceEvent, normalized: Candid
+     || attachedMoneyQualifierStatus(left, right) !== null || isMoneyRangeEndpoint(left, edges.matched, right)
+     || hasUnfinishedMoneyRangeAfter(right) || hasUnsupportedMoneySuffixRate(right) || hasPostposedMoneyUncertainty(right)
+     || sourcePostposedRate(right) !== null || sourceHasUnsupportedRate(left)
+-    || hasUnsafeWholeMoneyContinuation(raw, normalized, right)
++    || hasUnsafeWholeMoneyContinuation(raw, normalized, right, left)
+     || truncatedMoneyToken(context, normalized, right, left);
+   for (const direction of [-1, 1]) {
+     let previous = block;
+@@ -414,7 +414,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
+       else if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization, raw.subject)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着外币或不支持的币种标记，当前规范化不进行币种转换。', 'unsupported'),
+       };
+-      else if (layout && hasUnsafeWholeMoneyContinuation(raw, sourceNormalized.normalization, layout.after)) sourceNormalized = {
++      else if (layout && hasUnsafeWholeMoneyContinuation(raw, sourceNormalized.normalization, layout.after, layout.before)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文完整金额终止词后仍附着数字、币种、费率或不确定续文，未将裁剪值作为精确金额。', 'unsupported'),
+       };
+       else if (layout && isMoneyRangeEndpoint(layout.before, layout.matched, layout.after)) sourceNormalized = {
+diff --git a/lib/material-money-v4.ts b/lib/material-money-v4.ts
+index 66421da..472c521 100644
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -61,6 +61,14 @@ function monetaryDetectionView(value: string): string {
+     glyph => ({ 兩: '两', 億: '亿', 詳: '详', 無: '无', 確: '确', 認: '认', 載: '载', 記: '记', 註: '注', 實: '实', 補: '补', 暫: '暂', 計: '计', 給: '给', 發: '发', 號: '号', 時: '时', 並: '并', 併: '并' })[glyph]!);
+ }
+ 
++// An amount enclosed on both edges may be accounting negative notation.
++// Keep the sign unresolved; parentheses around ordinary prose do not qualify.
++function hasAccountingMoneyParentheses(before: string, after: string): boolean {
++  const currency = `(?:${RMB_NAME}|[¥￥])`;
++  return new RegExp(`\\(\\s*(?:${currency}\\s*)?$`, 'iu').test(monetaryDetectionView(before))
++    && new RegExp(`^\\s*(?:[整正]\\s*)?(?:${currency}\\s*)?\\)`, 'iu').test(monetaryDetectionView(after));
++}
++
+ // Only uncertainty matching joins layout inside its finite existing words;
+ // punctuation and every other character remain barriers between events.
+ function uncertaintyDetectionView(value: string): string {
+@@ -293,6 +301,7 @@ function normalizeMoneyValueWithSubject(rawValue: string, subject: string | null
+   if (matches.length === 1) {
+     const match = matches[0], text = match[0].trimStart(), index = match.index + match[0].length - text.length;
+     const before = rawValue.slice(0, index).trimEnd(), after = rawValue.slice(index + text.length);
++    if (hasAccountingMoneyParentheses(before, after)) return result(rawValue, 'unsupported', '括号金额可能表示会计负数，保留原文待核，未推定正负金额。');
+     if (isCalendarYearContinuation(text, after)) return result(rawValue, 'not_money', '币种标签后的四位数字是年份，未补人民币单位或转成金额。');
+     if (moneyTokenHasNonCurrencyYuan(text, after)) return result(rawValue, 'unsupported', '匹配到的元或圆属于完整普通词语，不能截成金额单位。');
+     if (moneyTokenHasNonCurrencySubunit(text, after)) return result(rawValue, 'unsupported', '匹配到的角或分属于时间、计量或普通词语，未作为分币金额。');
+@@ -350,7 +359,7 @@ export function hasPostposedMoneyUncertainty(after: string): boolean {
+   // A supported slash/每 denominator cannot hide the same directly attached
+   // unknown marker. Consume one finite rate wrapper only; clause punctuation
+   // and another person's prose remain barriers in the existing predicate.
+-  const rate = detection.match(/^(?:[元圆圓])?(?:\/|每)(?:小时|[个個]?月|日|天|时|件)(?:计算|计酬|计价|计薪|计)?/u);
++  const rate = detection.match(/^(?:[元圆圓])?(?:\/|每)(?:[个個]?(?:小时|月)|日|天|时|件)(?:计算|计酬|计价|计薪|计)?/u);
+   const text = rate ? detection.slice(rate[0].length) : detection;
+   if (rate && hasAttachedMoneyArithmetic('', text)) return false;
+   return new RegExp(`^\\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\\s*[()[\\]{}【】]*\\s*(?:(?:金[额額]|[数數][额額])\\s*(?:为|為|是|[:=])?\\s*)?(?:${MASKED.source}|${UNCERTAIN.source})`, 'iu').test(text);
+@@ -401,11 +410,11 @@ function attachedSuffixRate(after: string) {
+   // A denominator is a complete lexical unit. 月亮/月份/小时候 cannot
+   // borrow the enum from a valid prefix. Keep the existing finite pricing or
+   // payment prose, and attached uncertainty, after a complete supported unit.
+-  const unit = text?.match(/^(小时|[个個]?月|日|天|时|件)/u);
++  const unit = text?.match(/^([个個]?(?:小时|月)|日|天|时|件)/u);
+   const remainder = unit ? text!.slice(unit[0].length) : '';
+   const supported = unit && (remainder === '' || hasPostposedMoneyUncertainty(remainder)
+     || attachedQualifierStatus('', remainder) !== null
+-    || /^(?:计算|计酬|计价|计薪|计|支付|发放|付清)$/u.test(remainder)) ? unit[1].replace(/^[个個](?=月$)/u, '') : undefined;
++    || /^(?:计算|计酬|计价|计薪|计|支付|发放|付清)$/u.test(remainder)) ? unit[1].replace(/^[个個](?=小时$|月$)/u, '') : undefined;
+   return { present: suffix !== null, supported, postposedBy: false,
+     uncertain: supported !== undefined && hasPostposedMoneyUncertainty(detection) };
+ }
+@@ -428,10 +437,11 @@ export function supportedMoneySuffixRateUnit(after: string): RawCandidateV3['rat
+ /** A single 整/正 may end a complete amount, but cannot hide its continuation.
+  * Only detection edges are joined here. The caller's raw normalization, quote,
+  * source text and CP offsets are never rewritten or returned from this guard. */
+-export function hasUnsafeWholeMoneyContinuation(candidate: Pick<RawCandidateV3, 'meaning' | 'rateUnit'>, normalized: CandidateNormalization, after: string): boolean {
++export function hasUnsafeWholeMoneyContinuation(candidate: Pick<RawCandidateV3, 'meaning' | 'rateUnit'>, normalized: CandidateNormalization, after: string, before = ''): boolean {
+   if (!normalized.span) return false;
+   const token = Array.from(normalized.rawValue).slice(normalized.span.start, normalized.span.end).join('');
+   const tokenView = monetaryDetectionView(token), detection = monetaryDetectionView(after);
++  if (hasAccountingMoneyParentheses(before, after)) return true;
+   if (isCalendarYearContinuation(token, after)) return true;
+   // Source review supplies this complete layout edge even when value and
+   // quote stop before a repeated suffix in the next line or adjacent block.
+@@ -505,7 +515,8 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
+       // total. The existing finite units keep their following-prose behavior.
+       // Fold only this detection copy; raw value/quote and CP spans stay intact.
+       const suffixRate = attachedSuffixRate(rangeAfter), supportedRate = suffixRate.supported;
+-      if (hasRepeatedRmbCurrency(rangeBefore, rangeToken, rangeAfter)) normalized = result(candidate.value, 'unsupported', '原文金额重复附着币种标记，未把裁剪后的单标签金额作为精确值。');
++      if (hasAccountingMoneyParentheses(rangeBefore, rangeAfter)) normalized = result(candidate.value, 'unsupported', '原文用括号包围金额，正负含义待核，未将裁剪值作为精确正数。');
++      else if (hasRepeatedRmbCurrency(rangeBefore, rangeToken, rangeAfter)) normalized = result(candidate.value, 'unsupported', '原文金额重复附着币种标记，未把裁剪后的单标签金额作为精确值。');
+       else if (sourceMoneyHasNonCurrencyYuan({ blockText: candidate.quote, valueStart: quoteOffset }, normalized)) normalized = result(candidate.value, 'unsupported', '原文中的元或圆属于完整普通词语，裁剪后的片段未作为人民币金额。');
+       else if (sourceMoneyHasNonCurrencySubunit({ blockText: candidate.quote, valueStart: quoteOffset }, normalized)) normalized = result(candidate.value, 'unsupported', '原文中的角或分属于普通词语，裁剪后的片段未作为分币金额。');
+       else if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized, candidate.subject)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
+@@ -616,7 +627,7 @@ export function canonicalMonetaryExpression(value: string): string | null {
+   // Reuse the finite qualifier grammar while retaining each word and its side:
+   // 不满/不少于/不到/开外 must never collapse into each other or an exact key.
+   const wrapped = monetaryDetectionView(value).trim().replace(/\s*(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*$/u, '').trim();
+-  const leadingRmb = wrapped.match(/^人民[币幣]\s*/u)?.[0] ?? '';
++  const leadingRmb = wrapped.match(new RegExp(`^(?:${RMB_NAME}|[¥￥])\\s*`, 'iu'))?.[0] ?? '';
+   const text = wrapped.slice(leadingRmb.length);
+   const prefix = text.match(new RegExp(`^(${MONEY_BOUND_PREFIX}|近|可能|或许|大概|估计|不确定|待核|暂计|暂定)\\s*`, 'u'));
+   const suffix = text.match(new RegExp(`\\s*(${MONEY_BOUND_SUFFIX})$`, 'u'));
+diff --git a/package.json b/package.json
+index e93d0b5..1227f46 100644
+--- a/package.json
++++ b/package.json
+@@ -23,7 +23,7 @@
+     "data:runtime:check": "python3 -B scripts/build-public-index.py --check",
+     "data:runtime:build": "python3 -B scripts/build-public-index.py",
+     "test:materials": "node --test scripts/fact-jobs.test.mjs scripts/material-runner.test.mjs scripts/material-service.test.mjs scripts/material-ocr-linux.test.mjs",
+-    "test:fact-runtime": "python3 -B scripts/fact_memory_runtime_test.py && python3 -B scripts/fact_api_transport_test.py && node --test scripts/fact-runtime-runner.test.mjs scripts/material-facts-v4-assessment.test.mjs scripts/material-facts-panel.test.mjs scripts/material-facts-v7-assessment-independent.test.mjs scripts/material-fact-relative-month.test.mjs scripts/material-facts-v7-postfreeze-p1-independent.test.mjs scripts/material-fact-dedup-review.test.mjs scripts/material-facts-v7-round3-independent.test.mjs scripts/material-fact-arithmetic-source-review.test.mjs scripts/material-facts-v7-arithmetic-independent.test.mjs scripts/material-fact-arithmetic-noun.test.mjs scripts/material-fact-currency-rate-source-review.test.mjs scripts/material-facts-v7-round7-business-independent.test.mjs scripts/material-facts-v7-http-process-tree.test.mjs scripts/material-fact-relative-day-presence.test.mjs scripts/material-fact-relative-day-source-review.test.mjs scripts/material-facts-v7-relative-day-independent.test.mjs scripts/material-fact-conjunction-range.test.mjs scripts/material-fact-named-arithmetic-subunits.test.mjs scripts/material-fact-currency-computation-review.test.mjs scripts/material-facts-v7-round11-money-independent.test.mjs scripts/material-fact-subunit-time-range-review.test.mjs scripts/material-fact-wage-standard-traditional-review.test.mjs scripts/material-fact-modified-symbolic-arithmetic.test.mjs scripts/material-facts-v7-round12-money-independent.test.mjs scripts/material-fact-round12-root-boundaries.probe.mjs scripts/material-fact-mixed-subunits.test.mjs scripts/material-fact-lexical-subunit-gate.test.mjs scripts/material-facts-v7-round13-money-independent.test.mjs scripts/material-fact-round13-classifier-review.probe.mjs scripts/material-facts-http-owned-cleanup.test.mjs scripts/material-facts-http-round14-independent.test.mjs scripts/material-fact-proportion-arithmetic.test.mjs scripts/material-fact-qualified-money-bounds.test.mjs scripts/material-facts-v7-round15-money-independent.test.mjs scripts/material-fact-sign-count-layout.test.mjs scripts/material-fact-unfinished-money-range.test.mjs scripts/material-fact-unfinished-range-layout.test.mjs scripts/material-fact-currency-name-boundary.test.mjs scripts/material-facts-v7-round17-money-author.test.mjs scripts/material-facts-v7-round17-money-independent.test.mjs scripts/material-fact-traditional-wage-boundary.test.mjs scripts/material-facts-http-group-inspection.test.mjs scripts/material-facts-v7-round18-money-author.test.mjs scripts/material-facts-v7-round18-money-independent.test.mjs scripts/material-facts-http-interrupt.test.mjs scripts/material-facts-http-round18-independent.test.mjs scripts/material-fact-postposed-rate.test.mjs scripts/material-facts-v7-round19-money-author.test.mjs scripts/material-facts-v7-round19-money-independent.test.mjs scripts/material-fact-postposed-bound.test.mjs scripts/material-facts-v7-round20-money-author.test.mjs scripts/material-facts-v7-round20-money-independent.test.mjs scripts/material-fact-currency-names-ordinary-words.test.mjs scripts/material-facts-v7-round20-subject-independent.test.mjs scripts/material-facts-v7-round20-bound-duration-independent.test.mjs scripts/material-facts-v7-round21-source-rate-author.test.mjs scripts/material-fact-currency-payment-purpose.test.mjs scripts/material-facts-v7-round21-unicode-name-independent.test.mjs scripts/material-fact-suffix-prose-boundary.test.mjs scripts/material-facts-v7-round21-money-independent.test.mjs scripts/material-facts-v7-round21-rate-subject-author.test.mjs scripts/material-facts-v7-traditional-event-wrapper.test.mjs scripts/material-fact-weekday-source-rate.test.mjs scripts/material-fact-traditional-qualifier-comparison.test.mjs scripts/material-facts-v7-round22-independent.test.mjs scripts/material-facts-v7-round22-qualified-wrapper-independent.test.mjs scripts/material-fact-compact-bound.test.mjs scripts/material-fact-explicit-subunit-range.test.mjs scripts/material-fact-rmb-token-marker.test.mjs scripts/material-facts-http-repeat-signal.test.mjs scripts/material-fact-explicit-rmb-classifier.test.mjs scripts/material-facts-v7-round22-late-independent.test.mjs scripts/material-facts-v7-round22-late-layout-independent.test.mjs scripts/material-fact-postposed-uncertainty.test.mjs scripts/material-fact-role-recurring-date.test.mjs scripts/material-fact-explicit-conversion.test.mjs scripts/material-facts-v7-round24-independent.test.mjs scripts/material-facts-v7-round24-group-cross-independent.test.mjs scripts/material-fact-traditional-dedup.test.mjs scripts/material-fact-named-rate-operands.test.mjs scripts/material-facts-v7-round24-rate-wrapper-independent.test.mjs scripts/material-fact-postposed-rmb-dedup.test.mjs scripts/material-fact-whole-money-terminator.test.mjs scripts/material-facts-v7-round25-wrapper-independent.test.mjs scripts/material-facts-v7-round25-terminal-safety-independent.test.mjs scripts/material-facts-v7-round25-rmb-subunit-cross-independent.test.mjs scripts/material-facts-v7-round26-independent.test.mjs scripts/material-facts-v7-round26-money-author.test.mjs scripts/material-fact-postposed-unit-source-review.test.mjs scripts/material-facts-v7-round27-money-author.test.mjs scripts/material-fact-source-date-pay-operand.test.mjs scripts/material-facts-v7-round27-independent.test.mjs scripts/material-facts-v7-round27-prefix-cross-independent.test.mjs scripts/material-fact-date-name-boundaries.test.mjs scripts/material-facts-v7-round28-independent.test.mjs scripts/material-facts-v7-round28-name-cross-independent.test.mjs scripts/material-facts-v7-round28-money-author.test.mjs scripts/material-fact-traditional-arithmetic-bounds.test.mjs scripts/material-facts-v7-round29-independent.test.mjs scripts/material-facts-v7-round29-schedule-layout-independent.test.mjs scripts/material-facts-v7-round29-money-author.test.mjs scripts/material-facts-v7-round29-arithmetic-status-independent.test.mjs scripts/material-facts-v7-round29-incomplete-range-status-independent.test.mjs scripts/material-fact-proportion-negative-suffix.test.mjs scripts/material-facts-v7-round30-money-author.test.mjs scripts/material-facts-v7-round30-independent.test.mjs scripts/material-facts-v7-round30-fullwidth-boundaries-independent.test.mjs scripts/material-facts-v7-round30-finite-tail-independent.test.mjs scripts/material-facts-v7-round30-payment-question-independent.test.mjs scripts/material-facts-http-unsupported-windows.test.mjs scripts/material-facts-v7-round31-event-author.test.mjs scripts/material-facts-v7-round31-hour-author.test.mjs scripts/material-facts-v7-round31-independent.test.mjs scripts/material-facts-v7-round32-range-author.test.mjs scripts/material-facts-v7-round32-event-author.test.mjs scripts/material-facts-v7-round32-angle-author.test.mjs scripts/material-facts-v7-round32-independent.test.mjs scripts/material-facts-v7-round32-angle-cross-independent.test.mjs scripts/material-facts-v7-round33-independent.test.mjs scripts/material-facts-http-round33-identity-independent.test.mjs scripts/material-facts-v7-round33-money-author.test.mjs scripts/material-facts-v7-round33-group-layout-author.test.mjs scripts/material-facts-http-round33-identity.test.mjs scripts/material-facts-v6-frozen-compatibility.test.mjs scripts/material-facts-v7-round34-event-author.test.mjs scripts/material-facts-v7-round34-money-author.test.mjs scripts/material-facts-v7-round34-scorer-author.test.mjs scripts/material-facts-v7-round34-independent.test.mjs scripts/material-facts-v7-round34-compatibility-author.test.mjs scripts/material-facts-v7-round34-ci-compat-independent.test.mjs scripts/material-facts-v7-round34-ci-hour-bound-independent.test.mjs scripts/material-facts-v7-round35-currency-label-author.test.mjs scripts/material-facts-v7-round35-layout-author.test.mjs scripts/material-facts-v7-round35-independent.test.mjs scripts/material-facts-v7-round35-prose-usability-independent.test.mjs scripts/material-facts-v7-round35-continuation-independent.test.mjs scripts/material-facts-v7-round35-optional-layout-independent.test.mjs scripts/material-facts-v7-round35-currency-continuation-independent.test.mjs scripts/material-facts-v7-round35-currency-layout-closure.test.mjs scripts/material-facts-v7-round36-money-author.test.mjs scripts/material-facts-v7-round36-late-money-author.test.mjs scripts/material-facts-v7-round36-layout-closure-author.test.mjs scripts/material-facts-v7-round37-event-author.test.mjs scripts/material-facts-v7-round36-independent.test.mjs scripts/material-facts-v7-round36-companion-independent.test.mjs scripts/material-facts-v7-round37-scorer-author.test.mjs scripts/material-facts-v7-round37-doubling-author.test.mjs scripts/material-facts-v7-round37-collective-date-author.test.mjs scripts/material-facts-v7-round37-independent.test.mjs scripts/material-facts-v7-round37-coordinator-alias-author.test.mjs scripts/material-facts-v7-round38-symbol-author.test.mjs scripts/material-facts-v7-round38-bounds-multiplier-author.test.mjs scripts/material-facts-v7-round38-independent.test.mjs scripts/material-facts-v7-round38-event-dedup-author.test.mjs scripts/material-facts-v7-round39-calendar-author.test.mjs scripts/material-facts-v7-round39-collective-author.test.mjs scripts/material-facts-v7-round39-date-receipt-author.test.mjs scripts/material-facts-v7-round39-halving-author.test.mjs scripts/material-facts-v7-round39-calendar-independent.test.mjs scripts/material-facts-v7-round39-collective-independent.test.mjs scripts/material-facts-v7-round39-halving-independent.test.mjs"
++    "test:fact-runtime": "python3 -B scripts/fact_memory_runtime_test.py && python3 -B scripts/fact_api_transport_test.py && node --test scripts/fact-runtime-runner.test.mjs scripts/material-facts-v4-assessment.test.mjs scripts/material-facts-panel.test.mjs scripts/material-facts-v7-assessment-independent.test.mjs scripts/material-fact-relative-month.test.mjs scripts/material-facts-v7-postfreeze-p1-independent.test.mjs scripts/material-fact-dedup-review.test.mjs scripts/material-facts-v7-round3-independent.test.mjs scripts/material-fact-arithmetic-source-review.test.mjs scripts/material-facts-v7-arithmetic-independent.test.mjs scripts/material-fact-arithmetic-noun.test.mjs scripts/material-fact-currency-rate-source-review.test.mjs scripts/material-facts-v7-round7-business-independent.test.mjs scripts/material-facts-v7-http-process-tree.test.mjs scripts/material-fact-relative-day-presence.test.mjs scripts/material-fact-relative-day-source-review.test.mjs scripts/material-facts-v7-relative-day-independent.test.mjs scripts/material-fact-conjunction-range.test.mjs scripts/material-fact-named-arithmetic-subunits.test.mjs scripts/material-fact-currency-computation-review.test.mjs scripts/material-facts-v7-round11-money-independent.test.mjs scripts/material-fact-subunit-time-range-review.test.mjs scripts/material-fact-wage-standard-traditional-review.test.mjs scripts/material-fact-modified-symbolic-arithmetic.test.mjs scripts/material-facts-v7-round12-money-independent.test.mjs scripts/material-fact-round12-root-boundaries.probe.mjs scripts/material-fact-mixed-subunits.test.mjs scripts/material-fact-lexical-subunit-gate.test.mjs scripts/material-facts-v7-round13-money-independent.test.mjs scripts/material-fact-round13-classifier-review.probe.mjs scripts/material-facts-http-owned-cleanup.test.mjs scripts/material-facts-http-round14-independent.test.mjs scripts/material-fact-proportion-arithmetic.test.mjs scripts/material-fact-qualified-money-bounds.test.mjs scripts/material-facts-v7-round15-money-independent.test.mjs scripts/material-fact-sign-count-layout.test.mjs scripts/material-fact-unfinished-money-range.test.mjs scripts/material-fact-unfinished-range-layout.test.mjs scripts/material-fact-currency-name-boundary.test.mjs scripts/material-facts-v7-round17-money-author.test.mjs scripts/material-facts-v7-round17-money-independent.test.mjs scripts/material-fact-traditional-wage-boundary.test.mjs scripts/material-facts-http-group-inspection.test.mjs scripts/material-facts-v7-round18-money-author.test.mjs scripts/material-facts-v7-round18-money-independent.test.mjs scripts/material-facts-http-interrupt.test.mjs scripts/material-facts-http-round18-independent.test.mjs scripts/material-fact-postposed-rate.test.mjs scripts/material-facts-v7-round19-money-author.test.mjs scripts/material-facts-v7-round19-money-independent.test.mjs scripts/material-fact-postposed-bound.test.mjs scripts/material-facts-v7-round20-money-author.test.mjs scripts/material-facts-v7-round20-money-independent.test.mjs scripts/material-fact-currency-names-ordinary-words.test.mjs scripts/material-facts-v7-round20-subject-independent.test.mjs scripts/material-facts-v7-round20-bound-duration-independent.test.mjs scripts/material-facts-v7-round21-source-rate-author.test.mjs scripts/material-fact-currency-payment-purpose.test.mjs scripts/material-facts-v7-round21-unicode-name-independent.test.mjs scripts/material-fact-suffix-prose-boundary.test.mjs scripts/material-facts-v7-round21-money-independent.test.mjs scripts/material-facts-v7-round21-rate-subject-author.test.mjs scripts/material-facts-v7-traditional-event-wrapper.test.mjs scripts/material-fact-weekday-source-rate.test.mjs scripts/material-fact-traditional-qualifier-comparison.test.mjs scripts/material-facts-v7-round22-independent.test.mjs scripts/material-facts-v7-round22-qualified-wrapper-independent.test.mjs scripts/material-fact-compact-bound.test.mjs scripts/material-fact-explicit-subunit-range.test.mjs scripts/material-fact-rmb-token-marker.test.mjs scripts/material-facts-http-repeat-signal.test.mjs scripts/material-fact-explicit-rmb-classifier.test.mjs scripts/material-facts-v7-round22-late-independent.test.mjs scripts/material-facts-v7-round22-late-layout-independent.test.mjs scripts/material-fact-postposed-uncertainty.test.mjs scripts/material-fact-role-recurring-date.test.mjs scripts/material-fact-explicit-conversion.test.mjs scripts/material-facts-v7-round24-independent.test.mjs scripts/material-facts-v7-round24-group-cross-independent.test.mjs scripts/material-fact-traditional-dedup.test.mjs scripts/material-fact-named-rate-operands.test.mjs scripts/material-facts-v7-round24-rate-wrapper-independent.test.mjs scripts/material-fact-postposed-rmb-dedup.test.mjs scripts/material-fact-whole-money-terminator.test.mjs scripts/material-facts-v7-round25-wrapper-independent.test.mjs scripts/material-facts-v7-round25-terminal-safety-independent.test.mjs scripts/material-facts-v7-round25-rmb-subunit-cross-independent.test.mjs scripts/material-facts-v7-round26-independent.test.mjs scripts/material-facts-v7-round26-money-author.test.mjs scripts/material-fact-postposed-unit-source-review.test.mjs scripts/material-facts-v7-round27-money-author.test.mjs scripts/material-fact-source-date-pay-operand.test.mjs scripts/material-facts-v7-round27-independent.test.mjs scripts/material-facts-v7-round27-prefix-cross-independent.test.mjs scripts/material-fact-date-name-boundaries.test.mjs scripts/material-facts-v7-round28-independent.test.mjs scripts/material-facts-v7-round28-name-cross-independent.test.mjs scripts/material-facts-v7-round28-money-author.test.mjs scripts/material-fact-traditional-arithmetic-bounds.test.mjs scripts/material-facts-v7-round29-independent.test.mjs scripts/material-facts-v7-round29-schedule-layout-independent.test.mjs scripts/material-facts-v7-round29-money-author.test.mjs scripts/material-facts-v7-round29-arithmetic-status-independent.test.mjs scripts/material-facts-v7-round29-incomplete-range-status-independent.test.mjs scripts/material-fact-proportion-negative-suffix.test.mjs scripts/material-facts-v7-round30-money-author.test.mjs scripts/material-facts-v7-round30-independent.test.mjs scripts/material-facts-v7-round30-fullwidth-boundaries-independent.test.mjs scripts/material-facts-v7-round30-finite-tail-independent.test.mjs scripts/material-facts-v7-round30-payment-question-independent.test.mjs scripts/material-facts-http-unsupported-windows.test.mjs scripts/material-facts-v7-round31-event-author.test.mjs scripts/material-facts-v7-round31-hour-author.test.mjs scripts/material-facts-v7-round31-independent.test.mjs scripts/material-facts-v7-round32-range-author.test.mjs scripts/material-facts-v7-round32-event-author.test.mjs scripts/material-facts-v7-round32-angle-author.test.mjs scripts/material-facts-v7-round32-independent.test.mjs scripts/material-facts-v7-round32-angle-cross-independent.test.mjs scripts/material-facts-v7-round33-independent.test.mjs scripts/material-facts-http-round33-identity-independent.test.mjs scripts/material-facts-v7-round33-money-author.test.mjs scripts/material-facts-v7-round33-group-layout-author.test.mjs scripts/material-facts-http-round33-identity.test.mjs scripts/material-facts-v6-frozen-compatibility.test.mjs scripts/material-facts-v7-round34-event-author.test.mjs scripts/material-facts-v7-round34-money-author.test.mjs scripts/material-facts-v7-round34-scorer-author.test.mjs scripts/material-facts-v7-round34-independent.test.mjs scripts/material-facts-v7-round34-compatibility-author.test.mjs scripts/material-facts-v7-round34-ci-compat-independent.test.mjs scripts/material-facts-v7-round34-ci-hour-bound-independent.test.mjs scripts/material-facts-v7-round35-currency-label-author.test.mjs scripts/material-facts-v7-round35-layout-author.test.mjs scripts/material-facts-v7-round35-independent.test.mjs scripts/material-facts-v7-round35-prose-usability-independent.test.mjs scripts/material-facts-v7-round35-continuation-independent.test.mjs scripts/material-facts-v7-round35-optional-layout-independent.test.mjs scripts/material-facts-v7-round35-currency-continuation-independent.test.mjs scripts/material-facts-v7-round35-currency-layout-closure.test.mjs scripts/material-facts-v7-round36-money-author.test.mjs scripts/material-facts-v7-round36-late-money-author.test.mjs scripts/material-facts-v7-round36-layout-closure-author.test.mjs scripts/material-facts-v7-round37-event-author.test.mjs scripts/material-facts-v7-round36-independent.test.mjs scripts/material-facts-v7-round36-companion-independent.test.mjs scripts/material-facts-v7-round37-scorer-author.test.mjs scripts/material-facts-v7-round37-doubling-author.test.mjs scripts/material-facts-v7-round37-collective-date-author.test.mjs scripts/material-facts-v7-round37-independent.test.mjs scripts/material-facts-v7-round37-coordinator-alias-author.test.mjs scripts/material-facts-v7-round38-symbol-author.test.mjs scripts/material-facts-v7-round38-bounds-multiplier-author.test.mjs scripts/material-facts-v7-round38-independent.test.mjs scripts/material-facts-v7-round38-event-dedup-author.test.mjs scripts/material-facts-v7-round39-calendar-author.test.mjs scripts/material-facts-v7-round39-collective-author.test.mjs scripts/material-facts-v7-round39-date-receipt-author.test.mjs scripts/material-facts-v7-round39-halving-author.test.mjs scripts/material-facts-v7-round39-calendar-independent.test.mjs scripts/material-facts-v7-round39-collective-independent.test.mjs scripts/material-facts-v7-round39-halving-independent.test.mjs scripts/material-facts-v7-round40-canonical-author.test.mjs scripts/material-facts-v7-round40-date-author.test.mjs scripts/material-facts-v7-round40-double-author.test.mjs scripts/material-facts-v7-round40-hour-author.test.mjs scripts/material-facts-v7-round40-limits-author.test.mjs scripts/material-facts-v7-round40-parentheses-author.test.mjs scripts/material-facts-v7-round40-totals-author.test.mjs scripts/material-facts-v7-round40-canonical-independent.test.mjs scripts/material-facts-v7-round40-total-gate-independent.test.mjs"
+   },
+   "dependencies": {
+     "drizzle-orm": "0.45.2",
+diff --git a/scripts/material-facts-v7-http-regression.mjs b/scripts/material-facts-v7-http-regression.mjs
+index 99de694..77761a8 100644
+--- a/scripts/material-facts-v7-http-regression.mjs
++++ b/scripts/material-facts-v7-http-regression.mjs
+@@ -1751,6 +1751,51 @@ try {
+     return {rejectedEmptyLabel: full, preciseYearAmount: null, rawAndStoredHistoryUnchanged: true};
+   });
+   // End ROUND39 additions.
++  // ROUND40: bounded qualifiers, operands and accounting signs stay unavailable.
++  for (const expression of ['4000元为上限', '4000元的双倍', '(4000元)', '（4000元）']) for (const full of [true, false]) await scenario(`round40_unavailable_${expression}_${full}`, async () => {
++    const value = full ? expression : '4000元';
++    const [item] = await fixture(`round40-unavailable-${expression}-${full}`, [{text: `测试王甲2026年1月全部应付工资合计${expression}。`, exactSource: true, candidates: [money(value, value)]}]);
++    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, null);
++    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '4000.00';
++    old.normalization = {rawValue: old.value, amount: old.amount, status: 'exact', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic ROUND40 old exact observation'};
++    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
++    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
++    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
++    durableSnapshots.push({name: `round40-unavailable-${expression}-${full}`, item, state: before});
++    return {amount: null, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true};
++  });
++  for (const suffix of ['每个小时', '/个小时', '每个小时待定']) await scenario(`round40_hour_${suffix}`, async () => {
++    const amount = suffix.endsWith('待定') ? null : '4000.00';
++    const [item] = await fixture(`round40-hour-${suffix}`, [{text: `测试王甲工资4000元${suffix}。`, exactSource: true, candidates: [money('4000元', '4000元', {meaning: 'rate', completeness: 'not_applicable', period: null, rateUnit: 'hour'})]}]);
++    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates[0].amount, amount); assert.equal(material.candidates[0].representation.rateUnit, 'hour');
++    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert.equal(rawAndLocations(item, read.body).candidates[0].amount, amount); assert.deepEqual(stored(item.caseId), before);
++    durableSnapshots.push({name: `round40-hour-${suffix}`, item, state: before}); return {amount, hourlyClassifierPreserved: true, uncertaintyPreserved: true};
++  });
++  for (const currency of ['RMB', 'CNY']) await scenario(`round40_qualified_${currency}`, async () => {
++    const value = `${currency}约4000元`;
++    const [item] = await fixture(`round40-qualified-${currency}`, [{text: `测试王甲2026年1月全部应付工资合计${value}。`, exactSource: true, candidates: [money(value, value)]}]);
++    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates[0].amount, null); assert.equal(material.candidates[0].normalization.status, 'approximate');
++    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before);
++    durableSnapshots.push({name: `round40-qualified-${currency}`, item, state: before}); return {amount: null, qualifierAndRawPreserved: true};
++  });
++  for (const [verb, meaning, field, value, amount] of [['应发', 'due_total', 'due', '4000元', '4000.00'], ['实发', 'paid_total', 'paid', '3500元', '3500.00']]) await scenario(`round40_total_${verb}`, async () => {
++    const [item] = await fixture(`round40-total-${verb}`, [{text: `测试王甲2026年1月${verb}工资合计${value}。`, exactSource: true, candidates: [money(value, value, {meaning})]}]);
++    const material = rawAndLocations(item, await extract(item)); assert(!material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
++    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert.deepEqual(stored(item.caseId), before);
++    const scoped = await request(item.path, 'POST', {action: 'confirm_scope', revision: read.body.revision, generation: read.body.generation,
++      scope: {worker: '测试王甲', employer: '合成测试单位', start: '2026-01-01', end: '2026-01-31'}, note: '合成程序测试的范围核对，不是人工业务验收。', verified: true});
++    assert.equal(scoped.status, 200); assert.deepEqual(scoped.body.fields[field].values, [amount]); assert.equal(scoped.body.canCalculate, false); assert.deepEqual(scoped.body.state.confirmations, {due: null, paid: null}); assert.equal(rawAndLocations(item, scoped.body).raw, material.raw);
++    const revoked = await request(item.path, 'POST', {action: 'revoke', field: 'scope', revision: scoped.body.revision, generation: scoped.body.generation}); assert.equal(revoked.status, 200); unconfirmed(revoked.body);
++    durableSnapshots.push({name: `round40-total-${verb}`, item, state: stored(item.caseId)}); return {amount, scopedSuggestion: [amount], calculationStillUnconfirmed: true};
++  });
++  for (const [value, text, meaning] of [['1月15日', '测试王甲工资于1月15日支付。', 'payment_date'], ['2026年1月与2月', '测试王甲2026年1月与2月工资所属期间。', 'wage_period']]) await scenario(`round40_date_${meaning}`, async () => {
++    const candidate = {kind: 'date', value, quote: value, subject: '测试王甲', scope: 'individual', meaning, completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated'};
++    const [item] = await fixture(`round40-date-${meaning}`, [{text, exactSource: true, candidates: [candidate]}]);
++    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert(!material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved')); assert.equal(material.candidates[0].value, value);
++    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert(!rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved')); assert.deepEqual(stored(item.caseId), before);
++    durableSnapshots.push({name: `round40-date-${meaning}`, item, state: before}); return {sourceRelationSupported: true, noInventedYear: true, dateDoesNotConfirmAmount: true};
++  });
++  // End ROUND40 additions.
+   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
+     const quote = '测试王甲2026年1月完整应付工资四万元';
+     const [first, bad] = await fixture('raw-failure-history', [
+diff --git a/scripts/material-facts-v7-round40-canonical-author.test.mjs b/scripts/material-facts-v7-round40-canonical-author.test.mjs
+new file mode 100644
+index 0000000..997c732
+--- /dev/null
++++ b/scripts/material-facts-v7-round40-canonical-author.test.mjs
+@@ -0,0 +1,25 @@
++// Comparison-only aliases: no raw rewrite or authority to use a qualified amount.
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++const ROOT = resolve(process.env.MATERIAL_FACT_TEST_ROOT || fileURLToPath(new URL('../', import.meta.url)));
++const {canonicalMonetaryExpression: key, normalizeMoneyValueV4: parse, normalizeCandidateValueV4: normalize} = await import(pathToFileURL(resolve(ROOT,'lib/material-money-v4.ts')).href);
++for (const prefix of ['人民币','人民幣','RMB','CNY','rmb','cny','¥','￥']) {
++  for (const qualifier of ['约','至少','可能']) test(`qualified RMB alias ${prefix}/${qualifier}`, () => {
++    const value = `${prefix}${qualifier}4000元`;
++    const candidate = {kind:'money',value,quote:value,subject:'王甲',scope:'individual',meaning:'other_money',completeness:'not_applicable',period:null,rateUnit:null,assertion:'narrated'};
++    const original=structuredClone(candidate), result=normalize(candidate);
++    assert.equal(key(value),key(`人民币${qualifier}4000元`)); assert.notEqual(key(value),null);
++    assert.equal(parse(value).amount,null); assert.equal(result.amount,null); assert.equal(result.normalization.rawValue,value); assert.deepEqual(candidate,original);
++  });
++}
++for (const a of ['约','至少','至多','可能']) test(`qualifier ${a} stays distinct from others and exact`,()=>{
++ const current=key(`RMB${a}4000元`);assert.notEqual(current,null);assert.notEqual(current,key('4000元'));
++ for(const b of ['约','至少','至多','可能'])if(a!==b)assert.notEqual(current,key(`CNY${b}4000元`));
++});
++for(const value of ['USD约4000元','港币约4000元','RMB人民币约4000元','RMB约4000元港币','ACNY约4000元','RMB约4000元和5000元','(4000元)'])test('unsupported text cannot acquire an alias key: '+value,()=>assert.equal(key(value),null));
++test('same amount key alone never carries event or calculation authority',()=>{
++ assert.equal(key('RMB约4000元'),key('CNY约4000元'));
++ assert.equal(parse('RMB约4000元').amount,null);assert.equal(parse('CNY约4000元').amount,null);
++});
+diff --git a/scripts/material-facts-v7-round40-canonical-independent.test.mjs b/scripts/material-facts-v7-round40-canonical-independent.test.mjs
+new file mode 100644
+index 0000000..74925c7
+--- /dev/null
++++ b/scripts/material-facts-v7-round40-canonical-independent.test.mjs
+@@ -0,0 +1,107 @@
++// Independent R40 comparison/event controls. Synthetic labels only; no CLI/model.
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++const ROOT = resolve(process.env.MATERIAL_FACT_TEST_ROOT || fileURLToPath(new URL('../', import.meta.url)));
++const { canonicalMonetaryExpression: key, normalizeMoneyValueV4: normalize } = await import(pathToFileURL(resolve(ROOT, 'lib/material-money-v4.ts')).href);
++const { assessCase } = await import(pathToFileURL(resolve(ROOT, 'experiments/material-facts-v7/assess.mjs')).href);
++const MODES = ['raw_basic', 'raw_relational', 'raw_strict', 'accepted_basic', 'accepted_relational', 'accepted_strict'];
++const cpLength = value => Array.from(value).length;
++const block = (id, text) => ({ id, text, page: 1, bbox: null, confidence: null });
++const money = (value, quote, blockId = 'b1') => ({ kind: 'money', value, quote, blockId, subject: null,
++  scope: 'unknown', meaning: 'other_money', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' });
++function anchor(sourceBlock, value, occurrence = 0) {
++  let start = -1;
++  for (let i = 0; i <= occurrence; i++) start = sourceBlock.text.indexOf(value, start + 1);
++  assert.ok(start >= 0);
++  return { blockId: sourceBlock.id, start: cpLength(sourceBlock.text.slice(0, start)), end: cpLength(sourceBlock.text.slice(0, start + value.length)) };
++}
++function run(blocks, expected, events, expectedEventIds, candidates) {
++  const input = { id: 'r40-independent-comparison', source: { id: 'r40-independent-source', name: 'synthetic.txt',
++    sha256: '4'.repeat(64), analysisRevision: 40, ready: true, blocks } };
++  const label = { id: input.id, schemaVersion: 3, label_status: 'provisional_non_expert', expected,
++    events, expected_event_ids: expectedEventIds, acceptable_alternatives: [] };
++  const result = { id: input.id, finish_reason: 'stop', raw_output: JSON.stringify({ schemaVersion: 3, candidates }) };
++  const original = structuredClone({ input, label, result });
++  const row = assessCase(input, label, result);
++  assert.deepEqual({ input, label, result }, original, 'Read-only assessment never changes labels, raw output or source CP positions.');
++  return row;
++}
++function all(row, counts) {
++  for (const mode of MODES) {
++    assert.deepEqual([row[mode].tp, row[mode].fp, row[mode].fn], counts, mode);
++    assert.equal(new Set(row[mode].pairs.map(pair => pair.actual)).size, row[mode].tp);
++    assert.equal(new Set(row[mode].pairs.map(pair => pair.expected)).size, row[mode].tp);
++  }
++}
++
++test('RMB aliases have one qualified comparison key without creating a calculation amount', () => {
++  for (const qualifier of ['约', '至少', '可能']) {
++    const expected = key(`人民币${qualifier}4000元`);
++    assert.notEqual(expected, null);
++    for (const prefix of ['人民币', '人民幣', 'RMB', 'rmb', 'CNY', 'cny', '¥', '￥']) {
++      const value = `${prefix}${qualifier}4000元`;
++      assert.equal(key(value), expected, value);
++      assert.equal(normalize(value).amount, null, 'A comparison key has no precision/calculation authority.');
++    }
++  }
++});
++test('qualifier words, sides, direction and exactness are retained', () => {
++  const values = ['RMB约4000元', 'CNY至少4000元', '人民币至多4000元', '人民幣可能4000元', 'RMB4000元以上', 'RMB4000元以下', '4000元'];
++  const keys = values.map(key);
++  assert.ok(keys.every(value => value !== null));
++  assert.equal(new Set(keys).size, values.length);
++});
++test('foreign, conflicting, duplicate and narrative wrappers do not acquire RMB alias keys', () => {
++  for (const value of ['USD约4000元', '港币约4000元', 'RMB人民币约4000元', 'RMB约4000元美元', 'ACNY约4000元', 'RMB约4000元和5000元'])
++    assert.equal(key(value), null, value);
++});
++
++const first = '😀甲方记载人民币约4000元。', repeated = '复述记载RMB约4000元。';
++const one = block('b1', first + repeated);
++const expected = money('人民币约4000元', first);
++const repeat = money('RMB约4000元', repeated);
++const firstAnchor = anchor(one, expected.value), repeatAnchor = anchor(one, repeat.value);
++
++test('two literal RMB aliases may match only within their one registered statement event', () => {
++  all(run([one], [expected], [{ id: 'one-statement', anchors: [firstAnchor, repeatAnchor] }], ['one-statement'], [repeat]), [1, 0, 0]);
++});
++test('equal RMB alias keys cannot cross from one statement event to another', () => {
++  all(run([one], [expected], [{ id: 'first', anchors: [firstAnchor] }, { id: 'other', anchors: [repeatAnchor] }], ['first'], [repeat]), [0, 1, 1]);
++});
++test('two predictions in one event cannot consume a single reference twice', () => {
++  all(run([one], [expected], [{ id: 'one', anchors: [firstAnchor, repeatAnchor] }], ['one'], [expected, repeat]), [1, 1, 0]);
++});
++test('two predictions for event one cannot fill the equal-amount event-two reference', () => {
++  const otherText = '另一事件记载CNY约4000元。', sourceBlock = block('b1', one.text + otherText);
++  const other = money('CNY约4000元', otherText);
++  // Use two distinct literal representations of event one. An identical raw
++  // object is rejected by protocol duplicate validation before accepted scoring.
++  all(run([sourceBlock], [expected, other], [{ id: 'first', anchors: [firstAnchor, repeatAnchor] },
++    { id: 'other', anchors: [anchor(sourceBlock, other.value)] }], ['first', 'other'], [expected, repeat]), [1, 1, 1]);
++});
++test('two separately evidenced events retain their two separate true positives', () => {
++  all(run([one], [expected, repeat], [{ id: 'first', anchors: [firstAnchor] }, { id: 'other', anchors: [repeatAnchor] }], ['first', 'other'], [expected, repeat]), [2, 0, 0]);
++});
++test('unregistered RMB alias occurrence cannot borrow the registered original occurrence', () => {
++  all(run([one], [expected], [{ id: 'first', anchors: [firstAnchor] }], ['first'], [repeat]), [0, 1, 1]);
++});
++test('an ambiguous bare quote repeated in different source events stays unmatched', () => {
++  const a = '甲方记载RMB约4000元。', b = '乙方记载RMB约4000元。', sourceBlock = block('b1', a + b);
++  const gold = money('RMB约4000元', a), ambiguous = money('RMB约4000元', 'RMB约4000元');
++  all(run([sourceBlock], [gold], [{ id: 'a', anchors: [anchor(sourceBlock, gold.value, 0)] }, { id: 'b', anchors: [anchor(sourceBlock, gold.value, 1)] }], ['a'], [ambiguous]), [0, 1, 1]);
++});
++test('same-event upper and lower bounds cannot become equal through currency aliases', () => {
++  const a = '甲方记载RMB至少4000元。', b = '更正记载CNY至多4000元。', sourceBlock = block('b1', a + b);
++  const gold = money('RMB至少4000元', a), actual = money('CNY至多4000元', b);
++  all(run([sourceBlock], [gold], [{ id: 'one', anchors: [anchor(sourceBlock, gold.value), anchor(sourceBlock, actual.value)] }], ['one'], [actual]), [0, 1, 1]);
++});
++test('a date with the same literal day still cannot cross source events', () => {
++  const a = '王甲2026年1月15日收到工资。', b = '李乙2026年1月15日收到工资。', sourceBlock = block('b1', a + b);
++  const candidate = (quote, subject) => ({ kind: 'date', value: '2026年1月15日', quote, blockId: 'b1', subject, scope: 'individual',
++    meaning: 'payment_date', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' });
++  const gold = candidate(a, '王甲'), actual = candidate(b, '李乙');
++  all(run([sourceBlock], [gold], [{ id: 'a', anchors: [anchor(sourceBlock, gold.value, 0)] }, { id: 'b', anchors: [anchor(sourceBlock, gold.value, 1)] }], ['a'], [actual]), [0, 1, 1]);
++});
+diff --git a/scripts/material-facts-v7-round40-date-author.test.mjs b/scripts/material-facts-v7-round40-date-author.test.mjs
+new file mode 100644
+index 0000000..6375f60
+--- /dev/null
++++ b/scripts/material-facts-v7-round40-date-author.test.mjs
+@@ -0,0 +1,92 @@
++// R40 two date envelopes only; no scorer, HTTP, model, or invented calendar year.
++import test, { after } from 'node:test';
++import assert from 'node:assert/strict';
++import { cp, mkdtemp, readFile, rm } from 'node:fs/promises';
++import { createHash } from 'node:crypto';
++import { tmpdir } from 'node:os';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++const ROOT = resolve(process.env.MATERIAL_FACT_TEST_ROOT || fileURLToPath(new URL('../', import.meta.url)));
++const EVENT = resolve(process.env.MATERIAL_FACT_EVENT_FILE || resolve(ROOT, 'lib/material-fact-event-review.ts'));
++const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-r40-date-'));
++after(() => rm(temporary, { recursive: true, force: true }));
++await cp(resolve(ROOT, 'lib'), resolve(temporary, 'lib'), { recursive: true });
++await cp(EVENT, resolve(temporary, 'lib/material-fact-event-review.ts'));
++const load = name => import(pathToFileURL(resolve(temporary, 'lib', name)).href);
++const { hasSupportedCandidateAttribution: attributed } = await load('material-fact-event-review.ts');
++const { normalizeCandidateValue, emptyFactState, ingestCandidates: legacy, validateCandidateOutput, buildFactView } = await load('material-facts-v3.ts');
++const { ingestRuntimeCandidates: fresh } = await load('material-fact-runtime-ingest.ts');
++const { reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
++const cpLength = text => Array.from(text).length;
++const AT = '2026-10-19T04:00:00.000Z';
++const candidate = (value, quote, options = {}) => ({ kind: 'date', value, quote, blockId: 'b1', subject: '王甲', scope: 'individual',
++  meaning: 'payment_date', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated', ...options });
++console.log(JSON.stringify({ node: process.version, dependency_root: ROOT, event_sha256: createHash('sha256').update(await readFile(EVENT)).digest('hex') }));
++
++function direct(value, text, expected, options = {}) {
++  for (const quote of [value, text]) {
++    const raw = candidate(value, quote, options), normalization = normalizeCandidateValue(raw).normalization;
++    const before = structuredClone({ raw, normalization, text });
++    const actual = attributed(raw, text, normalization);
++    console.log(JSON.stringify({ evidence: 'r40_date_module', raw, text, expected, actual }));
++    assert.equal(actual, expected);
++    assert.deepEqual({ raw, normalization, text }, before);
++  }
++}
++
++function runtime(value, texts, expected, options = {}, pages) {
++  const blocks = (Array.isArray(texts) ? texts : [texts]).map((text, i) => ({ id: `b${i + 1}`, text, page: pages?.[i] ?? 1, bbox: null, confidence: null }));
++  const source = { id: 'r40-date-author', name: 'synthetic.txt', sha256: '4'.repeat(64), ready: true, analysisRevision: 40, blocks };
++  const text = blocks[0].text;
++  for (const quote of [value, text]) {
++    const entry = candidate(value, quote, options), raw = JSON.stringify({ schemaVersion: 3, candidates: [entry] });
++    assert.equal(validateCandidateOutput(raw, source).rejected.length, 0, 'Use the actual valid extraction schema.');
++    const stored = legacy(emptyFactState(40), source, { raw }, 'synthetic', 'fixture', AT);
++    const before = structuredClone({ source, stored });
++    for (const [mode, state] of [['fresh', fresh(emptyFactState(40), source, { raw }, 'synthetic', 'fixture', AT)],
++      ['stored-read', reviewFactsAgainstSources(stored, [source])]]) {
++      assert.equal(state.materials[0].candidates.length, 1);
++      const fact = state.materials[0].candidates[0];
++      console.log(JSON.stringify({ evidence: 'r40_date_source_review', mode, entry, source, fact }));
++      assert.equal(fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !expected);
++      assert.equal(fact.amount, null);
++      assert.equal(fact.normalization.rawValue, value, 'No missing year is invented in the retained literal.');
++      assert.deepEqual(fact.representation, entry); assert.equal(state.materials[0].raw, raw);
++      const start = cpLength(text.slice(0, text.indexOf(quote)));
++      assert.equal(fact.start, start); assert.equal(fact.end, start + cpLength(quote));
++      assert.equal(Array.from(text).slice(fact.start, fact.end).join(''), quote);
++      assert.deepEqual(state.confirmations, { due: null, paid: null }); assert.equal(state.calculation, null);
++      const view = buildFactView(state, [source]);
++      assert.equal(view.canCalculate, false); assert.deepEqual(view.fields.due.values, []); assert.deepEqual(view.fields.paid.values, []);
++    }
++    assert.deepEqual({ source, stored }, before);
++  }
++}
++
++for (const [value, verb, prep] of [['1月15日', '支付', '于'], ['十二月三十一日', '发放', '在'],
++  ['二月十五日', '給付', '於'], ['１２月３１日', '付清', '于']])
++  test(`yearless point is retained in its complete wage payment envelope: ${value}${verb}`, () => direct(value, `😀王甲工資${prep}${value}${verb}`, true));
++test('the existing year-bearing payment envelope stays supported', () => direct('2026年1月15日', '😀王甲工资于2026年1月15日支付', true));
++for (const join of ['与', '與', '和', '及']) {
++  const value = `2026年1月${join}2月`;
++  test(`complete parallel wage-period list: ${join}`, () => direct(value, `😀王甲${value}工资所属期间`, true, { meaning: 'wage_period' }));
++}
++for (const value of ['13月15日', '0月15日', '1月0日', '1月32日'])
++  test(`new yearless envelope refuses an invalid month/day: ${value}`, () => direct(value, `😀王甲工资于${value}支付`, false));
++for (const [text, options] of [
++  ['😀王甲工资于1月15日未支付', {}], ['😀李乙工资于1月15日支付', {}],
++  ['😀王甲工资于1月15日李乙支付', {}], ['😀王甲工资于1月15日支付', { meaning: 'employment_period' }],
++  ['😀王甲工资于1月15日支付', { meaning: 'wage_period' }], ['😀王甲工资于1月15日支付', { scope: 'organization' }],
++]) test(`yearless date does not borrow polarity, owner, role or scope: ${text} ${JSON.stringify(options)}`, () => direct('1月15日', text, false, options));
++for (const [value, text] of [
++  ['2026年1月', '😀王甲2026年1月与2月工资所属期间'], ['2月', '😀王甲2026年1月与2月工资所属期间'],
++  ['2026年1月与2月', '😀李乙2026年1月与2月工资所属期间'], ['2026年1月与2月', '😀王甲2026年1月与2月李乙工资所属期间'],
++]) test(`parallel-period source must retain every event boundary: ${value} / ${text}`, () => direct(value, text, false, { meaning: 'wage_period' }));
++test('fresh and stored yearless payment date keeps raw precision and never authorizes money', () => runtime('1月15日', '😀王甲工资于1月15日支付。', true));
++test('fresh and stored traditional parallel wage periods keep the whole literal', () => runtime('2026年1月與2月', '😀王甲2026年1月與2月工資所屬期間。', true, { meaning: 'wage_period' }));
++test('fresh and stored invalid yearless dates retain their review issue', () => runtime('1月32日', '😀王甲工资于1月32日支付。', false));
++test('fresh and stored negation cannot become a payment event', () => runtime('1月15日', '😀王甲工资于1月15日未支付。', false));
++test('a different owner cannot complete the located payment date', () => runtime('1月15日', '😀王甲工资于1月15日李乙支付。', false));
++test('a different sentence cannot lend its payment verb', () => runtime('1月15日', '😀王甲工资于1月15日。李乙支付。', false));
++test('a verb on another page cannot complete the yearless payment envelope', () => runtime('1月15日', ['😀王甲工资于1月15日', '支付。'], false, {}, [1, 2]));
+diff --git a/scripts/material-facts-v7-round40-double-author.test.mjs b/scripts/material-facts-v7-round40-double-author.test.mjs
+new file mode 100644
+index 0000000..beeac3c
+--- /dev/null
++++ b/scripts/material-facts-v7-round40-double-author.test.mjs
+@@ -0,0 +1,131 @@
++// ROUND40: attached 双倍/雙倍 names a multiplier, never the payable result.
++// Synthetic module/runtime/read-time review only; no scorer, model or HTTP.
++import test, { after } from 'node:test';
++import assert from 'node:assert/strict';
++import { cp, mkdtemp, rm } from 'node:fs/promises';
++import { tmpdir } from 'node:os';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++const OWN = fileURLToPath(new URL('../', import.meta.url));
++const BASE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
++const PATCH = resolve(process.env.MATERIAL_FACT_PATCH_ROOT || OWN);
++const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-round40-double-'));
++after(() => rm(temporary, { recursive: true, force: true }));
++await cp(resolve(BASE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
++await cp(resolve(PATCH, 'lib/material-fact-arithmetic-review.ts'), resolve(temporary, 'lib/material-fact-arithmetic-review.ts'));
++const load = name => import(pathToFileURL(resolve(temporary, 'lib', name + '.ts')).href);
++const { normalizeMoneyValueV4: money, normalizeCandidateValueV4: candidateValue, canonicalMonetaryExpression: canonical } = await load('material-money-v4');
++const { hasAttachedMoneyArithmetic: arithmetic } = await load('material-fact-arithmetic-review');
++const { emptyFactState, ingestCandidates, validateCandidateOutput, buildFactView } = await load('material-facts-v3');
++const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest');
++const { reviewFactsAgainstSources } = await load('material-fact-source-review');
++const cpLength = text => Array.from(text).length;
++const minimal = process.env.MATERIAL_FACT_ROUND40_DOUBLE_MINIMAL === '1';
++const AT = '2026-10-19T04:00:00.000Z';
++
++function fixture(expression, { fullQuote = false, fullValue = false, next = null, page = 1,
++  meaning = 'other_money', rateUnit = null } = {}) {
++  const source = { id: 'round40-double', name: '合成附着双倍表达', sha256: '9'.repeat(64), analysisRevision: 40, ready: true,
++    blocks: [{ id: 'b1', page: 1, text: '😀王甲工资' + expression + (next === null ? '。' : ''), bbox: null, confidence: null }] };
++  if (next !== null) source.blocks.push({ id: 'b2', page, text: next, bbox: null, confidence: null });
++  const value = fullValue ? expression : '4000元';
++  const candidate = { kind: 'money', value, quote: fullQuote ? source.blocks[0].text : value, blockId: 'b1', subject: '王甲', scope: 'individual',
++    meaning, completeness: meaning === 'rate' || meaning === 'other_money' ? 'not_applicable' : 'complete',
++    period: null, rateUnit, assertion: 'narrated' };
++  return { source, candidate, raw: JSON.stringify({ schemaVersion: 3, candidates: [candidate] }) };
++}
++
++function check(f, amount, status = null) {
++  const original = structuredClone(f);
++  assert.equal(validateCandidateOutput(f.raw, f.source).rejected.length, 0, 'The candidate must pass the real input schema.');
++  function inspect(state, expected, label) {
++    const material = state.materials[0], fact = material.candidates[0];
++    assert.equal(material.raw, f.raw); assert.equal(material.rejected.length, 0); assert.equal(material.candidates.length, 1);
++    assert.equal(fact.amount, expected, label + ': amount');
++    assert.equal(fact.value, f.candidate.value); assert.equal(fact.quote, f.candidate.quote);
++    assert.deepEqual(fact.representation, f.candidate);
++    const text = f.source.blocks[0].text, start = cpLength(text.slice(0, text.indexOf(f.candidate.quote)));
++    assert.deepEqual([fact.start, fact.end], [start, start + cpLength(f.candidate.quote)]);
++    assert.equal(Array.from(text).slice(fact.start, fact.end).join(''), f.candidate.quote);
++    if (status && label !== 'stored-null') assert.equal(fact.normalization.status, status, label + ': status');
++    assert.deepEqual(state.confirmations, { due: null, paid: null }); assert.equal(state.calculation, null);
++    assert.equal(buildFactView(state, [f.source]).canCalculate, false);
++  }
++  inspect(ingestRuntimeCandidates(emptyFactState(40), f.source, { raw: f.raw }, 'synthetic', 'round40-author', AT), amount, 'fresh');
++  for (const oldAmount of ['4000.00', null]) {
++    const stored = ingestCandidates(emptyFactState(40), f.source, { raw: f.raw }, 'synthetic', 'round40-author', AT);
++    const fact = stored.materials[0].candidates[0];
++    fact.amount = oldAmount;
++    fact.normalization = { rawValue: f.candidate.value, status: oldAmount === null ? 'unsupported' : 'exact', amount: oldAmount,
++      matchedText: f.candidate.value, span: { start: 0, end: cpLength(f.candidate.value) }, reason: 'Unconfirmed synthetic stored observation.' };
++    const before = structuredClone(stored), reviewed = reviewFactsAgainstSources(stored, [f.source]);
++    assert.deepEqual(stored, before, 'Read-time review cannot rewrite storage or original raw.');
++    assert.deepEqual(reviewed.history, before.history);
++    inspect(reviewed, oldAmount === null ? null : amount, oldAmount === null ? 'stored-null' : 'stored-exact');
++  }
++  assert.deepEqual(f, original);
++}
++
++
++const expressions = minimal ? ['4000元的双倍', '4000元的雙倍'] : [
++  '4000元的双倍', '4000元的雙倍', '4000元工资的双倍', '4000元双倍',
++];
++for (const expression of expressions) {
++  test('whole double expression and quote crop cannot borrow the base: ' + expression, () => {
++    const result = money(expression);
++    assert.equal(result.amount, null); assert.equal(result.status, 'unsupported'); assert.equal(result.rawValue, expression);
++    assert.equal(canonical(expression), null);
++    const f = fixture(expression, { fullQuote: true }), crop = candidateValue(f.candidate);
++    assert.equal(crop.amount, null); assert.equal(crop.normalization.status, 'unsupported');
++    assert.equal(crop.value, '4000元'); assert.equal(crop.normalization.rawValue, '4000元');
++  });
++}
++if (!minimal) {
++  for (const expression of expressions) test('fresh and read-time review keep the original operand/raw/CP: ' + expression, () => {
++    for (const fullQuote of [false, true]) check(fixture(expression, { fullQuote }), null, 'unsupported');
++    check(fixture(expression, { fullValue: true }), null, 'unsupported');
++  });
++  test('explicit 的 permits finite layout and format controls in the multiplier', () => {
++    for (const expression of ['4000元的\n双倍', '4000元的雙\n倍', '4000元 的 雙 倍', '4000元的双\u200d倍']) {
++      assert.equal(money(expression).amount, null); check(fixture(expression), null);
++    }
++  });
++  test('an explicit multiplier continues into its same-page adjacent block', () => {
++    for (const next of ['的双倍。', '的雙倍。']) check(fixture('4000元', { next }), null);
++    check(fixture('4000元的双', { next: '倍。' }), null);
++  });
++  test('whole-amount wrappers do not hide an explicit multiplier', () => {
++    for (const expression of ['4000元整的双倍', '4000元正的雙倍', '4000元人民币的双倍']) {
++      assert.equal(money(expression).amount, null); check(fixture(expression), null);
++    }
++  });
++  test('ordinary prose and another event cannot bridge into the operation', () => {
++    for (const tail of ['。李乙工资的双倍', '，另一人雙倍', '\n李乙工资双倍', '工资另行双倍', '双人间', '双休日支付'])
++      assert.equal(arithmetic('', tail), false, tail);
++  });
++  test('separate owner and sentence preserve this amount', () => {
++    for (const expression of ['4000元。李乙工资的双倍', '4000元，李乙工资雙倍']) {
++      assert.equal(money(expression).amount, '4000.00'); check(fixture(expression), '4000.00');
++    }
++    check(fixture('4000元。', { next: '的雙倍。' }), '4000.00');
++  });
++  test('page metadata prevents a double operation from attaching', () => {
++    check(fixture('4000元', { next: '的双倍。', page: 2 }), '4000.00');
++  });
++  test('a bare multiplier on an independent line is not attached', () => {
++    assert.equal(arithmetic('', '\n双倍工资'), false);
++    assert.equal(arithmetic('', '\n雙倍'), false);
++  });
++  test('an explicitly stated result after double wages retains the result', () => {
++    for (const expression of ['双倍工资共4000元', '雙倍工资合计4000元']) {
++      assert.equal(money(expression).amount, '4000.00'); check(fixture(expression), '4000.00');
++    }
++  });
++  test('supported rate and old formulas keep their existing contract', () => {
++    check(fixture('4000元/月', { meaning: 'rate', rateUnit: 'month' }), '4000.00');
++    check(fixture('4000元/月', { meaning: 'due_total' }), null);
++    for (const expression of ['4000元的2倍', '4000元翻一倍', '4000元减半', '4000元折半', '4000元×2', '4000元乘以提成率'])
++      assert.equal(money(expression).amount, null, expression);
++  });
++}
+diff --git a/scripts/material-facts-v7-round40-hour-author.test.mjs b/scripts/material-facts-v7-round40-hour-author.test.mjs
+new file mode 100644
+index 0000000..8a5a2d9
+--- /dev/null
++++ b/scripts/material-facts-v7-round40-hour-author.test.mjs
+@@ -0,0 +1,57 @@
++// R40 finite hourly classifier regression. Synthetic module/runtime evidence only.
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++const ROOT = resolve(process.env.MATERIAL_FACT_TEST_ROOT || fileURLToPath(new URL('../', import.meta.url)));
++const load = name => import(pathToFileURL(resolve(ROOT, 'lib', name)).href);
++const { normalizeCandidateValueV4: normalize } = await load('material-money-v4.ts');
++const { ingestRuntimeCandidates: fresh } = await load('material-fact-runtime-ingest.ts');
++const { emptyFactState, ingestCandidates: legacy, buildFactView } = await load('material-facts-v3.ts');
++const { reviewFactsAgainstSources: review } = await load('material-fact-source-review.ts');
++const cp = text => Array.from(text).length, AT = '2026-10-19T05:00:00.000Z';
++const candidate = (value, extra = {}) => ({kind: 'money', value, quote: value, blockId: 'b1', subject: '王甲', scope: 'individual', meaning: 'rate', completeness: 'not_applicable', period: null, rateUnit: 'hour', assertion: 'narrated', ...extra});
++function pipeline(expression, expected, {full = false, extra = {}, next = null} = {}) {
++  const source = {id: 'round40-hour', name: 'synthetic.txt', sha256: '4'.repeat(64), ready: true, analysisRevision: 40,
++    blocks: [{id: 'b1', page: 1, text: `😀王甲${extra.period ?? ''}工资${expression}${next === null ? '。' : ''}`, bbox: null, confidence: null}]};
++  if (next !== null) source.blocks.push({id: 'b2', page: 1, text: next, bbox: null, confidence: null});
++  const entry = candidate(full ? expression : '4000元', extra), raw = JSON.stringify({schemaVersion: 3, candidates: [entry]});
++  const original = structuredClone({source, entry});
++  const history = legacy(emptyFactState(40), source, {raw}, 'synthetic', 'hour-author', AT);
++  const storedFact = history.materials[0].candidates[0]; assert(storedFact);
++  storedFact.amount = '4000.00'; storedFact.normalization = {rawValue: entry.value, amount: '4000.00', status: 'exact', matchedText: entry.value, span: {start: 0, end: cp(entry.value)}, reason: 'Synthetic old exact observation'};
++  const stored = structuredClone(history);
++  for (const state of [fresh(emptyFactState(40), source, {raw}, 'synthetic', 'hour-author', AT), review(history, [source])]) {
++    assert.equal(state.materials[0].candidates.length, 1); const fact = state.materials[0].candidates[0];
++    assert.equal(fact.amount, expected); assert.deepEqual(fact.representation, entry); assert.equal(state.materials[0].raw, raw);
++    const text = source.blocks[0].text, start = cp(text.slice(0, text.indexOf(entry.quote)));
++    assert.deepEqual([fact.start, fact.end], [start, start + cp(entry.quote)]);
++    assert.equal(Array.from(text).slice(fact.start, fact.end).join(''), entry.quote);
++    assert.deepEqual(state.confirmations, {due: null, paid: null}); assert.equal(state.calculation, null);
++    assert.equal(buildFactView(state, [source]).canCalculate, false);
++  }
++  assert.deepEqual(history, stored);
++  storedFact.amount = null; Object.assign(storedFact.normalization, {amount: null, status: 'unsupported', matchedText: null, span: null});
++  const unavailable = structuredClone(history); assert.equal(review(history, [source]).materials[0].candidates[0].amount, null);
++  assert.deepEqual(history, unavailable); assert.deepEqual({source, entry}, original);
++}
++for (const unit of ['每个小时', '/个小时', '每個小時', '/個小時']) {
++  const expression = '4000元' + unit;
++  test('complete hourly classifier preserves literal and denominator: ' + unit, () => {
++    const raw = candidate(expression), before = structuredClone(raw), result = normalize(raw);
++    assert.equal(result.amount, '4000.00'); assert.equal(result.rateUnit, 'hour'); assert.equal(result.normalization.rawValue, expression); assert.deepEqual(raw, before);
++  });
++  for (const full of [true, false]) test(`fresh/history full=${full} hourly classifier ${unit}`, () => pipeline(expression, '4000.00', {full}));
++  test('hour classifier cannot authorize month rate: ' + unit, () => pipeline(expression, null, {extra: {rateUnit: 'month'}}));
++  test('hour classifier cannot authorize a complete personal total: ' + unit, () => pipeline(expression, null, {extra: {meaning: 'due_total', completeness: 'complete', period: '2026年1月', rateUnit: null}}));
++}
++for (const unit of ['/个小时候', '/個小時數']) test('denominator must be a whole lexical unit: ' + unit, () => pipeline('4000元' + unit, null));
++for (const layout of ['inline', 'line', 'block']) test('hour classifier cannot discard attached unknown: ' + layout, () => {
++  const suffix = '每个小时', tail = '待定';
++  pipeline('4000元' + suffix + (layout === 'inline' ? tail : layout === 'line' ? '\n' + tail : ''), null, {next: layout === 'block' ? tail + '。' : null});
++});
++test('hour classifier cannot discard foreign currency', () => pipeline('4000元港币每个小时', null));
++test('ordinary hourly spelling stays supported', () => pipeline('4000元每小时', '4000.00'));
++test('ordinary monthly classifier stays supported', () => pipeline('4000元每个月', '4000.00', {extra: {rateUnit: 'month'}}));
++test('an independent other-owner uncertainty does not erase a literal rate', () => pipeline('4000元每个小时。李乙金额待定', '4000.00'));
++test('format-control detection preserves original characters', () => pipeline('4000元每個小\u200d時', '4000.00'));
+diff --git a/scripts/material-facts-v7-round40-limits-author.test.mjs b/scripts/material-facts-v7-round40-limits-author.test.mjs
+new file mode 100644
+index 0000000..d66dac8
+--- /dev/null
++++ b/scripts/material-facts-v7-round40-limits-author.test.mjs
+@@ -0,0 +1,143 @@
++// ROUND40: explicit postposed upper/lower limits are not exact totals.
++// Synthetic module/runtime/read-time review only; no scorer, model or HTTP.
++import test, { after } from 'node:test';
++import assert from 'node:assert/strict';
++import { cp, mkdtemp, rm } from 'node:fs/promises';
++import { tmpdir } from 'node:os';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++const OWN = fileURLToPath(new URL('../', import.meta.url));
++const BASE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
++const PATCH = resolve(process.env.MATERIAL_FACT_PATCH_ROOT || OWN);
++const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-round40-limits-'));
++after(() => rm(temporary, { recursive: true, force: true }));
++await cp(resolve(BASE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
++await cp(resolve(PATCH, 'lib/material-fact-range-review.ts'), resolve(temporary, 'lib/material-fact-range-review.ts'));
++const load = name => import(pathToFileURL(resolve(temporary, 'lib', name + '.ts')).href);
++const { normalizeMoneyValueV4: money, normalizeCandidateValueV4: candidateValue, canonicalMonetaryExpression: canonical } = await load('material-money-v4');
++const { attachedMoneyQualifierStatus: qualifier } = await load('material-fact-range-review');
++const { emptyFactState, ingestCandidates, validateCandidateOutput, buildFactView } = await load('material-facts-v3');
++const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest');
++const { reviewFactsAgainstSources } = await load('material-fact-source-review');
++const cpLength = text => Array.from(text).length;
++const minimal = process.env.MATERIAL_FACT_ROUND40_LIMITS_MINIMAL === '1';
++const AT = '2026-10-19T04:00:00.000Z';
++
++function fixture(expression, { fullQuote = false, fullValue = false, next = null, page = 1,
++  meaning = 'other_money', rateUnit = null } = {}) {
++  const source = { id: 'round40-limits', name: '合成附着上下限表达', sha256: '9'.repeat(64), analysisRevision: 40, ready: true,
++    blocks: [{ id: 'b1', page: 1, text: '😀王甲工资' + expression + (next === null ? '。' : ''), bbox: null, confidence: null }] };
++  if (next !== null) source.blocks.push({ id: 'b2', page, text: next, bbox: null, confidence: null });
++  const value = fullValue ? expression : '4000元';
++  const candidate = { kind: 'money', value, quote: fullQuote ? source.blocks[0].text : value, blockId: 'b1', subject: '王甲', scope: 'individual',
++    meaning, completeness: meaning === 'rate' || meaning === 'other_money' ? 'not_applicable' : 'complete',
++    period: null, rateUnit, assertion: 'narrated' };
++  return { source, candidate, raw: JSON.stringify({ schemaVersion: 3, candidates: [candidate] }) };
++}
++
++function check(f, amount, status = null) {
++  const original = structuredClone(f);
++  assert.equal(validateCandidateOutput(f.raw, f.source).rejected.length, 0, 'The candidate must pass the real input schema.');
++  function inspect(state, expected, label) {
++    const material = state.materials[0], fact = material.candidates[0];
++    assert.equal(material.raw, f.raw); assert.equal(material.rejected.length, 0); assert.equal(material.candidates.length, 1);
++    assert.equal(fact.amount, expected, label + ': amount');
++    assert.equal(fact.value, f.candidate.value); assert.equal(fact.quote, f.candidate.quote);
++    assert.deepEqual(fact.representation, f.candidate);
++    const text = f.source.blocks[0].text, start = cpLength(text.slice(0, text.indexOf(f.candidate.quote)));
++    assert.deepEqual([fact.start, fact.end], [start, start + cpLength(f.candidate.quote)]);
++    assert.equal(Array.from(text).slice(fact.start, fact.end).join(''), f.candidate.quote);
++    if (status && label !== 'stored-null') assert.equal(fact.normalization.status, status, label + ': status');
++    assert.deepEqual(state.confirmations, { due: null, paid: null }); assert.equal(state.calculation, null);
++    assert.equal(buildFactView(state, [f.source]).canCalculate, false);
++  }
++  inspect(ingestRuntimeCandidates(emptyFactState(40), f.source, { raw: f.raw }, 'synthetic', 'round40-author', AT), amount, 'fresh');
++  for (const oldAmount of ['4000.00', null]) {
++    const stored = ingestCandidates(emptyFactState(40), f.source, { raw: f.raw }, 'synthetic', 'round40-author', AT);
++    const fact = stored.materials[0].candidates[0];
++    fact.amount = oldAmount;
++    fact.normalization = { rawValue: f.candidate.value, status: oldAmount === null ? 'unsupported' : 'exact', amount: oldAmount,
++      matchedText: f.candidate.value, span: { start: 0, end: cpLength(f.candidate.value) }, reason: 'Unconfirmed synthetic stored observation.' };
++    const before = structuredClone(stored), reviewed = reviewFactsAgainstSources(stored, [f.source]);
++    assert.deepEqual(stored, before, 'Read-time review cannot rewrite storage or original raw.');
++    assert.deepEqual(reviewed.history, before.history);
++    inspect(reviewed, oldAmount === null ? null : amount, oldAmount === null ? 'stored-null' : 'stored-exact');
++  }
++  assert.deepEqual(f, original);
++}
++
++
++const expressions = minimal ? ['4000元为上限', '4000元作为下限', '4000元為上限'] : [
++  '4000元为上限', '4000元为下限', '4000元作为上限', '4000元作为下限',
++  '4000元為上限', '4000元作為下限', '以4000元为上限', '以人民币4000元作为下限',
++];
++for (const expression of expressions) {
++  test('whole value and quote crop preserve the explicit bound: ' + expression, () => {
++    const result = money(expression);
++    assert.equal(result.amount, null); assert.equal(result.status, 'approximate'); assert.equal(result.rawValue, expression);
++    assert.notEqual(canonical(expression), canonical('4000元'), 'A bounded value cannot borrow its exact endpoint key.');
++    const f = fixture(expression, { fullQuote: true }), crop = candidateValue(f.candidate);
++    assert.equal(crop.amount, null); assert.equal(crop.normalization.status, 'approximate');
++    assert.equal(crop.value, '4000元'); assert.equal(crop.normalization.rawValue, '4000元');
++  });
++}
++if (!minimal) {
++  for (const expression of expressions) test('runtime and read-time exact downgrade preserve raw/CP: ' + expression, () => {
++    for (const fullQuote of [false, true]) check(fixture(expression, { fullQuote }), null, 'approximate');
++    check(fixture(expression, { fullValue: true }), null, 'approximate');
++  });
++  for (const tail of ['为上限。', '作为下限。', '為下限。', '作為上限。'])
++    test('same-page adjacent bound cannot leave the endpoint usable: ' + tail, () => {
++      for (const fullQuote of [false, true]) check(fixture('4000元', { next: tail, fullQuote }), null);
++    });
++  test('explicit words may cross layout without changing original positions', () => {
++    for (const expression of ['4000元为\n上限', '4000元作\n為下限', '4000元 为 上 限', '4000元作\u200d為下\u200d限']) {
++      assert.equal(money(expression).amount, null, expression);
++      check(fixture(expression, { fullQuote: true }), null);
++    }
++    check(fixture('4000元作', { next: '為下限。' }), null);
++    check(fixture('4000元为', { next: '上限。' }), null);
++  });
++  test('existing finite RMB and whole-amount wrappers do not hide the bound', () => {
++    for (const expression of ['4000元整为上限', '4000元正作为下限', '4000元人民币为上限', '4000元人民幣作為下限']) {
++      assert.equal(money(expression).amount, null, expression); check(fixture(expression), null);
++    }
++  });
++  test('a supported rate with an explicit bound is never an exact rate', () => {
++    check(fixture('4000元/月为上限', { meaning: 'rate', rateUnit: 'month' }), null);
++    check(fixture('4000元/小时作为下限', { meaning: 'rate', rateUnit: 'hour' }), null);
++  });
++  test('classifier hour denominators retain their attached bounds and unknown guards', () => {
++    for (const after of ['每个小时以上', '每個小时为上限', '/个小时作为下限', '/個小时以上'])
++      assert.equal(qualifier('', after), 'approximate', after);
++    for (const after of ['每个小时以上', '每個小时为上限', '/个小时作为下限', '每个小时待定', '/個小时？'])
++      check(fixture('4000元' + after, { meaning: 'rate', rateUnit: 'hour' }), null);
++  });
++  test('ordinary words and unlisted narrative cannot bridge a limit', () => {
++    for (const tail of ['为上海银行支付', '作为下列方式支付', '为下次发薪准备', '作为上班补贴', '工资另行约定为上限'])
++      assert.equal(qualifier('', tail), null, tail);
++  });
++  for (const expression of ['4000元为上海银行卡支付', '4000元作为下列方式支付', '4000元为下次发薪准备'])
++    test('ordinary continuations retain their stated amount: ' + expression, () => {
++      assert.equal(money(expression).amount, '4000.00'); check(fixture(expression), '4000.00');
++    });
++  for (const expression of ['4000元。李乙工资以此为上限', '4000元，李乙工资作为下限', '4000元\n李乙工资为上限'])
++    test('another sentence or owner cannot qualify this amount: ' + JSON.stringify(expression), () => {
++      assert.equal(money(expression).amount, '4000.00'); check(fixture(expression), '4000.00');
++    });
++  test('a sentence-ending block prevents lexical bound composition', () => {
++    check(fixture('4000元。', { next: '为上限。' }), '4000.00');
++  });
++  test('a different owner in the next block prevents lexical bound composition', () => {
++    check(fixture('4000元', { next: '李乙工资为上限。' }), '4000.00');
++  });
++  test('different page metadata stops bound composition', () => {
++    for (const next of ['为上限。', '作为下限。']) check(fixture('4000元', { next, page: 2 }), '4000.00');
++  });
++  test('existing bounds, ranges, unknowns, formulas and currency guards stay non-exact', () => {
++    for (const expression of ['4000元以上', '4000元以下', '4000元以内', '4000元及以上', '4000元至5000元',
++      '4000元为上限至5000元', '4000元待定', '4000元乘以2', '4000港元', '4000元人民币人民币'])
++      assert.equal(money(expression).amount, null, expression);
++  });
++}
+diff --git a/scripts/material-facts-v7-round40-parentheses-author.test.mjs b/scripts/material-facts-v7-round40-parentheses-author.test.mjs
+new file mode 100644
+index 0000000..b71944a
+--- /dev/null
++++ b/scripts/material-facts-v7-round40-parentheses-author.test.mjs
+@@ -0,0 +1,40 @@
++// Parenthesized accounting literals are ambiguous; no sign is invented.
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {resolve} from 'node:path';
++import {fileURLToPath,pathToFileURL} from 'node:url';
++const ROOT=resolve(process.env.MATERIAL_FACT_TEST_ROOT||fileURLToPath(new URL('../',import.meta.url)));
++const load=n=>import(pathToFileURL(resolve(ROOT,'lib',n)).href);
++const {normalizeMoneyValueV4:parse,normalizeCandidateValueV4:normalize,canonicalMonetaryExpression:key}=await load('material-money-v4.ts');
++const {ingestRuntimeCandidates:fresh}=await load('material-fact-runtime-ingest.ts');
++const {emptyFactState,ingestCandidates:legacy,buildFactView}=await load('material-facts-v3.ts');
++const {reviewFactsAgainstSources:review}=await load('material-fact-source-review.ts');
++const cp=t=>Array.from(t).length;
++function run(text,amount,{value='4000元',full=false,next=null,page=1}={}){
++ const source={id:'r40-parenthesis',name:'synthetic',sha256:'4'.repeat(64),ready:true,analysisRevision:40,blocks:[{id:'b1',page:1,text:'😀王甲记载：'+text,bbox:null,confidence:null}]};
++ if(next!==null)source.blocks.push({id:'b2',page,text:next,bbox:null,confidence:null});
++ const candidate={kind:'money',value,quote:full?text:value,blockId:'b1',subject:'王甲',scope:'individual',meaning:'other_money',completeness:'not_applicable',period:null,rateUnit:null,assertion:'narrated'};
++ const raw=JSON.stringify({schemaVersion:3,candidates:[candidate]}),original=structuredClone({source,candidate});
++ const history=legacy(emptyFactState(40),source,{raw},'synthetic','r40','2026-10-19T05:00:00Z');
++ const old=history.materials[0].candidates[0];assert(old);old.amount='4000.00';old.normalization={rawValue:value,amount:'4000.00',status:'exact',matchedText:value,span:{start:0,end:cp(value)},reason:'Synthetic historical exact'};
++ const stored=structuredClone(history);
++ for(const state of [fresh(emptyFactState(40),source,{raw},'synthetic','r40','2026-10-19T05:00:00Z'),review(history,[source])]){
++  const item=state.materials[0].candidates[0];assert(item);assert.equal(item.amount,amount);assert.equal(state.materials[0].raw,raw);assert.deepEqual(item.representation,candidate);
++  const start=cp(source.blocks[0].text.slice(0,source.blocks[0].text.indexOf(candidate.quote)));assert.deepEqual([item.start,item.end],[start,start+cp(candidate.quote)]);
++  assert.equal(buildFactView(state,[source]).canCalculate,false);assert.deepEqual(state.confirmations,{due:null,paid:null});assert.equal(state.calculation,null);
++ }
++ assert.deepEqual(history,stored);old.amount=null;Object.assign(old.normalization,{amount:null,status:'unsupported',matchedText:null,span:null});
++ const oldNull=structuredClone(history);assert.equal(review(history,[source]).materials[0].candidates[0].amount,null);assert.deepEqual(history,oldNull);assert.deepEqual({source,candidate},original);
++}
++for(const text of ['(4000元)','（4000元）','(人民币4000元)','（RMB4000元）','( 4000元 )','(\n4000元\n)','（\u200d4000元\u200d）']){
++ test('whole accounting literal unavailable: '+text,()=>{assert.equal(parse(text).amount,null);assert.equal(key(text),null);});
++ for(const full of [false,true])test(`fresh/history accounting crop full=${full} ${text}`,()=>run(text,null,{full}));
++}
++test('full value retains the original parentheses',()=>run('(4000元)',null,{value:'(4000元)',full:true}));
++test('adjacent same-page closing parenthesis remains part of the amount',()=>run('(4000元',null,{next:')'}));
++test('a different page cannot close an accounting expression',()=>run('(4000元','4000.00',{next:')',page:2}));
++for(const text of ['4000元（税前）','（工资说明）4000元','（王甲工资4000元）','4000元。李乙（5000元）'])test('ordinary independent parenthetical prose does not change literal: '+text,()=>run(text,'4000.00'));
++test('quoted accounting crop is rejected before source lookup',()=>{
++ const value='4000元',candidate={kind:'money',value,quote:'(4000元)',subject:'王甲',scope:'individual',meaning:'other_money',completeness:'not_applicable',period:null,rateUnit:null,assertion:'narrated'};
++ assert.equal(normalize(candidate).amount,null);assert.equal(candidate.quote,'(4000元)');
++});
+diff --git a/scripts/material-facts-v7-round40-total-gate-independent.test.mjs b/scripts/material-facts-v7-round40-total-gate-independent.test.mjs
+new file mode 100644
+index 0000000..def8319
+--- /dev/null
++++ b/scripts/material-facts-v7-round40-total-gate-independent.test.mjs
+@@ -0,0 +1,51 @@
++// R40 nonimplementer controls for the finite complete-total role extension.
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++const ROOT = resolve(process.env.MATERIAL_FACT_TEST_ROOT || fileURLToPath(new URL('../', import.meta.url)));
++const load = name => import(pathToFileURL(resolve(ROOT, 'lib', name + '.ts')).href);
++const { emptyFactState, ingestCandidates: legacy, validateCandidateOutput, buildFactView } = await load('material-facts-v3');
++const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest');
++const { reviewFactsAgainstSources } = await load('material-fact-source-review');
++const AT = '2026-10-19T04:15:00.000Z';
++
++function check(text, expected, changes = {}, additionalSourceText = null) {
++  const value = '4800元';
++  const source = { id: 'r40-independent-total', name: 'synthetic.txt', sha256: '7'.repeat(64), ready: true, analysisRevision: 40,
++    blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }] };
++  if (additionalSourceText !== null) source.blocks.push({ id: 'b2', page: 2, text: additionalSourceText, bbox: null, confidence: null });
++  for (const quote of [value, text]) {
++    const item = { kind: 'money', value, quote, blockId: 'b1', subject: '赵丙', scope: 'individual', meaning: 'due_total',
++      completeness: 'complete', period: '2026年2月', rateUnit: null, assertion: 'claimed', ...changes };
++    const raw = JSON.stringify({ schemaVersion: 3, candidates: [item] });
++    assert.equal(validateCandidateOutput(raw, source).rejected.length, 0);
++    const older = legacy(emptyFactState(40), source, { raw }, 'synthetic', 'independent', AT);
++    assert.equal(older.materials[0].candidates.length, 1);
++    Object.assign(older.materials[0].candidates[0], { amount: '4800.00', normalization: { rawValue: value, status: 'exact',
++      amount: '4800.00', matchedText: value, span: { start: 0, end: 5 }, reason: 'Synthetic historical unconfirmed exact.' } });
++    const before = structuredClone({ older, source });
++    for (const state of [ingestRuntimeCandidates(emptyFactState(40), source, { raw }, 'synthetic', 'independent', AT), reviewFactsAgainstSources(older, [source])]) {
++      const fact = state.materials[0].candidates[0];
++      assert.equal(fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !expected);
++      assert.deepEqual(fact.representation, item); assert.equal(state.materials[0].raw, raw);
++      assert.equal(Array.from(text).slice(fact.start, fact.end).join(''), quote);
++      const scoped = structuredClone(state);
++      scoped.scope = { worker: '赵丙', employer: '甲公司', start: '2026-02-01', end: '2026-02-28' };
++      scoped.scopeReview = { note: 'Synthetic scope only; no amount confirmation.', actor: 'independent', at: AT };
++      const view = buildFactView(scoped, [source]);
++      assert.deepEqual(view.fields.due.values, expected ? ['4800.00'] : []);
++      assert.deepEqual(view.fields.paid.values, []); assert.equal(view.canCalculate, false);
++      assert.deepEqual(scoped.confirmations, { due: null, paid: null }); assert.equal(scoped.calculation, null);
++    }
++    assert.deepEqual({ older, source }, before);
++  }
++}
++test('another explicit single worker and whole period can suggest its due amount, without confirmation', () => check('😀赵丙2026年2月应发工资总计4800元。', true));
++test('a model cannot borrow a period from another worker event', () => check('😀赵丙2026年2月应发工资总计4800元。', false, { period: '2026年1月' }, '钱丁2026年1月应付工资合计5000元。'));
++test('a coordinated source label does not become an individual by model metadata', () => check('😀赵丙和钱丁2026年2月应发工资总计4800元。', false));
++test('a partial claim is not a complete total despite the source word 总计', () => check('😀赵丙2026年2月应发工资总计4800元。', false, { completeness: 'partial' }));
++test('实发 cannot become an 应发 total by role metadata', () => check('😀赵丙2026年2月实发工资总计4800元。', false));
++test('an omitted wage component cannot disappear behind a total cue', () => check('😀赵丙2026年2月应发工资总计4800元但另有工资未计。', false));
++test('the amount from another worker event cannot serve the first owner', () => check('😀赵丙2026年2月应发工资合计5000元。钱丁2026年2月应发工资合计4800元。', false));
+diff --git a/scripts/material-facts-v7-round40-totals-author.test.mjs b/scripts/material-facts-v7-round40-totals-author.test.mjs
+new file mode 100644
+index 0000000..7ceeaa5
+--- /dev/null
++++ b/scripts/material-facts-v7-round40-totals-author.test.mjs
+@@ -0,0 +1,128 @@
++// R40 finite individual 应发/实发 complete-total attribution. Synthetic only.
++import test, { after } from 'node:test';
++import assert from 'node:assert/strict';
++import { createHash } from 'node:crypto';
++import { cp, mkdtemp, readFile, rm } from 'node:fs/promises';
++import { tmpdir } from 'node:os';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++const ROOT = resolve(process.env.MATERIAL_FACT_TEST_ROOT || fileURLToPath(new URL('../', import.meta.url)));
++const EVENT = resolve(process.env.MATERIAL_FACT_EVENT_FILE || resolve(ROOT, 'lib/material-fact-event-review.ts'));
++const directory = await mkdtemp(resolve(tmpdir(), 'anxin-r40-totals-'));
++after(() => rm(directory, { recursive: true, force: true }));
++await cp(resolve(ROOT, 'lib'), resolve(directory, 'lib'), { recursive: true });
++await cp(EVENT, resolve(directory, 'lib/material-fact-event-review.ts'));
++const load = name => import(pathToFileURL(resolve(directory, 'lib', name)).href);
++const { hasSupportedCandidateAttribution: attribution, hasSupportedTotalRelationship: total } = await load('material-fact-event-review.ts');
++const { ingestRuntimeCandidates: ingest } = await load('material-fact-runtime-ingest.ts');
++const { emptyFactState, ingestCandidates: legacy, buildFactView } = await load('material-facts-v3.ts');
++const { reviewFactsAgainstSources: review } = await load('material-fact-source-review.ts');
++const AT = '2026-10-19T22:00:00.000Z';
++const count = text => Array.from(text).length;
++console.log(JSON.stringify({ node: process.version, dependency_root: ROOT, event_file: EVENT,
++  event_sha256: createHash('sha256').update(await readFile(EVENT)).digest('hex') }));
++
++function originalNormalization(item) {
++  const amount = item.value.startsWith('3500') ? '3500.00' : '4000.00';
++  const matchedText = amount === '3500.00' ? '3500元' : '4000元';
++  return { rawValue: item.value, status: 'exact', amount, matchedText,
++    span: { start: 0, end: count(matchedText) }, reason: 'Synthetic unconfirmed historical exact observation.' };
++}
++function viewValues(state, source, meaning, subject) {
++  const scoped = structuredClone(state);
++  scoped.scope = { worker: subject, employer: '甲公司', start: '2026-01-01', end: '2026-01-31' };
++  scoped.scopeReview = { note: 'Synthetic scope-only review; no amount confirmation.', actor: 'fixture', at: AT };
++  const view = buildFactView(scoped, [source]);
++  assert.equal(view.canCalculate, false);
++  assert.deepEqual(scoped.confirmations, { due: null, paid: null });
++  assert.equal(scoped.calculation, null);
++  return view.fields[meaning === 'paid_total' ? 'paid' : 'due'].values;
++}
++function check(options) {
++  const meaning = options.meaning || 'due_total', subject = options.subject || '王甲';
++  const amount = options.amount || (meaning === 'paid_total' ? '3500.00' : '4000.00');
++  const token = amount.slice(0, -3) + '元';
++  const blocks = options.blocks || [{ text: '😀' + (options.sourceSubject || subject) + '2026年1月' + options.role + token + '人民币。' }];
++  const index = options.index || 0, text = blocks[index].text;
++  const source = { id: 'r40-totals', name: 'synthetic.txt', sha256: '4'.repeat(64), analysisRevision: 40, ready: true,
++    blocks: blocks.map((b, i) => ({ id: 'b' + (i + 1), page: b.page || 1, text: b.text, bbox: null, confidence: null })) };
++  for (const value of [token, token + '人民币']) for (const quote of [value, text]) {
++    const item = { kind: 'money', value, quote, blockId: 'b' + (index + 1), subject, scope: options.scope || 'individual',
++      meaning, completeness: options.completeness || 'complete',
++      period: Object.hasOwn(options, 'period') ? options.period : '2026年1月', rateUnit: null, assertion: 'narrated' };
++    const evidence = JSON.stringify({ schemaVersion: 3, candidates: [item] });
++    const normalized = originalNormalization(item);
++    if (options.direct !== false) {
++      const sentence = text.replace(/。$/u, '');
++      assert.equal(total(item, sentence, normalized), options.supported, 'Complete total must bind the same explicit owner/period/role');
++      assert.equal(attribution(item, sentence, normalized), options.supported, 'This finite role family is not an arbitrary attribution parser');
++    }
++    const older = legacy(emptyFactState(40), source, { raw: evidence }, 'synthetic', 'fixture', AT);
++    assert.equal(older.materials[0].candidates.length, 1, 'Fixture must reach runtime review rather than fail protocol');
++    Object.assign(older.materials[0].candidates[0], { amount, normalization: normalized });
++    const stored = structuredClone(older), original = structuredClone({ source, item });
++    for (const state of [ingest(emptyFactState(40), source, { raw: evidence }, 'synthetic', 'fixture', AT), review(older, [source])]) {
++      assert.equal(state.materials[0].candidates.length, 1);
++      const candidate = state.materials[0].candidates[0];
++      assert.equal(candidate.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !options.supported);
++      if (options.supported) assert.equal(candidate.amount, amount);
++      assert.deepEqual(viewValues(state, source, meaning, subject), options.supported ? [amount] : []);
++      assert.deepEqual(candidate.representation, item);
++      assert.equal(state.materials[0].raw, evidence);
++      assert.equal(Array.from(text).slice(candidate.start, candidate.end).join(''), quote);
++      assert.equal(candidate.start, count(text.slice(0, text.indexOf(quote))));
++      assert.deepEqual(state.confirmations, { due: null, paid: null });
++      assert.equal(state.calculation, null);
++    }
++    assert.deepEqual(older, stored, 'Read-time review cannot rewrite stored raw, normalization or history');
++    assert.deepEqual({ source, item }, original);
++    older.materials[0].candidates[0].amount = null;
++    older.materials[0].candidates[0].normalization = { ...normalized, status: 'unsupported', amount: null,
++      matchedText: null, span: null, reason: 'Synthetic historical unavailable observation.' };
++    const noUpgrade = review(older, [source]);
++    assert.equal(noUpgrade.materials[0].candidates[0].amount, null);
++    assert.deepEqual(viewValues(noUpgrade, source, meaning, subject), []);
++  }
++}
++
++for (const [name, role, meaning] of [
++  ['simplified due', '应发工资合计', 'due_total'],
++  ['simplified paid', '实发工资合计', 'paid_total'],
++  ['traditional due', '應發工資合計', 'due_total'],
++  ['traditional paid', '實發工資合計', 'paid_total'],
++  ['due with explicit whole period', '全部应发薪酬总额', 'due_total'],
++  ['paid with explicit whole period', '全部实发薪资总计', 'paid_total'],
++  ['wage first due role', '工资应发共计', 'due_total'],
++  ['traditional wage first paid role', '工資實發累計', 'paid_total'],
++]) test(name, () => check({ role, meaning, supported: true }));
++
++for (const [name, options] of [
++  ['plural kinship label', { subject: '王氏兄弟' }],
++  ['explicit both parties', { subject: '双方' }],
++  ['coordinated two-person label', { subject: '王甲和王乙' }],
++  ['cropped model owner cannot hide two people', { subject: '王甲', sourceSubject: '王甲和王乙' }],
++  ['group header before the claimed owner', { blocks: [{ text: '全体工人' }, { text: '😀王甲2026年1月应发工资合计4000元人民币。' }], index: 1, direct: false }],
++  ['another beneficiary event cannot be borrowed', { blocks: [{ text: '😀王甲2026年1月应发工资合计5000元人民币。李乙2026年1月应发工资合计4000元人民币。' }], subject: '王甲', direct: false }],
++  ['period from another event cannot be borrowed', { blocks: [{ text: '😀王甲2026年2月应发工资合计4000元人民币。' }, { text: '王甲2026年1月应发工资合计5000元人民币。' }], direct: false }],
++  ['longer wage period cannot be cropped', { blocks: [{ text: '😀王甲2026年1月至2月应发工资合计4000元人民币。' }] }],
++  ['partial qualifier', { role: '应发工资部分合计' }],
++  ['no complete-total cue', { role: '应发工资' }],
++  ['negated due statement', { role: '并非应发工资合计' }],
++  ['negated paid statement', { role: '未实发工资合计', meaning: 'paid_total' }],
++  ['paid event mislabeled as due', { role: '实发工资合计', meaning: 'due_total' }],
++  ['due event mislabeled as paid', { role: '应发工资合计', meaning: 'paid_total' }],
++  ['due and paid mixed in one amount envelope', { role: '应发实发工资合计' }],
++  ['new role must not authorize a partial candidate', { role: '应发工资合计', completeness: 'partial', direct: false }],
++  ['new role needs an explicit wage period', { role: '应发工资合计', period: null }],
++  ['component is not the wage total vocabulary', { role: '应发奖金合计' }],
++  ['following omitted component prevents complete total', { blocks: [{ text: '😀王甲2026年1月应发工资合计4000元人民币但不含加班费。' }] }],
++  ['same amount in a paid event cannot serve a due event', { blocks: [{ text: '😀王甲2026年1月实发工资合计4000元人民币。' }, { text: '王甲2026年1月应发工资合计4000元人民币。' }], direct: false }],
++]) test(name, () => check({ role: '应发工资合计', supported: false, ...options }));
++
++for (const [name, role, meaning] of [
++  ['old simplified due', '全部应付工资合计', 'due_total'],
++  ['old simplified paid', '全部已付工资合计', 'paid_total'],
++  ['old traditional due', '全部應付工資合計', 'due_total'],
++  ['old traditional paid', '全部實付工資合計', 'paid_total'],
++]) test(name, () => check({ role, meaning, supported: true }));

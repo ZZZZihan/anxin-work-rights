@@ -1,0 +1,167 @@
+from pathlib import Path
+import datetime, difflib, hashlib, io, json, re, subprocess, tarfile
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money')
+ROOT = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+E = Path('experiments/material-facts-v7')
+OUT = OWN / '.scratch/round40-v30-prepared'
+EV = OWN / E / 'postfreeze-evidence/round40/v30-prepared'
+HEAD = 'e4fadabefd6e11a4e2f38834255467138009566a'
+sha = lambda b: hashlib.sha256(b).hexdigest()
+
+def write(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    assert not path.exists(), path
+    path.write_bytes(value if isinstance(value, bytes) else value.encode())
+
+def dump(path, value):
+    write(path, json.dumps(value, ensure_ascii=False, indent=2) + '\n')
+
+# Capture was completed against live e4fadab before the parent merged R40.
+capture = json.loads((EV / 'archive-capture.json').read_bytes())
+assert capture['source_head'] == HEAD and capture['archive_paths'] == 106
+assert not (EV / 'preparation.json').exists()
+tar = subprocess.check_output(['git', 'archive', HEAD, 'lib', 'scripts', 'experiments', 'docs',
+    'package.json', 'eslint.config.mjs', '.github/workflows/ci.yml'], cwd=ROOT)
+with tarfile.open(fileobj=io.BytesIO(tar)) as archive:
+    archive.extractall(OUT, filter='data')
+
+manifest_bytes = (OUT / E / 'corrections-v29/manifest.json').read_bytes()
+manifest = json.loads(manifest_bytes)
+assert sha(manifest_bytes) == 'd66b3c2ccb1897c08168fc16372d2aafc35ca75d3ced64debbe5fa6fd536c74c'
+assert manifest['schema'] == 'material-facts-v7-postfreeze-correction-manifest/29'
+assert len(manifest['code_sha256']) == 106
+archive = OUT / E / 'correction-code-v29'
+for path, digest in manifest['code_sha256'].items():
+    assert sha((archive / (path + '.snapshot')).read_bytes()) == digest, path
+    assert sha((OUT / path).read_bytes()) == digest, path
+assert sha((archive / 'manifest.json').read_bytes()) == capture['archive_manifest_sha256']
+
+def fixed(path):
+    return subprocess.check_output(['git', 'show', f'{HEAD}:{path}'], cwd=ROOT).decode()
+
+def versions(text, mapping):
+    # Only syntax-level references change; digests are assigned by exact names.
+    text = re.sub(r'([vV])(28|29|30)(?=\D|$)',
+        lambda m: m[1] + str(mapping.get(int(m[2]), int(m[2]))), text)
+    return re.sub(r'(/)(28|29|30)(?=[\'\"])',
+        lambda m: m[1] + str(mapping.get(int(m[2]), int(m[2]))), text)
+
+files = {}
+def generated(source, target, mapping, edits=(), existing=False):
+    text = versions(fixed(source), mapping)
+    for old, new in edits:
+        assert old in text, (target, old)
+        text = text.replace(old, new)
+    if existing:
+        assert (OUT / target).read_text() == fixed(target)
+        (OUT / target).write_text(text)
+    else:
+        write(OUT / target, text)
+    files[str(target)] = sha(text.encode())
+    return text
+
+def update(target, text):
+    (OUT / target).write_text(text)
+    files[str(target)] = sha(text.encode())
+
+def bind(text, name, path):
+    digest = sha(fixed(path).encode())
+    text, count = re.subn(rf"const {name} = '[0-9a-f]{{64}}';",
+        f"const {name} = '{digest}';", text)
+    assert count == 1, name
+    return text
+
+bridge = E / 'historical-v29-execution.mjs'
+verify = E / 'verify-correction-v29.mjs'
+controller = E / 'corrective-assessment-v30.mjs'
+generated(E / 'historical-v28-execution.mjs', bridge, {28: 29})
+generated(E / 'verify-correction-v28.mjs', verify, {28: 29},
+    [('twenty-eighth', 'twenty-ninth')])
+text = generated(E / 'corrective-assessment-v29.mjs', controller, {28: 29, 29: 30},
+    [('twenty-ninth', 'thirtieth')])
+reason = ('Apply finite ROUND40 safeguards: explicit 为/為/作为 upper and lower limits and directly attached 双倍/雙倍 '
+    'remain qualified or unsupported base amounts rather than exact calculation results; supported hourly denominators '
+    'accept 个/個 classifiers while retaining uncertainty and bound guards; finite RMB aliases share comparison identity '
+    'without dropping qualifiers; immediately enclosing accounting parentheses retain unresolved sign. Explicit individual '
+    '应发/实发 complete wage totals reuse same-owner, period and event checks, and finite wage payment-date layouts retain '
+    'complete month/day points and parallel 与 periods without inventing dates or receipt. Preserve original literals, '
+    'code-point positions, event identity, historical no-upgrade behavior and every original model output; no new inference, '
+    'label edits or training.')
+text, count = re.subn(r'    change_reason: ".*" };',
+    lambda _: '    change_reason: ' + json.dumps(reason, ensure_ascii=False) + ' };', text)
+assert count == 1
+key = 'first_run_and_corrections_' + '_'.join(f'v{i}' for i in range(1, 30)) + '_preserved'
+text, count = re.subn(r'first_run_and_corrections_[a-z0-9_]+_preserved', key, text)
+assert count == 1
+update(controller, text)
+
+native = Path('scripts/material-facts-v7-historical-v29-execution.test.mjs')
+text = generated(Path('scripts/material-facts-v7-historical-v28-execution.test.mjs'), native,
+    {28: 29, 29: 30})
+# The native fixture has an older v27 child as well as its v28 target.
+text = text.replace('V27', 'V28').replace('v27', 'v28')
+text = bind(text, 'V28_BRIDGE', E / 'historical-v28-execution.mjs')
+update(native, text)
+
+oldgate = Path('scripts/material-facts-v7-correction-v29-gates-independent.test.mjs')
+text = generated(Path('scripts/material-facts-v7-correction-v28-gates-independent.test.mjs'), oldgate,
+    {28: 29}, existing=True)
+text = text.replace('V27', 'V28').replace('v27', 'v28')
+text = text.replace('103 exact dependencies', '106 exact dependencies').replace('.length, 103)', '.length, 106)')
+text = text.replace('27, 29].map', '27, 28, 29].map')
+for name, path in [('ORIGINAL', E / 'result-manifest.json'),
+                   ('V28', E / 'corrections-v28/manifest.json'),
+                   ('V29', E / 'corrections-v29/manifest.json')]:
+    text = bind(text, name, path)
+update(oldgate, text)
+
+newgate = Path('scripts/material-facts-v7-correction-v30-gates-independent.test.mjs')
+text = generated(Path('scripts/material-facts-v7-correction-v29-gates-independent.test.mjs'), newgate,
+    {28: 29, 29: 30})
+text = text.replace('106 exact dependencies', '109 exact dependencies').replace('.length, 106)', '.length, 109)')
+text = text.replace('all 103 historical dependencies', 'all 106 historical dependencies')
+text = text.replace('28, 30].map', '28, 29, 30].map')
+text = text.replace('finite calendar-year, halving and owner/date-receipt safeguards',
+    'finite named-limit, double-multiplier, hourly, accounting and wage/date safeguards')
+for name, path in [('ORIGINAL', E / 'result-manifest.json'),
+                   ('V29', E / 'corrections-v29/manifest.json'),
+                   ('V9_BRIDGE', E / 'historical-v9-execution.mjs'),
+                   ('POLICY', E / 'historical-execution-policy-v1.mjs')]:
+    text = bind(text, name, path)
+update(newgate, text)
+
+union = set(manifest['code_sha256']) | {str(bridge), str(verify), str(controller)}
+assert len(union) == 109
+# Parent is authorized to update live products. Protect immutable historical
+# artifacts and the old execution policy, not a concurrently merged live lib.
+protected = {str(path.relative_to(ROOT)) for path in (ROOT / E).rglob('*')
+    if path.is_file() and (any(part.startswith(('corrections', 'correction-code'))
+       for part in path.relative_to(ROOT / E).parts) or 'results' in path.relative_to(ROOT / E).parts)}
+protected |= {str(E / name) for name in ['freeze.json', 'result-manifest.json',
+    'historical-execution-v1.mjs', 'historical-execution-policy-v1.mjs']}
+protected |= {str(E / f'historical-v{i}-execution.mjs') for i in range(9, 29)}
+protection = {path: sha((ROOT / path).read_bytes()) for path in sorted(protected)}
+dump(EV / 'protected-root-before.json', protection)
+dump(EV / 'preparation.json', {
+    'status': 'PREPARED_NOT_PUBLISHED', 'source_root': str(ROOT), 'source_head': HEAD,
+    'prepared_root': str(OUT), 'previous_correction_manifest_sha256': sha(manifest_bytes),
+    'archive_paths': 106, 'archive_manifest_sha256': sha((archive / 'manifest.json').read_bytes()),
+    'expected_current_dependency_union': 109, 'files': files,
+    'previous_code_sha256': manifest['code_sha256'], 'protected_source_paths': len(protection),
+    'shared_root_writes': 0, 'published': False, 'actual_historical_cli_executed': False,
+    'scorer_executed': False, 'model_requests': 0, 'product_R40_final_binding_pending': True,
+    'requested_model': 'gpt-6.1-sol', 'requested_reasoning': 'ultra',
+    'actual_backend_independently_verified': False})
+patch = ''
+for path in files:
+    try:
+        before = fixed(path)
+    except subprocess.CalledProcessError:
+        before = ''
+    patch += ''.join(difflib.unified_diff(before.splitlines(True), (OUT / path).read_text().splitlines(True),
+        fromfile='a/' + path, tofile='b/' + path))
+write(EV / 'v30-tooling.patch', patch)
+print(json.dumps({'prepared_root': str(OUT), 'archive_paths': 106,
+    'archive_manifest_sha256': sha((archive / 'manifest.json').read_bytes()),
+    'expected_union': 109, 'files': files}, indent=2))

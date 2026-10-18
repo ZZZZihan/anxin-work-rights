@@ -1,0 +1,57 @@
+// Limited nonimplementer controls for parent-owned R40 hunks; no scorer/HTTP.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+assert(process.env.MATERIAL_FACT_TEST_ROOT, 'Set the captured readonly fixture root.');
+const root=resolve(process.env.MATERIAL_FACT_TEST_ROOT);
+const load=f=>import(pathToFileURL(resolve(root,'lib',f+'.ts')).href);
+const {normalizeMoneyValueV4:money,normalizeCandidateValueV4:normalize,canonicalMonetaryExpression:key}=await load('material-money-v4');
+const {emptyFactState,ingestCandidates,validateCandidateOutput,buildFactView}=await load('material-facts-v3');
+const {ingestRuntimeCandidates}=await load('material-fact-runtime-ingest');
+const {reviewFactsAgainstSources}=await load('material-fact-source-review');
+const cp=t=>Array.from(t).length,at='2026-10-19T05:30:00.000Z';
+function check(blocks,anchor,amount,{meaning='other_money',rateUnit=null,full=false}={}){
+ const source={id:'r40-readonly-control',name:'Synthetic nonimplementer control',sha256:'a'.repeat(64),analysisRevision:40,ready:true,blocks:blocks.map((b,i)=>({id:'b'+i,page:b.page??1,text:b.text,bbox:null,confidence:null}))};
+ const value='4000元',block=source.blocks[anchor],quote=full?block.text:value;
+ const entry={kind:'money',value,quote,blockId:block.id,subject:'王甲',scope:'individual',meaning,completeness:meaning==='due_total'?'complete':'not_applicable',period:null,rateUnit,assertion:'narrated'};
+ const raw=JSON.stringify({schemaVersion:3,candidates:[entry]});assert.equal(validateCandidateOutput(raw,source).rejected.length,0);
+ const sourceBefore=structuredClone(source);
+ const inspect=s=>{const item=s.materials[0].candidates[0];assert(item);assert.equal(item.amount,amount);assert.equal(s.materials[0].raw,raw);assert.deepEqual(item.representation,entry);const start=cp(block.text.slice(0,block.text.indexOf(quote)));assert.deepEqual([item.start,item.end],[start,start+cp(quote)]);assert.equal(Array.from(block.text).slice(item.start,item.end).join(''),quote);assert.equal(buildFactView(s,[source]).canCalculate,false);assert.equal(s.calculation,null);assert.deepEqual(s.confirmations,{due:null,paid:null});};
+ inspect(ingestRuntimeCandidates(emptyFactState(40),source,{raw},'synthetic','nonimplementer-control',at));
+ const stored=ingestCandidates(emptyFactState(40),source,{raw},'synthetic','nonimplementer-control',at);const item=stored.materials[0].candidates[0];item.amount='4000.00';item.normalization={rawValue:value,status:'exact',amount:'4000.00',matchedText:value,span:{start:0,end:cp(value)},reason:'Synthetic forced historical exact'};
+ let before=structuredClone(stored);inspect(reviewFactsAgainstSources(stored,[source]));assert.deepEqual(stored,before);
+ item.amount=null;item.normalization={...item.normalization,status:'unsupported',amount:null,matchedText:null,span:null};before=structuredClone(stored);assert.equal(reviewFactsAgainstSources(stored,[source]).materials[0].candidates[0].amount,null);assert.deepEqual(stored,before);assert.deepEqual(source,sourceBefore);
+}
+test('two adjacent same-page edges cannot hide accounting parentheses from a minimal quote',()=>{
+ for(const full of [false,true])check([{text:'😀王甲工资（'},{text:'4000元'},{text:'）'}],1,null,{full});
+});
+test('a finite prefix currency inside the opening edge remains unresolved',()=>{
+ for(const label of ['人民币','RMB'])for(const full of [false,true])check([{text:'😀王甲工资（'+label},{text:'4000元）'}],1,null,{full});
+});
+test('a finite currency after the value can precede the closing edge',()=>{
+ for(const tail of ['人民币）','人民幣）','RMB）'])check([{text:'😀王甲工资（4000元'},{text:tail}],0,null);
+});
+test('another owner and ordinary parenthetical prose do not provide both accounting edges',()=>{
+ for(const text of ['😀王甲工资4000元。李乙（金额待定）','😀王甲工资（税前）4000元','😀王甲工资4000元（税前）'])check([{text}],0,'4000.00');
+});
+test('an opening parenthesis on another page cannot supply the missing edge',()=>{
+ check([{text:'😀王甲工资（',page:1},{text:'4000元）',page:2}],1,'4000.00');
+});
+test('hour classifier cannot hide uncertainty or an invalid denominator',()=>{
+ for(const tail of ['每个小时待定','/個小時？','每个小时\n待确认','/个小时候'])
+  for(const full of [false,true])check([{text:'😀王甲工资4000元'+tail+'。'}],0,null,{meaning:'rate',rateUnit:'hour',full});
+});
+test('hour classifier cannot hide an attached limit, but real hours retain their unit',()=>{
+ for(const tail of ['每个小时以上','每個小時为上限','/个小时作为下限'])check([{text:'😀王甲工资4000元'+tail+'。'}],0,null,{meaning:'rate',rateUnit:'hour'});
+ check([{text:'😀王甲工资4000元每個小時。'}],0,'4000.00',{meaning:'rate',rateUnit:'hour'});
+});
+test('qualified comparison aliases preserve qualifier identity and currency rejection',()=>{
+ for(const label of ['RMB','CNY','¥','￥'])assert.equal(key(label+'至少4000元'),key('人民币至少4000元'));
+ assert.notEqual(key('RMB至少4000元'),key('CNY至多4000元'));assert.notEqual(key('RMB至少4000元'),key('4000元'));
+ for(const value of ['USDRMB至少4000元','RMB至少4000元港币','RMB人民币至少4000元','￥至少4000元￥'])assert.equal(key(value),null,value);
+});
+test('arithmetic and real currency conflicts remain unavailable inside accounting wrappers',()=>{
+ for(const expression of ['（4000元）的双倍','（USD4000元）','（4000元港币）'])assert.equal(money(expression).amount,null,expression);
+ const item={kind:'money',value:'4000元',quote:'王甲工资（4000元）的双倍',subject:'王甲',scope:'individual',meaning:'other_money',completeness:'not_applicable',period:null,rateUnit:null,assertion:'narrated'};assert.equal(normalize(item).amount,null);
+});

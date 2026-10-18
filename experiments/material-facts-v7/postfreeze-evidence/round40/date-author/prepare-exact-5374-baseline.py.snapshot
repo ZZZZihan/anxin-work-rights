@@ -1,0 +1,32 @@
+"""Archive exact Git blobs and our existing OWN event without touching shared trees."""
+from pathlib import Path
+import hashlib
+import json
+import subprocess
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+CODE = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+P = Path(__file__).resolve().parent
+BASE = OWN / '.scratch/issue42/round40/baseline-5374'
+HEAD = '5374d66748a7c329c4c595ec91372d324edff573'
+sha = lambda data: hashlib.sha256(data).hexdigest()
+
+
+def save(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open('xb') as stream:
+        stream.write(data)
+
+
+save(P / 'own-event-before-round40.ts.snapshot', (OWN / 'lib/material-fact-event-review.ts').read_bytes())
+names = subprocess.run(['git', '-C', str(CODE), 'ls-tree', '-r', '--name-only', HEAD, 'lib'], capture_output=True, check=True).stdout.decode().splitlines()
+rows = []
+for name in names:
+    if not name.endswith('.ts'):
+        continue
+    data = subprocess.run(['git', '-C', str(CODE), 'show', f'{HEAD}:{name}'], capture_output=True, check=True).stdout
+    save(BASE / name, data)
+    rows.append({'path': name, 'sha256': sha(data), 'bytes': len(data)})
+save(P / 'baseline-5374-lib-manifest.json', (json.dumps({'head': HEAD, 'root': str(BASE), 'files': rows}, indent=2) + '\n').encode())
+save(P / 'locked-author-script.before-tests.mjs.snapshot', (OWN / 'scripts/material-facts-v7-round40-date-author.test.mjs').read_bytes())
+print(json.dumps({'baseline': str(BASE), 'files': len(rows)}))

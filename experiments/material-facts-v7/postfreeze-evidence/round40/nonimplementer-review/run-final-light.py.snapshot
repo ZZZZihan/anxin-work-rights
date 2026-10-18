@@ -1,0 +1,110 @@
+"""Append-only final private integration; no shared-tree writes or long chains."""
+from pathlib import Path
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import time
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+DATA = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data')
+MONEY = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money')
+P = Path(__file__).resolve().parent
+BASE = OWN / '.scratch/issue42/round40/baseline-5374'
+INITIAL = OWN / '.scratch/issue42/round40/date-total-range-double-review-tree'
+FINAL = OWN / '.scratch/issue42/round40/date-total-range-double-final-review-tree'
+sha = lambda blob: hashlib.sha256(blob).hexdigest()
+NODE24 = '/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node'
+NODE26 = '/opt/homebrew/bin/node'
+
+
+def save(name, value):
+    blob = value if isinstance(value, bytes) else (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode()
+    with (P / name).open('xb') as target:
+        target.write(blob)
+
+
+def inventory(paths):
+    return {str(path): sha(path.read_bytes()) for path in sorted(paths)}
+
+
+tests = [DATA / 'scripts/material-facts-v7-round40-totals-author.test.mjs',
+         OWN / 'scripts/material-facts-v7-round40-date-author.test.mjs',
+         OWN / 'scripts/material-facts-v7-round40-total-gate-independent.test.mjs',
+         MONEY / 'scripts/material-facts-v7-round40-limits-author.test.mjs',
+         MONEY / 'scripts/material-facts-v7-round40-double-author.test.mjs']
+external = tests + [DATA / 'lib/material-fact-event-review.ts', OWN / 'lib/material-fact-event-review.ts',
+                    MONEY / 'lib/material-fact-range-review.ts', MONEY / 'lib/material-fact-arithmetic-review.ts']
+before = inventory(external + list(BASE.glob('lib/*')))
+save('final-inputs.before.json', before)
+assert not FINAL.exists()
+shutil.copytree(INITIAL / 'lib', FINAL / 'lib')
+new_range = (MONEY / 'lib/material-fact-range-review.ts').read_bytes()
+assert sha(new_range) == '4bb6bf690d2614ce52b2c39cbb3dd00d7ec6ad242f61c3ffd02a7316fabbf80f'
+(FINAL / 'lib/material-fact-range-review.ts').write_bytes(new_range)
+save('material-fact-range-review.final.ts.snapshot', new_range)
+for path in tests:
+    save(path.name + '.final.snapshot', path.read_bytes())
+changes = subprocess.run(['git', 'diff', '--no-index', '--', str(BASE / 'lib/material-fact-range-review.ts'),
+                          str(FINAL / 'lib/material-fact-range-review.ts')], capture_output=True)
+assert changes.returncode == 1
+save('range-final.exact-5374.patch', changes.stdout)
+private_before = inventory(list(FINAL.glob('lib/*')))
+save('final-private-lib.before.json', private_before)
+env = dict(os.environ, MATERIAL_FACT_TEST_ROOT=str(FINAL),
+           MATERIAL_FACT_EVENT_FILE=str(FINAL / 'lib/material-fact-event-review.ts'),
+           MATERIAL_FACT_PATCH_ROOT=str(FINAL))
+
+# Capture the original fixture's actual early rejection, rather than claiming
+# that its failed accepted-count assertion was a product-safety failure.
+diagnostic = """
+import { pathToFileURL } from 'node:url';
+const { validateCandidateOutput } = await import(pathToFileURL(process.env.MATERIAL_FACT_TEST_ROOT + '/lib/material-facts-v3.ts').href);
+const text = '😀赵丙2026年2月应发工资总计4800元。';
+const source = { id:'r40-period-diagnostic',name:'synthetic.txt',sha256:'7'.repeat(64),ready:true,analysisRevision:40,
+  blocks:[{id:'b1',page:1,text,bbox:null,confidence:null}] };
+const candidate = {kind:'money',value:'4800元',quote:'4800元',blockId:'b1',subject:'赵丙',scope:'individual',meaning:'due_total',completeness:'complete',period:'2026年1月',rateUnit:null,assertion:'claimed'};
+console.log(JSON.stringify(validateCandidateOutput(JSON.stringify({schemaVersion:3,candidates:[candidate]}), source)));
+"""
+diagnosed = subprocess.run([NODE24, '--input-type=module', '-e', diagnostic], env=env, capture_output=True, timeout=20)
+save('initial-period-fixture.schema-diagnostic.stdout.json', diagnosed.stdout)
+save('initial-period-fixture.schema-diagnostic.stderr.log', diagnosed.stderr)
+assert diagnosed.returncode == 0
+value = json.loads(diagnosed.stdout)
+assert len(value['rejected']) == 1 and value['rejected'][0]['reason'] == '主体或期间无原文字面支持'
+
+results = []
+for tag, node in [('node24', NODE24), ('node26', NODE26)]:
+    version = subprocess.check_output([node, '--version']).decode().strip()
+    started = time.monotonic()
+    result = subprocess.run([node, '--test', '--test-reporter=tap', *map(str, tests)], env=env, capture_output=True, timeout=60)
+    elapsed = time.monotonic() - started
+    save('final-integrated-light-' + tag + '.stdout.tap', result.stdout)
+    save('final-integrated-light-' + tag + '.stderr.log', result.stderr)
+    counts = {key: int(re.findall(rf'^# {key} (\d+)$', result.stdout.decode(), re.M)[-1])
+              for key in ['tests', 'pass', 'fail', 'skipped', 'cancelled']}
+    entry = {'node': node, 'version': version, 'exit_code': result.returncode, 'duration_seconds': elapsed, 'counts': counts}
+    save('final-integrated-light-' + tag + '.execution.json', entry)
+    results.append(entry)
+
+after = inventory(external + list(BASE.glob('lib/*')))
+private_after = inventory(list(FINAL.glob('lib/*')))
+save('final-inputs.after.json', after)
+save('final-private-lib.after.json', private_after)
+assert before == after and private_before == private_after
+save('final-integrated-light.execution-summary.json', {
+    'status': 'PASS' if all(row['exit_code'] == 0 for row in results) else 'FAIL',
+    'results': results, 'private_root': str(FINAL),
+    'all_input_bytes_unchanged': True, 'private_library_bytes_unchanged': True,
+    'source_hashes': {path.name: sha(path.read_bytes()) for path in FINAL.glob('lib/*') if path.name in [
+        'material-fact-event-review.ts','material-fact-range-review.ts','material-fact-arithmetic-review.ts']},
+    'suite_counts': {'data_totals_author': 32, 'own_date_author': 30, 'independent_total_gates': 7,
+                     'money_limits_author': 35, 'money_double_author': 17},
+    'initial_failure': {'execution': 'integrated-light-node24.execution.json',
+        'classification': 'Own test fixture lacked literal source support for raw.period; the existing schema rejected it before runtime attribution.',
+        'correction': 'Keep all amount/relation/UI assertions, add a separate other-worker January source block so the period is schema-valid but belongs to another event.'},
+    'not_executed': ['HTTP','build','full check','scorer','historical CLI','model','shared repository mutation']})
+print(json.dumps(results))
+assert all(row['exit_code'] == 0 and row['counts']['tests'] == 121 and row['counts']['pass'] == 121 for row in results)

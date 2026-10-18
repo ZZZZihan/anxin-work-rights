@@ -1,0 +1,127 @@
+"""Finalize the bounded review without rerunning any author suite or heavy check."""
+from pathlib import Path
+from datetime import datetime, timezone
+import hashlib
+import json
+import os
+import re
+import subprocess
+import time
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+P = Path(__file__).resolve().parent
+BASE = OWN / '.scratch/issue42/round40/baseline-5374'
+FINAL = OWN / '.scratch/issue42/round40/date-total-range-double-final-review-tree'
+TEST = OWN / 'scripts/material-facts-v7-round40-total-gate-independent.test.mjs'
+NODE = '/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node'
+sha = lambda blob: hashlib.sha256(blob).hexdigest()
+
+
+def save(name, value):
+    blob = value if isinstance(value, bytes) else (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode()
+    with (P / name).open('xb') as output:
+        output.write(blob)
+
+
+summary = json.loads((P / 'final-integrated-light.execution-summary.json').read_text())
+assert summary['status'] == 'PASS'
+env = dict(os.environ, MATERIAL_FACT_TEST_ROOT=str(BASE))
+started = time.monotonic()
+result = subprocess.run([NODE, '--test', '--test-reporter=tap', str(TEST)], env=env, capture_output=True, timeout=30)
+save('independent-total-gates.exact-5374-node24.stdout.tap', result.stdout)
+save('independent-total-gates.exact-5374-node24.stderr.log', result.stderr)
+counts = {key: int(re.findall(rf'^# {key} (\d+)$', result.stdout.decode(), re.M)[-1])
+          for key in ['tests','pass','fail','skipped','cancelled']}
+baseline = {'exit_code': result.returncode, 'node':'v24.22.0', 'counts':counts,
+            'duration_seconds':time.monotonic() - started,
+            'test_sha256':sha(TEST.read_bytes()), 'root':str(BASE)}
+save('independent-total-gates.exact-5374-node24.execution.json', baseline)
+assert result.returncode == 1 and counts['tests'] == 7 and counts['pass'] == 6 and counts['fail'] == 1
+before = json.loads((P / 'final-inputs.before.json').read_text())
+after = json.loads((P / 'final-inputs.after.json').read_text())
+assert before == after
+assert all(sha(Path(path).read_bytes()) == digest for path, digest in after.items())
+baseline_files = {path.name:sha(path.read_bytes()) for path in BASE.glob('lib/*')}
+private_files = {path.name:sha(path.read_bytes()) for path in FINAL.glob('lib/*')}
+assert baseline_files.keys() == private_files.keys()
+changed = [name for name in baseline_files if baseline_files[name] != private_files[name]]
+assert set(changed) == {'material-fact-event-review.ts','material-fact-range-review.ts','material-fact-arithmetic-review.ts'}
+private_event = FINAL / 'lib/material-fact-event-review.ts'
+diff = subprocess.run(['git','diff','--no-index','--',str(BASE / 'lib/material-fact-event-review.ts'),str(private_event)],capture_output=True)
+assert diff.returncode == 1
+save('event-integrated-final.exact-5374.patch', diff.stdout)
+save('independent-total-gates.final.test.mjs.snapshot', TEST.read_bytes())
+
+receipt = {
+    'schema':'round40-nonimplementer-review/1',
+    'at':datetime.now(timezone.utc).isoformat(),
+    'status':'BOUNDED_PRIVATE_INTEGRATION_LIGHT_PASS_PENDING_PARENT_ACTUAL_CODE',
+    'baseline':'5374d66748a7c329c4c595ec91372d324edff573',
+    'private_root':str(FINAL),
+    'private_lib_file_count':len(private_files),
+    'changed_vs_exact_baseline':changed,
+    'module_hashes':summary['source_hashes'],
+    'data_money_role_only_event_sha256':'5b8969d0f369afa391d49b535d7bb6a4d2a04bcc77f92c03a1d5178f31cef8ee',
+    'own_date_only_event_sha256':'701c0a2b7be1373cab912d07b47fcd925a6de83a564b93a2e2ce35171e5cab55',
+    'actual_dual_runtime':summary['results'],
+    'test_counts':summary['suite_counts'],
+    'independent_test':{'path':str(TEST),'sha256':sha(TEST.read_bytes()),'baseline_actual':baseline},
+    'independence':{
+        'own_date_30':'Author execution; not represented as independent review.',
+        'data_totals_32':'Other-agent implementation and author suite independently executed by this reviewer.',
+        'money_limits_35_and_double_17':'Other-agent implementation and author suites independently executed by this reviewer.',
+        'new_total_gates_7':'This reviewer independently wrote different-owner/period/component/role controls.',
+        'tree':'Owned exact-baseline integration; not the actual shared CODE/ROOT final tree.'},
+    'static_findings':[
+        {'area':'DATA totals','result':'No blocker in this bounded hunk.',
+         'basis':'New 应发/实发 attribution reuses strict individual+complete+same-owner+same-period+same-event total relationship; paid and due cannot substitute for each other. No amount confirmation is added.'},
+        {'area':'MONEY named limits','result':'No blocker in this bounded hunk.',
+         'basis':'Only directly attached 为/作为 + 上限/下限 and detection-only 為 folding; no arbitrary owner/sentence bridge. Shared hour/month classifier denominator remains compatible with bound/unknown checks.'},
+        {'area':'MONEY double multiplier','result':'No blocker in this bounded hunk.',
+         'basis':'双/雙倍 follows existing explicit 的, finite amount-noun or same-line multiplier attachment. Independent lines, new owners and page breaks remain boundaries. It does not evaluate the expression.'}],
+    'actual_behavior_evidence':[
+        'Full/minimal quotes and code-point anchoring retain raw value, quote and representation.',
+        'Fresh and stored-read exact observations follow the same source checks; old unavailable observations remain unavailable in the author suites.',
+        'The new 7 controls validate protocol before testing period/owner/event/completeness/meaning separation.',
+        'buildFactView was executed with a synthetic scope review: no amount confirmation, calculation=null, canCalculate=false. This is not actual browser/UI or human business acceptance.',
+        'No missing year or computed multiplier result is created.'],
+    'protection':{'input_paths_rehashed':len(before),'all_input_bytes_unchanged':True,
+                  'private_library_paths':len(private_files),'private_library_bytes_unchanged':True,
+                  'shared_product_edits':False},
+    'preserved_initial_failure':summary['initial_failure'],
+    'initial_failure_counts':{'tests':120,'pass':119,'fail':1,'exit_code':1},
+    'limit_update':'Initial eedd69 range 34+17 author cases passed; final 4bb6 adds one classifier-denominator test. The 121 final count includes 35+17, not the old 51.',
+    'unexecuted':summary['not_executed'],
+    'remaining':'Parent actual integration, full application checks/HTTP/CI and business acceptance remain separate.',
+    'requested_model':'GPT-6.1 Sol / ultra; actual backend not independently verifiable.'}
+save('round40-totals-limits-double.nonimplementer.receipt.json',receipt)
+md = '''R40 的限定轻量复核通过；结论针对 OWN 中精确 5374 基线的私有组合，等待父 Agent 在实际 CODE 上整合验证。
+
+本人执行 Node 24.22.0 与 Node 26.11.0，各 121/121 PASS、exit 0。其中 DATA 总额作者 32、本人日期作者 30、独立总额边界 7、MONEY 最终上限/下限作者 35、双倍作者 17。日期 30 是本人作者验证，不算非实现者独立审查；其他实现的实际执行与源码复核分开记录。
+
+DATA 总额补丁仅支持完整个人的应发/实发工资累计，沿用同主体、同期间、同事件和完整性门禁。独立 7 项在精确旧基线为 6P/1F，组合后 7P；不同人的期间/同额事件、多人、partial、角色错置和未计组件均不能产生该人的完整应发建议。MONEY 限定后置“为/作为上限下限”及“双/雙倍”仅在原有限附着路径中生效，未新增计算金额。
+
+源码限定范围内未见阻塞。完整/最小引用、同页邻块、换页/另一主体/句界、raw/representation/CP、历史 exact 降级和旧 null 不升级均有实际轻测覆盖。buildFactView 在合成 scopeReview 下仍无金额确认、calculation=null、canCalculate=false；这不是浏览器 UI 授权或业务人工验收。日期不补年份；月日语法沿有限 1–12 月、1–31 日范围，不声称新增完整日历有效性解析器。
+
+首轮 120 项为 119P/1F：独立夹具把材料中不存在的 1 月填入 period，已有 schema 先拒绝；并非产品放行。原脚本快照和 stdout/stderr 原件保留。修后在另一人的独立材料块提供 1 月字面支持，保持金额/关系/view 断言不变，再验证不能借用他人事件。原 eedd69 范围和最终 4bb6 的证据分别保存。
+
+86 个输入文件以及私有组合的 77 个 lib 文件前后哈希一致。实际改变仅私有组合内 event/range/arithmetic 三模块；CODE、ROOT、DATA、MONEY 均无写入。未运行 HTTP、评分器、历史 CLI、构建、全量检查或模型，未提交推送。完整原始日志、源码快照、精确补丁、执行脚本、初次失败和修后双运行时结果见同目录白名单索引。
+
+请求配置为 GPT-6.1 Sol / ultra；实际后端未独立核验。
+'''
+assert len(before) == 86
+save('ROUND40_TOTALS_LIMITS_DOUBLE_NONIMPLEMENTER.md',md.encode())
+entries=[]
+for path in sorted(P.iterdir()):
+    if not path.is_file() or path.name.startswith('copy-index.'):
+        continue
+    destination=path.name + '.snapshot' if path.suffix in {'.py','.ts','.mjs'} else path.name
+    entries.append({'source':str(path),'relative':path.name,'destination':destination,
+                    'bytes':path.stat().st_size,'sha256':sha(path.read_bytes())})
+index={'schema':'evidence-whitelist/1','source_root':str(P),'count':len(entries),'files':entries}
+save('copy-index.round40-nonimplementer.json',index)
+print(json.dumps({'receipt':str(P/'round40-totals-limits-double.nonimplementer.receipt.json'),
+                 'receipt_sha256':sha((P/'round40-totals-limits-double.nonimplementer.receipt.json').read_bytes()),
+                 'index':str(P/'copy-index.round40-nonimplementer.json'),
+                 'index_sha256':sha((P/'copy-index.round40-nonimplementer.json').read_bytes()),
+                 'files':len(entries),'independent_script_sha256':sha(TEST.read_bytes()),'baseline':baseline},ensure_ascii=False))

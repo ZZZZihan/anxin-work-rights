@@ -1,0 +1,44 @@
+"""Only the locked 30-case light module/source author test is executed."""
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+P = Path(__file__).resolve().parent
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+BASE = OWN / '.scratch/issue42/round40/baseline-5374'
+TEST = OWN / 'scripts/material-facts-v7-round40-date-author.test.mjs'
+mode = sys.argv[1]
+node = Path(sys.argv[2])
+assert mode in {'baseline-node24', 'final-node24', 'final-node26'}
+event = (BASE if mode.startswith('baseline') else OWN) / 'lib/material-fact-event-review.ts'
+sha = lambda data: hashlib.sha256(data).hexdigest()
+locked = P / 'locked-author-script.before-tests.mjs.snapshot'
+assert TEST.read_bytes() == locked.read_bytes()
+env = dict(os.environ, MATERIAL_FACT_TEST_ROOT=str(BASE), MATERIAL_FACT_EVENT_FILE=str(event))
+version = subprocess.run([str(node), '--version'], capture_output=True, check=True).stdout.decode().strip()
+before = event.read_bytes()
+started = time.monotonic()
+result = subprocess.run([str(node), '--test', '--test-reporter=tap', str(TEST)], env=env, capture_output=True, timeout=60)
+duration = time.monotonic() - started
+for suffix, data in [('stdout.log', result.stdout), ('stderr.log', result.stderr)]:
+    with (P / f'{mode}.{suffix}').open('xb') as stream:
+        stream.write(data)
+text = result.stdout.decode()
+counts = {key: int(re.findall(rf'^# {key} (\d+)$', text, re.M)[-1]) for key in ['tests', 'pass', 'fail', 'cancelled', 'skipped']}
+assert event.read_bytes() == before
+receipt = {'at': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'mode': mode, 'node': version,
+           'exit_code': result.returncode, 'duration_seconds': duration, 'counts': counts,
+           'event': str(event), 'event_sha256': sha(before), 'script_sha256': sha(TEST.read_bytes()),
+           'dependency_root': str(BASE), 'scope': 'Light module/source fresh/stored author tests only; no scorer/CLI-chain/full/HTTP/model.'}
+with (P / f'{mode}.receipt.json').open('x') as stream:
+    json.dump(receipt, stream, indent=2)
+    stream.write('\n')
+print(json.dumps(receipt))
+if mode.startswith('final'):
+    assert result.returncode == 0, 'Preserved original failure; do not rerun into the same evidence names.'

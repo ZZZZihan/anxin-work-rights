@@ -1,0 +1,43 @@
+"""Finite old pure-date module tests and lint; no application/full/HTTP/score chain."""
+from pathlib import Path
+import hashlib
+import json
+import os
+import re
+import subprocess
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+CODE = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+P = Path(__file__).resolve().parent
+NODE = '/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node'
+BASE = OWN / '.scratch/issue42/round40/baseline-5374'
+sha = lambda data: hashlib.sha256(data).hexdigest()
+names = [f'scripts/material-facts-v7-round{round_number}-event-author.test.mjs' for round_number in [31, 32, 34]]
+target_dir = OWN / '.scratch/issue42/round40/old-pure-event-tests'
+target_dir.mkdir(parents=True, exist_ok=True)
+rows, paths = [], []
+for name in names:
+    data = subprocess.run(['git', '-C', str(CODE), 'show', f'5374d66748a7c329c4c595ec91372d324edff573:{name}'], capture_output=True, check=True).stdout
+    path = target_dir / Path(name).name
+    with path.open('xb') as stream:
+        stream.write(data)
+    with (P / (Path(name).name + '.snapshot')).open('xb') as stream:
+        stream.write(data)
+    rows.append({'path': name, 'exact_5374_sha256': sha(data)})
+    paths.append(str(path))
+env = dict(os.environ, MATERIAL_FACT_TEST_ROOT=str(BASE), MATERIAL_FACT_EVENT_FILE=str(OWN / 'lib/material-fact-event-review.ts'))
+commands = [('old-pure-event-151', [NODE, '--test', '--test-reporter=tap', *paths]),
+            ('scoped-eslint', [NODE, str(OWN / 'node_modules/eslint/bin/eslint.js'), 'lib/material-fact-event-review.ts', 'scripts/material-facts-v7-round40-date-author.test.mjs'])]
+results = []
+for name, command in commands:
+    result = subprocess.run(command, capture_output=True, cwd=OWN, env=env, timeout=60)
+    for suffix, data in [('stdout.log', result.stdout), ('stderr.log', result.stderr)]:
+        with (P / f'{name}.{suffix}').open('xb') as stream:
+            stream.write(data)
+    counts = {key: int(re.findall(rf'^# {key} (\d+)$', result.stdout.decode(), re.M)[-1]) for key in ['tests', 'pass', 'fail', 'skipped']} if name.startswith('old') else None
+    results.append({'name': name, 'exit_code': result.returncode, 'counts': counts})
+    assert result.returncode == 0, name
+with (P / 'scoped-regressions.receipt.json').open('x') as stream:
+    json.dump({'tests': rows, 'checks': results}, stream, indent=2)
+    stream.write('\n')
+print(json.dumps(results))

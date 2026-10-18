@@ -1,0 +1,1114 @@
+✔ qualified RMB alias 人民币/约 (37.803333ms)
+✔ qualified RMB alias 人民币/至少 (0.732834ms)
+✔ qualified RMB alias 人民币/可能 (0.402667ms)
+✔ qualified RMB alias 人民幣/约 (0.767167ms)
+✔ qualified RMB alias 人民幣/至少 (0.400416ms)
+✔ qualified RMB alias 人民幣/可能 (0.368583ms)
+✖ qualified RMB alias RMB/约 (0.673625ms)
+✖ qualified RMB alias RMB/至少 (0.556292ms)
+✖ qualified RMB alias RMB/可能 (0.316417ms)
+✖ qualified RMB alias CNY/约 (0.336875ms)
+✖ qualified RMB alias CNY/至少 (0.276541ms)
+✖ qualified RMB alias CNY/可能 (0.242917ms)
+✖ qualified RMB alias rmb/约 (0.231125ms)
+✖ qualified RMB alias rmb/至少 (0.242666ms)
+✖ qualified RMB alias rmb/可能 (0.233458ms)
+✖ qualified RMB alias cny/约 (0.24275ms)
+✖ qualified RMB alias cny/至少 (0.214208ms)
+✖ qualified RMB alias cny/可能 (0.245958ms)
+✖ qualified RMB alias ¥/约 (0.327458ms)
+✖ qualified RMB alias ¥/至少 (0.260167ms)
+✖ qualified RMB alias ¥/可能 (0.581875ms)
+✖ qualified RMB alias ￥/约 (0.276834ms)
+✖ qualified RMB alias ￥/至少 (0.226708ms)
+✖ qualified RMB alias ￥/可能 (0.192833ms)
+✖ qualifier 约 stays distinct from others and exact (0.144333ms)
+✖ qualifier 至少 stays distinct from others and exact (0.098542ms)
+✖ qualifier 至多 stays distinct from others and exact (0.081458ms)
+✖ qualifier 可能 stays distinct from others and exact (0.073375ms)
+✔ unsupported text cannot acquire an alias key: USD约4000元 (0.042208ms)
+✔ unsupported text cannot acquire an alias key: 港币约4000元 (0.022292ms)
+✔ unsupported text cannot acquire an alias key: RMB人民币约4000元 (0.071625ms)
+✔ unsupported text cannot acquire an alias key: RMB约4000元港币 (0.024041ms)
+✔ unsupported text cannot acquire an alias key: ACNY约4000元 (0.058625ms)
+✔ unsupported text cannot acquire an alias key: RMB约4000元和5000元 (0.058125ms)
+✖ unsupported text cannot acquire an alias key: (4000元) (0.131125ms)
+✔ same amount key alone never carries event or calculation authority (0.172208ms)
+✖ whole accounting literal unavailable: (4000元) (18.147791ms)
+✖ fresh/history accounting crop full=false (4000元) (34.950541ms)
+✖ fresh/history accounting crop full=true (4000元) (2.752916ms)
+✖ whole accounting literal unavailable: （4000元） (0.306333ms)
+✖ fresh/history accounting crop full=false （4000元） (1.823084ms)
+✖ fresh/history accounting crop full=true （4000元） (1.363417ms)
+✖ whole accounting literal unavailable: (人民币4000元) (0.202708ms)
+✖ fresh/history accounting crop full=false (人民币4000元) (3.006333ms)
+✖ fresh/history accounting crop full=true (人民币4000元) (1.625791ms)
+✖ whole accounting literal unavailable: （RMB4000元） (0.234458ms)
+✖ fresh/history accounting crop full=false （RMB4000元） (1.403667ms)
+✖ fresh/history accounting crop full=true （RMB4000元） (1.250083ms)
+✖ whole accounting literal unavailable: ( 4000元 ) (0.122083ms)
+✖ fresh/history accounting crop full=false ( 4000元 ) (1.432292ms)
+✖ fresh/history accounting crop full=true ( 4000元 ) (1.309125ms)
+✖ whole accounting literal unavailable: (
+4000元
+) (0.1155ms)
+✖ fresh/history accounting crop full=false (
+4000元
+) (1.600583ms)
+✖ fresh/history accounting crop full=true (
+4000元
+) (0.971375ms)
+✖ whole accounting literal unavailable: （‍4000元‍） (0.330375ms)
+✖ fresh/history accounting crop full=false （‍4000元‍） (1.595125ms)
+✖ fresh/history accounting crop full=true （‍4000元‍） (1.363667ms)
+✖ full value retains the original parentheses (1.279666ms)
+✖ adjacent same-page closing parenthesis remains part of the amount (1.8815ms)
+✔ a different page cannot close an accounting expression (2.017209ms)
+✔ ordinary independent parenthetical prose does not change literal: 4000元（税前） (10.765459ms)
+✔ ordinary independent parenthetical prose does not change literal: （工资说明）4000元 (1.816083ms)
+✔ ordinary independent parenthetical prose does not change literal: （王甲工资4000元） (2.0585ms)
+✔ ordinary independent parenthetical prose does not change literal: 4000元。李乙（5000元） (2.337917ms)
+✖ quoted accounting crop is rejected before source lookup (0.276167ms)
+ℹ tests 65
+ℹ suites 0
+ℹ pass 18
+ℹ fail 47
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 199.581125
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias RMB/约 (0.673625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:约:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:约:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias RMB/至少 (0.556292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:至少:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:至少:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias RMB/可能 (0.316417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'uncertain:可能:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'uncertain:可能:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias CNY/约 (0.336875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:约:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:约:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias CNY/至少 (0.276541ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:至少:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:至少:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias CNY/可能 (0.242917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'uncertain:可能:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'uncertain:可能:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias rmb/约 (0.231125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:约:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:约:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias rmb/至少 (0.242666ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:至少:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:至少:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias rmb/可能 (0.233458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'uncertain:可能:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'uncertain:可能:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias cny/约 (0.24275ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:约:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:约:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias cny/至少 (0.214208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:至少:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:至少:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias cny/可能 (0.245958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'uncertain:可能:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'uncertain:可能:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias ¥/约 (0.327458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:约:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:约:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias ¥/至少 (0.260167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:至少:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:至少:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias ¥/可能 (0.581875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'uncertain:可能:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'uncertain:可能:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias ￥/约 (0.276834ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:约:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:约:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias ￥/至少 (0.226708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'approximate:至少:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'approximate:至少:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:9:44
+✖ qualified RMB alias ￥/可能 (0.192833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - 'uncertain:可能:4000.00:'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:13:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'uncertain:可能:4000.00:',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:17:39
+✖ qualifier 约 stays distinct from others and exact (0.144333ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: null
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:18:43)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: null,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:17:39
+✖ qualifier 至少 stays distinct from others and exact (0.098542ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: null
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:18:43)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: null,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:17:39
+✖ qualifier 至多 stays distinct from others and exact (0.081458ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: null
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:18:43)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: null,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:17:39
+✖ qualifier 可能 stays distinct from others and exact (0.073375ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: null
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:18:43)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: null,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-canonical-author.test.mjs:21:115
+✖ unsupported text cannot acquire an alias key: (4000元) (0.131125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'exact:4000.00'
+  - null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-canonical-author.test.mjs:21:186)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'exact:4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:2
+✖ whole accounting literal unavailable: (4000元) (18.147791ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:65)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=false (4000元) (34.950541ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=true (4000元) (2.752916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:2
+✖ whole accounting literal unavailable: （4000元） (0.306333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:65)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=false （4000元） (1.823084ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=true （4000元） (1.363417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:2
+✖ whole accounting literal unavailable: (人民币4000元) (0.202708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:65)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=false (人民币4000元) (3.006333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=true (人民币4000元) (1.625791ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:2
+✖ whole accounting literal unavailable: （RMB4000元） (0.234458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:65)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=false （RMB4000元） (1.403667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=true （RMB4000元） (1.250083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:2
+✖ whole accounting literal unavailable: ( 4000元 ) (0.122083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:65)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=false ( 4000元 ) (1.432292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=true ( 4000元 ) (1.309125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:2
+✖ whole accounting literal unavailable: (
+4000元
+) (0.1155ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:65)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=false (
+4000元
+) (1.600583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=true (
+4000元
+) (0.971375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:2
+✖ whole accounting literal unavailable: （‍4000元‍） (0.330375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:30:65)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=false （‍4000元‍） (1.595125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:33
+✖ fresh/history accounting crop full=true （‍4000元‍） (1.363667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:31:95)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:33:1
+✖ full value retains the original parentheses (1.279666ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:33:56)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:34:1
+✖ adjacent same-page closing parenthesis remains part of the amount (1.8815ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at run (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:22:67)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:34:78)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round40-parentheses-author.test.mjs:37:1
+✖ quoted accounting crop is rejected before source lookup (0.276167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '4000.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-v7-round40-parentheses-author.test.mjs:39:9)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

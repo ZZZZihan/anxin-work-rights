@@ -1,0 +1,152 @@
+{
+  "schema": "material-facts-v7/r40-totals-author/1",
+  "created_at": "2026-10-18T19:58:05.081053+00:00",
+  "result": "PASS_TARGETED_SYNTHETIC_AUTHOR_CHECKS",
+  "review_comment": "4308393745",
+  "baseline": {
+    "commit": "5374d66748a7c329c4c595ec91372d324edff573",
+    "lib_count": 78,
+    "event_sha256": "f7ef05f518ecc1ca2945b0c0e37c5517a59293184529fa919b3e0b0c50352381"
+  },
+  "products": {
+    "lib/material-fact-event-review.ts": "5b8969d0f369afa391d49b535d7bb6a4d2a04bcc77f92c03a1d5178f31cef8ee",
+    "scripts/material-facts-v7-round40-totals-author.test.mjs": "2c45c209b9bd4ffdc6cc1fecead7bf939645da1f873a01c5cdbfe499d23eb438"
+  },
+  "patch": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/experiments/material-facts-v7/postfreeze-evidence/round40/totals-author/totals-exact-5374.patch",
+    "sha256": "a87f9f6ad0012db83fd376ea1496ee7c2a01c4bfe3c6615e65e5d06f058561fb",
+    "integration": "Apply only the money-role/total hunks; do not replace the shared event file and lose the independently owned date patch."
+  },
+  "behavior": {
+    "detection_copy_alias": "發→发 in moneyRole only",
+    "new_total_roles": [
+      "应发/應發→due_total",
+      "实发/實發→paid_total"
+    ],
+    "authorization": "Only individual, complete, same literal owner/period/event and explicit total cue; reuse hasSupportedTotalRelationship.",
+    "original_fields": "No source text, subject, quote, value, normalization span, raw or Unicode code-point position is rewritten.",
+    "historical_null": "Older unsupported/null amount is not upgraded.",
+    "calculation": "Scope-review candidates can appear; no money confirmation is created, canCalculate remains false."
+  },
+  "checks": {
+    "fixed_same_32_node24": {
+      "pass": 24,
+      "fail": 8,
+      "exit_code": 1
+    },
+    "patched_same_32_node24": {
+      "pass": 32,
+      "fail": 0,
+      "exit_code": 0
+    },
+    "patched_same_32_node26": {
+      "pass": 32,
+      "fail": 0,
+      "exit_code": 0
+    },
+    "old_collective_node24": {
+      "pass": 35,
+      "fail": 0,
+      "exit_code": 0
+    },
+    "old_date_receipt_node24": {
+      "pass": 28,
+      "fail": 0,
+      "exit_code": 0
+    },
+    "eslint": {
+      "files": 2,
+      "exit_code": 0
+    },
+    "syntax": {
+      "files": 1,
+      "exit_code": 0
+    },
+    "captured_lib_bytes": {
+      "paths": 78,
+      "unchanged": true
+    },
+    "date_section_unchanged": true
+  },
+  "baseline_path_limit": "The first 8 failing author cases stop at direct relationship assertions; do not claim their later runtime assertions executed. A separate real runtime observation of the two reported examples is saved before and after.",
+  "runtime_observations": {
+    "before": [
+      {
+        "role": "应发工资合计",
+        "meaning": "due_total",
+        "amount": "4000.00",
+        "issues": [
+          "source_relation_unresolved"
+        ],
+        "scope_reviewed_values": [],
+        "canCalculate": false,
+        "raw_preserved": true,
+        "representation_preserved": true
+      },
+      {
+        "role": "实发工资合计",
+        "meaning": "paid_total",
+        "amount": "3500.00",
+        "issues": [
+          "source_relation_unresolved"
+        ],
+        "scope_reviewed_values": [],
+        "canCalculate": false,
+        "raw_preserved": true,
+        "representation_preserved": true
+      }
+    ],
+    "after": [
+      {
+        "role": "应发工资合计",
+        "meaning": "due_total",
+        "amount": "4000.00",
+        "issues": [],
+        "scope_reviewed_values": [
+          "4000.00"
+        ],
+        "canCalculate": false,
+        "raw_preserved": true,
+        "representation_preserved": true
+      },
+      {
+        "role": "实发工资合计",
+        "meaning": "paid_total",
+        "amount": "3500.00",
+        "issues": [],
+        "scope_reviewed_values": [
+          "3500.00"
+        ],
+        "canCalculate": false,
+        "raw_preserved": true,
+        "representation_preserved": true
+      }
+    ]
+  },
+  "controls": [
+    "explicit collective owner and cropped group label",
+    "different beneficiary / another event / wrong or cropped period",
+    "partial completeness and missing total cue",
+    "negation / due-paid role mismatch / mixed roles",
+    "component bonus and post-value qualification",
+    "all original raw and representations / CP boundaries",
+    "scope review never confirms amounts or starts calculation"
+  ],
+  "not_run": [
+    "HTTP",
+    "build",
+    "full check",
+    "historical CLI",
+    "scorer CLI",
+    "model requests"
+  ],
+  "shared_writes": false,
+  "git_commit_push": false,
+  "frozen_data_or_results_changed": false,
+  "evidence_class": "Synthetic author checks and old synthetic regressions, not legal/business or human acceptance.",
+  "configuration": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  }
+}

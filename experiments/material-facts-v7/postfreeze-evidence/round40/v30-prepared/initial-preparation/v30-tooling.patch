@@ -1,0 +1,699 @@
+--- a/experiments/material-facts-v7/historical-v29-execution.mjs
++++ b/experiments/material-facts-v7/historical-v29-execution.mjs
+@@ -0,0 +1,87 @@
++// A narrow execution-only bridge for the archived v29 check. The immutable v1
++// preload and older versioned bridges handle older children; neither is expanded here.
++import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync, writeSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { basename, dirname, join, resolve, sep } from 'node:path';
++import { fileURLToPath } from 'node:url';
++import { CLEANUP_RESERVE_MS, POLICY_ID, POLICY_SHA256, POLICY_URL, ROOT_BUDGET_MS, STATE_ENV,
++  nativeExecFileSync, readExecutionState, recordExecutionEvent, rootBudgetStartedMs } from './historical-execution-policy-v1.mjs';
++
++export function historicalV29Target(script, args) {
++  if (typeof script !== 'string' || !Array.isArray(args) || args.length !== 1 || args[0] !== '--check') return null;
++  const path = resolve(script);
++  return basename(path) === 'corrective-assessment-v29.mjs'
++    && dirname(path).endsWith(`${sep}experiments${sep}material-facts-v7`)
++    ? 'experiments/material-facts-v7/corrective-assessment-v29.mjs' : null;
++}
++
++export function prepareHistoricalV29Options(script, args, options, state) {
++  const target = historicalV29Target(script, args);
++  if (!target) throw new Error('Historical v29 execution only accepts the exact read-only v29 assessment check');
++  // Validate inherited state with the unchanged v1 contract before deriving a
++  // child. No state or environment mutation occurs in this process.
++  if (!readExecutionState({ [STATE_ENV]: JSON.stringify(state) })) throw new Error('Invalid historical execution policy state');
++  const deadline = state.deadline_ms - CLEANUP_RESERVE_MS, remaining = deadline - Date.now();
++  if (remaining <= 0) {
++    recordExecutionEvent(state, { event: 'budget_exhausted', target, depth: state.depth + 1, deadline_ms: deadline });
++    const error = new Error('Shared historical execution deadline exhausted before starting another check');
++    error.code = 'ETIMEDOUT';
++    throw error;
++  }
++  const next = { ...state, deadline_ms: deadline, depth: state.depth + 1 };
++  const env = { ...(options.env ?? process.env) }, preload = `--import=${POLICY_URL}`;
++  env.NODE_OPTIONS = (env.NODE_OPTIONS ?? '').split(/\s+/u).includes(preload)
++    ? env.NODE_OPTIONS : [env.NODE_OPTIONS, preload].filter(Boolean).join(' ');
++  env[STATE_ENV] = JSON.stringify(next);
++  recordExecutionEvent(state, { event: 'child_budget', target, args, depth: next.depth,
++    requested_timeout_ms: options.timeout ?? null, effective_timeout_ms: remaining,
++    parent_deadline_ms: state.deadline_ms, child_deadline_ms: deadline,
++    cleanup_reserve_ms: CLEANUP_RESERVE_MS, execution_adapter: 'historical-v29-execution/1' });
++  return { ...options, env, timeout: remaining };
++}
++
++export function runHistoricalV29CheckSync(scriptPath, args = ['--check'], options = {}) {
++  const script = resolve(options.cwd ?? process.cwd(), scriptPath);
++  if (!historicalV29Target(script, args)) throw new Error('Expected the exact read-only historical v29 assessment check');
++  let state = readExecutionState(), directory;
++  if (!state) {
++    const localStartedMs = rootBudgetStartedMs();
++    directory = mkdtempSync(join(tmpdir(), 'anxin-v7-history-v29-policy-'));
++    const receiptPath = join(directory, 'execution.jsonl');
++    writeFileSync(receiptPath, '', { flag: 'wx', mode: 0o600 });
++    state = { policy: POLICY_ID, policy_sha256: POLICY_SHA256, started_ms: localStartedMs,
++      root_deadline_ms: localStartedMs + ROOT_BUDGET_MS, deadline_ms: localStartedMs + ROOT_BUDGET_MS,
++      depth: 0, receipt_path: receiptPath };
++  }
++  let failure;
++  try {
++    return nativeExecFileSync(process.execPath, [script, ...args], prepareHistoricalV29Options(script, args, options, state));
++  } catch (error) {
++    failure = error;
++    throw error;
++  } finally {
++    if (directory) {
++      try {
++        const events = readFileSync(state.receipt_path, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line));
++        writeSync(2, JSON.stringify({ execution_policy: POLICY_ID, policy_sha256: POLICY_SHA256,
++          execution_adapter: 'historical-v29-execution/1', budget_mode: 'shared_absolute_deadline',
++          maximum_root_budget_ms: ROOT_BUDGET_MS, cleanup_reserve_per_level_ms: CLEANUP_RESERVE_MS,
++          target: historicalV29Target(script, args), status: failure ? 'FAIL' : 'PASS',
++          scoring_semantics_changed: false, archived_source_bytes_changed: false, events }) + '\n');
++      } catch (error) {
++        if (failure) failure.executionPolicyReceiptError = error;
++        else throw error;
++      } finally {
++        try { rmSync(directory, { recursive: true, force: true }); }
++        catch (error) { if (failure) failure.executionPolicyCleanupError = error; else throw error; }
++      }
++    }
++  }
++}
++
++if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
++  const [script, ...args] = process.argv.slice(2);
++  if (!script) throw new Error('Expected the read-only historical v29 assessment path');
++  const output = runHistoricalV29CheckSync(script, args, { cwd: process.cwd(), encoding: 'utf8', maxBuffer: 16 * 1024 ** 2 });
++  process.stdout.write(output);
++}
+--- a/experiments/material-facts-v7/verify-correction-v29.mjs
++++ b/experiments/material-facts-v7/verify-correction-v29.mjs
+@@ -0,0 +1,56 @@
++// Preserve the twenty-ninth post-freeze correction when later runtime fixes change
++// acceptance. Its results and code are restored only in an owned temp tree.
++import assert from 'node:assert/strict';
++import { runHistoricalV29CheckSync } from './historical-v29-execution.mjs';
++import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
++import { tmpdir } from 'node:os';
++import { dirname, join, resolve } from 'node:path';
++import { fileURLToPath } from 'node:url';
++import { createHash } from 'node:crypto';
++
++const ROOT = fileURLToPath(new URL('../../', import.meta.url));
++const EXPERIMENT = 'experiments/material-facts-v7';
++const hash = bytes => createHash('sha256').update(bytes).digest('hex');
++export async function withCorrectionV29Code(action, root = ROOT) {
++  const base = resolve(root, EXPERIMENT), snapshot = resolve(base, 'correction-code-v29');
++  const correctionBytes = await readFile(resolve(base, 'corrections-v29/manifest.json'));
++  const correction = JSON.parse(correctionBytes);
++  const manifest = JSON.parse(await readFile(resolve(snapshot, 'manifest.json'), 'utf8'));
++  assert.equal(manifest.schema, 'material-facts-v7-correction-code/29');
++  assert.equal(manifest.correction_directory, 'corrections-v29');
++  assert.equal(manifest.storage_suffix, '.snapshot');
++  assert.equal(manifest.correction_manifest_sha256, hash(correctionBytes));
++  const expected = Object.keys(correction.code_sha256).sort();
++  assert.deepEqual(Object.keys(manifest.files).sort(), expected, 'Correction snapshot omits or adds code paths');
++  const archived = [];
++  for (const path of expected) {
++    assert(!path.startsWith('/') && path.split('/').every(part => part && part !== '.' && part !== '..'), 'Unsafe correction snapshot path');
++    const bytes = await readFile(resolve(snapshot, `${path}.snapshot`));
++    assert.equal(hash(bytes), correction.code_sha256[path], `Correction code changed: ${path}`);
++    assert.equal(manifest.files[path], correction.code_sha256[path]);
++    archived.push([path, bytes]);
++  }
++  const temporary = await realpath(await mkdtemp(join(tmpdir(), 'anxin-v7-correction-v29-')));
++  try {
++    for (const path of ['lib', 'scripts', 'experiments', 'docs', 'package.json']) await cp(resolve(root, path), resolve(temporary, path), { recursive: true });
++    for (const [path, bytes] of archived) {
++      const target = resolve(temporary, path);
++      await mkdir(dirname(target), { recursive: true });
++      await writeFile(target, bytes);
++    }
++    return await action(temporary);
++  } finally { await rm(temporary, { recursive: true, force: true }); }
++}
++
++if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
++  assert.equal(process.argv.length, 2, 'Historical correction verification is read-only');
++  const receipt = await withCorrectionV29Code(async temporary => {
++    const output = runHistoricalV29CheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v29.mjs'), ['--check'], {
++      cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 180000,
++    });
++    const result = JSON.parse(output); assert.equal(result.status, 'PASS');
++    return { status: 'PASS', execution: 'archived_correction_v29_code', current_code_claim: false,
++      correction_manifest_sha256: hash(await readFile(resolve(temporary, EXPERIMENT, 'corrections-v29/manifest.json'))), model_requests: 0 };
++  });
++  console.log(JSON.stringify(receipt));
++}
+--- a/experiments/material-facts-v7/corrective-assessment-v30.mjs
++++ b/experiments/material-facts-v7/corrective-assessment-v30.mjs
+@@ -0,0 +1,61 @@
++// A thirtieth, explicitly post-freeze assessment of the SAME original outputs.
++// Restore v29 before checking it with a narrow adapter. The immutable v1 policy
++// and older versioned bridges keep all children inside the same absolute deadline.
++import assert from 'node:assert/strict';
++import { publishArtifacts } from './publish-artifacts.mjs';
++import { runHistoricalV29CheckSync } from './historical-v29-execution.mjs';
++import { withCorrectionV29Code } from './verify-correction-v29.mjs';
++import { readFile, readdir } from 'node:fs/promises';
++import { resolve } from 'node:path';
++import { computeCorrection } from './corrective-assessment.mjs';
++import { EXPERIMENT, ROOT, isMainModule, sha, same } from './freeze.mjs';
++
++export async function computeCorrectionV30(root = ROOT) {
++  const base = resolve(root, EXPERIMENT);
++  const previous = await withCorrectionV29Code(async temporary => {
++    const result = JSON.parse(runHistoricalV29CheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v29.mjs'), ['--check'], {
++      cwd: temporary, encoding: 'utf8', timeout: 180000, maxBuffer: 16 * 1024 ** 2,
++    }));
++    assert.equal(result.status, 'PASS');
++    return { status: 'PASS', correction_manifest_sha256: sha(await readFile(resolve(temporary, EXPERIMENT, 'corrections-v29/manifest.json'))) };
++  }, root);
++  const { artifacts, manifest } = await computeCorrection(root);
++  artifacts['comparison.json'] = { ...artifacts['comparison.json'], schema: 'material-facts-v7-postfreeze-correction/30',
++    previous_correction_manifest_sha256: previous.correction_manifest_sha256,
++    change_reason: "Apply finite ROUND40 safeguards: explicit 为/為/作为 upper and lower limits and directly attached 双倍/雙倍 remain qualified or unsupported base amounts rather than exact calculation results; supported hourly denominators accept 个/個 classifiers while retaining uncertainty and bound guards; finite RMB aliases share comparison identity without dropping qualifiers; immediately enclosing accounting parentheses retain unresolved sign. Explicit individual 应发/实发 complete wage totals reuse same-owner, period and event checks, and finite wage payment-date layouts retain complete month/day points and parallel 与 periods without inventing dates or receipt. Preserve original literals, code-point positions, event identity, historical no-upgrade behavior and every original model output; no new inference, label edits or training." };
++  // The archived v29 check verifies the complete previous chain. Compute the
++  // current acceptance assessment once, without re-inference or score rewriting.
++  const previousBytes = await readFile(resolve(base, 'corrections-v29/manifest.json'));
++  assert.equal(sha(previousBytes), previous.correction_manifest_sha256);
++  const code = [...Object.keys(JSON.parse(previousBytes).code_sha256),
++    `${EXPERIMENT}/verify-correction-v29.mjs`, `${EXPERIMENT}/corrective-assessment-v30.mjs`,
++    `${EXPERIMENT}/historical-v29-execution.mjs`];
++  const next = { ...manifest, schema: 'material-facts-v7-postfreeze-correction-manifest/30',
++    previous_correction_manifest_sha256: previous.correction_manifest_sha256,
++    code_sha256: { ...manifest.code_sha256, ...Object.fromEntries(await Promise.all(code.map(async path => [path, sha(await readFile(resolve(root, path)))]))) },
++    files: Object.fromEntries(Object.entries(artifacts).map(([path, value]) => [path, sha(JSON.stringify(value, null, 2) + '\n')])) };
++  return { artifacts, manifest: next };
++}
++
++if (await isMainModule(import.meta.url)) {
++  const args = process.argv.slice(2);
++  assert(args.length === 1 && ['--write', '--check'].includes(args[0]), 'Expected --write or --check');
++  const { artifacts, manifest } = await computeCorrectionV30();
++  const directory = resolve(ROOT, EXPERIMENT, 'corrections-v30');
++  if (args[0] === '--write') {
++    await publishArtifacts(directory, { ...artifacts, 'manifest.json': manifest });
++  } else {
++    same((await readdir(directory)).sort(), [...Object.keys(artifacts), 'manifest.json'].sort(), 'Correction v30 file set changed');
++    const manifestBytes = await readFile(resolve(directory, 'manifest.json'));
++    same(JSON.parse(manifestBytes), manifest, 'Correction v30 manifest changed');
++    assert.equal(sha(manifestBytes), sha(JSON.stringify(manifest, null, 2) + '\n'), 'Correction v30 manifest bytes changed');
++    for (const [path, value] of Object.entries(artifacts)) {
++      assert.equal(sha(await readFile(resolve(directory, path))), manifest.files[path], `Correction v30 bytes changed: ${path}`);
++      same(JSON.parse(await readFile(resolve(directory, path), 'utf8')), value, `Correction v30 recomputation differs: ${path}`);
++    }
++  }
++  console.log(JSON.stringify({ status: 'PASS', operation: args[0], first_run_and_corrections_v1_v2_v3_v4_v5_v6_v7_v8_v9_v10_v11_v12_v13_v14_v15_v16_v17_v18_v19_v20_v21_v22_v23_v24_v25_v26_v27_v28_v29_preserved: true,
++    model_requests: 0, new_holdout_run: false, original_manifest_sha256: manifest.first_result_manifest_sha256,
++    previous_correction_manifest_sha256: manifest.previous_correction_manifest_sha256,
++    corrected_models: artifacts['comparison.json'].models }));
++}
+--- a/scripts/material-facts-v7-historical-v29-execution.test.mjs
++++ b/scripts/material-facts-v7-historical-v29-execution.test.mjs
+@@ -0,0 +1,224 @@
++// Author synthetic contract checks. These exercise native Node subprocesses,
++// not model calls or a replacement implementation of historical scoring.
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { execFileSync } from 'node:child_process';
++import { createHash } from 'node:crypto';
++import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
++import { tmpdir } from 'node:os';
++import { dirname, join, resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
++const E = 'experiments/material-facts-v7';
++const url = name => pathToFileURL(resolve(ROOT, E, name)).href;
++const { historicalV29Target, prepareHistoricalV29Options } = await import(url('historical-v29-execution.mjs'));
++const { prepareHistoricalV28Options } = await import(url('historical-v28-execution.mjs'));
++const { CLEANUP_RESERVE_MS, POLICY_ID, POLICY_SHA256, ROOT_BUDGET_MS, STATE_ENV, historicalTarget,
++  prepareHistoricalOptions } = await import(url('historical-execution-policy-v1.mjs'));
++const POLICY = 'cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea';
++const ADAPTER = '0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c';
++const V28_BRIDGE = '8d25d053af5c4a9223713994e7aa3c885c31280f734c02c1544d878573361ce4';
++const sha = bytes => createHash('sha256').update(bytes).digest('hex');
++const target = resolve(ROOT, E, 'corrective-assessment-v29.mjs');
++const plainEnv = () => {
++  const env = { ...process.env };
++  delete env[STATE_ENV];
++  delete env.NODE_OPTIONS;
++  return env;
++};
++
++test('v29 execution bridge keeps all immutable v1 and v28 bridge byte bindings', async () => {
++  assert.equal(POLICY_SHA256, POLICY);
++  assert.equal(sha(await readFile(resolve(ROOT, E, 'historical-execution-v1.mjs'))), ADAPTER);
++  assert.equal(sha(await readFile(resolve(ROOT, E, 'historical-v28-execution.mjs'))), V28_BRIDGE);
++  assert.equal(historicalTarget(target, ['--check']), null);
++});
++
++test('only the exact v29 read-only CLI is accepted by the new bridge', () => {
++  assert.equal(historicalV29Target(target, ['--check']), `${E}/corrective-assessment-v29.mjs`);
++  for (const [path, args] of [[target, []], [target, ['--write']], [target, ['--check', '--write']],
++    [target, ['--check=1']], [resolve(ROOT, E, 'run.mjs'), ['--check']],
++    [resolve(ROOT, E, 'corrective-assessment-v8.mjs'), ['--check']],
++    [resolve(ROOT, E, 'corrective-assessment-v28.mjs'), ['--check']],
++    [resolve(ROOT, E, 'corrective-assessment-v30.mjs'), ['--check']],
++    [resolve(ROOT, 'other/corrective-assessment-v29.mjs'), ['--check']]]) {
++    assert.equal(historicalV29Target(path, args), null, `${path} ${args.join(' ')}`);
++  }
++});
++
++test('v29 child and older child inherit one absolute deadline and retain caller options without mutation', async () => {
++  const temporary = await mkdtemp(join(tmpdir(), 'anxin-v7-v29-budget-test-'));
++  try {
++    const receipt = resolve(temporary, 'events.jsonl'); await writeFile(receipt, '');
++    const now = Date.now(), state = { policy: POLICY_ID, policy_sha256: POLICY_SHA256, started_ms: now,
++      root_deadline_ms: now + ROOT_BUDGET_MS, deadline_ms: now + 120000, depth: 4, receipt_path: receipt };
++    const env = { CUSTOM: 'preserved', NODE_OPTIONS: '--no-warnings' };
++    const options = { env, timeout: 1, maxBuffer: 123456, encoding: 'buffer', windowsHide: true };
++    const before = JSON.stringify({ state, options }), processBefore = process.env[STATE_ENV];
++    const prepared = prepareHistoricalV29Options(target, ['--check'], options, state);
++    const child = JSON.parse(prepared.env[STATE_ENV]);
++    assert.equal(prepared.maxBuffer, options.maxBuffer);
++    assert.equal(prepared.encoding, options.encoding);
++    assert.equal(prepared.windowsHide, true);
++    assert.notEqual(prepared.env, env);
++    assert.equal(prepared.env.CUSTOM, 'preserved');
++    assert(prepared.timeout > 100000 && prepared.timeout <= 120000 - CLEANUP_RESERVE_MS);
++    assert.equal(child.root_deadline_ms, state.root_deadline_ms);
++    assert.equal(child.started_ms, state.started_ms);
++    assert.equal(child.deadline_ms, state.deadline_ms - CLEANUP_RESERVE_MS);
++    assert.equal(child.depth, state.depth + 1);
++    const older = prepareHistoricalV28Options(resolve(ROOT, E, 'corrective-assessment-v28.mjs'), ['--check'], prepared, child);
++    const grandchild = JSON.parse(older.env[STATE_ENV]);
++    assert.equal(grandchild.root_deadline_ms, state.root_deadline_ms);
++    assert.equal(grandchild.deadline_ms, child.deadline_ms - CLEANUP_RESERVE_MS);
++    assert.equal(grandchild.depth, child.depth + 1);
++    const oldest = prepareHistoricalOptions(resolve(ROOT, E, 'corrective-assessment-v8.mjs'), ['--check'], older, grandchild);
++    const third = JSON.parse(oldest.env[STATE_ENV]);
++    assert.equal(third.root_deadline_ms, state.root_deadline_ms);
++    assert.equal(third.deadline_ms, grandchild.deadline_ms - CLEANUP_RESERVE_MS);
++    assert.equal(third.depth, grandchild.depth + 1);
++    assert.equal(JSON.stringify({ state, options }), before);
++    assert.equal(process.env[STATE_ENV], processBefore);
++    const events = (await readFile(receipt, 'utf8')).trim().split('\n').map(JSON.parse);
++    assert.deepEqual(events.map(event => event.depth), [5, 6, 7]);
++    assert.equal(events[0].requested_timeout_ms, 1);
++  } finally { await rm(temporary, { recursive: true, force: true }); }
++});
++
++test('invalid and expired inherited states refuse before child allocation', async () => {
++  const temporary = await mkdtemp(join(tmpdir(), 'anxin-v7-v29-expired-test-'));
++  try {
++    const receipt = resolve(temporary, 'events.jsonl'); await writeFile(receipt, '');
++    const now = Date.now(), state = { policy: POLICY_ID, policy_sha256: POLICY_SHA256, started_ms: now - 1000,
++      root_deadline_ms: now + 1000, deadline_ms: now + 500, depth: 2, receipt_path: receipt };
++    assert.throws(() => prepareHistoricalV29Options(target, ['--check'], {}, state), { code: 'ETIMEDOUT' });
++    assert.throws(() => prepareHistoricalV29Options(target, ['--check'], {}, { ...state, policy_sha256: '0'.repeat(64) }), /Invalid historical/u);
++    assert.throws(() => prepareHistoricalV29Options(target, ['--check'], {}, undefined), /Invalid historical/u);
++    assert.throws(() => prepareHistoricalV29Options(target, ['--write'], {}, state), /exact read-only/u);
++    const events = (await readFile(receipt, 'utf8')).trim().split('\n').map(JSON.parse);
++    assert.equal(events.length, 1);
++    assert.equal(events[0].event, 'budget_exhausted');
++  } finally { await rm(temporary, { recursive: true, force: true }); }
++});
++
++async function fixture(action) {
++  const root = await mkdtemp(join(tmpdir(), 'anxin v7 v29 native contract '));
++  try {
++    const base = resolve(root, E); await mkdir(base, { recursive: true });
++    for (const name of ['historical-execution-policy-v1.mjs', 'historical-execution-v1.mjs', 'historical-v28-execution.mjs', 'historical-v29-execution.mjs'])
++      await cp(resolve(ROOT, E, name), resolve(base, name));
++    return await action(root, base);
++  } finally { await rm(root, { recursive: true, force: true }); }
++}
++
++test('native two-URL policy preload keeps sibling and nested checks inside the same budget; unrelated exec stays bounded', { timeout: 15000 }, async () => {
++  await fixture(async (root, base) => {
++    await writeFile(resolve(base, 'corrective-assessment-v8.mjs'), `
++import { readExecutionState } from './historical-execution-policy-v1.mjs';
++await new Promise(resolve => setTimeout(resolve, 30));
++console.log(JSON.stringify(readExecutionState()));
++`);
++    await writeFile(resolve(base, 'corrective-assessment-v28.mjs'), `
++import { execFileSync } from 'node:child_process';
++import { readExecutionState } from './historical-execution-policy-v1.mjs';
++import { fileURLToPath } from 'node:url';
++const state=readExecutionState();
++const nested=JSON.parse(execFileSync(process.execPath,[fileURLToPath(new URL('./corrective-assessment-v8.mjs',import.meta.url)),'--check'],{encoding:'utf8',timeout:1}));
++console.log(JSON.stringify({state,nested}));
++`);
++    await writeFile(resolve(base, 'corrective-assessment-v29.mjs'), `
++import { execFileSync } from 'node:child_process';
++import { runHistoricalV28CheckSync } from './historical-v28-execution.mjs';
++import { readFileSync } from 'node:fs';
++import { readExecutionState } from './historical-execution-policy-v1.mjs';
++import { fileURLToPath } from 'node:url';
++const state=readExecutionState();
++const nested=JSON.parse(runHistoricalV28CheckSync(fileURLToPath(new URL('./corrective-assessment-v28.mjs',import.meta.url)),['--check'],{encoding:'utf8',timeout:1}));
++let unrelated;
++try { execFileSync(process.execPath,['-e','setTimeout(()=>{},1000)'],{timeout:1,stdio:'pipe'}); }
++catch(error) { unrelated=error.code; }
++const events=readFileSync(state.receipt_path,'utf8').trim().split('\\n').map(JSON.parse);
++console.log(JSON.stringify({state,nested,unrelated,events,preloads:process.env.NODE_OPTIONS}));
++`);
++    // Load the original URL before the copied URL: both modules must use the
++    // same true native function and the same root start time.
++    const driver = resolve(root, 'driver.mjs');
++    await writeFile(driver, `
++import { existsSync } from 'node:fs';
++import { rootBudgetStartedMs } from ${JSON.stringify(url('historical-execution-policy-v1.mjs'))};
++import { runHistoricalV29CheckSync } from ${JSON.stringify(pathToFileURL(resolve(base, 'historical-v29-execution.mjs')).href)};
++const started=rootBudgetStartedMs();
++const run=()=>JSON.parse(runHistoricalV29CheckSync(${JSON.stringify(resolve(base, 'corrective-assessment-v29.mjs'))},['--check'],{encoding:'utf8',timeout:1,maxBuffer:65536,env:{...process.env,NODE_OPTIONS:${JSON.stringify(`--import=${url('historical-execution-policy-v1.mjs')}`)}}}));
++const first=run(),second=run();
++console.log(JSON.stringify({started,first,second,receipt_exists:[first,second].some(x=>existsSync(x.state.receipt_path))}));
++`);
++    const result = execFileSync(process.execPath, [driver], { cwd: root, env: plainEnv(), encoding: 'utf8', timeout: 10000, maxBuffer: 1024 ** 2, stdio: ['ignore', 'pipe', 'pipe'] });
++    const parsed = JSON.parse(result);
++    for (const item of [parsed.first, parsed.second]) {
++      assert.equal(item.state.depth, 1);
++      assert.equal(item.nested.state.depth, 2);
++      assert.equal(item.nested.nested.depth, 3);
++      assert.equal(item.state.started_ms, parsed.started);
++      assert.equal(item.nested.state.root_deadline_ms, item.state.root_deadline_ms);
++      assert.equal(item.nested.state.deadline_ms, item.state.deadline_ms - CLEANUP_RESERVE_MS);
++      assert.equal(item.nested.nested.root_deadline_ms, item.state.root_deadline_ms);
++      assert.equal(item.nested.nested.deadline_ms, item.nested.state.deadline_ms - CLEANUP_RESERVE_MS);
++      assert.equal(item.unrelated, 'ETIMEDOUT');
++      assert.equal(item.preloads.split(/\s+/u).length, 2);
++      for (const depth of [1, 2, 3]) {
++        assert.equal(item.events.filter(event => event.event === 'preload_active' && event.depth === depth).length, 1);
++        assert.equal(item.events.filter(event => event.event === 'child_budget' && event.depth === depth).length, 1);
++      }
++    }
++    assert.equal(parsed.first.state.root_deadline_ms, parsed.second.state.root_deadline_ms);
++    assert.equal(parsed.receipt_exists, false);
++  });
++});
++
++test('native v29 exit status, stdout and stderr survive the adapter, with owned receipt cleanup', { timeout: 10000 }, async () => {
++  await fixture(async (root, base) => {
++    await writeFile(resolve(base, 'corrective-assessment-v29.mjs'), `
++import { readExecutionState } from './historical-execution-policy-v1.mjs';
++console.log(JSON.stringify(readExecutionState()));
++console.error('synthetic validator exit detail');
++process.exit(7);
++`);
++    const driver = resolve(root, 'failure.mjs');
++    await writeFile(driver, `
++import { existsSync } from 'node:fs';
++import { runHistoricalV29CheckSync } from ${JSON.stringify(pathToFileURL(resolve(base, 'historical-v29-execution.mjs')).href)};
++try { runHistoricalV29CheckSync(${JSON.stringify(resolve(base, 'corrective-assessment-v29.mjs'))},['--check'],{encoding:'utf8',stdio:'pipe'}); process.exit(99); }
++catch(error) { const state=JSON.parse(error.stdout); console.log(JSON.stringify({status:error.status,stderr:error.stderr,receipt_exists:existsSync(state.receipt_path)})); }
++`);
++    const output = execFileSync(process.execPath, [driver], { cwd: root, env: plainEnv(), encoding: 'utf8', timeout: 5000, maxBuffer: 1024 ** 2, stdio: ['ignore', 'pipe', 'pipe'] });
++    assert.deepEqual(JSON.parse(output), { status: 7, stderr: 'synthetic validator exit detail\n', receipt_exists: false });
++  });
++});
++
++test('native inherited v1 state keeps its root deadline and receipt ownership in the caller', { timeout: 10000 }, async () => {
++  await fixture(async (root, base) => {
++    const receipt = resolve(root, 'caller-receipt.jsonl'); await writeFile(receipt, '');
++    const now = Date.now(), state = { policy: POLICY_ID, policy_sha256: POLICY_SHA256, started_ms: now,
++      root_deadline_ms: now + ROOT_BUDGET_MS, deadline_ms: now + 30000, depth: 3, receipt_path: receipt };
++    await writeFile(resolve(base, 'corrective-assessment-v29.mjs'), `
++import { readExecutionState } from './historical-execution-policy-v1.mjs';
++console.log(JSON.stringify(readExecutionState()));
++`);
++    const driver = resolve(root, 'inherited.mjs');
++    await writeFile(driver, `
++import { runHistoricalV29CheckSync } from ${JSON.stringify(pathToFileURL(resolve(base, 'historical-v29-execution.mjs')).href)};
++process.stdout.write(runHistoricalV29CheckSync(${JSON.stringify(resolve(base, 'corrective-assessment-v29.mjs'))},['--check'],{encoding:'utf8',timeout:1}));
++`);
++    const env = { ...plainEnv(), [STATE_ENV]: JSON.stringify(state) };
++    const output = execFileSync(process.execPath, [driver], { cwd: root, env, encoding: 'utf8', timeout: 5000, maxBuffer: 1024 ** 2, stdio: ['ignore', 'pipe', 'pipe'] });
++    const child = JSON.parse(output);
++    assert.equal(child.depth, 4);
++    assert.equal(child.started_ms, state.started_ms);
++    assert.equal(child.root_deadline_ms, state.root_deadline_ms);
++    assert.equal(child.deadline_ms, state.deadline_ms - CLEANUP_RESERVE_MS);
++    const events = (await readFile(receipt, 'utf8')).trim().split('\n').map(JSON.parse);
++    assert(events.some(event => event.event === 'child_budget' && event.depth === 4));
++    assert(events.some(event => event.event === 'preload_active' && event.depth === 4));
++  });
++});
+--- a/scripts/material-facts-v7-correction-v29-gates-independent.test.mjs
++++ b/scripts/material-facts-v7-correction-v29-gates-independent.test.mjs
+@@ -1,40 +1,35 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+-import { execFileSync } from 'node:child_process';
+ import { createHash } from 'node:crypto';
+-import { cp, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
++import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+ import { tmpdir } from 'node:os';
+ import { dirname, resolve } from 'node:path';
+ import { fileURLToPath, pathToFileURL } from 'node:url';
+ 
+ const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+ const E = 'experiments/material-facts-v7';
+-const { withCorrectionV28Code } = await import(pathToFileURL(resolve(ROOT, E, 'verify-correction-v28.mjs')));
+-const { historicalV28Target } = await import(pathToFileURL(resolve(ROOT, E, 'historical-v28-execution.mjs')));
+-const { historicalTarget } = await import(pathToFileURL(resolve(ROOT, E, 'historical-execution-policy-v1.mjs')));
++const { withCorrectionV29Code } = await import(pathToFileURL(resolve(ROOT, E, 'verify-correction-v29.mjs')));
++const { runHistoricalV29CheckSync } = await import(pathToFileURL(resolve(ROOT, E, 'historical-v29-execution.mjs')));
+ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+ const bytesAt = path => readFile(resolve(ROOT, E, path));
+ const ORIGINAL = '3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee';
+ const V28 = 'e223d58a86c6ae56aa5df36fb529ab5b6a66ad742f8f2c4a4c30def8aa4a2cbe';
+-const V9_BRIDGE = 'd02aa0b5881a9699d71478ed8e2a78f9b7f17dfda7c806cda58c788e1c3df10e';
+-const POLICY = 'cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea';
++const V29 = 'd66b3c2ccb1897c08168fc16372d2aafc35ca75d3ced64debbe5fa6fd536c74c';
+ 
+-// Author-prepared gate, independently reviewable by another agent. The two
+-// native v29 children each have a 960s outer bound, so the test allows both plus
+-// cleanup. Their historical v28 child and older children share the same 900s
+-// absolute deadline; the immutable v1 whitelist remains unchanged.
+-test('v29 preserves v28 and binds finite calendar-year, halving and owner/date-receipt safeguards without changing the historical execution policy', { timeout: 1980000 }, async t => {
++// Historical adaptation of the author-prepared v29 gate: another agent can
++// independently review it. No inference, publication or historical byte edits.
++test('archived v29 preserves v28 and its 106 exact dependencies without accepting byte drift', { timeout: 960000 }, async t => {
+   const protectedNames = ['freeze.json', 'result-manifest.json', 'corrections/manifest.json',
+-    ...[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29].map(version => `corrections-v${version}/manifest.json`),
+-    'correction-code-v28/manifest.json', 'historical-execution-v1.mjs', 'historical-execution-policy-v1.mjs', 'historical-v9-execution.mjs'];
++    ...[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28].map(version => `corrections-v${version}/manifest.json`),
++    'correction-code-v28/manifest.json', 'correction-code-v29/manifest.json',
++    'historical-execution-v1.mjs', 'historical-execution-policy-v1.mjs', 'historical-v28-execution.mjs'];
+   const before = Object.fromEntries(await Promise.all(protectedNames.map(async path => [path, sha(await bytesAt(path))])));
+   assert.equal(before['result-manifest.json'], ORIGINAL);
+   assert.equal(before['corrections-v28/manifest.json'], V28);
+-  assert.equal(before['historical-execution-policy-v1.mjs'], POLICY);
+-  assert.equal(before['historical-v9-execution.mjs'], V9_BRIDGE);
++  assert.equal(before['corrections-v29/manifest.json'], V29);
+   const manifestBytes = await bytesAt('corrections-v29/manifest.json'), manifest = JSON.parse(manifestBytes);
+ 
+-  await t.test('the current v29 manifest binds 106 exact dependencies in the v7 experiment family', async () => {
++  await t.test('the archived v29 manifest binds 106 exact dependencies in the v7 experiment family', async () => {
+     assert.equal(manifest.schema, 'material-facts-v7-postfreeze-correction-manifest/29');
+     assert.equal(JSON.parse(await bytesAt('corrections-v29/comparison.json')).schema, 'material-facts-v7-postfreeze-correction/29');
+     assert.deepEqual(manifestBytes, Buffer.from(JSON.stringify(manifest, null, 2) + '\n'));
+@@ -42,50 +37,46 @@
+     assert.equal(manifest.first_result_manifest_sha256, ORIGINAL);
+     assert.equal(manifest.inference, false);
+     assert.equal(Object.keys(manifest.code_sha256).length, 106);
+-    for (const path of ['lib/material-money-v4.ts', 'lib/material-fact-source-review.ts', 'lib/material-fact-arithmetic-review.ts', `${E}/verify-correction-v28.mjs`, `${E}/corrective-assessment-v29.mjs`, `${E}/historical-v28-execution.mjs`,
+-      `${E}/historical-execution-v1.mjs`, `${E}/historical-execution-policy-v1.mjs`]) assert(path in manifest.code_sha256, path);
+-    for (const [path, digest] of Object.entries(manifest.code_sha256)) assert.equal(sha(await readFile(resolve(ROOT, path))), digest, path);
+-    assert.equal(manifest.code_sha256[`${E}/historical-execution-policy-v1.mjs`], POLICY);
+-    assert.equal(manifest.code_sha256[`${E}/historical-v9-execution.mjs`], V9_BRIDGE);
+-    assert(historicalTarget(resolve(ROOT, E, 'corrective-assessment-v8.mjs'), ['--check']));
+-    assert(historicalV28Target(resolve(ROOT, E, 'corrective-assessment-v28.mjs'), ['--check']));
+-    assert.equal(historicalV28Target(resolve(ROOT, E, 'corrective-assessment-v28.mjs'), ['--write']), null);
+-    assert.equal(historicalV28Target(resolve(ROOT, E, 'corrective-assessment-v29.mjs'), ['--check']), null);
+-    assert.equal(historicalTarget(resolve(ROOT, E, 'verify-correction-v28.mjs'), []), null);
+-    assert.equal(historicalTarget(resolve(ROOT, E, 'corrective-assessment-v28.mjs'), ['--check']), null);
++    for (const path of ['lib/material-money-v4.ts', 'lib/material-fact-source-review.ts', `${E}/verify-correction-v28.mjs`, `${E}/corrective-assessment-v29.mjs`,
++      `${E}/historical-execution-v1.mjs`, `${E}/historical-execution-policy-v1.mjs`])
++      assert(path in manifest.code_sha256, path);
++    for (const [path, digest] of Object.entries(manifest.code_sha256))
++      assert.equal(sha(await bytesAt(`correction-code-v29/${path}.snapshot`)), digest, path);
+   });
+ 
+-  await t.test('the v28 wrapper restores all 103 historical dependencies and cleans up when the callback throws', async () => {
+-    const archived = JSON.parse(await bytesAt('corrections-v28/manifest.json'));
+-    let owned;
+-    const expected = new Error('Synthetic v28 callback failure');
+-    await assert.rejects(withCorrectionV28Code(async temporary => {
+-      owned = temporary;
+-      for (const [path, digest] of Object.entries(archived.code_sha256)) assert.equal(sha(await readFile(resolve(temporary, path))), digest, path);
+-      assert.equal(sha(await readFile(resolve(temporary, E, 'historical-execution-policy-v1.mjs'))), POLICY);
+-      throw expected;
+-    }, ROOT), error => error === expected);
+-    assert(owned);
+-    await assert.rejects(readFile(resolve(owned, 'package.json')), { code: 'ENOENT' });
++  await t.test('the real v29 wrapper refuses rewritten historical manifests and changed source before callback', async () => {
++    for (const change of ['manifest', 'snapshot']) {
++      const temporary = await realpath(await mkdtemp(resolve(tmpdir(), 'anxin-v7-v29-history-negative-')));
++      try {
++        await mkdir(resolve(temporary, E, 'corrections-v29'), { recursive: true });
++        await cp(resolve(ROOT, E, 'correction-code-v29'), resolve(temporary, E, 'correction-code-v29'), { recursive: true });
++        const altered = change === 'manifest' ? Buffer.concat([manifestBytes, Buffer.from('\n')]) : manifestBytes;
++        assert.deepEqual(JSON.parse(altered), manifest);
++        await writeFile(resolve(temporary, E, 'corrections-v29/manifest.json'), altered);
++        if (change === 'snapshot') {
++          const target = resolve(temporary, E, 'correction-code-v29/lib/material-fact-source-review.ts.snapshot');
++          await writeFile(target, Buffer.concat([await readFile(target), Buffer.from('\n// Independent archived byte drift.\n')]));
++        }
++        let entered = false;
++        await assert.rejects(withCorrectionV29Code(async () => { entered = true; }, temporary), /Correction code changed|Expected values to be strictly equal/u);
++        assert.equal(entered, false, change);
++      } finally { await rm(temporary, { recursive: true, force: true }); }
++    }
+   });
+ 
+-  const temporary = await realpath(await mkdtemp(resolve(tmpdir(), 'anxin-v7-v29-current-negative-')));
+-  try {
+-    for (const path of ['lib', 'scripts', 'experiments', 'docs', 'package.json']) await cp(resolve(ROOT, path), resolve(temporary, path), { recursive: true });
++  await withCorrectionV29Code(async temporary => {
+     const target = resolve(temporary, E, 'corrections-v29/manifest.json');
+     const refused = expected => {
+       let failure;
+       try {
+-        // v29 stays outside the historical target lists. Its current
+-        // controller restores v28 in-process, then uses the narrow v28 bridge.
+-        execFileSync(process.execPath, [resolve(temporary, E, 'corrective-assessment-v29.mjs'), '--check'],
+-          { cwd: temporary, stdio: 'pipe', timeout: 960000, maxBuffer: 16 * 1024 ** 2 });
++        runHistoricalV29CheckSync(resolve(temporary, E, 'corrective-assessment-v29.mjs'), ['--check'],
++          { cwd: temporary, stdio: 'pipe', timeout: 180000, maxBuffer: 16 * 1024 ** 2 });
+       } catch (error) { failure = error; }
+-      assert(failure, 'Changed current v29 bytes passed their sealed binding.');
++      assert(failure, 'Changed archived bytes passed their sealed binding.');
+       assert.equal(failure.status, 1, 'Refusal must be a verifier result, not fixture timeout.');
+       assert.match(String(failure.stderr), expected);
+     };
+-    await t.test('the actual v29 CLI refuses JSON-equivalent current manifest whitespace', async () => {
++    await t.test('the actual archived v29 CLI refuses JSON-equivalent manifest whitespace', async () => {
+       const altered = Buffer.concat([manifestBytes, Buffer.from('\n')]);
+       assert.deepEqual(JSON.parse(altered), manifest);
+       assert.notEqual(sha(altered), sha(manifestBytes));
+@@ -93,12 +84,12 @@
+       refused(/Correction v29 manifest bytes changed/u);
+       await writeFile(target, manifestBytes);
+     });
+-    await t.test('the actual v29 CLI refuses comment-only event cue guard drift after archived v28 verification', async () => {
+-      const guard = resolve(temporary, 'lib/material-fact-event-review.ts');
+-      await writeFile(guard, Buffer.concat([await readFile(guard), Buffer.from('\n// Synthetic current event cue guard byte drift.\n')]));
++    await t.test('the actual archived v29 CLI refuses comment-only execution-adapter drift after historical verification', async () => {
++      const adapter = resolve(temporary, E, 'historical-execution-v1.mjs');
++      await writeFile(adapter, Buffer.concat([await readFile(adapter), Buffer.from('\n// Independent archived execution adapter byte drift.\n')]));
+       refused(/Correction v29 manifest changed/u);
+     });
+-  } finally { await rm(temporary, { recursive: true, force: true }); }
++  }, ROOT);
+   for (const [path, digest] of Object.entries(before)) assert.equal(sha(await bytesAt(path)), digest, path);
+-  console.log(JSON.stringify({ evidence: 'v29_author_gate_protected_bytes_unchanged', manifests: before, model_requests: 0 }));
++  console.log(JSON.stringify({ evidence: 'v29_archived_gate_protected_bytes_unchanged', manifests: before, model_requests: 0 }));
+ });
+--- a/scripts/material-facts-v7-correction-v30-gates-independent.test.mjs
++++ b/scripts/material-facts-v7-correction-v30-gates-independent.test.mjs
+@@ -0,0 +1,104 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { execFileSync } from 'node:child_process';
++import { createHash } from 'node:crypto';
++import { cp, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
++import { tmpdir } from 'node:os';
++import { dirname, resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
++const E = 'experiments/material-facts-v7';
++const { withCorrectionV29Code } = await import(pathToFileURL(resolve(ROOT, E, 'verify-correction-v29.mjs')));
++const { historicalV29Target } = await import(pathToFileURL(resolve(ROOT, E, 'historical-v29-execution.mjs')));
++const { historicalTarget } = await import(pathToFileURL(resolve(ROOT, E, 'historical-execution-policy-v1.mjs')));
++const sha = bytes => createHash('sha256').update(bytes).digest('hex');
++const bytesAt = path => readFile(resolve(ROOT, E, path));
++const ORIGINAL = '3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee';
++const V29 = 'd66b3c2ccb1897c08168fc16372d2aafc35ca75d3ced64debbe5fa6fd536c74c';
++const V9_BRIDGE = 'd02aa0b5881a9699d71478ed8e2a78f9b7f17dfda7c806cda58c788e1c3df10e';
++const POLICY = 'cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea';
++
++// Author-prepared gate, independently reviewable by another agent. The two
++// native v30 children each have a 960s outer bound, so the test allows both plus
++// cleanup. Their historical v29 child and older children share the same 900s
++// absolute deadline; the immutable v1 whitelist remains unchanged.
++test('v30 preserves v29 and binds finite named-limit, double-multiplier, hourly, accounting and wage/date safeguards without changing the historical execution policy', { timeout: 1980000 }, async t => {
++  const protectedNames = ['freeze.json', 'result-manifest.json', 'corrections/manifest.json',
++    ...[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29].map(version => `corrections-v${version}/manifest.json`),
++    'correction-code-v29/manifest.json', 'historical-execution-v1.mjs', 'historical-execution-policy-v1.mjs', 'historical-v9-execution.mjs'];
++  const before = Object.fromEntries(await Promise.all(protectedNames.map(async path => [path, sha(await bytesAt(path))])));
++  assert.equal(before['result-manifest.json'], ORIGINAL);
++  assert.equal(before['corrections-v29/manifest.json'], V29);
++  assert.equal(before['historical-execution-policy-v1.mjs'], POLICY);
++  assert.equal(before['historical-v9-execution.mjs'], V9_BRIDGE);
++  const manifestBytes = await bytesAt('corrections-v30/manifest.json'), manifest = JSON.parse(manifestBytes);
++
++  await t.test('the current v30 manifest binds 109 exact dependencies in the v7 experiment family', async () => {
++    assert.equal(manifest.schema, 'material-facts-v7-postfreeze-correction-manifest/30');
++    assert.equal(JSON.parse(await bytesAt('corrections-v30/comparison.json')).schema, 'material-facts-v7-postfreeze-correction/30');
++    assert.deepEqual(manifestBytes, Buffer.from(JSON.stringify(manifest, null, 2) + '\n'));
++    assert.equal(manifest.previous_correction_manifest_sha256, V29);
++    assert.equal(manifest.first_result_manifest_sha256, ORIGINAL);
++    assert.equal(manifest.inference, false);
++    assert.equal(Object.keys(manifest.code_sha256).length, 109);
++    for (const path of ['lib/material-money-v4.ts', 'lib/material-fact-source-review.ts', 'lib/material-fact-arithmetic-review.ts', `${E}/verify-correction-v29.mjs`, `${E}/corrective-assessment-v30.mjs`, `${E}/historical-v29-execution.mjs`,
++      `${E}/historical-execution-v1.mjs`, `${E}/historical-execution-policy-v1.mjs`]) assert(path in manifest.code_sha256, path);
++    for (const [path, digest] of Object.entries(manifest.code_sha256)) assert.equal(sha(await readFile(resolve(ROOT, path))), digest, path);
++    assert.equal(manifest.code_sha256[`${E}/historical-execution-policy-v1.mjs`], POLICY);
++    assert.equal(manifest.code_sha256[`${E}/historical-v9-execution.mjs`], V9_BRIDGE);
++    assert(historicalTarget(resolve(ROOT, E, 'corrective-assessment-v8.mjs'), ['--check']));
++    assert(historicalV29Target(resolve(ROOT, E, 'corrective-assessment-v29.mjs'), ['--check']));
++    assert.equal(historicalV29Target(resolve(ROOT, E, 'corrective-assessment-v29.mjs'), ['--write']), null);
++    assert.equal(historicalV29Target(resolve(ROOT, E, 'corrective-assessment-v30.mjs'), ['--check']), null);
++    assert.equal(historicalTarget(resolve(ROOT, E, 'verify-correction-v29.mjs'), []), null);
++    assert.equal(historicalTarget(resolve(ROOT, E, 'corrective-assessment-v29.mjs'), ['--check']), null);
++  });
++
++  await t.test('the v29 wrapper restores all 106 historical dependencies and cleans up when the callback throws', async () => {
++    const archived = JSON.parse(await bytesAt('corrections-v29/manifest.json'));
++    let owned;
++    const expected = new Error('Synthetic v29 callback failure');
++    await assert.rejects(withCorrectionV29Code(async temporary => {
++      owned = temporary;
++      for (const [path, digest] of Object.entries(archived.code_sha256)) assert.equal(sha(await readFile(resolve(temporary, path))), digest, path);
++      assert.equal(sha(await readFile(resolve(temporary, E, 'historical-execution-policy-v1.mjs'))), POLICY);
++      throw expected;
++    }, ROOT), error => error === expected);
++    assert(owned);
++    await assert.rejects(readFile(resolve(owned, 'package.json')), { code: 'ENOENT' });
++  });
++
++  const temporary = await realpath(await mkdtemp(resolve(tmpdir(), 'anxin-v7-v30-current-negative-')));
++  try {
++    for (const path of ['lib', 'scripts', 'experiments', 'docs', 'package.json']) await cp(resolve(ROOT, path), resolve(temporary, path), { recursive: true });
++    const target = resolve(temporary, E, 'corrections-v30/manifest.json');
++    const refused = expected => {
++      let failure;
++      try {
++        // v30 stays outside the historical target lists. Its current
++        // controller restores v29 in-process, then uses the narrow v29 bridge.
++        execFileSync(process.execPath, [resolve(temporary, E, 'corrective-assessment-v30.mjs'), '--check'],
++          { cwd: temporary, stdio: 'pipe', timeout: 960000, maxBuffer: 16 * 1024 ** 2 });
++      } catch (error) { failure = error; }
++      assert(failure, 'Changed current v30 bytes passed their sealed binding.');
++      assert.equal(failure.status, 1, 'Refusal must be a verifier result, not fixture timeout.');
++      assert.match(String(failure.stderr), expected);
++    };
++    await t.test('the actual v30 CLI refuses JSON-equivalent current manifest whitespace', async () => {
++      const altered = Buffer.concat([manifestBytes, Buffer.from('\n')]);
++      assert.deepEqual(JSON.parse(altered), manifest);
++      assert.notEqual(sha(altered), sha(manifestBytes));
++      await writeFile(target, altered);
++      refused(/Correction v30 manifest bytes changed/u);
++      await writeFile(target, manifestBytes);
++    });
++    await t.test('the actual v30 CLI refuses comment-only event cue guard drift after archived v29 verification', async () => {
++      const guard = resolve(temporary, 'lib/material-fact-event-review.ts');
++      await writeFile(guard, Buffer.concat([await readFile(guard), Buffer.from('\n// Synthetic current event cue guard byte drift.\n')]));
++      refused(/Correction v30 manifest changed/u);
++    });
++  } finally { await rm(temporary, { recursive: true, force: true }); }
++  for (const [path, digest] of Object.entries(before)) assert.equal(sha(await bytesAt(path)), digest, path);
++  console.log(JSON.stringify({ evidence: 'v30_author_gate_protected_bytes_unchanged', manifests: before, model_requests: 0 }));
++});
