@@ -30,6 +30,14 @@ const RANGE_UNIT = `(?:元(?!旦|宵|年|月|素|件|音)|[圆圓](?!满|滿|形
 const RANGE_LINK = `${RANGE_SPACE}(?:${RANGE_UNIT}${RANGE_SPACE})?(?:${MONEY_BOUND_SUFFIX}${RANGE_SPACE})?${RANGE_CURRENCIES}(?:至|到|[~～—–-])${RANGE_SPACE}(?:(?:${RANGE_CURRENCY}|${MONEY_BOUND_PREFIX}|(?<!最)近)${RANGE_SPACE}){0,3}`;
 const RANGE_NUMERIC_AFTER = new RegExp(`^${RANGE_LINK}[${NUMERALS}]`, 'iu');
 const RANGE_TIME_AFTER = new RegExp(`^${RANGE_LINK}(?:[0-9]{4}[-/.][0-9]{1,2}(?:[-/.][0-9]{1,2})?(?![0-9])|[${NUMERALS}]+${RANGE_SPACE}(?:年|个?月|日|天|小时|分钟|秒))`, 'iu');
+
+/** Share the established numeric-continuation fallback with source layout.
+ * Complete monetary ranges are checked first by the endpoint guard. */
+export function hasUnfinishedMoneyRangeAfter(after: string): boolean {
+  const detection = monetaryDetectionView(after);
+  return RANGE_NUMERIC_AFTER.test(detection) && !RANGE_TIME_AFTER.test(detection);
+}
+
 const TOKEN = new RegExp(`(?:人民[币幣]\\s*)?[¥￥]?\\s*(?:(?:\\d[\\d,，]*(?:\\.\\d+)?)\\s*(?:万|亿)?|[${LOWER}壹贰叁肆伍陆柒捌玖拾佰仟]+)\\s*[元圆圓](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`, 'gu');
 
 function result(rawValue: string, status: CandidateNormalization['status'], reason: string, match?: { text: string; index: number; amount: string }): CandidateNormalization {
@@ -230,7 +238,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
       else if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
       else if (suffixRate && (candidate.meaning !== 'rate' || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== rateUnits[suffixRate[1]]))) normalized = result(candidate.value, 'rate_unit_mismatch', '原文紧贴的费率单位与金额角色或候选费率单位冲突。');
       else if (isMoneyRangeEndpoint(rangeBefore, rangeToken, rangeAfter)) normalized = result(candidate.value, 'range', '当前金额在原文中直接属于区间端点。');
-      else if (RANGE_NUMERIC_AFTER.test(monetaryDetectionView(arithmeticAfter)) && !RANGE_TIME_AFTER.test(monetaryDetectionView(arithmeticAfter))) normalized = result(candidate.value, 'uncertain', '连接词后的数字未形成完整金额或明确时间，不能确认被截取的数值可用。');
+      else if (hasUnfinishedMoneyRangeAfter(arithmeticAfter)) normalized = result(candidate.value, 'uncertain', '连接词后的数字未形成完整金额或明确时间，不能确认被截取的数值可用。');
       else if (hasAttachedMoneyArithmetic(arithmeticBefore, arithmeticAfter)) normalized = result(candidate.value, 'unsupported', '当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。');
       else if (qualifierStatus) normalized = result(candidate.value, qualifierStatus, '当前金额在原文中直接附着数量不定、概数界限或正负限定，未截取为精确正数。');
       else if (/(?:可能|或许|大概|估计|待核|暂计|暂定)(?:为|工资|金额|人民币|\s)*$/u.test(before) || /(?:或|或者)\s*$/u.test(before)

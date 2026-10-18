@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const root = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const load = path => import(pathToFileURL(resolve(root, path)));
+const { ingestRuntimeCandidates: fresh } = await load('lib/material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates: legacy } = await load('lib/material-facts-v3.ts');
+const { reviewFactsAgainstSources: review } = await load('lib/material-fact-source-review.ts');
+const { normalizeCandidateValueV4: normalize } = await load('lib/material-money-v4.ts');
+for (const path of ['lib/material-money-v4.ts', 'lib/material-fact-range-review.ts', 'lib/material-fact-source-review.ts']) {
+  console.log(JSON.stringify({ path, sha256: createHash('sha256').update(await readFile(resolve(root, path))).digest('hex') }));
+}
+const cases = [];
+for (const tail of ['4', '约4', 'RMB4', '4个月', '2024年5月']) {
+  const expected = ['4个月', '2024年5月'].includes(tail) ? '30000.00' : null;
+  for (const blocks of [['王甲工资3万元至' + tail + '。'], ['王甲工资3万元至\n' + tail + '。'], ['王甲工资3万元至', tail + '。']]) cases.push({ blocks, expected });
+}
+cases.push(
+  { blocks: ['王甲工资3万元。', '李乙工资至4万元。'], expected: '30000.00' },
+  { blocks: ['王甲工资3万元至。', '4万元。'], expected: '30000.00' },
+  { blocks: ['王甲工资3万元至', '李乙工资4万元。'], expected: '30000.00' },
+);
+for (const { blocks, expected } of cases) test('incomplete money endpoint survives layout as unavailable; time and separate events stay exact: ' + JSON.stringify(blocks), () => {
+  const source = { id: 'unfinished-range-layout', name: 'synthetic.txt', sha256: 'e'.repeat(64), analysisRevision: 15, ready: true,
+    blocks: blocks.map((text, i) => ({ id: 'b' + (i + 1), text, page: 1, bbox: null, confidence: null })) };
+  const candidate = { kind: 'money', value: '3万元', quote: '3万元', blockId: 'b1', subject: '王甲', scope: 'individual', meaning: 'due_total', completeness: 'complete', period: null, rateUnit: null, assertion: 'narrated' };
+  const raw = JSON.stringify({ schemaVersion: 3, candidates: [candidate] });
+  const ingest = fn => fn(emptyFactState(15), source, { raw }, 'unfinished-range-layout', 'synthetic', '2026-10-18T08:00:00.000Z', null);
+  const state = ingest(fresh), old = ingest(legacy);
+  assert.equal(state.materials[0].raw, raw);
+  assert.equal(state.materials[0].candidates.length, 1);
+  assert.deepEqual(state.materials[0].candidates[0].representation, candidate);
+  const quoteStart = source.blocks[0].text.indexOf(candidate.quote);
+  assert.equal(state.materials[0].candidates[0].start, Array.from(source.blocks[0].text.slice(0, quoteStart)).length);
+  assert.equal(state.materials[0].candidates[0].end, Array.from(source.blocks[0].text.slice(0, quoteStart)).length + Array.from(candidate.quote).length);
+  assert.deepEqual(state.confirmations, { due: null, paid: null });
+  const fact = old.materials[0].candidates[0];
+  fact.amount = '30000.00';
+  fact.normalization = { rawValue: candidate.value, status: 'exact', amount: fact.amount, matchedText: candidate.value, span: { start: 0, end: 3 }, reason: 'Synthetic unsafe exact history.' };
+  const before = JSON.stringify(old), historical = review(old, [source]);
+  assert.equal(JSON.stringify(old), before);
+  assert.equal(historical.materials[0].raw, raw);
+  const amounts = { fresh: state.materials[0].candidates[0].amount, history: historical.materials[0].candidates[0].amount };
+  if (blocks.length === 1) assert.equal(normalize({ ...candidate, quote: blocks[0] }).amount, expected);
+  console.log(JSON.stringify({ blocks, amounts, expected }));
+  assert.deepEqual(amounts, { fresh: expected, history: expected });
+});
