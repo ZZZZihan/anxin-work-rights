@@ -224,7 +224,10 @@ export function classifyMonetaryExpression(value: string): MonetaryExpressionCla
   if (MASKED.test(value) && /工资|薪资|薪酬|金额|款项|欠薪|报酬|劳务费|付款|应付|实付|已付|尚欠|欠款/u.test(value)) return { kind: 'monetary', normalization };
   const count = `[${NUMERALS}]+`;
   const date = `(?:[${NUMERALS}]+\\s*年(?:\\s*(?:[${NUMERALS}]+月份?|元月份?|元旦)(?:\\s*[${NUMERALS}]+\\s*日)?)?|\\d{4}[-/.]\\d{1,2}(?:[-/.]\\d{1,2})?)`;
-  const wageStage = `(?:${date}(?:\\s*(?:至|到|[~～—–-])\\s*${date})?|[${NUMERALS}]+月份?|元月份?|元旦|某月|本月|上月|下月|每月|离职前|入职前|入职后|试用期)`;
+  // Keep the definite relative-month forms aligned with sourceRateUnit's
+  // calendar-period boundary; the anchored wage grammar still requires no amount.
+  const relativeMonth = '(?:上(?:一?个)?|下(?:一?个)?|本|当|该|这(?:个)?|某|每)月';
+  const wageStage = `(?:${date}(?:\\s*(?:至|到|[~～—–-])\\s*${date})?|[${NUMERALS}]+月份?|元月份?|元旦|${relativeMonth}|离职前|入职前|入职后|试用期)`;
   const wageDescription = new RegExp(`^(?:${wageStage}\\s*)?(?:的)?(?:基本|其他|其余|全部|正常|岗位|绩效|应付|已付|实付|税前|税后)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:合计|总额)?$`, 'u');
   if (wageDescription.test(value.trim()) && !MASKED.test(value)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为工资名称或期间描述，未表述金额。') };
   const ordinaryWord = /^(?:元月份?|元旦|元宵(?:节)?|元年|元素|元件|元音|[圆圓](?:满|滿|形|圈|周))$/u;

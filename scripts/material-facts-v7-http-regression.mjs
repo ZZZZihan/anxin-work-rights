@@ -265,6 +265,42 @@ try {
     durableSnapshots.push({ name: 'two-payments', item, state: stored(item.caseId) });
     return { acceptedPayments: 2, distinctSourcePositions: true, automaticSummation: false };
   });
+  await scenario('ambiguous_equal_payment_quotes_preserve_both_observations_for_review', async () => {
+    const attributes = { meaning: 'payment', completeness: 'partial', period: null };
+    const [item] = await fixture('ambiguous-payments', [{ text: '测试王甲第一次收到四万元。测试王甲第二次收到四万元。',
+      candidates: [money('四万元', '四万元', attributes), money('四万元', '四万元', attributes)] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 2); assert.equal(material.rejected.length, 0);
+    assert.notEqual(material.candidates[0].id, material.candidates[1].id);
+    assert(material.candidates.every(candidate => candidate.reviewIssues.length > 0));
+    durableSnapshots.push({ name: 'ambiguous-payments', item, state: stored(item.caseId) });
+    return { acceptedForReview: 2, uniqueEventClaim: false, rawRetained: true, automaticSummation: false };
+  });
+  for (const reverse of [false, true]) await scenario(`narrative_and_minimal_amount_both_survive_${reverse ? 'minimal' : 'narrative'}_first`, async () => {
+    const quote = '测试王甲声称公司应支付四万元工资';
+    const attributes = { period: null, meaning: 'arrears', completeness: 'not_applicable', assertion: 'claimed' };
+    const entries = [money(quote, quote, attributes), money('四万元', quote, attributes)];
+    if (reverse) entries.reverse();
+    const [item] = await fixture(`narrative-order-${reverse}`, [{ text: `${quote}。`, candidates: entries }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 2); assert.equal(material.rejected.length, 0);
+    assert.deepEqual(material.candidates.map(candidate => candidate.value), entries.map(entry => entry.value));
+    durableSnapshots.push({ name: `narrative-order-${reverse}`, item, state: stored(item.caseId) });
+    return { acceptedForReview: 2, minimalValuePreserved: true, order: reverse ? 'minimal-first' : 'narrative-first' };
+  });
+  await scenario('relative_month_description_is_rejected_but_unknown_amount_is_retained', async () => {
+    const attributes = { period: null, meaning: 'other_money', completeness: 'not_applicable' };
+    const [item] = await fixture('relative-month-no-money', [{ text: '测试王甲这个月工资。测试王甲当月工资未明确。', candidates: [
+      money('这个月工资', '测试王甲这个月工资', attributes), money('当月工资未明确', '测试王甲当月工资未明确', attributes),
+    ] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 1);
+    assert.equal(material.rejected[0].index, 0); assert.match(material.rejected[0].reason, /没有金额表达/u);
+    assert.equal(material.candidates[0].value, '当月工资未明确'); assert.equal(material.candidates[0].amount, null);
+    assert.equal(JSON.parse(material.raw).candidates.length, 2);
+    durableSnapshots.push({ name: 'relative-month-no-money', item, state: stored(item.caseId) });
+    return { acceptedUnknownForReview: 1, rejectedDescription: 1, amount: null, rawRetained: true };
+  });
   const guards = [
     { name: 'range', text: '测试王甲2026年1月完整应付工资四万至五万元。', value: '四万至五万元', status: 'range' },
     { name: 'foreign-currency', text: '测试王甲2026年1月完整应付工资美元四万元。', value: '四万元', quote: '四万元', status: 'unsupported' },
