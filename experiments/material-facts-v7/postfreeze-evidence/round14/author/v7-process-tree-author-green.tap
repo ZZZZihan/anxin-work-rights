@@ -1,0 +1,48 @@
+{"evidence":"production_http_lifecycle_under_test","sha256":"1ee61e589ad6188891065517af2da0529ea0debb4788560b1baa6ae6677e54b4"}
+✔ stop owned HTTP launcher and listening descendant: default (288.532334ms)
+✖ stop owned HTTP launcher and listening descendant: ignore-term (5221.154125ms)
+✖ stop owned HTTP launcher and listening descendant: redirected-ignore-term (5224.900834ms)
+✔ stop owned HTTP launcher and listening descendant: launcher-exits (315.972833ms)
+✔ shutdown only signals its own detached process group (388.897916ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11562.956208
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-http-process-tree.test.mjs:75:92
+✖ stop owned HTTP launcher and listening descendant: ignore-term (5221.154125ms)
+  Error: Command failed: /bin/ps -axo pid=,pgid=,stat=
+  
+      at genericNodeError (node:internal/errors:999:15)
+      at wrappedFn (node:internal/errors:544:14)
+      at ChildProcess.exithandler (node:child_process:420:12)
+      at ChildProcess.emit (node:events:514:20)
+      at maybeClose (node:internal/child_process:1156:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:334:5) {
+    code: null,
+    killed: true,
+    signal: 'SIGKILL',
+    cmd: '/bin/ps -axo pid=,pgid=,stat='
+  }
+
+test at scripts/material-facts-v7-http-process-tree.test.mjs:75:92
+✖ stop owned HTTP launcher and listening descendant: redirected-ignore-term (5224.900834ms)
+  Error: Command failed: /bin/ps -axo pid=,pgid=,stat=
+  
+      at genericNodeError (node:internal/errors:999:15)
+      at wrappedFn (node:internal/errors:544:14)
+      at ChildProcess.exithandler (node:child_process:420:12)
+      at ChildProcess.emit (node:events:514:20)
+      at maybeClose (node:internal/child_process:1156:16)
+      at ChildProcess._handle.onexit (node:internal/child_process:334:5) {
+    code: null,
+    killed: true,
+    signal: 'SIGKILL',
+    cmd: '/bin/ps -axo pid=,pgid=,stat='
+  }

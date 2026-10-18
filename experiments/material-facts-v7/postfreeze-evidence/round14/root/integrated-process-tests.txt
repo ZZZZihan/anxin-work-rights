@@ -1,0 +1,43 @@
+✔ actual cancel stopWorker closes redirected descendant: redirected-ignore-term (5301.262ms)
+✔ actual cancel stopWorker closes redirected descendant: launcher-exits (5361.438917ms)
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5059,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":15619,"port":63002},"other":{"pid":15613,"port":63000}},"failure":null,"reaped_owned_pids":[15608],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✔ v7: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (5462.927209ms)
+{"evidence":"round14_runner_bytes","runner":"cancel","sha256":"c0fc1f02fde789cfd790e18364b2a5bf13aa9e370cdd4514052f784f64f5b459"}
+{"evidence":"round14_native_process_observation","runner":"cancel","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5034,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":15925,"port":63034},"other":{"pid":15921,"port":63031}},"failure":null,"reaped_owned_pids":[15914],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✔ cancel: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (5446.797666ms)
+{"evidence":"round14_runner_bytes","runner":"poll","sha256":"abb3eccc8fb399dcd9a7a44eb1b8aa48730a95b0b7366a14886261c16046a335"}
+{"evidence":"round14_native_process_observation","runner":"poll","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5033,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":16221,"port":63060},"other":{"pid":16218,"port":63058}},"failure":null,"reaped_owned_pids":[16215],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✔ poll: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (5430.696084ms)
+{"evidence":"round14_runner_bytes","runner":"recovery","sha256":"e5191c7b1a2c211059fa17a75ff1659f9d3516e0da0ba2315d8abd8350853d8c"}
+{"evidence":"round14_native_process_observation","runner":"recovery","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5042,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":16334,"port":63085},"other":{"pid":16333,"port":63084}},"failure":null,"reaped_owned_pids":[16331],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✔ recovery: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (5427.85275ms)
+﹣ v7: a real retained Linux zombie makes kill(-pgid,0) succeed but must not make completed cleanup fail (0.132417ms) # SKIP
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5265,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":16459,"port":63110},"other":{"pid":16456,"port":63108}},"failure":null,"reaped_owned_pids":[16453],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✔ shared helper accepts an unrelated valid pgid=0 row while stopping real live descendants (5688.985041ms)
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":{"name":"AssertionError","message":"Empty process table cannot establish owned-group cleanup."},"repeatError":null,"stopMs":225,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":16566,"port":63132},"other":{"pid":16565,"port":63131}},"failure":null,"reaped_owned_pids":[16563],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✔ shared helper: empty process-table inspection fails closed and still kills the owned live socket (659.630833ms)
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":{"name":"AssertionError","message":"Cannot parse owned process-group inspection."},"repeatError":null,"stopMs":224,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":16579,"port":63137},"other":{"pid":16578,"port":63136}},"failure":null,"reaped_owned_pids":[16576],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✔ shared helper: malformed process-table inspection fails closed and still kills the owned live socket (657.223125ms)
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":{"name":"Error","message":"Synthetic process-table query failure"},"repeatError":null,"stopMs":224,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":16589,"port":63145},"other":{"pid":16588,"port":63144}},"failure":null,"reaped_owned_pids":[16586],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✔ shared helper: failure process-table inspection fails closed and still kills the owned live socket (644.269084ms)
+{"evidence":"round14_windows_branch","emulatedBranch":"win32","actualKernel":"darwin","milliseconds":55,"open":false,"signal":"SIGKILL"}
+✔ Windows fallback control flow bounds a TERM-ignoring direct child (POSIX execution, not native Windows acceptance) (279.073792ms)
+{"evidence":"production_http_lifecycle_under_test","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+✔ stop owned HTTP launcher and listening descendant: default (285.988375ms)
+✔ stop owned HTTP launcher and listening descendant: ignore-term (5285.335917ms)
+✔ stop owned HTTP launcher and listening descendant: redirected-ignore-term (5303.982ms)
+✔ stop owned HTTP launcher and listening descendant: launcher-exits (314.669291ms)
+✔ shutdown only signals its own detached process group (385.465333ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 29820.110041

@@ -1,0 +1,169 @@
+{
+  "schema": "material-facts-v7-round14-independent-review/1",
+  "recorded_at": "2026-10-18T08:20:15.438058+00:00",
+  "status": "PASS_WITH_STATED_LIMITS",
+  "blocking_findings": [],
+  "scope": {
+    "comments": [
+      "4306251287",
+      "4306251289"
+    ],
+    "adjacent_runners": [
+      "poll",
+      "recovery"
+    ],
+    "product_implementation_by_reviewer": false,
+    "baseline_commit": "92ba4dd615eb3b5a43508902e3e217b96ea6df9c",
+    "root_baseline_commit": "2b0c0e516d3d89b7576fc81d7337caebed9004e7"
+  },
+  "reviewed_sha256": {
+    "scripts/owned-http-process-group.mjs": "37c86a25a10bcf666ad9144971627f0b83b31a5d3d3d1e70768f09ca7ba94435",
+    "scripts/material-facts-v7-http-regression.mjs": "080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88",
+    "scripts/material-facts-cancel-http-regression.mjs": "c0fc1f02fde789cfd790e18364b2a5bf13aa9e370cdd4514052f784f64f5b459",
+    "scripts/material-facts-poll-http-regression.mjs": "abb3eccc8fb399dcd9a7a44eb1b8aa48730a95b0b7366a14886261c16046a335",
+    "scripts/material-facts-recovery-http-regression.mjs": "e5191c7b1a2c211059fa17a75ff1659f9d3516e0da0ba2315d8abd8350853d8c"
+  },
+  "independent_test": {
+    "path": "scripts/material-facts-http-round14-independent.test.mjs",
+    "sha256": "3762bc1b93c1d2d37a6ea12735e6883f11c162d4fb6feb6e9f69a5a407736341",
+    "syntax_exit": 0,
+    "scoped_eslint_exit": 0
+  },
+  "actual_independent_runs": {
+    "linux_baseline": {
+      "tests": 10,
+      "pass": 1,
+      "fail": 4,
+      "skip": 5,
+      "exit_code": 1,
+      "reason_for_skip": "New shared-helper probes are inapplicable to the exact old baseline."
+    },
+    "mac_baseline": {
+      "tests": 10,
+      "pass": 1,
+      "fail": 3,
+      "skip": 6,
+      "exit_code": 1
+    },
+    "linux_final": {
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skip": 0,
+      "exit_code": 0,
+      "duration_ms": 44887.495813
+    },
+    "mac_final": {
+      "tests": 10,
+      "pass": 9,
+      "fail": 0,
+      "skip": 1,
+      "exit_code": 0,
+      "duration_ms": 29849.969875
+    }
+  },
+  "kernel_evidence": {
+    "linux_actual": true,
+    "linux_host": "carryz@172.23.1.127",
+    "node": "24.21.0",
+    "python": "3.11.2",
+    "zombie_fixture": "process-local PR_SET_CHILD_SUBREAPER; temporarily defer reaping then reap all owned children",
+    "actual_z_state": true,
+    "kill_negative_pgid_zero_succeeds": true,
+    "socket_closed_and_rebind_succeeds": true,
+    "unrelated_socket_preserved": true,
+    "no_remaining_owned_children": true,
+    "global_services_changed": false
+  },
+  "controlled_additional_probes": [
+    "Valid unrelated pgid=0 process-table row",
+    "Empty/malformed/failed ps query rejects and still SIGKILLs owned live group",
+    "POSIX-executed win32 direct-child fallback branch is bounded; not native Windows acceptance"
+  ],
+  "technical_review": [
+    "All four runner spawn and shutdown paths use the shared helper; child ownership is checked before group signalling.",
+    "Process-group completion requires leader close and absence of live non-Z/non-X members.",
+    "Inspection failure is retained as failure, attempts forced termination, and runner cleanup preserves private temporary state.",
+    "Original migration error and shutdown error are separately retained; shutdown failure blocks startup/restart.",
+    "Each ps query has its own 1s budget plus 500ms close margin; phase deadlines may overshoot by one bounded query."
+  ],
+  "immutable_boundary": {
+    "original_artifacts_verified": 60,
+    "original_manifest_sha256": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+    "correction_v11_manifest_sha256": "42f13c238e7f88c044de27c858327b92ffd20a576970c836b1a52654421b1345",
+    "reviewed_source_sha256": {
+      "owned-http-process-group.mjs": "37c86a25a10bcf666ad9144971627f0b83b31a5d3d3d1e70768f09ca7ba94435",
+      "material-facts-v7-http-regression.mjs": "080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88",
+      "material-facts-cancel-http-regression.mjs": "c0fc1f02fde789cfd790e18364b2a5bf13aa9e370cdd4514052f784f64f5b459",
+      "material-facts-poll-http-regression.mjs": "abb3eccc8fb399dcd9a7a44eb1b8aa48730a95b0b7366a14886261c16046a335",
+      "material-facts-recovery-http-regression.mjs": "e5191c7b1a2c211059fa17a75ff1659f9d3516e0da0ba2315d8abd8350853d8c"
+    },
+    "current_code_review_matches_tested_fixture": true
+  },
+  "old_manifests": {
+    "experiments/material-facts-v7/freeze.json": "0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2",
+    "experiments/material-facts-v7/result-manifest.json": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+    "experiments/material-facts-v7/corrections/manifest.json": "eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de",
+    "experiments/material-facts-v7/corrections-v2/manifest.json": "1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80",
+    "experiments/material-facts-v7/corrections-v3/manifest.json": "72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841",
+    "experiments/material-facts-v7/corrections-v4/manifest.json": "3bceefdb375173567fa7ce60c662eae991957ade70bb89f0da989edb7ebd9db6",
+    "experiments/material-facts-v7/corrections-v5/manifest.json": "eb79da00daa92966f081a2eba35d7355e258a45d18411570834efc62d632e32e",
+    "experiments/material-facts-v7/corrections-v6/manifest.json": "0c9ef56e30e278c816e088a934df1cb8f0cdc944c262b9bd9f88be146909ee69",
+    "experiments/material-facts-v7/corrections-v7/manifest.json": "1fb40b4c0694744f5a83c6b9ddc87bfd1958a2b85185fb178273cec13b422e31",
+    "experiments/material-facts-v7/corrections-v8/manifest.json": "8fa3100c348a94af0471e93a5a2dab8d405df2dd4debc603b3fe3dbe89fac06b",
+    "experiments/material-facts-v7/corrections-v9/manifest.json": "ccb4dce9e91f74fd24f5115133db468288b9c988f76ce28136bfd61e00bce764",
+    "experiments/material-facts-v7/corrections-v10/manifest.json": "c403c8c44146e78b4b15d775d0701cbb94455f0f33a3ebecce939092596f1718",
+    "experiments/material-facts-v7/corrections-v11/manifest.json": "42f13c238e7f88c044de27c858327b92ffd20a576970c836b1a52654421b1345"
+  },
+  "root_http_evidence": {
+    "executor": "root agent; not this independent reviewer",
+    "verification": "read existing actual report status/count/cleanup only",
+    "reports": [
+      {
+        "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round14/http-v7-final.json",
+        "sha256": "12afe0ccac65d544ab7d0bc093f12371aa689e7716b29ee3621db59a00f4cbe0",
+        "status": "PASS",
+        "observations": 74,
+        "cleanup": "PASS"
+      },
+      {
+        "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round14/http-cancel-final.json",
+        "sha256": "f751d7831b1c139f10d26c5fed304985f785bfe9efd4e1676ce4e7e6d6943c40",
+        "status": "PASS",
+        "observations": 14,
+        "cleanup": "PASS"
+      },
+      {
+        "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round14/http-poll-final.json",
+        "sha256": "d9fe8dd6ed99dbeef9b3e378f0c37a08b6b89591474eab7d84a136ed068e81ca",
+        "status": "PASS",
+        "observations": 4,
+        "cleanup": "PASS"
+      },
+      {
+        "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round14/http-recovery-final.json",
+        "sha256": "b29787c3e30e295476d16625f50b1c52f759c0b07da0535cc9a4279ef6ca1e91",
+        "status": "PASS",
+        "observations": 10,
+        "cleanup": "PASS"
+      }
+    ]
+  },
+  "root_integration_at_review_cutoff": {
+    "full_check": "Root execution in progress at last explicit notification; reviewer does not claim its terminal exit status.",
+    "v11_readonly_check": "Root execution; not re-executed by this reviewer."
+  },
+  "limits": [
+    "The independent runner fixture extracts the actual shutdown function or imports its actual helper; it does not launch a Worker or exercise HTTP business routes.",
+    "The true Linux zombie was retained under our own subreaper, not under the host PID1. The kernel Z-state/kill0/resource behavior is directly observed.",
+    "No native Windows environment was available. Windows coverage is a bounded direct-child control-flow probe on POSIX, not whole-tree Windows acceptance.",
+    "Processes that intentionally escape the owned process group and uncatchable termination of the harness are not covered.",
+    "No new model requests, frozen result changes, scorer changes, application/parser edits, build, commit, push or deployment by this reviewer.",
+    "Requested GPT-6.1 Sol ultra; actual backend configuration cannot be independently verified."
+  ],
+  "evidence_index": {
+    "path": "postfreeze-evidence/round14/evidence-index.json",
+    "sha256": "29395e5f9304910919147b1788c4e6ca3c496d2314db7fba1e48460223f1687d",
+    "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review"
+  }
+}

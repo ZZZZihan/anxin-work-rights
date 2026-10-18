@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { spawn } from 'node:child_process';
+import { spawnOwnedChild, stopChild } from './owned-http-process-group.mjs';
 import { mkdtemp, mkdir, readFile, writeFile, readdir, rm } from 'node:fs/promises';
 import { join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -87,19 +87,21 @@ async function uploadEvidence(caseId, text = '合成轮询回归新增材料：�
 }
 
 async function applyMigrations() {
-  const child = spawn(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], {
+  const child = spawnOwnedChild(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], {
     cwd: root, stdio: 'ignore', env: workerEnv,
   });
+  let migrationFailure;
   try {
     await bounded(new Promise((resolve, reject) => {
       child.once('error', reject);
       child.once('exit', code => code === 0 ? resolve() : reject(new Error(`Isolated D1 migration failed (${code}).`)));
     }), 60_000, 'Isolated D1 migrations timed out.');
-  } finally {
-    if (child.exitCode === null && child.signalCode === null) {
-      const exited = new Promise(resolve => child.once('exit', resolve));
-      child.kill('SIGKILL');
-      await bounded(exited, 5000, 'Isolated migration process did not stop.');
+  } catch (error) { migrationFailure = error; throw error; }
+  finally {
+    try { await stopChild(child, 'Isolated migration'); }
+    catch (error) {
+      cleanupFailures.push({ operation: 'stop_migration', ...errorRecord(error) });
+      if (!migrationFailure) throw error;
     }
   }
 }
@@ -110,7 +112,7 @@ async function startWorker() {
   const port = Number(new URL(free).port);
   await new Promise(resolve => probe.close(resolve));
   workerError = undefined;
-  worker = spawn(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', String(port)], {
+  worker = spawnOwnedChild(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', String(port)], {
     cwd: root, stdio: 'ignore', env: workerEnv,
   });
   worker.once('error', error => { workerError = error; });
@@ -129,15 +131,8 @@ async function startWorker() {
 }
 
 async function stopWorker() {
-  if (!worker || worker.exitCode !== null || worker.signalCode !== null) return;
-  const child = worker;
-  const exited = new Promise(resolve => child.once('exit', resolve));
-  child.kill('SIGTERM');
-  try { await bounded(exited, 5000, 'Isolated Worker did not stop after SIGTERM.'); }
-  catch {
-    child.kill('SIGKILL');
-    await bounded(exited, 5000, 'Isolated Worker did not stop after SIGKILL.');
-  }
+  if (!worker) return;
+  await stopChild(worker, 'Isolated Worker');
   worker = undefined;
 }
 
@@ -309,7 +304,12 @@ finally {
     await bounded(new Promise(resolve => proxy.close(resolve)), 5000, 'Loopback poll barrier did not stop.');
   });
   await cleanup('close_material_service', async () => { await service?.close(); });
-  await cleanup('remove_temporary_resources', async () => { if (temp) await rm(temp, { recursive: true, force: true }); });
+  await cleanup('remove_temporary_resources', async () => {
+    if (temp && cleanupFailures.some(item => ['stop_worker', 'stop_migration'].includes(item.operation))) {
+      throw new Error(`Owned process shutdown was not confirmed; isolated resources retained at ${temp}.`);
+    }
+    if (temp) await rm(temp, { recursive: true, force: true });
+  });
   if (cleanupFailures.length) failure ??= { phase: 'cleanup', message: 'Temporary regression resources did not fully clean up.' };
   await writeFile(output, JSON.stringify({
     status: failure ? 'FAIL' : 'PASS', mode: 'fact-poll',
