@@ -10,11 +10,18 @@ const BRIDGE_ATOM = `(?:${WRAPPER_ATOM}|[${NUMERALS}]+[角分])`;
 const LINE = '[\\r\\n\\u2028\\u2029]';
 const CONTINUATION_BRIDGE = `(?:${BRIDGE_ATOM}|${LINE})*`;
 const OPERATOR = `(?:乘${LINE}*以|除${LINE}*以|分${LINE}*之|加${LINE}*上|减${LINE}*去|另${LINE}*加|乘|除|加|减|[×*xX÷/+−-])`;
+// These are operands only beside an explicit operator. A coefficient named
+// elsewhere in the sentence must not turn a stated amount into an expression.
+const NAMED_OPERAND = ['出勤系数', '绩效系数', '工资系数', '计发系数', '折算系数', '考核系数', '岗位系数',
+  '出勤比例', '支付比例', '计发比例', '折算比例', '出勤天数', '工作天数', '计薪天数', '工作月数', '计薪月数', '人数', '件数']
+  .map(name => Array.from(name).join(`${LINE}*`)).join('|');
+const OPERAND = `(?:${FACTOR}|${NAMED_OPERAND})`;
 const PREFIX_OPERATOR = new RegExp(`(?:倍${CONTINUATION_BRIDGE}(?:的${CONTINUATION_BRIDGE})?|${OPERATOR}${CONTINUATION_BRIDGE})$`, 'u');
 const PREFIX_FACTOR = new RegExp(`${FACTOR}${CONTINUATION_BRIDGE}$`, 'u');
+const PREFIX_NAMED_OPERAND = new RegExp(`(?:${NAMED_OPERAND})${CONTINUATION_BRIDGE}$`, 'u');
 const SUFFIX_MULTIPLIER = new RegExp(`^${FACTOR}${CONTINUATION_BRIDGE}倍`, 'u');
 const SUFFIX_FRACTION = new RegExp(`^(?:${FACTOR}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${FACTOR}|[+−负負-]?(?:一${LINE}*)?半|${FACTOR}${CONTINUATION_BRIDGE}%)`, 'u');
-const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${FACTOR}`, 'u');
+const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
 const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
 // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
 const LEADING_FACTOR_WRAPPERS = new RegExp(`^(?:${WRAPPER_ATOM}|${LINE})*`, 'u');
@@ -48,6 +55,9 @@ export function hasAttachedMoneyArithmetic(before: string, after: string): boole
   // operator must not repeatedly retry the complete numeric grammar.
   const operator = left.match(PREFIX_OPERATOR);
   if (operator && PREFIX_FACTOR.test(left.slice(0, operator.index))) return true;
+  // A bare named factor does not imply a multiplier. Require the explicit
+  // operator path here, preserving the existing numeric 倍 grammar separately.
+  if (operator && !operator[0].startsWith('倍') && PREFIX_NAMED_OPERAND.test(left.slice(0, operator.index))) return true;
   const bridge = right.match(LEADING_BRIDGE)![0];
   let suffix = right.slice(bridge.length);
   const noun = suffix.match(LEADING_AMOUNT_NOUN);
