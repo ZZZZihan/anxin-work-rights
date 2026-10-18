@@ -1,0 +1,13 @@
+--- a/lib/material-fact-source-review.ts
++++ b/lib/material-fact-source-review.ts
+@@ -287,7 +287,9 @@
+     // A local cut can leave a bare ×/x/* before its operand on the next
+     // line/block. Only the anchored full-layout arithmetic grammar may reclassify
+     // that local uncertainty; the amount remains unavailable, including old nulls.
+-    if (sourceNormalized.normalization.status === 'uncertain' && literal.amount !== null
++    const multiplicationMask = scheduleLayout
++      && /^\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\s*[×x*]/iu.test(scheduleLayout.after.normalize('NFKC').replace(/\p{Cf}/gu, ''));
++    if (sourceNormalized.normalization.status === 'uncertain' && literal.amount !== null && multiplicationMask
+       && sourceMoneyHasAttachedArithmetic(context, literal.normalization, source!, candidate.blockId)) {
+       sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。', 'unsupported'),

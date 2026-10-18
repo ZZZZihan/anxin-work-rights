@@ -1,0 +1,13 @@
+import subprocess,sys,time,json,hashlib,datetime
+from pathlib import Path
+prefix=Path(sys.argv[1]); args=sys.argv[2:]
+prefix.parent.mkdir(parents=True,exist_ok=True)
+paths=[prefix.with_suffix(s) for s in ['.stdout.log','.stderr.log','.receipt.json']]
+assert not any(p.exists() for p in paths), 'refuse to overwrite capture evidence'
+start=time.monotonic(); started=datetime.datetime.now(datetime.timezone.utc).isoformat()
+with paths[0].open('xb') as out,paths[1].open('xb') as err:
+ p=subprocess.Popen(args,stdout=out,stderr=err)
+ code=p.wait()
+receipt={'command':args,'cwd':str(Path.cwd()),'started':started,'durationSeconds':time.monotonic()-start,'exitCode':code,'logs':{str(q):hashlib.sha256(q.read_bytes()).hexdigest() for q in paths[:2]}}
+paths[2].write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n')
+print(json.dumps(receipt,ensure_ascii=False));sys.exit(code)

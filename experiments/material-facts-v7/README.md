@@ -4,11 +4,13 @@ Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的工程�
 
 ## 先读的结论
 
-当前应用为 PR #45 的 `baa8bebb2c8c5a4132fe5128e4ef9f75b5259936`。ROUND28已修复b497绿CI后出现的7类P2（8线程含1重复）：后置人民币角分、繁体百分比、日期边界/支付日期、姓名与费率/多人词碰撞、普通支付续词误概数；另闭合跨块角分尾段和末尾等/群体代词风险。主侧341定向通过，独立33在Node24/26各通过；完整应用检查退出0，1789 Vitest、6816运行时通过/1平台跳过、材料67通过/1平台跳过、Python9+11+16。详见 [ROUND28技术记录](POSTRUN_ROUND28_APPLICATION.md) 和 [独立应用审查](ROUND28_APPLICATION_REVIEW_INDEPENDENT.md)。
+当前应用为 PR #45 的 `47e4c30545b4fc1af27e716c030ea9e583728938`。ROUND29修复具名人民币前缀、月度付款日、繁体系数/界限/未知词，并闭合跨行状态回归。主侧439定向通过，独立28在Node24/26各通过；完整应用check退出0（1789 Vitest、7254运行时通过/1平台跳过、材料67通过/1平台跳过、Python9+11+16），随后新增1项独立回归已通过并注册CI。lint 0错误、7个未用测试辅助变量警告。详见 [ROUND29技术记录](POSTRUN_ROUND29_APPLICATION.md) 和 [最终独立应用审查](ROUND29_APPLICATION_REVIEW_FINAL_INDEPENDENT.md)。
 
-相同248项隔离HTTP：固定b497为228通过/20失败，当前248全部通过；249份raw/candidates/finish_reason逐项相同，247份持久化快照重启不变，cleanup通过。旧222场景字节保持；前测失败场景未到历史读取，不能倒称同样覆盖。证据见 [HTTP非实现者核对](postfreeze-evidence/round28/http248-runner-review/final-report-review.md)。精确应用[CI39133434284](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39133434284)和实验PR46最终提交CI状态以PR记录为准。
+相同274项隔离HTTP：固定baa8为253通过/21失败，e2d6中间版273通过/1失败，最终274全部通过；275份raw/candidates/finish_reason逐项相同，273份持久化快照重启不变，cleanup通过。旧248场景字节保持；前测失败场景未到历史读取，不能倒称同样覆盖。中间失败修复了`-2000`从uncertain误改unsupported的状态，金额始终null，原断言不变。证据见 [HTTP非实现者核对](postfreeze-evidence/round29/http274-runner-review/final-report-review.md)。精确应用[CI39135932612](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39135932612)已通过；实验PR46最终提交CI状态以PR记录为准。
 
-最新另存复评为 `corrections-v21/`，绑定82项当前代码，v20的79项代码另行归档。manifest SHA `e9d350b5e634fed62e7688ec940440a8889f90f61cbcd8dba875abcce0b05504`。主侧write退出0；相对v20，三路逐案报告均逐字节相同，六层TP/FP/FN、候选可用性与配对未改变。零新增模型请求，不改输入、gold或原回答。独立轻量核对82当前/79归档/60原结果/216评分分区及43分母通过；331份保护文件前后不变。主侧write/check均退出0，完整整合检查在确认ROUND29新风险后主动中止（SIGTERM/-15，410.701秒，185保护文件不变；不计通过或产品测试失败）；最新应用CI已通过，但随后新增五项审查由ROUND29处理，当前仍不具备合并条件。
+最新另存复评为 `corrections-v22/`，绑定85项当前代码，v21的82项代码另行归档。manifest SHA `7fbed100eb6fde657242b325ef73a8b7a42faa6ef3472e412958643230cfaa22`。主侧write退出0；相对v21，规则和DeepSeek逐案报告逐字相同，Qwen仅一条概数reason说明改变，六层TP/FP/FN、金额状态与配对未改变。零新增模型请求，不改输入、gold或原回答。主侧write/check均退出0；独立实际产物85/82/60/216/43核对通过，342保护文件未变。完整整合检查因47e4新增四条应用审查而主动中止（343.819秒，SIGTERM/-15），189份保护文件未变，自有子进程已退出；不计通过或产品失败。ROUND30继续处理新增问题。
+
+v21检查点继续保留：write/check及独立82/79/60/216/43核对通过，三路逐案报告与v20逐字相同；完整整合检查在确认ROUND29应用风险后主动中止（SIGTERM/-15，410.701秒，185保护文件不变），不计通过或产品测试失败。其应用baa8精确CI通过，后续审查与最终修复不改写当时状态。
 
 v20完整实验检查的实际失败仍保留：1137.956秒、运行时6811通过/50失败/1跳过（50含32叶项与18父组），主要为历史校验截止耗尽及背压时限失败，320份受保护字节未变。随后同一v20五门禁在隔离执行中实际5通过、254.975秒，两条真实CLI负测各约125秒按预期诊断拒绝。支持并发压力诊断，不覆盖原完整失败；本轮将测试文件并发限为2，旧15分钟绝对截止政策、断言、首跑和历次结果不变。见 [原完整失败收据](POSTRUN_ROUND27_FULL_CHECK_FAILURE_INDEPENDENT.md) 与 [v20独立总回执](POSTRUN_ROUND27_INDEPENDENT.md)。
 
@@ -55,7 +57,7 @@ v10的49份代码另封存，v11绑定52份代码。新v10只读执行桥继续�
 | Qwen3-32B-4bit | 30.19 | 34.04 | 18.87 | 21.28 | 15.09 | 17.02 |
 | DeepSeek-v4-pro | 72.34 | 72.34 | 57.45 | 57.45 | 53.19 | 53.19 |
 
-Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；二十一版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/`、`corrections-v3/`、`corrections-v4/`、`corrections-v5/`、`corrections-v6/`、`corrections-v7/`、`corrections-v8/`、`corrections-v9/`、`corrections-v10/`、`corrections-v11/`、`corrections-v12/`、`corrections-v13/` 、`corrections-v14/` 、`corrections-v15/` 、`corrections-v16/` 、`corrections-v17/` 、`corrections-v18/` 、`corrections-v19/` 、`corrections-v20/` 与 `corrections-v21/`。v1至v3三路报告逐字相同；v4的规则与DeepSeek报告逐字相同，Qwen仅一条通用核对提示增加“倍数算式”，其余逐案结果及全部六层计数不变。v5三路报告与v4逐字相同；v6与v7三路报告也分别与前版逐字相同；v8三路报告与v7也逐字相同；v9三路报告也与v8逐字相同；v10三路报告与v9也逐字相同；v11三路报告与v10也逐字相同；v12至v17三路报告也分别与前版逐字相同；v18仅Qwen一条年假金额可用性及一条核对提示变化，六层计数不变；v19三路报告与v18逐字相同；v20仅Qwen10条与DeepSeek13条概数说明改变，数值及配对不变；v21三路逐案报告与v20逐字相同；上表采用最新v21，不是模型能力提升。
+Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；二十二版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/`、`corrections-v3/`、`corrections-v4/`、`corrections-v5/`、`corrections-v6/`、`corrections-v7/`、`corrections-v8/`、`corrections-v9/`、`corrections-v10/`、`corrections-v11/`、`corrections-v12/`、`corrections-v13/` 、`corrections-v14/` 、`corrections-v15/` 、`corrections-v16/` 、`corrections-v17/` 、`corrections-v18/` 、`corrections-v19/` 、`corrections-v20/` 、`corrections-v21/` 与 `corrections-v22/`。v1至v3三路报告逐字相同；v4的规则与DeepSeek报告逐字相同，Qwen仅一条通用核对提示增加“倍数算式”，其余逐案结果及全部六层计数不变。v5三路报告与v4逐字相同；v6与v7三路报告也分别与前版逐字相同；v8三路报告与v7也逐字相同；v9三路报告也与v8逐字相同；v10三路报告与v9也逐字相同；v11三路报告与v10也逐字相同；v12至v17三路报告也分别与前版逐字相同；v18仅Qwen一条年假金额可用性及一条核对提示变化，六层计数不变；v19三路报告与v18逐字相同；v20仅Qwen10条与DeepSeek13条概数说明改变，数值及配对不变；v21三路逐案报告与v20逐字相同；v22仅Qwen一条概数说明改变、金额状态和计数不变；上表采用最新v22，不是模型能力提升。
 
 收紧 value 边界使 Qwen 3个基本、3个关联、2个严格 TP 失效，DeepSeek 1个基本 TP 失效。有些损失来自“月工资16000元”“150万元执行款”超出有限金额包装，而实际金额、角色本来正确，应解释为严格值边界损失，不能全部称金额理解错误。修正允许完整币种前缀、有限工资对象后缀及“整/正”货币终止词；后者是在首跑后的审查中确定，不能倒称事前登记。没有新增 gold 别名。
 
@@ -114,8 +116,9 @@ node experiments/material-facts-v7/verify-correction-v18.mjs
 node experiments/material-facts-v7/verify-correction-v19.mjs
 # 用79项归档代码验证v20，不调用模型。
 node experiments/material-facts-v7/verify-correction-v20.mjs
-# 当前v21零推理复算。
-node experiments/material-facts-v7/corrective-assessment-v21.mjs --check
+# 历史v21按归档代码核对，当前v22零推理复算。
+node experiments/material-facts-v7/verify-correction-v21.mjs
+node experiments/material-facts-v7/corrective-assessment-v22.mjs --check
 ```
 
 以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1至v18的 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
@@ -148,6 +151,7 @@ node experiments/material-facts-v7/corrective-assessment-v21.mjs --check
 | 修正v19 manifest | `5f39f3870bf50c03bb8d202a021c6643c5000f770259005ebd6cfe4ac64033c7` |
 | 修正v20 manifest | `6bddae4eb7d7da1fd744a79a399620e8fa60e7c5fe79d1ef7aaf8a072b491a87` |
 | 修正v21 manifest | `e9d350b5e634fed62e7688ec940440a8889f90f61cbcd8dba875abcce0b05504` |
+| 修正v22 manifest | `7fbed100eb6fde657242b325ef73a8b7a42faa6ef3472e412958643230cfaa22` |
 | 原结果 manifest | `3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee` |
 | 留出材料 | `9ec54411e9008434457ae59f68585f8fb7a6bc6d089cee4e87709bfddd6a2181` |
 | 留出标签 | `abac05fa2c3de7d8e83e866345bf5edaec61c65f8f706bb7d5f0c0d98fa27b64` |

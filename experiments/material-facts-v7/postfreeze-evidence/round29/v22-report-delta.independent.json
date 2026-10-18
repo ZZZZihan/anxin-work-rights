@@ -1,0 +1,53 @@
+{
+  "schema": "round29-v22-report-delta-independent/1",
+  "compared_versions": [
+    21,
+    22
+  ],
+  "comparison_models_identical": true,
+  "reports": {
+    "rules": {
+      "byte_identical": true,
+      "json_differences": [],
+      "match_partition_changes": [],
+      "defense_changes": [],
+      "metrics_unchanged": true
+    },
+    "qwen": {
+      "byte_identical": false,
+      "json_differences": [
+        {
+          "path": "/cases/7/normalization/0/reason",
+          "before": "金额含多或余的内嵌概数，未转成精确金额。",
+          "after": "完整金额带有数量不定、概数界限或正负限定，未截取其中的精确正数。"
+        }
+      ],
+      "match_partition_changes": [],
+      "defense_changes": [],
+      "metrics_unchanged": true
+    },
+    "deepseek": {
+      "byte_identical": true,
+      "json_differences": [],
+      "match_partition_changes": [],
+      "defense_changes": [],
+      "metrics_unchanged": true
+    }
+  },
+  "sole_changed_normalization": {
+    "backend": "qwen",
+    "case_id": "mf7-spp-nanchang-fan",
+    "case_index": 7,
+    "normalization_index": 0,
+    "raw_value": "人民币1967万余元",
+    "status_before_and_after": "approximate",
+    "amount_before_and_after": null,
+    "field": "reason",
+    "difference": {
+      "path": "/cases/7/normalization/0/reason",
+      "before": "金额含多或余的内嵌概数，未转成精确金额。",
+      "after": "完整金额带有数量不定、概数界限或正负限定，未截取其中的精确正数。"
+    }
+  },
+  "safety_interpretation": "Only explanation wording changed; neither a newly usable amount nor a changed fact match. All 46 accepted money candidates retain source_relation_unresolved and calculation_authorized=false."
+}
