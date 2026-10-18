@@ -1,7 +1,7 @@
 import type { FactCandidate, FactSource, FactState } from './material-fact-types';
 import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 } from './material-fact-types-v3';
 import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from './material-facts-v3.ts';
-import { hasPostposedMoneyUncertainty, hasUnfinishedMoneyRangeAfter, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
+import { hasPostposedMoneyUncertainty, hasUnfinishedMoneyRangeAfter, hasUnsafeWholeMoneyContinuation, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
 import { sourceMoneyHasNonCurrencySubunit, sourceMoneyHasNonCurrencyYuan, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
@@ -248,6 +248,9 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       };
       else if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization, raw.subject)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着外币或不支持的币种标记，当前规范化不进行币种转换。', 'unsupported'),
+      };
+      else if (layout && hasUnsafeWholeMoneyContinuation(raw, sourceNormalized.normalization, layout.after)) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文完整金额终止词后仍附着数字、币种、费率或不确定续文，未将裁剪值作为精确金额。', 'unsupported'),
       };
       else if (layout && isMoneyRangeEndpoint(layout.before, layout.matched, layout.after)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文明确给出金额区间，未将裁剪后的任一端点作为精确金额。', 'range'),
