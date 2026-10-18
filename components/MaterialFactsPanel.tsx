@@ -115,7 +115,7 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
       if (action.action === 'confirm_amount') setAmounts((values) => ({ ...values, [action.field]: emptyAmount() }));
       if (action.action === 'extract' || action.action === 'exclude_source' || action.action === 'revoke') { setReviewed({}); setScopeVerified(false); setAmounts((values) => ({ due: { ...values.due, complete: false, verified: false }, paid: { ...values.paid, complete: false, verified: false } })); }
       if (action.action === 'extract' && result.state.job?.status === 'failed') notify('候选提取未开始；旧金额确认已失效，请恢复服务后重试。', 'error');
-      else notify(action.action === 'calculate' ? '已按当前确认记录生成计算结果。' : action.action === 'extract' ? '候选提取已开始，完成后会自动显示。' : '事实操作已保存。');
+      else notify(action.action === 'calculate' ? '已按当前确认记录生成计算结果。' : action.action === 'extract' ? '已提交候选提取请求，结果会自动更新。' : '事实操作已保存。');
     } catch (failure) {
       if (!alive.current) return;
       if (isOlder(current, dataRef.current)) return;
@@ -144,7 +144,7 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
         <div className="material-result-meta"><span>候选提取：{data.backend}</span><span>材料版本 {data.generation} · 确认版本 {data.revision}</span><span>候选均待用户判断</span></div>
         {data.backend === 'deepseek' && <p className="material-notice">当前由维护者配置为 DeepSeek：提取候选会向 DeepSeek 官方 API 发送材料文字。请仅处理已获授权发送的材料。</p>}
         {!data.configured && <div className="material-notice"><Info size={18} /><p>候选提取服务暂不可用。已保存材料和确认仍可查看；恢复服务后可重试提取。</p></div>}
-        {running && <p className="material-progress" role="status"><LoaderCircle size={18} />正在提取材料候选，尚未形成事实确认…</p>}
+        {running && <p className="material-progress" role="status"><LoaderCircle size={18} />{data.state.job?.error ?? '正在提取材料候选，尚未形成事实确认…'}</p>}
         {data.state.job?.status === 'failed' && <div className="material-error" role="alert"><strong>候选提取未完成</strong><p>{data.state.job.error}</p><p>请在对应材料处重新提取。失败结果不会变成确认金额。</p>{data.state.job.raw !== undefined && <details className="fact-raw"><summary>查看未通过协议校验的原始回答</summary><p>{data.state.job.backend ?? '处理方式未确认'}{data.state.job.model ? ` · ${data.state.job.model}` : ''}</p><pre>{data.state.job.raw}</pre></details>}</div>}
 
         <div className="fact-sources">

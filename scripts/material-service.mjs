@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFile } from 'node:child_process';
 import { createLinuxOcr } from './material-ocr-linux.mjs';
-import { createFactJobs } from './fact-jobs.mjs';
+import { createFactJobs, isFactJobId } from './fact-jobs.mjs';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_JOBS = 32;
@@ -379,7 +379,8 @@ export async function createMaterialService({ token, port = 0, model = null, fac
         try { payload = JSON.parse(bytes.toString('utf8')); } catch { throw failure('INVALID_PARAMETERS', '候选请求不是有效JSON。'); }
         return json(res, 202, factJobs.submit(payload));
       }
-      const factMatch = /^\/fact-jobs\/([0-9a-f-]{36})$/u.exec(url.pathname);
+      const factMatch = /^\/fact-jobs\/([^/]+)$/u.exec(url.pathname);
+      if (factMatch && !isFactJobId(factMatch[1])) throw failure('INVALID_PARAMETERS', '候选任务标识无效。');
       if (factMatch && req.method === 'GET') {
         const result = factJobs.get(factMatch[1]);
         return json(res, result ? 200 : 404, result || { error: { code: 'JOB_NOT_FOUND', message: '候选任务不存在或已过期。' } });

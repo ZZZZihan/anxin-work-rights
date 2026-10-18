@@ -1,0 +1,58 @@
+{
+  "scope": "PR36 recovery independent HTTP acceptance; no production access",
+  "baselineHead": "090b0702874d180e63f82f8ab18fdc7558705b71",
+  "runner": "/Users/xuzihan/Documents/Projects/国创/anxin-pr36-recovery-review/scripts/material-facts-recovery-http-regression.mjs",
+  "runnerSHA256": "e3434d3df88e262147b74d2e67228b7eacb5aefacea1034d206ec824d18c2399",
+  "baseline": {
+    "report": "/tmp/anxin-pr36-recovery-http-baseline-090b070-final.json",
+    "exitCode": 1,
+    "passed": 2,
+    "failed": 7,
+    "cleanup": "PASS"
+  },
+  "integrated": {
+    "report": "/tmp/anxin-pr36-recovery-http-integrated.json",
+    "exitCode": 0,
+    "passed": 9,
+    "failed": 0,
+    "cleanup": "PASS",
+    "storeSHA256": "07bc1df50d69e5ffd9db71d84bdf419d3003efcaaaf005f2a8888d51b63f6664"
+  },
+  "interruptionSmoke": {
+    "exitCode": 1,
+    "reportStatus": "FAIL",
+    "cleanup": {
+      "status": "PASS",
+      "failures": []
+    },
+    "observedDisposableDirectories": 1,
+    "remainingDisposableDirectories": [],
+    "setupFailure": {
+      "name": "Error",
+      "message": "Isolated migrations exited null."
+    }
+  },
+  "eslint": "PASS",
+  "baselineInterpretation": [
+    "Accepted service POST with dropped/503 acknowledgment leaves starting_* failed; cannot recover accepted result, materials=0.",
+    "One transient GET503/invalidJSON cancels the real healthy service job: failed state, remote404, DELETE count1.",
+    "Caller-ID idempotency and unknown-ID tombstones do not exist in baseline, valid new-protocol POST receives400.",
+    "Baseline source change during POST already prevents state resurrection (409/no material/audit), but required pre-dispatch UUID is absent, so the stronger protocol scenario fails; not mislabeled a source-resurrection defect.",
+    "Old ready GET after source change and owner isolation both pass in baseline."
+  ],
+  "technicalReview": [
+    "New claim persists caller UUID and start time before service POST; strict echo validation; unknown acknowledgment keeps running and polls same UUID without automatic resubmission.",
+    "Transient poll warnings preserve same running job and consecutive recovery window; terminal cleanup remains generation/revision CAS bound.",
+    "Service reserves active IDs within1024 capacity; cancellation writes tombstone before lookup; matching active IDs reuse one job; source fingerprints prevent rebinding; removed results cannot be revived during31min process-local tombstone window.",
+    "Independent runner has no URL input or external model calls; all source text synthetic, token in0600 temporary config only; summary logs omit token/raw/source text.",
+    "Every run uses disposable local Worker/D1/R2/service/proxy; failed assertion exits nonzero; SIGTERM exits1, reportsFAIL and removes observed temporary directory."
+  ],
+  "limits": [
+    "Parent store changed from tested07bc1df to aa6ee2c after the9/9run. Parent explicitly owns latest-version fullcheck/HTTP rerun; this evidence does not label aa6ee2c tested.",
+    "After9/9run only runner early-abort startup checks changed; separately exercised SIGTERM smoke. No new HTTP behavior change claimed.",
+    "Rules backend is real; MLX/DeepSeek inference, remote network and production not used.",
+    "Tombstone/idempotency only process-local within TTL/capacity, not restart durability; timeout boundary/queue maximum validated by service/D1 agents, not this short9HTTP run.",
+    "No final mergedSHA or browser acceptance claim from theseHTTPresults."
+  ],
+  "configuration": "Requested gpt-6.1-sol / ultra; tool request visibility is not backend runtime attestation."
+}

@@ -83,6 +83,8 @@ jobs:
         run: ANXIN_MATERIAL_REPORT=output/materials/http-facts.json node scripts/material-http-runner.mjs --facts
       - name: Concurrent fact polling and stale-result isolation over production HTTP
         run: node scripts/material-facts-poll-http-regression.mjs
+      - name: Fact task network recovery HTTP regression
+        run: node scripts/material-facts-recovery-http-regression.mjs
       - name: Chinese image and PDF extraction over production HTTP
         run: ANXIN_MATERIAL_REPORT=output/materials/http-images.json node scripts/material-http-runner.mjs --images --punctuation-equivalence
       - uses: actions/upload-artifact@v4
@@ -94,3 +96,4 @@ jobs:
             output/materials/http-images.json
             output/materials/http-facts.json
             output/materials/http-fact-poll.json
+            output/materials/http-fact-recovery.json

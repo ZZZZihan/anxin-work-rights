@@ -1,11 +1,21 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { buildExtractionMessages, extractRuleCandidates, validateFactSource } from '../lib/material-facts.ts';
 
 const ttl = 5 * 60_000;
+// Three admitted jobs can each own the model for ten minutes. Keep retired
+// caller IDs longer than that entire lifecycle, without retaining source text.
+const replayTtl = 31 * 60_000;
+const maxIds = 1024;
 const fail = (message, status = 400) => Object.assign(new Error(message), { status, code: 'FACT_JOB_FAILED' });
+export const isFactJobId = value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u.test(value);
+function sourceFingerprint(source) {
+  const ordered = value => Array.isArray(value) ? value.map(ordered) : value && typeof value === 'object'
+    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, ordered(value[key])])) : value;
+  return createHash('sha256').update(JSON.stringify(ordered(source))).digest('hex');
+}
 
 const execute = promisify(execFile);
 async function readMacMemory() {
@@ -96,11 +106,11 @@ export function createFactInference({ spawnProcess = spawn, readMemory = readMac
 const infer = createFactInference();
 
 /** Authenticated parent HTTP server owns this bounded, memory-only queue. */
-export function createFactJobs(config = {}, inference = infer) {
+export function createFactJobs(config = {}, inference = infer, { now = Date.now } = {}) {
   const backend = config.backend ?? 'rules';
   if (!['rules', 'qwen', 'deepseek'].includes(backend)) throw new Error('Invalid fixed fact backend');
   const configured = backend === 'rules' || Boolean(config.python && (backend === 'qwen' ? config.modelPath && config.integrityDir : config.keyFile));
-  const jobs = new Map(), queue = [];
+  const jobs = new Map(), queue = [], ids = new Map();
   let processing = false, closed = false;
   async function drain() {
     if (processing || closed) return;
@@ -111,35 +121,71 @@ export function createFactJobs(config = {}, inference = infer) {
         const result = backend === 'rules' ? { raw: extractRuleCandidates(job.source), backend, model: null, finish_reason: 'stop' } : await inference(job.source, { ...config, backend }, job.controller.signal);
         if (!job.controller.signal.aborted) { job.result = result; job.status = 'ready'; }
       } catch { job.error = { code: 'FACT_JOB_FAILED', message: '候选提取未完成，请检查模型配置或稍后重试。' }; job.status = 'failed'; }
-      finally { job.source = null; job.finishedAt = Date.now(); job.resolveDone(); }
+      finally { job.source = null; job.finishedAt = now(); job.resolveDone(); }
     } } finally { processing = false; }
   }
-  const prune = () => { for (const [id, job] of jobs) if (job.finishedAt && Date.now() - job.finishedAt > ttl) jobs.delete(id); };
+  const retire = (id, time) => {
+    const record = ids.get(id);
+    if (record) record.expiresAt = time + replayTtl;
+    else {
+      if (ids.size >= maxIds) throw fail('候选任务取消记录已满，请稍后重试。', 429);
+      ids.set(id, { fingerprint: null, expiresAt: time + replayTtl });
+    }
+  };
+  const prune = () => {
+    const time = now();
+    for (const [id, job] of jobs) if (job.finishedAt !== undefined && time - job.finishedAt > ttl) {
+      // A ready result expires, but a delayed POST must not recreate its ID.
+      retire(id, time); jobs.delete(id);
+    }
+    for (const [id, record] of ids) if (record.expiresAt !== null && record.expiresAt <= time && !jobs.has(id)) ids.delete(id);
+  };
   const timer = setInterval(prune, 30_000); timer.unref();
   return {
     backend, configured,
     submit(payload) {
       prune();
       if (!configured || closed) throw fail('候选模型尚未配置。', 503);
-      if (!payload || Object.keys(payload).length !== 1 || !payload.source) throw fail('只接受服务端提供的材料文本。');
-      validateFactSource(payload.source);
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload) || !payload.source
+        || Object.keys(payload).some(key => !['source', 'jobId'].includes(key))) throw fail('只接受服务端提供的材料文本和任务标识。');
+      const suppliedId = Object.hasOwn(payload, 'jobId');
+      if (suppliedId && !isFactJobId(payload.jobId)) throw fail('候选任务标识须为有效的小写 UUID。');
+      try { validateFactSource(payload.source); }
+      catch (error) { throw fail(error.message); }
       if (!payload.source.ready || !payload.source.blocks.length) throw fail('材料文字尚未就绪。');
-      if (jobs.size >= 32 || queue.length + Number(processing) >= 3) throw fail('候选提取队列已满。', 429);
+      const fingerprint = sourceFingerprint(payload.source);
+      const id = suppliedId ? payload.jobId : randomUUID();
+      const existing = ids.get(id);
+      if (existing) {
+        if (existing.fingerprint !== null && existing.fingerprint !== fingerprint) throw fail('候选任务标识已绑定其他材料。', 409);
+        if (existing.expiresAt !== null || !jobs.has(id)) throw fail('候选任务已取消或过期，请使用新的任务标识。', 410);
+        return { jobId: id };
+      }
+      if (ids.size >= maxIds || jobs.size >= 32 || queue.length + Number(processing) >= 3) throw fail('候选提取队列或任务记录已满。', 429);
       let resolveDone;
       const done = new Promise(resolve => { resolveDone = resolve; });
-      const job = { id: randomUUID(), status: 'running', source: structuredClone(payload.source), controller: new AbortController(), done, resolveDone };
+      const job = { id, status: 'running', source: structuredClone(payload.source), controller: new AbortController(), done, resolveDone };
+      // Reserve a small ID record at admission so cancellation of known work
+      // cannot fail merely because unknown-ID tombstones filled the capacity.
+      ids.set(id, { fingerprint, expiresAt: null });
       jobs.set(job.id, job); queue.push(job); void drain();
       return { jobId: job.id };
     },
-    get(id) { prune(); const job = jobs.get(id); return job ? { status: job.status, ...(job.result ? { result: job.result } : {}), ...(job.error ? { error: job.error } : {}) } : null; },
+    get(id) {
+      if (!isFactJobId(id)) throw fail('候选任务标识无效。');
+      prune(); const job = jobs.get(id);
+      return job && !job.controller.signal.aborted ? { status: job.status, ...(job.result ? { result: job.result } : {}), ...(job.error ? { error: job.error } : {}) } : null;
+    },
     async cancel(id) {
+      if (!isFactJobId(id)) throw fail('候选任务标识无效。');
+      prune(); retire(id, now());
       const job = jobs.get(id); if (!job) return;
       job.controller.abort(); delete job.result; job.source = null;
       const index = queue.indexOf(job);
       if (index >= 0) { queue.splice(index, 1); job.resolveDone(); }
-      await job.done; jobs.delete(id);
+      await job.done; jobs.delete(id); retire(id, now());
     },
-    async close() { closed = true; clearInterval(timer); await Promise.all([...jobs.keys()].map(id => this.cancel(id))); },
+    async close() { closed = true; clearInterval(timer); await Promise.all([...jobs.keys()].map(id => this.cancel(id))); ids.clear(); },
   };
 }
 
