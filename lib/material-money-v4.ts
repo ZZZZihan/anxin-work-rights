@@ -45,7 +45,7 @@ const SUBUNITS = `(?:[0-9${SINGLE_DIGIT}]角(?:[0-9${SINGLE_DIGIT}]分)?|[0-9${S
 const YUAN_TAIL = `[元圆圓](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`;
 // New alternatives require an explicit named RMB currency. A bare 5角/2分
 // remains unsupported; no time/measure unit is inferred to be money.
-const TOKEN = new RegExp(`(?:${RMB_NAME}\\s*${SUBUNITS}(?:整|正)?|${LITERAL_NUMBER}\\s*(?:${YUAN_TAIL}\\s*)?${RMB_NAME}|(?:人民[币幣]\\s*)?[¥￥]?\\s*${LITERAL_NUMBER}\\s*${YUAN_TAIL})`, 'giu');
+const TOKEN = new RegExp(`(?:${RMB_NAME}\\s*${SUBUNITS}(?:整|正)?|${SUBUNITS}(?:整|正)?\\s*${RMB_NAME}|${LITERAL_NUMBER}\\s*(?:${YUAN_TAIL}\\s*)?${RMB_NAME}|(?:人民[币幣]\\s*)?[¥￥]?\\s*${LITERAL_NUMBER}\\s*${YUAN_TAIL})`, 'giu');
 
 function result(rawValue: string, status: CandidateNormalization['status'], reason: string, match?: { text: string; index: number; amount: string }): CandidateNormalization {
   return { rawValue, status, amount: match?.amount ?? null, matchedText: match?.text ?? null,
@@ -170,7 +170,13 @@ function parseFinancialSubunits(text: string): string | null {
 }
 
 function parseExplicitRmbSubunits(text: string): string | null {
-  const match = text.match(new RegExp(`^${RMB_NAME}\\s*(?:([0-9${SINGLE_DIGIT}])角(?:([0-9${SINGLE_DIGIT}])分)?|([0-9${SINGLE_DIGIT}])分)(?:整|正)?$`, 'iu'));
+  const prefix = text.match(new RegExp(`^${RMB_NAME}\\s*`, 'iu'));
+  const postfix = text.match(new RegExp(`\\s*${RMB_NAME}$`, 'iu'));
+  // Exactly one explicit currency edge belongs to this complete subunit token.
+  // Only the parsing copy is sliced; returned spans still include its marker.
+  if (!!prefix === !!postfix) return null;
+  const literal = prefix ? text.slice(prefix[0].length) : text.slice(0, postfix!.index).trimEnd();
+  const match = literal.match(new RegExp(`^(?:([0-9${SINGLE_DIGIT}])角(?:([0-9${SINGLE_DIGIT}])分)?|([0-9${SINGLE_DIGIT}])分)(?:整|正)?$`, 'u'));
   return match ? amountWithSubunits(0n, match[1], undefined, match[2] ?? match[3]) : null;
 }
 
@@ -179,6 +185,9 @@ function remainingNumbers(rawValue: string, index: number, text: string): string
   const rest = (rawValue.slice(0, index) + '\u0000' + rawValue.slice(index + text.length)).normalize('NFKC');
   const count = `[${NUMERALS}]+`;
   return rest.replace(/\d{4}[-/.]\d{1,2}(?:[-/.]\d{1,2})?/gu, '')
+    // 陆 is also a financial numeral; the complete ordinary 内陆 word does
+    // not introduce a second number after an already anchored amount.
+    .replace(/内[陆陸]/gu, '')
     .replace(new RegExp(`${count}\\s*年(?:\\s*${count}\\s*月(?:\\s*${count}\\s*日)?)?`, 'gu'), '')
     .replace(new RegExp(`${count}(?:\\.\\d+)?\\s*(?:个?月|天|日|小时|分钟|秒|件|(?:个|名|位)(?:工人|员工|劳动者)|名|人|倍|年)`, 'gu'), '');
 }
@@ -223,6 +232,8 @@ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization 
     // token is anchored. Returned evidence and code-point spans use text/rawValue.
     let parseText = text.replace(/^人民幣/u, '人民币').replace(/圓/gu, '圆').replace(/萬/gu, '万').replace(/億/gu, '亿').replace(/兩/gu, '两').replace(/[貳參陸]/gu, glyph => ({ 貳: '贰', 參: '叁', 陸: '陆' })[glyph]!);
     const subunitAmount = parseExplicitRmbSubunits(parseText);
+    if (subunitAmount !== null && (new RegExp(`${RMB_NAME}\\s*$`, 'iu').test(before) || new RegExp(`^\\s*${RMB_NAME}`, 'iu').test(after)))
+      return result(rawValue, 'unsupported', '纯角分金额重复附着币种标记，未截取其中一个完整片段。');
     // A postfix currency label is replaced only in this parse copy, after the
     // complete original token has been anchored. Never change returned spans.
     const postfix = parseText.match(new RegExp(`\\s*${RMB_NAME}$`, 'iu'));
@@ -365,6 +376,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
         || new RegExp(`^\\s*(?:或|或者)\\s*(?:${RMB_NAME}\\s*)?[${NUMERALS}]`, 'iu').test(after)) normalized = result(candidate.value, 'uncertain', '当前金额在原文中有直接附着的不确定或备选表述。');
       else if (bareValue && !attachedCurrency) normalized = result(candidate.value, 'unsupported', 'value 和当前原文锚点均无明确人民币单位，未猜测这是金额。');
       else if (new RegExp(`[${NUMERALS},.，]$`, 'u').test(beforeBoundary)
+        || new RegExp(`[${NUMERALS}]+\\s*[元圆圓角分]$`, 'u').test(beforeBoundary)
         || new RegExp(`[${NUMERALS}][元圆圓]?\\s*(?:点|又|分之|加上|另加|加|减|乘|除)\\s*$`, 'u').test(beforeBoundary)
         || /^[,.，]\d/u.test(afterBoundary)
         || (!attachedYuan && !attachedWholeTerminator && new RegExp(`^[${NUMERALS}元圆圓角分整正]`, 'u').test(afterBoundary))) normalized = result(candidate.value, 'unsupported', 'value 截去了直接相邻的金额数字或角分，未升级为精确金额。');
@@ -395,7 +407,7 @@ export function classifyMonetaryExpression(value: string): MonetaryExpressionCla
   // 四万元的50% and unknown ratio prose cannot match and remain reviewable.
   const ratioNumber = `[+−负負-]?[${NUMERALS}]+(?:[.点][${NUMERALS}]+)?`;
   const ratioDescription = new RegExp(`^(?:(?:出勤率|出勤比例|支付比例|计发比例|折算比例|比例|百分比)(?:为|是|:)?)?(?:${ratioNumber}%|百分之${ratioNumber})$`, 'u');
-  if (ratioDescription.test(detection)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为比例或百分比，未表述金额。') };
+  if (ratioDescription.test(detection.replace(/為/gu, '为'))) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为比例或百分比，未表述金额。') };
   const proportionDescription = new RegExp(`^(?:打)?(?:${ratioNumber}(?:成(?:[0-9零〇一二三四五六七八九半])?|折)|半[成折]|[对對]折)$`, 'u');
   if (proportionDescription.test(detection)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为成数或折扣，未表述金额。') };
   const explicit = /人民[币幣]|[¥￥]/u.test(value) || monetaryExpressionHasUnsupportedCurrency(value)
