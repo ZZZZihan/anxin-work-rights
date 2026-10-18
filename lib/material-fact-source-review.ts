@@ -143,6 +143,12 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   if (!explicitStandard && prefix[2] === '月' && /^月(?:基本)?工资/u.test(prefix[0])
     && /(?:上(?:一?个)?|下(?:一?个)?|本|当|该|这(?:个)?)$/u.test(calendarPrefix)
     && !(subject && calendarPrefix.endsWith(detectionText(subject)))) return null;
+  // “今日工资合计” names one day's amount. Keep explicit 每日, 日薪,
+  // 日工资标准 and suffix units as rates; a subject ending in 今/昨/etc.
+  // cannot turn its following 日工资 rate into a relative-day expression.
+  if (!explicitStandard && prefix[2] === '日' && /^日(?:基本)?工资/u.test(prefix[0])
+    && /(?:今|昨|明|前|后|後|当|當|本|该|該|这|這|那|次|翌|同|某)$/u.test(calendarPrefix)
+    && !(subject && calendarPrefix.endsWith(detectionText(subject)))) return null;
   return prefix[1] ? units[prefix[1]] : prefix[2] ? units[prefix[2]] : prefix[0].startsWith('小时') ? 'hour' : 'piece';
 }
 

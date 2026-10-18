@@ -21,7 +21,7 @@ await mkdir(dirname(output), { recursive: true });
 const reportFile = await open(output, 'wx', 0o600);
 const owner = 'material-facts-v7-synthetic-owner';
 const token = randomBytes(32).toString('hex');
-const observations = [], calls = [], outputs = [], cleanupFailures = [], durableSnapshots = [];
+const observations = [], calls = [], outputs = [], cleanupFailures = [], durableSnapshots = [], retiredServiceJobs = [];
 const scenariosByEvidence = new Map(), jobs = new Map();
 const shutdown = new AbortController();
 const wrangler = resolve(root, 'node_modules/wrangler/bin/wrangler.js');
@@ -95,6 +95,17 @@ function rawAndLocations(item, response) {
   }
   return material;
 }
+async function retireConsumedServiceJob(kind, jobId, evidenceId) {
+  assert(['jobs', 'fact-jobs'].includes(kind));
+  assert(scenariosByEvidence.has(evidenceId), 'Only this run\'s synthetic evidence may be retired.');
+  assert.match(jobId, /^[0-9a-f-]{36}$/u);
+  const url = `http://127.0.0.1:${proxy.address().port}/${kind}/${jobId}`;
+  // The bounded service retains 32 jobs. Retire only completed backend copies
+  // after the Worker has persisted them; keep its D1/R2, raw and audit history.
+  const result = await jsonRequest(url, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  assert.equal(result.status, 200); assert.equal(result.body.ok, true);
+  retiredServiceJobs.push({ kind, jobId, evidenceId, persistedBeforeRetirement: true });
+}
 async function fixture(name, specifications) {
   const created = await request('/api/cases', 'POST', { company: `合成V7回归-${name}`, type: '欠薪争议', description: '仅用于软件HTTP回归，非真实案件、非模型或业务验收。' });
   assert.equal(created.status, 201); const caseId = created.body.case.id;
@@ -108,7 +119,11 @@ async function fixture(name, specifications) {
     const uploaded = await request('/api/evidence', 'POST', form); assert.equal(uploaded.status, 201);
     const evidenceId = uploaded.body.evidence.id;
     scenariosByEvidence.set(evidenceId, spec);
-    const began = await request(`/api/evidence/${evidenceId}/analysis`, 'POST', { documentKind: 'other' }); assert.equal(began.status, 202);
+    const began = await request(`/api/evidence/${evidenceId}/analysis`, 'POST', { documentKind: 'other' });
+    // The real route may finish TXT extraction during POST and return ready/200.
+    // Keep status/state agreement strict; all source bytes are checked below.
+    assert(['running', 'ready'].includes(began.body.analysis?.status), 'TXT analysis POST must be running or ready.');
+    assert.equal(began.status, began.body.analysis.status === 'running' ? 202 : 200);
     let analysis;
     for (let attempt = 0; ; attempt++) {
       const read = await request(`/api/evidence/${evidenceId}/analysis`); assert.equal(read.status, 200); analysis = read.body.analysis;
@@ -119,6 +134,11 @@ async function fixture(name, specifications) {
     assert.equal(analysis.result.blocks.map(block => block.text).join('\n'), bytes.toString('utf8'));
     const downloaded = await fetch(`${base}/api/evidence/${evidenceId}/download`, { headers: headers(), signal: AbortSignal.timeout(10_000) });
     assert.equal(downloaded.status, 200); assert.deepEqual(Buffer.from(await downloaded.arrayBuffer()), bytes);
+    const query = db.prepare('SELECT * FROM evidence_analyses WHERE evidence_id=? AND user_id=?');
+    const persisted = query.get(evidenceId, owner);
+    assert.equal(persisted.status, 'ready');
+    await retireConsumedServiceJob('jobs', persisted.job_id, evidenceId);
+    assert.deepEqual(query.get(evidenceId, owner), persisted);
     items.push({ caseId, evidenceId, path: `/api/cases/${caseId}/facts`, analysis });
   }
   return items;
@@ -133,6 +153,10 @@ async function extract(item) {
       const persisted = stored(item.caseId); assert.equal(persisted.revision, result.body.revision);
       assert.deepEqual(persisted.state.history, result.body.state.history);
       unconfirmed(result.body);
+      const injected = outputs.findLast(output => output.evidenceId === item.evidenceId);
+      assert(injected, 'Terminal synthetic extraction must have an owned service job.');
+      await retireConsumedServiceJob('fact-jobs', injected.jobId, item.evidenceId);
+      assert.deepEqual(stored(item.caseId), persisted);
       return result.body;
     }
     await wait(50);
@@ -350,11 +374,36 @@ try {
     durableSnapshots.push({ name: 'relative-month-no-money', item, state: stored(item.caseId) });
     return { acceptedUnknownForReview: 1, rejectedDescription: 1, amount: null, rawRetained: true };
   });
+  await scenario('relative_day_descriptions_reject_without_erasing_unknown_money_or_raw', async () => {
+    const words = ['今日', '当日', '昨日', '当天'];
+    const attributes = { period: null, meaning: 'other_money', completeness: 'not_applicable' };
+    const candidates = words.map(word => money(`${word}工资`, `测试王甲${word}工资`, attributes));
+    candidates.push(money('今日工资未明确', '测试王甲今日工资未明确', attributes));
+    const [item] = await fixture('relative-day-no-money', [{ text: candidates.map(entry => entry.quote + '。').join(''), candidates }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 4);
+    assert(material.rejected.every(entry => /没有金额表达/u.test(entry.reason)));
+    assert.equal(material.candidates[0].value, '今日工资未明确'); assert.equal(material.candidates[0].amount, null);
+    assert.equal(JSON.parse(material.raw).candidates.length, 5);
+    durableSnapshots.push({ name: 'relative-day-no-money', item, state: stored(item.caseId) });
+    return { rejectedDescriptions: 4, acceptedUnknownForReview: 1, rawRetained: true };
+  });
+  for (const day of ['今日', '当日', '昨日', '明日', '本日']) await scenario(`relative_day_total_${day}_retains_amount_for_review`, async () => {
+    const quote = `测试王甲${day}工资合计四万元`;
+    const [item] = await fixture(`relative-day-total-${day}`, [{ text: `${quote}。`, candidates: [money('四万元', quote, { period: null })] }]);
+    const response = await extract(item); const material = rawAndLocations(item, response); unconfirmed(response);
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    const candidate = material.candidates[0]; assert.equal(candidate.amount, '40000.00');
+    assert(!candidate.reviewIssues.some(issue => issue.code === 'rate_unit_mismatch'));
+    durableSnapshots.push({ name: `relative-day-total-${day}`, item, state: stored(item.caseId) });
+    return { amount: candidate.amount, noAutomaticConfirmation: true, rawRetained: true };
+  });
   const guards = [
     { name: 'range', text: '测试王甲2026年1月完整应付工资四万至五万元。', value: '四万至五万元', status: 'range' },
     { name: 'foreign-currency', text: '测试王甲2026年1月完整应付工资美元四万元。', value: '四万元', quote: '四万元', status: 'unsupported' },
     { name: 'internal-token-crop', text: '测试王甲2026年1月完整应付工资十四万元。', value: '四万元', quote: '四万元', status: 'unsupported' },
     { name: 'cropped-approximation', text: '测试王甲2026年1月完整应付工资约四万元。', value: '四万元', quote: '四万元', status: 'approximate' },
+    { name: 'explicit-relative-day-standard-is-rate', text: '测试王甲2026年1月约定今日日工资标准为四万元。', value: '四万元', quote: '四万元', status: 'rate_unit_mismatch' },
     { name: 'rate-as-total', text: '测试王甲2026年1月工资四万元/月。', value: '四万元', quote: '四万元', status: 'rate_unit_mismatch' },
     { name: 'currency-wage-attribution', text: '测试王甲2026年1月工资以港币支付四万元。', value: '四万元', quote: '四万元', status: 'unsupported' },
     { name: 'currency-wage-postposed-attribution', text: '测试王甲2026年1月应付工资四万元以港币支付。', value: '四万元', quote: '四万元', status: 'unsupported' },
@@ -466,7 +515,7 @@ finally {
   const report = Buffer.from(JSON.stringify({ status: failure ? 'FAIL' : 'PASS', mode: 'material-facts-v7-http', runId,
     boundary: 'production Worker HTTP + disposable on-disk D1/R2 + real TXT material service and rules queue + explicitly injected synthetic fact outputs; no real-model or business acceptance',
     actualModelInference: false, syntheticInputs: true, holdoutRead: false, historicalReportsOverwritten: false, buildRoot: root, recordedAt: new Date().toISOString(),
-    observations, failure: failure || null, syntheticOutputs: outputs, serviceCalls: calls,
+    observations, failure: failure || null, syntheticOutputs: outputs, serviceCalls: calls, retiredServiceJobs,
     cleanup: { status: cleanupFailures.length ? 'FAIL' : 'PASS', failures: cleanupFailures },
   }, null, 2) + '\n');
   try { await reportFile.writeFile(report); }

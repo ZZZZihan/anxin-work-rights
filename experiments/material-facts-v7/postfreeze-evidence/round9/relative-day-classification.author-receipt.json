@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "round": 9,
+  "author": "v7_money",
+  "finding": "PR45 4305959322 / PRRT_kwDOVApLyM6tn5DA",
+  "baseline": {
+    "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+    "commit": "36ad5680c6626409e961be80cbc6b479497370b6",
+    "parser_sha256": "3ebe3b80971a74af09b05b3ba17a5f5b597d042b0b12ffb787066a4d71d8e6a5",
+    "note": "Copied this single parser file into own tree. All test overlays use baseline lib, so unrelated own WIP cannot affect the tests."
+  },
+  "changed_files": [
+    {
+      "file": "lib/material-money-v4.ts",
+      "sha256": "912f97c3c3bb43210dfb367afd8f2553c7ff18053a955d553a2b66f855181bcf"
+    },
+    {
+      "file": "scripts/material-fact-relative-day-presence.test.mjs",
+      "sha256": "1474b1d2248a1c2596350fee839de6e67d072c388d73e98ea1fb5e58f52bf9fb"
+    }
+  ],
+  "behavior": "Only the complete amount-free wageDescription grammar gains relativeDay and explicit daily-label stages. Actual amount parsing, source review, raw literals, source offsets, and unknown handling are unchanged.",
+  "finite_days": [
+    "今日",
+    "今天",
+    "昨日",
+    "昨天",
+    "明日",
+    "明天",
+    "前日",
+    "前天",
+    "后日",
+    "后天",
+    "当日",
+    "当天",
+    "本日",
+    "该日",
+    "这日",
+    "这天",
+    "那日",
+    "那天",
+    "次日",
+    "翌日",
+    "同日",
+    "前一日",
+    "前一天",
+    "后一日",
+    "后一天",
+    "上一日",
+    "上一天",
+    "下一日",
+    "下一天",
+    "这一天",
+    "那一天",
+    "同一天"
+  ],
+  "final_parent_added_labels": [
+    "每日工资",
+    "每天工资",
+    "日工资",
+    "某日工资",
+    "该天工资"
+  ],
+  "checks": [
+    {
+      "phase": "original classifier baseline",
+      "log": "relative-day-presence.before-red.txt",
+      "tests": 56,
+      "pass": 20,
+      "fail": 36,
+      "exit_code": 1
+    },
+    {
+      "phase": "relative-day-only patch",
+      "log": "relative-day-presence.after-green.txt",
+      "tests": 56,
+      "pass": 56,
+      "fail": 0,
+      "exit_code": 0,
+      "parser_sha256": "0d4aab6acca24866900673862c0b3efd553dffb3a390e788789f9e4c6e13a3ec"
+    },
+    {
+      "phase": "five explicit daily labels before extension",
+      "log": "daily-wage-label.before-red.txt",
+      "tests": 71,
+      "pass": 66,
+      "fail": 5,
+      "exit_code": 1,
+      "parser_sha256": "0d4aab6acca24866900673862c0b3efd553dffb3a390e788789f9e4c6e13a3ec"
+    },
+    {
+      "phase": "final author",
+      "log": "daily-wage-label.after-green.txt",
+      "tests": 71,
+      "pass": 71,
+      "fail": 0,
+      "exit_code": 0
+    },
+    {
+      "phase": "initial temp regression fixture",
+      "log": "money-existing-tests.after-green.txt",
+      "exit_code": 1,
+      "note": "Fixture setup failed: assess.mjs was not copied. Filename predates the execution; this is a preserved FAIL output, not a green claim."
+    },
+    {
+      "phase": "complete relative-day-only temp regression fixture",
+      "log": "money-existing-tests.complete-fixture-green.txt",
+      "vitest_files": 3,
+      "vitest_tests": 550,
+      "pass": 550,
+      "fail": 0,
+      "exit_code": 0
+    },
+    {
+      "phase": "final classifier and peer source integration",
+      "log": "day-classifier-source.integration-green.txt",
+      "native": {
+        "author_presence": 71,
+        "peer_source": 153,
+        "total": 224,
+        "pass": 224,
+        "fail": 0
+      },
+      "vitest": {
+        "author_money": 485,
+        "independent_money": 10,
+        "review_regression": 55,
+        "total": 550,
+        "pass": 550,
+        "fail": 0
+      },
+      "exit_code": 0,
+      "peer_source_sha256": "c5284b7f32f029cd7cf6b25a443fff6bfb2ff7fcb0b5a7b9df0e4729038eba07"
+    },
+    {
+      "phase": "final lint",
+      "log": "daily-wage-label.eslint.txt",
+      "exit_code": 0,
+      "stdout": "empty",
+      "stderr": "empty"
+    }
+  ],
+  "command_author": "MATERIAL_FACT_TEST_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review node --test scripts/material-fact-relative-day-presence.test.mjs",
+  "command_lint": "npx eslint lib/material-money-v4.ts scripts/material-fact-relative-day-presence.test.mjs",
+  "coverage": [
+    "Four reported phrases each tested independently at classification and fresh runtime rejection with full raw evidence preserved.",
+    "Finite relative-day variants combine with existing optional 的, 基本/其他 wage modifiers and 工资/劳务费/劳动报酬/合计/总额 descriptors.",
+    "Unknown, masked, 若干, uncertain, approximate, ranges, unitless values and unfamiliar descriptions remain candidates for review with no precision or zero invented.",
+    "Real numeric amounts and explicit zero retain monetary classification. Author tests deliberately do not claim every pre-existing source-rate availability issue is fixed by this classifier.",
+    "The five parent-requested daily labels were actual baseline failures, followed by their own green run and unknown/amount neighbour controls.",
+    "Existing month and employment-stage descriptors remain non-monetary."
+  ],
+  "cross_review": {
+    "role": "Non-implementer review of peer source-rate patch",
+    "source_sha256": "c5284b7f32f029cd7cf6b25a443fff6bfb2ff7fcb0b5a7b9df0e4729038eba07",
+    "findings": "No blocker identified within the finite relative-day source scope. Explicit standard/每日/日薪/suffix rate precedence and full subject boundary protection remain. Executed the 153 peer-authored synthetic controls as part of the 224 native integration run."
+  },
+  "limits": [
+    "Finite anchored description grammar, not exhaustive natural-language day or wage interpretation; Unicode handling strategy was not expanded.",
+    "All tests use synthetic local inputs and temporary code overlays, with no actual model, API, original labels/results, HTTP service, training or deployment.",
+    "Native author checks, peer-author checks executed by a non-implementer, existing Vitest checks, independent review and parent integrated full check are separate evidence categories.",
+    "No modification of source-review/currency, frozen code/data/results or earlier-round evidence by this author. No commit or push."
+  ],
+  "evidence_files": [
+    {
+      "file": "daily-wage-label.after-green.txt",
+      "sha256": "6f6b25abc2d5556f7721d0bc4647e9c80a43193f3ed3e9a8c2323f469f1dedeb",
+      "bytes": 6893,
+      "node_test_counts": {
+        "tests": 71,
+        "pass": 71,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "daily-wage-label.before-red.txt",
+      "sha256": "583d36596efd98225832cdca1d0d6d921f37c28cf2eceb4186d0054b58757154",
+      "bytes": 12094,
+      "node_test_counts": {
+        "tests": 71,
+        "pass": 66,
+        "fail": 5,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "daily-wage-label.eslint.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "file": "day-classifier-source.integration-green.txt",
+      "sha256": "389bca07302dfec29206e92e9a446e3a7ec8d2a64318cbe19132a52a12b25ef8",
+      "bytes": 19262,
+      "node_test_counts": {
+        "tests": 224,
+        "pass": 224,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "material-money-v4.relative-days-only.snapshot",
+      "sha256": "0d4aab6acca24866900673862c0b3efd553dffb3a390e788789f9e4c6e13a3ec",
+      "bytes": 24058
+    },
+    {
+      "file": "material-money-v4.ts.baseline.snapshot",
+      "sha256": "3ebe3b80971a74af09b05b3ba17a5f5b597d042b0b12ffb787066a4d71d8e6a5",
+      "bytes": 23708
+    },
+    {
+      "file": "money-existing-tests.after-green.txt",
+      "sha256": "0c4da4c0842f4eaea083c59a47e2aa13757560e47e3624c849d6b32cb71d26d3",
+      "bytes": 4752
+    },
+    {
+      "file": "money-existing-tests.complete-fixture-green.txt",
+      "sha256": "09e5aa304e81901c7b0474308042e316a9e8c0f171f5b6e5bfdfa30abfe4fd41",
+      "bytes": 470
+    },
+    {
+      "file": "relative-day-classification.patch",
+      "sha256": "e82eeb1c4e7b5a0cd0d6848a57f06c123a6a92c2e319519304d4912d0ea58507",
+      "bytes": 1791
+    },
+    {
+      "file": "relative-day-presence.after-green.txt",
+      "sha256": "db20e504b1038e38cab6e41fadf613c90ed5f40f87f57d895959045c7cd31857",
+      "bytes": 5457,
+      "node_test_counts": {
+        "tests": 56,
+        "pass": 56,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "relative-day-presence.before-red.txt",
+      "sha256": "a7faa40ab6c33758075e996c60ef2407b8adab0523272151790d6f7d43a71f51",
+      "bytes": 41827,
+      "node_test_counts": {
+        "tests": 56,
+        "pass": 20,
+        "fail": 36,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "relative-day-presence.eslint.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}
