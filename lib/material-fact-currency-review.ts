@@ -168,7 +168,7 @@ export function sourceMoneyHasExplicitRmbCurrency(source: AnchoredMoneySource, n
   const unitInToken = [...edges.token.matchAll(/[元圆圓]/gu)]
     .some(match => isRmbCurrencyUnitAt(edges.token + edges.after, match.index));
   const inToken = !/[\r\n\u2028\u2029]/u.test(edges.token)
-    && (/(?:人民币|人民幣|¥)/u.test(edges.token) || unitInToken);
+    && (/(?:人民币|人民幣|(?<![A-Z])(?:RMB|CNY)(?![A-Z])|¥)/iu.test(edges.token) || unitInToken);
   return inToken || RMB_PREFIX.test(edges.before) || RMB_SUFFIX.test(edges.after);
 }
 

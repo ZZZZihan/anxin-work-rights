@@ -116,10 +116,10 @@ function sourceMoneyLayoutEdges(context: AnchoredSourceEvent, normalized: Candid
 }
 
 /** Inspect the original block: a grouping comma may already be outside the local clause. */
-function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: CandidateNormalization): boolean {
+function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: CandidateNormalization, layoutAfter?: string): boolean {
   const edges = monetaryEdges(context, normalized);
   if (!edges) return false;
-  const numerals = '0-9０-９零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟';
+  const numerals = '0-9０-９零〇一二三四五六七八九十百千万萬亿億两兩壹贰叁肆伍陆柒捌玖拾佰仟';
   if (new RegExp(`[${numerals}.．]$`, 'u').test(edges.before)
     || new RegExp(`[${numerals}][^\\S\\r\\n]*[,，]$`, 'u').test(edges.before)) return true;
   if (!/[元圆圓角分](?:整|正)?$/u.test(edges.matched)) {
@@ -128,7 +128,10 @@ function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: Candidate
   }
   // A bare historical number followed only by 元/圆 keeps its old numeric meaning.
   // Extra 角/分, including after an omitted 元, changes that same amount.
-  return new RegExp(`^(?:[元圆圓]\\s*)?[${numerals}]+\\s*[角分]`, 'u').test(edges.after);
+  // An adjacent layout block may continue the same amount with cents.
+  // Whitespace/Cf may bridge it; punctuation and another subject may not.
+  const continuation = (layoutAfter ?? edges.after).normalize('NFKC').replace(/\p{Cf}/gu, '');
+  return new RegExp(`^\\s*(?:[元圆圓]\\s*)?[${numerals}]+\\s*[角分]`, 'u').test(continuation);
 }
 
 function sourceRateDetectionText(text: string): string {
@@ -255,7 +258,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       else if (sourceMoneyHasAttachedArithmetic(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。', 'unsupported'),
       };
-      else if (truncatedMoneyToken(context, sourceNormalized.normalization)) sourceNormalized = {
+      else if (truncatedMoneyToken(context, sourceNormalized.normalization, layout?.after)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
       };
       else if (layout && sourceHasUnsupportedRate(layout.before)) sourceNormalized = {
