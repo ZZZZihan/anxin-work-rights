@@ -123,17 +123,20 @@ describe('PR40 final independent review: runtime context survives semantic dedup
     expect(reviewed.materials[0].raw).toBe(raw);
   });
 
+  // v7 deliberately retains different source positions, including repeated prose:
+  // equal attributes cannot establish event identity. The v3 frozen dedup stays observable.
   it.each([
     { text: explicit, value: '8000元' },
     { text: '王甲2024年7月完整应付工资人民币8000元。', value: '人民币8000元' },
     { text: '王甲2024年7月完整应付工资8000.00元。', value: '8000.00元' },
-  ])('still rejects a repeated exact fact: $value', ({ text, value }) => {
+  ])('v7 keeps equal exact facts at different source positions: $value', ({ text, value }) => {
     const source = sourceFor([explicit, text]), entries = [entry(explicit), entry(text, 'b2', { value })];
     const raw = output(entries), batch = runtime.validateRuntimeCandidateOutput(raw, source);
-    expect(batch.candidates).toHaveLength(1);
-    expect(batch.candidates[0].amount).toBe('8000.00');
-    expect(batch.candidates[0].id).toBe('final-review-source:3:0');
-    expect(batch.rejected).toEqual([expect.objectContaining({ index: 1, reason: expect.any(String) })]);
+    expect(validateFrozen(raw, source).candidates).toHaveLength(1);
+    expect(batch.candidates).toHaveLength(2);
+    expect(batch.candidates.map(candidate => candidate.amount)).toEqual(['8000.00', '8000.00']);
+    expect(batch.candidates.map(candidate => candidate.id)).toEqual(['final-review-source:3:0', 'final-review-source:3:1']);
+    expect(batch.rejected).toEqual([]);
     expect(batch.raw).toBe(raw);
     expect(JSON.parse(batch.raw).candidates).toEqual(entries);
   });

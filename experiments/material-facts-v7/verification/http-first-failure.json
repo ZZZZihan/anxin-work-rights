@@ -1,0 +1,593 @@
+{
+  "status": "FAIL",
+  "mode": "material-facts-v7-http",
+  "runId": "2026-10-18T03-36-26-241Z-ac8d6c93",
+  "boundary": "production Worker HTTP + disposable on-disk D1/R2 + real TXT material service and rules queue + explicitly injected synthetic fact outputs; no real-model or business acceptance",
+  "actualModelInference": false,
+  "syntheticInputs": true,
+  "holdoutRead": false,
+  "historicalReportsOverwritten": false,
+  "buildRoot": "task-isolated-worktree",
+  "recordedAt": "2026-10-18T03:36:30.640Z",
+  "observations": [
+    {
+      "name": "lowercase_chinese_rmb_preserves_original_and_codepoint_locations",
+      "status": "PASS",
+      "amount": "40000.00",
+      "rawValue": "四万元",
+      "quote": "测试王甲2026年1月完整应付工资四万元",
+      "start": 19,
+      "end": 39,
+      "automaticCalculation": false
+    },
+    {
+      "name": "wage_description_without_money_is_rejected_and_raw_remains_visible",
+      "status": "PASS",
+      "accepted": 0,
+      "rejected": 1,
+      "rawRetained": true
+    },
+    {
+      "name": "same_amount_and_attributes_at_two_payment_events_are_both_retained",
+      "status": "FAIL",
+      "failure": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n+   null,\n+   null\n-   '1000.00',\n-   '1000.00'\n  ]\n"
+      }
+    },
+    {
+      "name": "range_never_becomes_usable_exact_money",
+      "status": "PASS",
+      "acceptedForReview": 1,
+      "normalization": "range",
+      "amount": null,
+      "rawRetained": true
+    },
+    {
+      "name": "foreign-currency_never_becomes_usable_exact_money",
+      "status": "PASS",
+      "acceptedForReview": 1,
+      "normalization": "unsupported",
+      "amount": null,
+      "rawRetained": true
+    },
+    {
+      "name": "internal-token-crop_never_becomes_usable_exact_money",
+      "status": "PASS",
+      "acceptedForReview": 1,
+      "normalization": "unsupported",
+      "amount": null,
+      "rawRetained": true
+    },
+    {
+      "name": "cropped-approximation_never_becomes_usable_exact_money",
+      "status": "PASS",
+      "acceptedForReview": 1,
+      "normalization": "approximate",
+      "amount": null,
+      "rawRetained": true
+    },
+    {
+      "name": "rate-as-total_never_becomes_usable_exact_money",
+      "status": "PASS",
+      "acceptedForReview": 1,
+      "normalization": "rate_unit_mismatch",
+      "amount": null,
+      "rawRetained": true
+    },
+    {
+      "name": "malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit",
+      "status": "PASS",
+      "failedRawPreserved": true,
+      "previousSuccessfulMaterialPreserved": true,
+      "previousAuditPrefixPreserved": true
+    },
+    {
+      "name": "empty-raw_is_failed_with_exact_raw_retained",
+      "status": "PASS",
+      "failed": true,
+      "raw": "",
+      "finishReason": "stop",
+      "acceptedCandidates": 0
+    },
+    {
+      "name": "unfinished-raw_is_failed_with_exact_raw_retained",
+      "status": "PASS",
+      "failed": true,
+      "raw": "{\"schemaVersion\":3,\"candidates\":[]}",
+      "finishReason": "length",
+      "acceptedCandidates": 0
+    },
+    {
+      "name": "valid_empty_candidates_retains_raw_and_coverage_without_zero",
+      "status": "PASS",
+      "accepted": 0,
+      "raw": "{\"schemaVersion\":3,\"candidates\":[]}",
+      "coverage": "empty",
+      "zeroCreated": false
+    },
+    {
+      "name": "worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots",
+      "status": "PASS",
+      "checkedCases": 11,
+      "storedRawAndHistoryUnchanged": true,
+      "privateServiceAuthentication": true
+    }
+  ],
+  "failure": {
+    "phase": "acceptance",
+    "message": "One or more synthetic HTTP scenarios failed; original observations and raw outputs are retained."
+  },
+  "syntheticOutputs": [
+    {
+      "evidenceId": "475f3e28-5bef-4cde-a4e3-b47f337cbdcd",
+      "jobId": "9cf5be9f-d759-4f47-909d-44f550045c8b",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"四万元\",\"quote\":\"测试王甲2026年1月完整应付工资四万元\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"complete\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"}]}",
+      "candidates": [
+        {
+          "kind": "money",
+          "value": "四万元",
+          "quote": "测试王甲2026年1月完整应付工资四万元",
+          "blockId": "p1-b1",
+          "subject": "测试王甲",
+          "scope": "individual",
+          "meaning": "due_total",
+          "completeness": "complete",
+          "period": "2026年1月",
+          "rateUnit": null,
+          "assertion": "narrated"
+        }
+      ],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "f84a23cb-92ac-459d-a35d-26b0a88291ba",
+      "jobId": "ae491c02-5d95-432e-9b38-15c0b3ab2290",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"工资按月发放\",\"quote\":\"测试王甲2026年1月工资按月发放\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"complete\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"}]}",
+      "candidates": [
+        {
+          "kind": "money",
+          "value": "工资按月发放",
+          "quote": "测试王甲2026年1月工资按月发放",
+          "blockId": "p1-b1",
+          "subject": "测试王甲",
+          "scope": "individual",
+          "meaning": "due_total",
+          "completeness": "complete",
+          "period": "2026年1月",
+          "rateUnit": null,
+          "assertion": "narrated"
+        }
+      ],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "34d9c36d-f26d-4221-9339-04c2fd4bedae",
+      "jobId": "11b2b68b-ea83-4ab7-aa52-1a32c8d3d55f",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"1000元\",\"quote\":\"2026年2月1日单位向测试王甲支付2026年1月工资1000元\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"payment\",\"completeness\":\"partial\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"},{\"kind\":\"money\",\"value\":\"1000元\",\"quote\":\"2026年2月2日单位向测试王甲支付2026年1月工资1000元\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"payment\",\"completeness\":\"partial\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"}]}",
+      "candidates": [
+        {
+          "kind": "money",
+          "value": "1000元",
+          "quote": "2026年2月1日单位向测试王甲支付2026年1月工资1000元",
+          "blockId": "p1-b1",
+          "subject": "测试王甲",
+          "scope": "individual",
+          "meaning": "payment",
+          "completeness": "partial",
+          "period": "2026年1月",
+          "rateUnit": null,
+          "assertion": "narrated"
+        },
+        {
+          "kind": "money",
+          "value": "1000元",
+          "quote": "2026年2月2日单位向测试王甲支付2026年1月工资1000元",
+          "blockId": "p1-b1",
+          "subject": "测试王甲",
+          "scope": "individual",
+          "meaning": "payment",
+          "completeness": "partial",
+          "period": "2026年1月",
+          "rateUnit": null,
+          "assertion": "narrated"
+        }
+      ],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "3515aa43-69f2-4c49-bf29-0f4b78a63f80",
+      "jobId": "298801d3-5193-4ef7-853b-5fe32399b336",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"四万至五万元\",\"quote\":\"测试王甲2026年1月完整应付工资四万至五万元\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"complete\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"}]}",
+      "candidates": [
+        {
+          "kind": "money",
+          "value": "四万至五万元",
+          "quote": "测试王甲2026年1月完整应付工资四万至五万元",
+          "blockId": "p1-b1",
+          "subject": "测试王甲",
+          "scope": "individual",
+          "meaning": "due_total",
+          "completeness": "complete",
+          "period": "2026年1月",
+          "rateUnit": null,
+          "assertion": "narrated"
+        }
+      ],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "7f561ac9-0837-47b3-9b6c-1f8c7a1bf6eb",
+      "jobId": "0fb9c5f8-0a3b-45f0-abbd-f056340a8004",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"四万元\",\"quote\":\"四万元\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"complete\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"}]}",
+      "candidates": [
+        {
+          "kind": "money",
+          "value": "四万元",
+          "quote": "四万元",
+          "blockId": "p1-b1",
+          "subject": "测试王甲",
+          "scope": "individual",
+          "meaning": "due_total",
+          "completeness": "complete",
+          "period": "2026年1月",
+          "rateUnit": null,
+          "assertion": "narrated"
+        }
+      ],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "49d30338-bfda-4b97-ab54-d822a80c0d05",
+      "jobId": "43b05f3e-d1e0-4d0e-ac24-30738825dd14",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"四万元\",\"quote\":\"四万元\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"complete\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"}]}",
+      "candidates": [
+        {
+          "kind": "money",
+          "value": "四万元",
+          "quote": "四万元",
+          "blockId": "p1-b1",
+          "subject": "测试王甲",
+          "scope": "individual",
+          "meaning": "due_total",
+          "completeness": "complete",
+          "period": "2026年1月",
+          "rateUnit": null,
+          "assertion": "narrated"
+        }
+      ],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "c5bb1657-ac29-42c3-a042-29d6b5f9bada",
+      "jobId": "693ac751-728c-4633-9785-bc0bd0df35b5",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"四万元\",\"quote\":\"四万元\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"complete\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"}]}",
+      "candidates": [
+        {
+          "kind": "money",
+          "value": "四万元",
+          "quote": "四万元",
+          "blockId": "p1-b1",
+          "subject": "测试王甲",
+          "scope": "individual",
+          "meaning": "due_total",
+          "completeness": "complete",
+          "period": "2026年1月",
+          "rateUnit": null,
+          "assertion": "narrated"
+        }
+      ],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "ea1b1882-665d-458e-8ae1-86b38e575b3d",
+      "jobId": "5d4b9070-a4a7-43e0-8c10-3956c4236aba",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"四万元\",\"quote\":\"四万元\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"complete\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"}]}",
+      "candidates": [
+        {
+          "kind": "money",
+          "value": "四万元",
+          "quote": "四万元",
+          "blockId": "p1-b1",
+          "subject": "测试王甲",
+          "scope": "individual",
+          "meaning": "due_total",
+          "completeness": "complete",
+          "period": "2026年1月",
+          "rateUnit": null,
+          "assertion": "narrated"
+        }
+      ],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "7bf1b5b5-11e5-48dc-95c3-e4f69c9f4e49",
+      "jobId": "cca1f5f9-557c-4c2d-a201-fb63f99ad635",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"四万元\",\"quote\":\"测试王甲2026年1月完整应付工资四万元\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"complete\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"}]}",
+      "candidates": [
+        {
+          "kind": "money",
+          "value": "四万元",
+          "quote": "测试王甲2026年1月完整应付工资四万元",
+          "blockId": "p1-b1",
+          "subject": "测试王甲",
+          "scope": "individual",
+          "meaning": "due_total",
+          "completeness": "complete",
+          "period": "2026年1月",
+          "rateUnit": null,
+          "assertion": "narrated"
+        }
+      ],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "4d228081-7d69-483a-9a96-2658af63eabe",
+      "jobId": "49d4e9c4-9e15-4692-a1cf-21acafecb923",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[合成不完整JSON",
+      "candidates": [],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "6f9bfd90-fed3-426d-89c5-d3003f838868",
+      "jobId": "e1c3f5cc-ea7c-49da-99df-1fe717965b32",
+      "raw": "",
+      "candidates": [],
+      "finish_reason": "stop"
+    },
+    {
+      "evidenceId": "c4c6e3ab-c33c-44a7-a696-c2d6d8e45535",
+      "jobId": "9673a615-d551-4f33-b346-252672eb7732",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[]}",
+      "candidates": [],
+      "finish_reason": "length"
+    },
+    {
+      "evidenceId": "3bbf4012-0a33-4252-a186-e8584b92dcdd",
+      "jobId": "e35f66d7-b23e-4e62-b8ef-f8d18f302455",
+      "raw": "{\"schemaVersion\":3,\"candidates\":[]}",
+      "candidates": [],
+      "finish_reason": "stop"
+    }
+  ],
+  "serviceCalls": [
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/9cf5be9f-d759-4f47-909d-44f550045c8b",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/9cf5be9f-d759-4f47-909d-44f550045c8b",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/ae491c02-5d95-432e-9b38-15c0b3ab2290",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/ae491c02-5d95-432e-9b38-15c0b3ab2290",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/11b2b68b-ea83-4ab7-aa52-1a32c8d3d55f",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/11b2b68b-ea83-4ab7-aa52-1a32c8d3d55f",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/298801d3-5193-4ef7-853b-5fe32399b336",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/298801d3-5193-4ef7-853b-5fe32399b336",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/0fb9c5f8-0a3b-45f0-abbd-f056340a8004",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/0fb9c5f8-0a3b-45f0-abbd-f056340a8004",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/43b05f3e-d1e0-4d0e-ac24-30738825dd14",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/43b05f3e-d1e0-4d0e-ac24-30738825dd14",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/693ac751-728c-4633-9785-bc0bd0df35b5",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/693ac751-728c-4633-9785-bc0bd0df35b5",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/5d4b9070-a4a7-43e0-8c10-3956c4236aba",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/5d4b9070-a4a7-43e0-8c10-3956c4236aba",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/cca1f5f9-557c-4c2d-a201-fb63f99ad635",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/cca1f5f9-557c-4c2d-a201-fb63f99ad635",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/49d4e9c4-9e15-4692-a1cf-21acafecb923",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/49d4e9c4-9e15-4692-a1cf-21acafecb923",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/e1c3f5cc-ea7c-49da-99df-1fe717965b32",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/e1c3f5cc-ea7c-49da-99df-1fe717965b32",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/9673a615-d551-4f33-b346-252672eb7732",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/9673a615-d551-4f33-b346-252672eb7732",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "upstreamStatus": 202,
+      "authenticated": true
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/e35f66d7-b23e-4e62-b8ef-f8d18f302455",
+      "upstreamStatus": 200,
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/e35f66d7-b23e-4e62-b8ef-f8d18f302455",
+      "upstreamStatus": 200,
+      "authenticated": true
+    }
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "failures": []
+  }
+}

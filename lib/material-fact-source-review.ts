@@ -1,6 +1,7 @@
 import type { FactCandidate, FactSource, FactState } from './material-fact-types';
 import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 } from './material-fact-types-v3';
-import { getCandidateRepresentation, isV2Candidate, isV3Candidate, normalizeCandidateValue } from './material-facts-v3.ts';
+import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from './material-facts-v3.ts';
+import { normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
 import { sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { reviewMaterialCoverage } from './material-fact-coverage-review.ts';
@@ -115,6 +116,9 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   if (suffix) return units[suffix[1]];
   const prefix = before.match(/(?:每\s*(小时|月|日|天|时|件)|(月|日|时)(?:薪|工资)|小时工资|计件(?:单价|工资)?)(?:为|是|计|共|合计|工资|薪酬|薪资|金额|人民币|[¥￥]|\s)*$/u);
   if (!prefix) return null;
+  // “2026年1月工资1000元” names the wage period, not a monthly rate.
+  // Only the naked 月/日/时工资 alternative can collide with a calendar token.
+  if (prefix[2] && /[0-9０-９零〇一二三四五六七八九十百千万两正腊臘]$/u.test(before.slice(0, prefix.index).replace(/[^\S\r\n]+$/u, ''))) return null;
   return prefix[1] ? units[prefix[1]] : prefix[2] ? units[prefix[2]] : prefix[0].startsWith('小时') ? 'hour' : 'piece';
 }
 
@@ -153,8 +157,8 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
     code: 'source_relation_unresolved', message: '源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。',
   });
   if (raw.kind === 'money') {
-    // Reuse the frozen normalizer only as a runtime source constraint. Its raw/value/quote
-    // and the frozen model result remain intact; only derived availability can decrease.
+    // Review may only reduce availability, including for historical extractions.
+    // New parsing is applied on re-extraction; old raw/value/quote remain intact.
     let sourceNormalized = normalizeCandidateValue({ ...raw, quote: context.text });
     if (totalNeedsCompleteRelationship
       && (context.qualifiers.length > 0 || !hasSupportedTotalRelationship(raw, context.text, sourceNormalized.normalization))) appendIssue(reviewed, {

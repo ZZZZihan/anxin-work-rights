@@ -2,6 +2,7 @@ import type { FactSource, FactState } from './material-fact-types';
 import type { CandidateBatchV3, FactMaterialV3 } from './material-fact-types-v3';
 import { diagnoseExtractionCoverage, ingestCandidates as ingestFrozenCandidates, isV3Candidate, parseCandidateOutput, validateCandidateOutput } from './material-facts-v3.ts';
 import { reviewCandidateAgainstSource } from './material-fact-source-review.ts';
+import { classifyMonetaryExpression, normalizeMoneyValueV4 } from './material-money-v4.ts';
 
 /** Production-only acceptance adapter. Frozen evaluators keep their original
  * validator, outputs and scores; existing stored extractions are not reparsed.
@@ -19,20 +20,28 @@ export function validateRuntimeCandidateOutput(raw: string, source: FactSource):
       rejected.push(...single.rejected.map(item => ({ ...item, index })));
       return;
     }
-    const candidate = { ...accepted, id: `${source.id}:${source.analysisRevision}:${index}`, outputFormat: original.format };
+    const value = accepted.representation;
+    if (value.kind === 'money' && classifyMonetaryExpression(value.value).kind === 'not_monetary') {
+      rejected.push({ index, reason: 'money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零' });
+      return;
+    }
+    // Parse the raw literal, then constrain it against the actual source below.
+    // A cropped quote may omit a valid RMB marker as well as an unsafe modifier;
+    // quote-only failure must not bypass that full-source review on a fresh run.
+    const normalized = value.kind === 'money' ? normalizeMoneyValueV4(value.value) : accepted.normalization;
+    const candidate = { ...accepted, amount: normalized.amount, normalization: normalized,
+      id: `${source.id}:${source.analysisRevision}:${index}`, outputFormat: original.format };
     const reviewed = reviewCandidateAgainstSource(candidate, source);
     const normalization = isV3Candidate(reviewed) ? reviewed.normalization : candidate.normalization;
-    const value = candidate.representation;
-    // Cropped quotes must not hide a modifier from identity either. Distinct
-    // unresolved observations retain their locations; exact semantic duplicates
-    // still collapse, while a blocked observation cannot suppress a usable one.
+    // Source identity is required even for exact values: two payments with the
+    // same amount and attributes are not proven to be one event. Only a uniquely
+    // anchored repeat at the same position may collapse. No first-occurrence guess.
     const block = source.blocks.find(item => item.id === candidate.blockId);
     const quoteAt = block?.text.indexOf(candidate.quote) ?? -1, valueAt = candidate.quote.indexOf(value.value);
     const uniqueAnchor = block && quoteAt >= 0 && block.text.indexOf(candidate.quote, quoteAt + 1) < 0
       && valueAt >= 0 && candidate.quote.indexOf(value.value, valueAt + 1) < 0;
     const anchorStart = uniqueAnchor ? Array.from(block.text.slice(0, quoteAt + valueAt)).length : null;
-    const unresolvedLocation = ['exact', 'not_money'].includes(normalization.status) ? null
-      : anchorStart !== null ? [candidate.blockId, anchorStart, anchorStart + Array.from(value.value).length]
+    const sourceLocation = anchorStart !== null ? [candidate.blockId, anchorStart, anchorStart + Array.from(value.value).length]
         : [candidate.blockId, candidate.start, candidate.end, candidate.quote];
     const key = JSON.stringify([value.kind, value.meaning, normalization.status,
       normalization.amount ?? normalization.rawValue, value.subject, value.scope, value.period,
@@ -40,13 +49,13 @@ export function validateRuntimeCandidateOutput(raw: string, source: FactSource):
       // A source-normalization downgrade reached via a cropped quote is not a
       // new observation when the final status/value and anchor already match.
       isV3Candidate(reviewed) ? reviewed.reviewIssues.map(issue => String(issue.code))
-        .filter(code => code !== 'source_amount_context_mismatch').sort() : [], unresolvedLocation]);
+        .filter(code => code !== 'source_amount_context_mismatch').sort() : [], sourceLocation]);
     if (seen.has(key)) {
-      rejected.push({ index, reason: '同一事实、同一陈述属性及同一源文规范化状态的候选重复；精确金额与有修饰或待核金额分别保留' });
+      rejected.push({ index, reason: '同一源文位置、同一事实属性及规范化状态的候选重复；不同发生位置及待核金额分别保留' });
       return;
     }
     seen.add(key);
-    candidates.push(candidate);
+    candidates.push(isV3Candidate(reviewed) ? reviewed : candidate);
   });
   const batch = { ...original, candidates, rejected };
   return { ...batch, coverage: diagnoseExtractionCoverage(source, batch) };

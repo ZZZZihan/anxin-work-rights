@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "issue": 42,
+  "status": "passed_independent_pre_run_technical_review",
+  "recorded_at": "2026-10-18T03:40:08.084479+00:00",
+  "reviewer": {
+    "role": "independent_subagent_not_module_implementer",
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "ultra",
+    "actual_runtime_configuration_independently_verified": false
+  },
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "b18dbc6ef1cb792ae330c0445a05d2961b5c74a9bf5c84fb18379ee1f78630c6",
+    "lib/material-fact-runtime-ingest.ts": "625ec6a9524bf39dd7105c973a7d6b17cef7bec72110ea939aee63ce8cdca65b",
+    "lib/material-fact-source-review.ts": "1c240e21600663f3cb52d2194edefedf509325e684954a6c23884076a6abf05a",
+    "lib/material-fact-extraction-v4.ts": "319f4f94073f6d5e18a307e5498c2704cac3639586a24f1e48b7da14301f26d2",
+    "lib/material-fact-store.ts": "761c94a52512954137b506e596e2ea777bad80a616f4468b095af05ee3f2dc72",
+    "scripts/fact-jobs.mjs": "41f67c0158e60148269c61f2d085a918a6049acb0024d3fb5c6723d31bb280d2",
+    "experiments/material-facts-v7/assess.mjs": "048d10eea491bddd8bc5c8d4a2ad065ba5231e0778418d03fc19efc3f0b0d77b",
+    "lib/material-money-v4.independent.test.ts": "776d7008a3fad661ebefe18d776f114fb80ad4579f9a46438838b57927d26b38",
+    "lib/material-facts-v7-runtime-independent.test.ts": "d884cde37b859e04a138f9c7ec2321caf078cc5012e79373ae620f408f1d3b03",
+    "scripts/material-facts-v7-assessment-independent.test.mjs": "0527eb86e6cdd437224daea198cb27c4fd95e3ea51cf33fda1ab62d3e4c28737"
+  },
+  "frozen_unchanged_checks": [
+    {
+      "path": "lib/material-facts-v3.ts",
+      "sha256": "b1e5fbe9829cd677c98315070fd3406dfadd6305a3291dfa601a3df64874cbdd",
+      "equals_current_HEAD": true
+    },
+    {
+      "path": "lib/material-facts-v3.test.ts",
+      "sha256": "877834c264814b3d29f4a3c684381e111984ae2cc5e43f71efc3fbb0d9b58487",
+      "equals_current_HEAD": true
+    },
+    {
+      "path": "experiments/material-facts-v6/assess.mjs",
+      "sha256": "df85cbfdc9a1720b9aad314298f0f55d91f2131fc206082b33af6ffc923cca6c",
+      "equals_current_HEAD": true
+    },
+    {
+      "path": "experiments/material-facts-v6/ANNOTATION.md",
+      "sha256": "12dbdd4f2da2f9615ec0dfa490c7d4d03bad34515a2a7f246157818d220c1ec5",
+      "equals_current_HEAD": true
+    },
+    {
+      "path": "experiments/material-facts-v6/ERROR_REVIEW.md",
+      "sha256": "bf1050afb551fd57e10922760e7e30faaf001ae0eaf1ca4cc4be9573e8a8f7e5",
+      "equals_current_HEAD": true
+    }
+  ],
+  "checks_executed": [
+    {
+      "kind": "independent_runtime_integration",
+      "command": "node_modules/.bin/vitest run lib/material-facts-v7-runtime-independent.test.ts lib/material-money-v4.independent.test.ts",
+      "passed": 57,
+      "failed": 0,
+      "components": {
+        "runtime_and_prompt": 47,
+        "monetary_independent": 10
+      }
+    },
+    {
+      "kind": "independent_scorer_native_node",
+      "command": "node --test scripts/material-facts-v7-assessment-independent.test.mjs",
+      "passed": 30,
+      "failed": 0
+    },
+    {
+      "kind": "typescript",
+      "command": "node_modules/.bin/tsc --noEmit --pretty false --incremental false",
+      "exit_code": 0
+    },
+    {
+      "kind": "new_independent_runtime_test_lint",
+      "command": "node_modules/.bin/eslint lib/material-facts-v7-runtime-independent.test.ts",
+      "exit_code": 0
+    },
+    {
+      "kind": "all_provisional_labels_with_zero_outputs",
+      "documents": 15,
+      "expected_facts": 56,
+      "six_modes_tp_fp_fn": [
+        0,
+        0,
+        56
+      ],
+      "model_calls": 0,
+      "candidate_outputs_read": 0
+    }
+  ],
+  "closed_findings": [
+    "Frozen v6 matched a same-value asset event as wages even in basic/strict; v7 binds all six layers to independently anchored source events.",
+    "Clipped lowercase Chinese decimals, fraction/arithmetic tails, currency, rate units and omitted cents could appear exact; independent probes now stay unavailable.",
+    "Six finite wage-description patterns were accepted as money; they now reject while explicit masked/unknown wage amounts remain reviewable.",
+    "Native Node import compatibility and complete-source review on fresh extraction were verified; reviewed candidates are persisted.",
+    "Different source positions survive runtime deduplication; exact same-position duplicates retain their full raw observations.",
+    "Historical unsupported monetary candidates are not upgraded by read-time source review; re-extraction clears scope and amount authorizations.",
+    "Calendar month/day wage-period text is not mistaken for a rate, including horizontal OCR spacing; actual monthly/daily/hourly rates mislabeled as totals remain unavailable."
+  ],
+  "source_event_review": {
+    "unicode_code_point_half_open_spans": true,
+    "all_quote_and_value_occurrences_enumerated": true,
+    "unregistered_or_multiple_event_positions_cannot_match": true,
+    "self_reported_attributes_do_not_disambiguate_events": true,
+    "malformed_raw_candidates_remain_false_positives": true,
+    "one_to_one_maximum_matching": true
+  },
+  "annotation_review_receipt": "experiments/material-facts-v7/annotation-review.independent.json",
+  "synthetic_http_script_review": {
+    "path": "scripts/material-facts-v7-http-regression.mjs",
+    "author_tree": "anxin-facts-v7-data",
+    "static_review_only": true,
+    "executed_by_this_reviewer": false,
+    "blocking_findings": [],
+    "scope": "Loopback production Worker with temporary D1/R2, real TXT service and rules queue, synthetic fact results replaced only after genuine ready GET; exact source bytes/codepoints, same-value two payments, failure/empty raw, history/restart, exclusive report creation and cleanup assertions reviewed."
+  },
+  "retained_failure_evidence": [
+    {
+      "path": "experiments/material-facts-v7/review-evidence/frozen-v6-independent-scorer-red.txt",
+      "sha256": "2e0f2c36783efc8d6ef671f712767da17cd272d14b9105b81640f3f36938d132"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/v7-noamount-independent-before-red.txt",
+      "sha256": "efcc33887d0d126fa1f0fb5d6657302612c44b2a00a55ea187b1e975fe79deae"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/v7-calendar-ocr-independent-before-red.txt",
+      "sha256": "6f4679061e990fa232bc67a0e0be1bc5b5c23cdb1e40bf1e4b4b9b3b04cdb79f"
+    }
+  ],
+  "blocking_findings": [],
+  "limits": [
+    "Synthetic/parser/scorer tests and static technical review do not prove real-model or legal accuracy.",
+    "No model invocation, model response inspection, Worker start, production deployment, training, commit, push or merge by this reviewer.",
+    "Annotations are non-expert provisional technical labels; independent source review is bound by its own receipt.",
+    "Final full-check, actual isolated HTTP execution, v7 runner/freeze audit and independent result recomputation are separate root-coordinated evidence.",
+    "Receipt applies only to the listed code/test hashes; subsequent changes require review of their effect."
+  ]
+}
