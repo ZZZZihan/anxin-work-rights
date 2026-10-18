@@ -238,6 +238,13 @@ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization 
 }
 
 /** Adds source-bound qualifier checks without modifying source text or frozen representations. */
+/** An immediately following uncertainty marker can be cropped out of value
+ * and quote. Inspect a detection copy, retaining punctuation as evidence. */
+export function hasPostposedMoneyUncertainty(after: string): boolean {
+  const text = after.normalize('NFKC').replace(/\p{Cf}/gu, '');
+  return /^\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\s*[()[\]{}【】]*\s*(?:[?□_]|待核(?:实)?|待(?:定|确认|补充)|未知|不详|不明|无法确定|未(?:提供|明确|载明|记载|披露|列明|注明|约定|确定)|\.{2,}|…)/iu.test(text);
+}
+
 export function normalizeCandidateValueV4(candidate: RawCandidateV3): NormalizedCandidateValue {
   if (candidate.kind === 'money' && (candidate.value.length > MAX_INPUT || candidate.quote.length > MAX_INPUT)) {
     const normalization = result(candidate.value, 'unsupported', '金额或引用原文超过4000字符上限，未截断解析。');
@@ -281,6 +288,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
       else if (suffixRate && !supportedRate) normalized = result(candidate.value, 'unsupported', '原文金额直接附着不受支持的费率单位，保留原文且未换算为总额或现有费率单位。');
       else if (supportedRate && (candidate.meaning !== 'rate' || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== rateUnits[supportedRate]))) normalized = result(candidate.value, 'rate_unit_mismatch', '原文紧贴的费率单位与金额角色或候选费率单位冲突。');
       else if (isMoneyRangeEndpoint(monetaryDetectionView(rangeBefore), monetaryDetectionView(rangeToken), monetaryDetectionView(rangeAfter))) normalized = result(candidate.value, 'range', '当前金额在原文中直接属于区间端点。');
+      else if (hasPostposedMoneyUncertainty(rangeAfter)) normalized = result(candidate.value, 'uncertain', '当前金额后直接附着问号、待核或未知标记，未将裁剪值作为精确金额。');
       else if (hasUnfinishedMoneyRangeAfter(arithmeticAfter)) normalized = result(candidate.value, 'uncertain', '连接词后的数字未形成完整金额或明确时间，不能确认被截取的数值可用。');
       else if (hasAttachedMoneyArithmetic(arithmeticBefore, arithmeticAfter)) normalized = result(candidate.value, 'unsupported', '当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。');
       else if (qualifierStatus) normalized = result(candidate.value, qualifierStatus, '当前金额在原文中直接附着数量不定、概数界限或正负限定，未截取为精确正数。');

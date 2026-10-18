@@ -1,7 +1,7 @@
 import type { FactCandidate, FactSource, FactState } from './material-fact-types';
 import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 } from './material-fact-types-v3';
 import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from './material-facts-v3.ts';
-import { hasUnfinishedMoneyRangeAfter, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
+import { hasPostposedMoneyUncertainty, hasUnfinishedMoneyRangeAfter, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
 import { sourceMoneyHasNonCurrencySubunit, sourceMoneyHasNonCurrencyYuan, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
@@ -74,6 +74,9 @@ function sourceEvent(candidate: FactCandidate, source: FactSource | undefined): 
 }
 
 function hasGroupText(text: string): boolean {
+  // Detection-only spellings: a traditional group header must keep the same
+  // individual-scope warning when traditional amount roles are recognized.
+  text = text.replace(/[組體員勞動農兩萬]/gu, glyph => ({ 組: '组', 體: '体', 員: '员', 勞: '劳', 動: '动', 農: '农', 兩: '两', 萬: '万' })[glyph]!);
   if (/(?:班组|全组|全体(?:工人|员工|劳动者|农民工)?|多人|多名(?:工人|员工|劳动者|农民工))/u.test(text)) return true;
   return [...text.matchAll(/(?<![第0-9一二三四五六七八九十百千万零两])([0-9一二三四五六七八九十百千万零两]+)\s*(?:名|位|人)(?!民[币幣])(?:工人|员工|劳动者|农民工)?/gu)]
     .some(match => /^\d+$/u.test(match[1]) ? BigInt(match[1]) > 1n : !['一', '零'].includes(match[1]));
@@ -257,6 +260,9 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       };
       else if (sourceMoneyHasAttachedArithmetic(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。', 'unsupported'),
+      };
+      else if (layout && hasPostposedMoneyUncertainty(layout.after)) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额后直接附着问号、待核或未知标记；保留原文，不将裁剪金额作为确定值。'),
       };
       else if (truncatedMoneyToken(context, sourceNormalized.normalization, layout?.after)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
