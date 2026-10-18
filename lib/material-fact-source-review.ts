@@ -1,7 +1,7 @@
 import type { FactCandidate, FactSource, FactState } from './material-fact-types';
 import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 } from './material-fact-types-v3';
 import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from './material-facts-v3.ts';
-import { isPostposedMoneyPaymentSchedule, hasPostposedMoneyUncertainty, hasUnfinishedMoneyRangeAfter, hasUnsafeWholeMoneyContinuation, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
+import { moneyQualifierPrefixWithoutSubject, hasUnsupportedMoneySuffixRate, supportedMoneySuffixRateUnit, isPostposedMoneyPaymentSchedule, hasPostposedMoneyUncertainty, hasUnfinishedMoneyRangeAfter, hasUnsafeWholeMoneyContinuation, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
 import { sourceMoneyHasNonCurrencySubunit, sourceMoneyHasNonCurrencyYuan, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
@@ -214,14 +214,13 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   if (!edges) return null;
   const detectionText = sourceRateDetectionText;
   const before = detectionText(edges.before.split(/[，,。！？!?；;\n\r\u2028\u2029]/u).at(-1)!);
-  const after = detectionText(edges.after.split(/[，,。！？!?；;\n\r\u2028\u2029]/u)[0]);
   const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
   // A model-supplied subject never exempts a postposed source denominator.
   if (postposedUnit) return postposedUnit;
-  const suffix = after.match(/^(?:[元圆圓]\s*)?(?:[/／]\s*|每\s*)(小时|月|日|天|时|件)/u);
+  const suffix = supportedMoneySuffixRateUnit(edges.after);
   // Only an explicit recurring day plus payment verb exempts 每月. The
   // shared predicate does not exempt slash units or another wage standard.
-  if (suffix && !paymentSchedule && !isPostposedMoneyPaymentSchedule(edges.after)) return units[suffix[1]];
+  if (suffix && !paymentSchedule && !isPostposedMoneyPaymentSchedule(edges.after)) return suffix;
   const prefix = before.match(/(?:(?:每|按)(小时|月|日|天|时|件)|(月|日|时)(?:薪|(?:基本)?工资)|小时工资|计件(?:单价|工资)?)(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|[¥￥:=])*$/u);
   if (!prefix) return null;
   // “2026年1月工资1000元” and “上月工资1000元” name wage periods,
@@ -337,7 +336,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       // Shared finite grammars alone inspect these edges; arbitrary neighboring
       // prose cannot attach, and stored quote/positions stay in their own block.
       const layout = sourceMoneyLayoutEdges(context, sourceNormalized.normalization, source!, candidate.blockId);
-      const qualifierStatus = layout && attachedMoneyQualifierStatus(layout.before, layout.after);
+      const qualifierStatus = layout && attachedMoneyQualifierStatus(moneyQualifierPrefixWithoutSubject(layout.before, raw.subject), layout.after);
       const postposedRate = layout && sourcePostposedRate(layout.after);
       if (lexical.unresolved) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '相邻文本块的词内连续性未证实，可能包含金额单位的普通词续文；保留原文并人工核对边界。'),
@@ -372,7 +371,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       else if (truncatedMoneyToken(context, sourceNormalized.normalization, layout?.after, layout?.before)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
       };
-      else if (layout && (sourceHasUnsupportedRate(layout.before) || postposedRate?.unit === null)) sourceNormalized = {
+      else if (layout && (sourceHasUnsupportedRate(layout.before) || hasUnsupportedMoneySuffixRate(layout.after) || postposedRate?.unit === null)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着不受支持的费率分母，未换算成总额或现有费率单位，请人工核对。', 'unsupported'),
       };
       else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject, postposedRate?.unit ?? undefined, isPostposedMoneyPaymentSchedule(layout?.after ?? '')))) sourceNormalized = {

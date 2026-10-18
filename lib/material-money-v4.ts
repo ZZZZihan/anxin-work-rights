@@ -232,8 +232,31 @@ function hasRepeatedRmbCurrency(before: string, token: string, after: string): b
   return count > 1;
 }
 
+/** Remove only a uniquely anchored two-character owner at this clause's
+ * heading from the qualifier detection copy. This is not general name/entity
+ * recognition: a missing, repeated, longer or modifier-shaped subject cannot
+ * erase an actual bound. Raw strings and every normalization offset stay intact. */
+export function moneyQualifierPrefixWithoutSubject(before: string, subject: string | null): string {
+  if (!subject || !/^\p{Script=Han}[近约約]$/u.test(subject)
+    || new RegExp(`^(?:${MONEY_BOUND_PREFIX}|近)$`, 'u').test(monetaryDetectionView(subject))) return before;
+  const clause = before.split(/[，,。！？!?；;]/u).at(-1)!;
+  const at = clause.indexOf(subject);
+  if (at < 0 || clause.indexOf(subject, at + subject.length) >= 0) return before;
+  const heading = clause.slice(0, at);
+  if (!/^[\s\p{Extended_Pictographic}\uFE0F]*(?:(?:劳动者|勞動者|员工|員工|工人|原告|姓名)\s*[:：]?\s*)?$/u.test(heading)) return before;
+  // Complete source name followed immediately by a finite wage bridge. A
+  // second 约/近 or another genuine qualifier remains after the removed name.
+  if (!/^\s*(?:的\s*)?(?:工[资資]|基本工[资資]|薪酬|薪[资資]|应付|應付|收到|领取|領取)/u.test(clause.slice(at + subject.length))) return before;
+  const offset = before.length - clause.length + at;
+  return before.slice(0, offset) + before.slice(offset + subject.length);
+}
+
 /** Parse one complete RMB literal with exact cents, preserving the unmodified evidence. */
 export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization {
+  return normalizeMoneyValueWithSubject(rawValue, null);
+}
+
+function normalizeMoneyValueWithSubject(rawValue: string, subject: string | null): CandidateNormalization {
   if (rawValue.length > MAX_INPUT) return result(rawValue, 'unsupported', '金额原文超过4000字符上限，未尝试解析或截断。');
   if (monetaryExpressionHasUnsupportedCurrency(rawValue) || /±/u.test(rawValue)) return result(rawValue, 'unsupported', '仅支持明确人民币金额，外币、币种冲突和正负范围符号未转换。');
   if (/[％%]|百分之/u.test(rawValue)) return result(rawValue, 'percentage', '比例不能作为精确金额。');
@@ -258,7 +281,7 @@ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization 
     if (moneyTokenHasNonCurrencySubunit(text, after)) return result(rawValue, 'unsupported', '匹配到的角或分属于时间、计量或普通词语，未作为分币金额。');
     const suffixRate = attachedSuffixRate(after);
     if (suffixRate.present && !suffixRate.supported) return result(rawValue, 'unsupported', '金额直接附着不受支持的费率分母，未将分子当作总额。');
-    const qualifierStatus = attachedQualifierStatus(before, after);
+    const qualifierStatus = attachedQualifierStatus(moneyQualifierPrefixWithoutSubject(before, subject), after);
     if (qualifierStatus) return result(rawValue, qualifierStatus, '完整金额带有数量不定、概数界限或正负限定，未截取其中的精确正数。');
     const yuanAt = text.search(/[元圆圓]/u);
     if (yuanAt >= 0 && !isRmbCurrencyUnitAt(rawValue, index + yuanAt)) return result(rawValue, 'unsupported', '匹配到的元或圆属于普通词语，不能截成金额单位。');
@@ -356,11 +379,28 @@ function attachedSuffixRate(after: string) {
     if (unsupported && (/^\s*(?:$|[，,。；;！!？?）)】\]])/u.test(tail) || uncertain))
       return { present: true, supported: undefined, postposedBy: true, uncertain };
   }
-  const suffix = detection.match(/^\s*(?:[元圆圓]\s*)?(?:\/\s*([\p{L}]+)|每\s*(小时|月|日|天|时|件|年|周|週|季度|季|次|分钟|分鐘|秒|公里|人|班))/u);
-  const text = suffix?.[1] ?? suffix?.[2];
-  const supported = text?.match(/^(小时|月|日|天|时|件)/u)?.[1];
+  const suffix = detection.match(/^\s*(?:[元圆圓]\s*)?(?:\/|每)\s*([\p{L}]+)/u);
+  const text = suffix?.[1];
+  // A denominator is a complete lexical unit. 月亮/月份/小时候 cannot
+  // borrow the enum from a valid prefix. Keep the existing finite pricing or
+  // payment prose, and attached uncertainty, after a complete supported unit.
+  const unit = text?.match(/^(小时|月|日|天|时|件)/u);
+  const remainder = unit ? text!.slice(unit[0].length) : '';
+  const supported = unit && (remainder === '' || hasPostposedMoneyUncertainty(remainder)
+    || /^(?:计算|计酬|计价|计薪|计|支付|发放|付清)$/u.test(remainder)) ? unit[1] : undefined;
   return { present: suffix !== null, supported, postposedBy: false,
     uncertain: supported !== undefined && hasPostposedMoneyUncertainty(detection) };
+}
+
+/** Source layout uses the same complete suffix-unit classification. */
+export function hasUnsupportedMoneySuffixRate(after: string): boolean {
+  const rate = attachedSuffixRate(after);
+  return rate.present && rate.supported === undefined;
+}
+
+export function supportedMoneySuffixRateUnit(after: string): RawCandidateV3['rateUnit'] | null {
+  const rate = attachedSuffixRate(after);
+  return rate.supported ? RATE_UNITS[rate.supported] : null;
 }
 
 /** A single 整/正 may end a complete amount, but cannot hide its continuation.
@@ -408,7 +448,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
   }
   const legacy = normalizeCandidateValue(candidate);
   if (candidate.kind === 'date' || legacy.normalization.status === 'rate_unit_mismatch') return legacy;
-  let normalized = normalizeMoneyValueV4(candidate.value);
+  let normalized = normalizeMoneyValueWithSubject(candidate.value, candidate.subject);
   if (normalized.status === 'exact') {
     const local = getCandidateLocalEvent(candidate);
     if (local.text === null) normalized = result(candidate.value, 'uncertain', '金额原文在引用中缺失或重复，无法唯一定位当前事件。');
@@ -432,7 +472,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
       const attachedPaymentInstruction = hasCompleteMoneyUnit(normalized.matchedText ?? '') && isPostposedMoneyPaymentInstruction(arithmeticAfter);
       const sourceAnchor = { blockText: local.text, valueStart: offset };
       const attachedCurrency = sourceMoneyHasExplicitRmbCurrency(sourceAnchor, normalized);
-      const qualifierStatus = attachedQualifierStatus(arithmeticBefore, arithmeticAfter);
+      const qualifierStatus = attachedQualifierStatus(moneyQualifierPrefixWithoutSubject(arithmeticBefore, candidate.subject), arithmeticAfter);
       const valueCharacters = Array.from(candidate.value), span = normalized.span;
       const rangeBefore = arithmeticBefore + (span ? valueCharacters.slice(0, span.start).join('') : '');
       const rangeToken = span ? valueCharacters.slice(span.start, span.end).join('') : candidate.value;

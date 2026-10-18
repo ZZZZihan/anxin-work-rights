@@ -29,8 +29,8 @@ const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总',
 const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
 // Date-only cue/bridge aliases, after literal owner/value positions are found.
 // Folding never changes the subject, date literal, quote or source offsets.
-const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须' };
-const dateRole = (text: string) => compact(text).replace(/[於職資歸屬間簽訂勞動關終開廠離約發計領實際係該時為調傷並與結後從應須]/gu, glyph => dateGlyphs[glyph]);
+const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须', 給: '给', 畢: '毕' };
+const dateRole = (text: string) => compact(text).replace(/[於職資歸屬間簽訂勞動關終開廠離約發計領實際係該時為調傷並與結後從應須給畢]/gu, glyph => dateGlyphs[glyph]);
 const groupLabel = /[、，,]|班[组組]|公司|[单單]位|集[团團]|工人|[员員]工|[劳勞][动動]者|群[体體]|集[体體]|[众眾]人/u;
 // Single surnames and placeholder people can form coordinated short subjects
 // (张和李/甲和乙). These are ambiguity cues, not a whitelist proving identity.
@@ -102,7 +102,7 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
   // right envelopes cannot absorb negation, another person or a partial date.
   if (recurringPaymentDate.test(value)) {
     const payment = '(?:支付|发放|给付|給付|付清)';
-    if (new RegExp(`^(?:的)?${wage}$`, 'u').test(left)
+    if (new RegExp(`^(?:的)?${wage}(?:于|在)?$`, 'u').test(left)
       && new RegExp(`^${payment}$`, 'u').test(right)) return true;
     return left === '' && new RegExp(`^${payment}${wage}$`, 'u').test(right);
   }

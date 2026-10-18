@@ -1403,6 +1403,47 @@ try {
     return { freshAmount: entry.amount, scopeMismatch: entry.group ?? null, historicalExactDowngraded: entry.amount === null, historicalNullNotUpgraded: entry.amount !== null, rawAndStoredHistoryUnchanged: true };
   });
   // End ROUND33 additions.
+  // ROUND34: finite date wrappers, anchored two-character names and whole rate units.
+  for (const [name, text, value, supported = true] of [
+    ['recurring-at', '测试王甲工资于每月15日发放。', '每月15日'],
+    ['recurring-in', '测试王甲工资在每月15日发放。', '每月15日'],
+    ['traditional-pay', '测试王甲工資應於2026年1月15日前給付。', '2026年1月15日前'],
+    ['traditional-pay-cropped', '测试王甲工資應於2026年1月15日前給付。', '2026年1月15日', false],
+    ['traditional-finish', '测试王甲工資應於2026年1月15日前支付完畢。', '2026年1月15日前'],
+    ['traditional-finish-cropped', '测试王甲工資應於2026年1月15日前支付完畢。', '2026年1月15日', false],
+  ]) await scenario(`round34_date_${name}`, async () => {
+    const candidate = {kind: 'date', value, quote: value, subject: '测试王甲', scope: 'individual', meaning: 'payment_date', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated'};
+    const [item] = await fixture(`round34-date-${name}`, [{text, exactSource: true, candidates: [candidate]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1);
+    assert.equal(material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !supported);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !supported);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round34-date-${name}`, item, state: before});
+    return {supported, rawAndStoredHistoryUnchanged: true};
+  });
+  const round34Money = [
+    ...['王近', '王约'].map(subject => ({name: `name-${subject}`, subject, text: `${subject}工资4000元。`, value: '4000元', amount: '4000.00'})),
+    {name: 'real-estimate-after-name', subject: '王近', text: '王近工资约4000元。', value: '4000元', amount: null},
+    {name: 'fabricated-name-swallow', subject: '工资约', text: '工资约4000元。', value: '4000元', amount: null},
+    ...['月亮', '月份', '小时候'].map(unit => ({name: `whole-unit-${unit}`, subject: '测试王甲', text: `测试王甲工资4000元/${unit}。`, value: `4000元/${unit}`, amount: null, rate: unit === '小时候' ? 'hour' : 'month'})),
+    {name: 'cropped-unit', subject: '测试王甲', text: '测试王甲工资4000元/月亮。', value: '4000元', amount: null, rate: 'month'},
+    {name: 'valid-month', subject: '测试王甲', text: '测试王甲工资4000元/月。', value: '4000元/月', amount: '4000.00', rate: 'month'},
+  ];
+  for (const entry of round34Money) await scenario(`round34_money_${entry.name}`, async () => {
+    const attributes = {subject: entry.subject, meaning: entry.rate ? 'rate' : 'other_money', completeness: 'not_applicable', period: null, rateUnit: entry.rate ?? null};
+    const [item] = await fixture(`round34-money-${entry.name}`, [{text: entry.text, exactSource: true, candidates: [money(entry.value, entry.value, attributes)]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, entry.amount);
+    if (entry.amount === null) assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = entry.amount === null ? '4000.00' : null;
+    old.normalization = {rawValue: old.value, amount: old.amount, status: entry.amount === null ? 'exact' : 'unsupported', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic historical ROUND34 downgrade or non-upgrade verification'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round34-money-${entry.name}`, item, state: before});
+    return {freshAmount: entry.amount, historicalExactDowngraded: entry.amount === null, historicalNullNotUpgraded: entry.amount !== null, rawAndStoredHistoryUnchanged: true};
+  });
+  // End ROUND34 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
