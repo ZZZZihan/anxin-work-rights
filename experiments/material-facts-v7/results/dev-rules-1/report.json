@@ -1,0 +1,649 @@
+{
+  "planned_documents": 3,
+  "expected_facts": 13,
+  "returned": 3,
+  "completed": 3,
+  "native_json": 3,
+  "protocol_valid": 3,
+  "exact_documents": 0,
+  "raw_candidates": 2,
+  "accepted_candidates": 2,
+  "rejected_candidates": 0,
+  "review_issues": 2,
+  "metrics": {
+    "raw_basic": {
+      "tp": 1,
+      "fp": 1,
+      "fn": 12,
+      "precision": 0.5,
+      "recall": 0.07692307692307693,
+      "f1": 0.13333333333333333
+    },
+    "accepted_basic": {
+      "tp": 1,
+      "fp": 1,
+      "fn": 12,
+      "precision": 0.5,
+      "recall": 0.07692307692307693,
+      "f1": 0.13333333333333333
+    },
+    "raw_relational": {
+      "tp": 0,
+      "fp": 2,
+      "fn": 13,
+      "precision": 0,
+      "recall": 0,
+      "f1": 0
+    },
+    "accepted_relational": {
+      "tp": 0,
+      "fp": 2,
+      "fn": 13,
+      "precision": 0,
+      "recall": 0,
+      "f1": 0
+    },
+    "raw_strict": {
+      "tp": 0,
+      "fp": 2,
+      "fn": 13,
+      "precision": 0,
+      "recall": 0,
+      "f1": 0
+    },
+    "accepted_strict": {
+      "tp": 0,
+      "fp": 2,
+      "fn": 13,
+      "precision": 0,
+      "recall": 0,
+      "f1": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "mf7-bjkfq-2025-3029",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 1,
+      "accepted_count": 1,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "possible_missing",
+        "message": "原文仍有可能未覆盖的金额或日期线索，包括金额期间可能缺少独立日期候选。此为启发式提示，请人工核对。",
+        "rawCount": 1,
+        "acceptedCount": 1,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "8300元",
+            "start": 38,
+            "end": 43,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2021年7月12日",
+            "start": 8,
+            "end": 18,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2021年7月12日",
+            "start": 55,
+            "end": 65,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2024年7月11日",
+            "start": 66,
+            "end": 76,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2027年7月11日",
+            "start": 83,
+            "end": 93,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2024年7月31日",
+            "start": 83,
+            "end": 93,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2024年7月31日",
+            "start": 113,
+            "end": 123,
+            "covered": false
+          },
+          {
+            "kind": "money",
+            "blockId": "b03",
+            "text": "二万四千九百元整",
+            "start": 45,
+            "end": 53,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b03",
+            "text": "2024年5月1日",
+            "start": 24,
+            "end": 33,
+            "covered": false
+          },
+          {
+            "kind": "money",
+            "blockId": "b04",
+            "text": "一万六千六百元整",
+            "start": 34,
+            "end": 42,
+            "covered": false
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v7-bjkfq-2025-3029:1:0",
+          "rawValue": "8300元",
+          "status": "exact",
+          "amount": "8300.00",
+          "matchedText": "8300元",
+          "span": {
+            "start": 0,
+            "end": 5
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 7,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-rate"
+          }
+        ],
+        "missing": [
+          0,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "extra": []
+      },
+      "accepted_basic": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 7,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-rate"
+          }
+        ],
+        "missing": [
+          0,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "extra": []
+      },
+      "raw_relational": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 8,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "extra": [
+          0
+        ]
+      },
+      "accepted_relational": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 8,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "extra": [
+          0
+        ]
+      },
+      "raw_strict": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 8,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "extra": [
+          0
+        ]
+      },
+      "accepted_strict": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 8,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "extra": [
+          0
+        ]
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "wage-rate",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 38,
+                "end": 43
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "wage-rate",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 38,
+                "end": 43
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "money",
+          "amount": "8300.00",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [
+        {
+          "actual": 0,
+          "expected": 1,
+          "event": "wage-rate",
+          "mismatches": [
+            "subject",
+            "scope",
+            "assertion"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-spc-ganzhou-packaging",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 0,
+      "accepted_count": 0,
+      "rejected": [],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "empty",
+        "message": "本次返回空候选。启发式覆盖检查不能据此认定材料没有工资事实，请核对原文；未自动补取或确认。",
+        "rawCount": 0,
+        "acceptedCount": 0,
+        "rejectedCount": 0,
+        "signals": []
+      },
+      "normalization": [],
+      "raw_basic": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "pairs": [],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": []
+      },
+      "accepted_basic": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "pairs": [],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": []
+      },
+      "raw_relational": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "pairs": [],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": []
+      },
+      "accepted_relational": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "pairs": [],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": []
+      },
+      "raw_strict": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "pairs": [],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": []
+      },
+      "accepted_strict": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "pairs": [],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": []
+      },
+      "event_alignment": {
+        "raw": [],
+        "accepted": []
+      },
+      "production_defense": [],
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-spp-zhangjiajie-opto",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 1,
+      "accepted_count": 1,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "possible_missing",
+        "message": "原文仍有可能未覆盖的金额或日期线索，包括金额期间可能缺少独立日期候选。此为启发式提示，请人工核对。",
+        "rawCount": 1,
+        "acceptedCount": 1,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "137119元",
+            "start": 104,
+            "end": 111,
+            "covered": false
+          },
+          {
+            "kind": "money",
+            "blockId": "b02",
+            "text": "67750元",
+            "start": 27,
+            "end": 33,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2021年12月8日",
+            "start": 0,
+            "end": 10,
+            "covered": false
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v7-spp-zhangjiajie-opto:1:0",
+          "rawValue": "67750元",
+          "status": "exact",
+          "amount": "67750.00",
+          "matchedText": "67750元",
+          "span": {
+            "start": 0,
+            "end": 6
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 3,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2
+        ],
+        "extra": [
+          0
+        ]
+      },
+      "accepted_basic": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 3,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2
+        ],
+        "extra": [
+          0
+        ]
+      },
+      "raw_relational": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 3,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2
+        ],
+        "extra": [
+          0
+        ]
+      },
+      "accepted_relational": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 3,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2
+        ],
+        "extra": [
+          0
+        ]
+      },
+      "raw_strict": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 3,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2
+        ],
+        "extra": [
+          0
+        ]
+      },
+      "accepted_strict": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 3,
+        "pairs": [],
+        "missing": [
+          0,
+          1,
+          2
+        ],
+        "extra": [
+          0
+        ]
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "partial-payment",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 27,
+                "end": 33
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "partial-payment",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 27,
+                "end": 33
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "money",
+          "amount": "67750.00",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": false
+    }
+  ]
+}
