@@ -1,7 +1,9 @@
 // Only detection copies are folded. The source and its code-point positions
 // remain untouched, including when layout divides an explicit range.
 const COMPARISON_BOUND = '(?:<=|>=|[<>≤≥≦≧])';
-export const MONEY_BOUND_PREFIX = `(?:不得少于|不得低于|不得超过|不得高于|不超过|不少于|不低于|不高于|不多于|不大于|不小于|不满|未满|低于|高于|多达|少于|多于|大于|小于|未达|大约|约(?!定|束)|将近|接近|逾|不到|不止|超过|不足|至少|至多|上限|下限|最高|最低|最多|最少|${COMPARISON_BOUND})`;
+// 高达 may also emphasize a precise figure. Without that semantic proof, the
+// shared anchored grammar conservatively keeps it (and 低至) for human review.
+export const MONEY_BOUND_PREFIX = `(?:不得少于|不得低于|不得超过|不得高于|不超过|不少于|不低于|不高于|不多于|不大于|不小于|不满|未满|低于|高于|高\\s*达|低\\s*至|多达|少于|多于|大于|小于|未达|大约|约(?!定|束)|将近|接近|逾|不到|不止|超过|不足|至少|至多|上限|下限|最高|最低|最多|最少|${COMPARISON_BOUND})`;
 // A following explicit duration or occurrence count belongs to its own number,
 // e.g. 四万元不到三天付清. Do not treat that temporal bound as a money bound.
 const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;

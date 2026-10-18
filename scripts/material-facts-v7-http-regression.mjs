@@ -1641,6 +1641,47 @@ try {
     durableSnapshots.push({name: `round37-date-${glyph}`, item, state: before});
     return {sourceRelationSupported: true, rawAndStoredHistoryUnchanged: true};
   });
+  // ROUND38: preserve raw observations while guarding new finite spellings.
+  for (const [expression, clipped] of [
+    ['高达4000元', '4000元'], ['高達4000元', '4000元'], ['低至4000元', '4000元'],
+    ['4000元翻一倍', '4000元'], ['￥4000￥', '￥4000'], ['人民币4000￥', '人民币4000'], ['4000元￥', '4000元'],
+  ]) for (const full of [true, false]) await scenario(`round38_money_${expression}_${full}`, async () => {
+    const value = full ? expression : clipped;
+    const [item] = await fixture(`round38-money-${expression}-${full}`, [{text: `测试王甲2026年1月全部应付工资合计${expression}。`, exactSource: true, candidates: [money(value, value)]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1);
+    assert.equal(material.candidates[0].amount, null); assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '4000.00';
+    old.normalization = {rawValue: old.value, amount: old.amount, status: 'exact', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic historical ROUND38 invalid exact value'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round38-money-${expression}-${full}`, item, state: before});
+    return {amount: null, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true};
+  });
+  for (const verb of ['发薪', '發薪']) await scenario(`round38_recurring_${verb}`, async () => {
+    const value = '每月15日', text = `测试王甲工资${value}${verb}。`;
+    const candidate = {kind: 'date', value, quote: value, subject: '测试王甲', scope: 'individual', meaning: 'payment_date', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated'};
+    const [item] = await fixture(`round38-date-${verb}`, [{text, exactSource: true, candidates: [candidate]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert(!material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert(!rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved')); assert.deepEqual(stored(item.caseId), before);
+    durableSnapshots.push({name: `round38-date-${verb}`, item, state: before}); return {sourceRelationSupported: true, paymentNotReceiptProof: true, rawUnchanged: true};
+  });
+  for (const reverse of [false, true]) await scenario(`round38_prefix_nested_same_event_${reverse}`, async () => {
+    const text = '测试王甲2026年1月全部应付工资4000元。';
+    const candidates = ['工资4000元', '4000元'].map(value => money(value, text)); if (reverse) candidates.reverse();
+    const [item] = await fixture(`round38-prefix-${reverse}`, [{text, exactSource: true, candidates}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 1); assert.equal(JSON.parse(material.raw).candidates.length, 2);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert.equal(rawAndLocations(item, read.body).candidates.length, 1); assert.deepEqual(stored(item.caseId), before);
+    durableSnapshots.push({name: `round38-prefix-${reverse}`, item, state: before}); return {accepted: 1, rejectedDuplicate: 1, rawCandidates: 2, rawAndStoredHistoryUnchanged: true};
+  });
+  await scenario('round38_prefix_two_same_amount_events_stay_distinct', async () => {
+    const quotes = ['测试王甲第一笔工资4000元', '测试王甲第二笔工资4000元'];
+    const [item] = await fixture('round38-prefix-two-events', [{text: quotes.join('。') + '。', exactSource: true, candidates: quotes.map(quote => money('工资4000元', quote, {period: null, meaning: 'payment', completeness: 'unknown'}))}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 2); assert.equal(material.rejected.length, 0); assert.notEqual(material.candidates[0].start, material.candidates[1].start);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert.equal(rawAndLocations(item, read.body).candidates.length, 2); assert.deepEqual(stored(item.caseId), before);
+    durableSnapshots.push({name: 'round38-prefix-two-events', item, state: before}); return {accepted: 2, separateOccurrences: true, rawAndStoredHistoryUnchanged: true};
+  });
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

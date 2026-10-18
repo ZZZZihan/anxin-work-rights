@@ -135,17 +135,17 @@ for (const marker of ['人民币', '人民幣', 'RMB', 'CNY', 'rmb', 'cny', '¥'
   for (const expression of ['不满' + marker + '四万元', marker + '不满四万元', '四万元' + marker + '以内'])
     test('a finite RMB wrapper cannot hide the attached bound: ' + expression, () => {
       assert.equal(money(expression).amount, null);
-      unavailable(expression, '四万元', 'approximate');
+      unavailable(expression, '四万元', expression.startsWith('四万元') && /[¥￥]/u.test(marker) ? 'unsupported' : 'approximate');
     });
-  test('a suffix RMB marker and bound cannot be clipped from a bare numeric value: ' + marker, () => unavailable('40000' + marker + '以内', '40000', 'approximate'));
+  test('a suffix RMB marker and bound cannot be clipped from a bare numeric value: ' + marker, () => unavailable('40000' + marker + '以内', '40000', /[¥￥]/u.test(marker) ? 'unsupported' : 'approximate'));
   for (const expression of [marker + '3万元左右至约' + marker + '4万元', '30000元' + marker + '左右至约40000元' + marker]) {
     const values = expression.startsWith('30000') ? ['30000元', '40000元'] : ['3万元', '4万元'];
     for (const value of values)
-      test('both range endpoints retain the finite RMB wrapper and bound: ' + expression + ' -> ' + value, () => unavailable(expression, value, 'range'));
+      test('both range endpoints retain the finite RMB wrapper and bound: ' + expression + ' -> ' + value, () => unavailable(expression, value, expression.startsWith('30000') && /[¥￥]/u.test(marker) ? 'unsupported' : 'range'));
   }
 }
 for (const marker of ['元', '圆', '圓', '元人民币', '元人民幣', '元RMB', '圓CNY', '圆¥'])
-  test('a unit with at most two RMB wrappers and bound cannot be clipped from a bare numeric value: ' + marker, () => unavailable('40000' + marker + '以内', '40000', 'approximate'));
+  test('a unit with at most two RMB wrappers and bound cannot be clipped from a bare numeric value: ' + marker, () => unavailable('40000' + marker + '以内', '40000', /[¥￥]/u.test(marker) ? 'unsupported' : 'approximate'));
 for (const expression of ['低於工資四万元', '高於稅後四万元', '多達應付四万元', '不滿薪資四万元', '低於金額四万元', '未滿款項四万元'])
   test('traditional forms of the existing finite wage bridge cannot conceal a bound: ' + expression, () => {
     assert.equal(money(expression).amount, null); unavailable(expression, '四万元', 'approximate');

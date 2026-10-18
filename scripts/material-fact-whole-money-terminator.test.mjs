@@ -144,12 +144,12 @@ test('finite ending × two RMB suffixes rejects without recursively parsing wrap
         assert.equal(continuationUnsafe(role, n, after), true, JSON.stringify(after));
       }
 });
-test('finite ending × zero/one RMB suffix preserves sentence boundaries and supported rates', () => {
+test('finite ending preserves named RMB boundaries and rates but rejects postfix symbols', () => {
   const n = parse('4000元');
   for (const terminal of ['整', '正']) for (const currency of ['', '人民币', '人民幣', 'RMB', 'CNY', '￥']) {
     for (const tail of ['', '。王乙工资5000元', '，王乙工资5000元', '.', '．'])
-      assert.equal(continuationUnsafe({ meaning: 'arrears', rateUnit: null }, n, terminal + currency + tail), false, JSON.stringify({ terminal, currency, tail }));
+      assert.equal(continuationUnsafe({ meaning: 'arrears', rateUnit: null }, n, terminal + currency + tail), currency === '￥', JSON.stringify({ terminal, currency, tail }));
     for (const [unit, rateUnit] of [['月', 'month'], ['日', 'day'], ['小时', 'hour'], ['件', 'piece']])
-      assert.equal(continuationUnsafe({ meaning: 'rate', rateUnit }, n, terminal + currency + '/' + unit), false, JSON.stringify({ terminal, currency, unit }));
+      assert.equal(continuationUnsafe({ meaning: 'rate', rateUnit }, n, terminal + currency + '/' + unit), currency === '￥', JSON.stringify({ terminal, currency, unit }));
   }
 });

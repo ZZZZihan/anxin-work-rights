@@ -213,7 +213,7 @@ function hasCompleteMoneyUnit(token: string): boolean {
   return /[元圆圓角分](?:整|正)?$/u.test(token);
 }
 
-/** Count only named RMB labels attached to this monetary token's edges.
+/** Count only RMB currency markers attached to this monetary token's edges.
  * One label is valid; a second cannot be discarded by a clipped value or
  * quote. Detection folding joins layout/Cf only, never intervening prose. */
 function hasRepeatedRmbCurrency(before: string, token: string, after: string): boolean {
@@ -227,10 +227,14 @@ function hasRepeatedRmbCurrency(before: string, token: string, after: string): b
   // A bare Arabic value may omit its one yuan unit; an explicit whole-amount
   // ending can also precede the first named suffix. Neither adds a currency.
   let tail = monetaryDetectionView(after).replace(/^\s*(?:[元圆圓]\s*)?(?:[整正]\s*)?/u, '');
-  const suffix = new RegExp(`^\\s*${RMB_NAME}\\s*`, 'iu');
+  const suffix = new RegExp(`^\\s*(?:${RMB_NAME}|[¥￥])\\s*`, 'iu');
   while (count < 2) {
     const match = tail.match(suffix);
     if (!match) break;
+    // Symbols have a supported prefix position only. A symbol appended to an
+    // already anchored amount (including a clipped yuan ending) is malformed;
+    // it cannot be discarded as a harmless one-label suffix like 人民币.
+    if (/[¥￥]/u.test(match[0])) return true;
     count++; tail = tail.slice(match[0].length);
   }
   return count > 1;

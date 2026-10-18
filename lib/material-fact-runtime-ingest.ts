@@ -65,7 +65,7 @@ export function validateRuntimeCandidateOutput(raw: string, source: FactSource):
       const after = points.slice(inner.end, outer.end).join('');
       // Sharing an exact parsed amount does not make an arbitrary narrative a
       // duplicate of its minimal literal. Only these finite wrappers may nest.
-      return /^\s*(?:(?:人民[币幣]|RMB|CNY|[¥￥])\s*)?$/iu.test(before)
+      return /^\s*(?:(?:人民[币幣]|RMB|CNY|[¥￥])\s*)?(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/iu.test(before)
         && /^\s*(?:整|正)?\s*(?:(?:人民[币幣]|RMB|CNY)\s*)?(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/iu.test(after);
     });
     // A non-unique quote/value has no proven occurrence identity. Retain every

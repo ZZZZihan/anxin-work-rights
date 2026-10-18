@@ -97,7 +97,7 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
   // actual receipt or a money payer. The located single owner and full left/
   // right envelopes cannot absorb negation, another person or a partial date.
   if (recurringPaymentDate.test(value)) {
-    const payment = '(?:支付|发放|给付|給付|付清)';
+    const payment = '(?:支付|发放|给付|給付|付清|发薪)';
     if (new RegExp(`^(?:的)?${wage}(?:于|在)?$`, 'u').test(left)
       && new RegExp(`^${payment}$`, 'u').test(right)) return true;
     return left === '' && new RegExp(`^${payment}${wage}$`, 'u').test(right);
