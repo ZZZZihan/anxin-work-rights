@@ -109,10 +109,19 @@ export function sourceMoneyHasExplicitRmbCurrency(source: AnchoredMoneySource, n
  * Inspect only subunit characters inside this token; the following source can
  * complete a cropped word across OCR whitespace, but cannot contribute a unit.
  * Detection copies never replace the source used for evidence or offsets. */
+const NON_CURRENCY_SUBUNIT_WORD = '(?:分(?:钟|鐘|米|贝|貝|数|數|配|类|類|析|别|別|期|段|批|时|時|量|摊|攤|红|紅|店|公司|支|组|組|隔|辨|歧|清|离|離)|角(?:度|色|落|逐|标|標|形|点|點|膜|质|質))';
+
+/** Only complete, explicit measure units establish a non-monetary count.
+ * Other lexical uses such as 十万分红 may name a unitless amount: excluding
+ * their 分 from cents is not sufficient evidence to reject the whole value. */
+export function isNonCurrencySubunitMeasure(value: string): boolean {
+  return /^(?:分[钟鐘米贝貝]|角度)$/u.test(currencyText(value).replace(/\s/gu, ''));
+}
+
 export function moneyTokenHasNonCurrencySubunit(token: string, after: string): boolean {
   const part = currencyText(token).replace(/\s/gu, '');
   const whole = part + currencyText(after).replace(/\s/gu, '');
-  const ordinary = /^(?:分(?:钟|鐘|米|贝|貝|数|數|配|类|類|析|别|別|期|段|批|时|時|量|摊|攤|红|紅|店|公司|支|组|組|隔|辨|歧|清|离|離)|角(?:度|色|落|逐|标|標|形|点|點|膜|质|質))/u;
+  const ordinary = new RegExp(`^${NON_CURRENCY_SUBUNIT_WORD}`, 'u');
   const fraction = /^分之(?=$|[0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟A-Za-z_α-ωΑ-Ω])/u;
   return [...part.matchAll(/[角分]/gu)].some(match => ordinary.test(whole.slice(match.index)) || fraction.test(whole.slice(match.index)));
 }

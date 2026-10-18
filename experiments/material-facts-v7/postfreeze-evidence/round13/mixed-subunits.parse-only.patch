@@ -1,0 +1,24 @@
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -141,9 +141,18 @@
+  * yuan token or infer omitted units. Keep cents exact through the range check.
+  */
+ function parseArabicSubunits(text: string): string | null {
+-  const match = text.match(/^(?:人民币\s*)?[¥￥]?\s*((?:\d{1,3}(?:[,，]\d{3})+|\d+))\s*[元圆](?:(\d)角)?(?:(\d)分)?(?:整|正)?$/u);
+-  if (!match || (match[2] === undefined && match[3] === undefined)) return null;
+-  const cents = BigInt(match[1].replace(/[,，]/gu, '')) * 100n + BigInt(match[2] ?? '0') * 10n + BigInt(match[3] ?? '0');
++  const match = text.match(new RegExp(`^(?:人民币\\s*)?[¥￥]?\\s*((?:\\d{1,3}(?:[,，]\\d{3})+|\\d+))\\s*[元圆](?:([0-9${SINGLE_DIGIT}])角)?(?:(零?)([0-9${SINGLE_DIGIT}])分)?(?:整|正)?$`, 'u'));
++  if (!match || (match[2] === undefined && match[4] === undefined)) return null;
++  const digit = (character: string | undefined): bigint => {
++    if (character === undefined || character === '〇') return 0n;
++    if (character === '两') return 2n;
++    const lower = LOWER_DIGITS.indexOf(character), upper = '零壹贰叁肆伍陆柒捌玖'.indexOf(character);
++    return lower >= 0 ? BigInt(lower) : upper >= 0 ? BigInt(upper) : BigInt(character);
++  };
++  // A zero may bridge an omitted jiao, not introduce a second fen digit or
++  // follow an explicit jiao. Redundant 零零/零〇分 remain unsupported.
++  if (match[3] && (match[2] !== undefined || digit(match[4]) === 0n)) return null;
++  const cents = BigInt(match[1].replace(/[,，]/gu, '')) * 100n + digit(match[2]) * 10n + digit(match[4]);
+   return parseAmount(`${cents / 100n}.${String(cents % 100n).padStart(2, '0')}`)?.amount ?? null;
+ }
+ 

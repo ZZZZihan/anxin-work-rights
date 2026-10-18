@@ -1,7 +1,7 @@
 import type { CandidateNormalization, NormalizedCandidateValue, RawCandidateV3 } from './material-fact-types-v3.ts';
 import { getCandidateLocalEvent, normalizeCandidateValue, normalizeMoneyValue } from './material-facts-v3.ts';
 import { parseAmount } from './material-facts.ts';
-import { moneyTokenHasNonCurrencySubunit, sourceMoneyHasNonCurrencySubunit, isRmbCurrencyUnitAt, monetaryExpressionHasUnsupportedCurrency, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
+import { moneyTokenHasNonCurrencySubunit, isNonCurrencySubunitMeasure, sourceMoneyHasNonCurrencySubunit, isRmbCurrencyUnitAt, monetaryExpressionHasUnsupportedCurrency, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
 import { hasConjunctionMoneyRange, isConjunctionMoneyRangeEndpoint } from './material-fact-range-review.ts';
 
@@ -141,9 +141,18 @@ function parseLowerAmount(text: string): string | null {
  * yuan token or infer omitted units. Keep cents exact through the range check.
  */
 function parseArabicSubunits(text: string): string | null {
-  const match = text.match(/^(?:人民币\s*)?[¥￥]?\s*((?:\d{1,3}(?:[,，]\d{3})+|\d+))\s*[元圆](?:(\d)角)?(?:(\d)分)?(?:整|正)?$/u);
-  if (!match || (match[2] === undefined && match[3] === undefined)) return null;
-  const cents = BigInt(match[1].replace(/[,，]/gu, '')) * 100n + BigInt(match[2] ?? '0') * 10n + BigInt(match[3] ?? '0');
+  const match = text.match(new RegExp(`^(?:人民币\\s*)?[¥￥]?\\s*((?:\\d{1,3}(?:[,，]\\d{3})+|\\d+))\\s*[元圆](?:([0-9${SINGLE_DIGIT}])角)?(?:(零?)([0-9${SINGLE_DIGIT}])分)?(?:整|正)?$`, 'u'));
+  if (!match || (match[2] === undefined && match[4] === undefined)) return null;
+  const digit = (character: string | undefined): bigint => {
+    if (character === undefined || character === '〇') return 0n;
+    if (character === '两') return 2n;
+    const lower = LOWER_DIGITS.indexOf(character), upper = '零壹贰叁肆伍陆柒捌玖'.indexOf(character);
+    return lower >= 0 ? BigInt(lower) : upper >= 0 ? BigInt(upper) : BigInt(character);
+  };
+  // A zero may bridge an omitted jiao, not introduce a second fen digit or
+  // follow an explicit jiao. Redundant 零零/零〇分 remain unsupported.
+  if (match[3] && (match[2] !== undefined || digit(match[4]) === 0n)) return null;
+  const cents = BigInt(match[1].replace(/[,，]/gu, '')) * 100n + digit(match[2]) * 10n + digit(match[4]);
   return parseAmount(`${cents / 100n}.${String(cents % 100n).padStart(2, '0')}`)?.amount ?? null;
 }
 
@@ -254,11 +263,16 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
  */
 export function classifyMonetaryExpression(value: string): MonetaryExpressionClassification {
   const normalization = normalizeMoneyValueV4(value);
+  const detection = monetaryDetectionView(value).replace(/\s/gu, '');
   const explicit = /人民[币幣]|[¥￥]/u.test(value) || monetaryExpressionHasUnsupportedCurrency(value)
     || [...value.matchAll(/[元圆圓]/gu)].some(match => isRmbCurrencyUnitAt(value, match.index))
-    || new RegExp(`[${NUMERALS}]+[角分](?!钟)`, 'u').test(value);
+    || [...detection.matchAll(new RegExp(`[${NUMERALS}]+[角分]`, 'gu'))]
+      .some(match => !moneyTokenHasNonCurrencySubunit(match[0], detection.slice(match.index + match[0].length)));
   if (normalization.status === 'exact' || explicit) return { kind: 'monetary', normalization };
   if (MASKED.test(value) && /工资|薪资|薪酬|金额|款项|欠薪|报酬|劳务费|付款|应付|实付|已付|尚欠|欠款/u.test(value)) return { kind: 'monetary', normalization };
+  const ordinaryCount = detection.match(new RegExp(`^[${NUMERALS}]+([角分].*)$`, 'u'));
+  if (ordinaryCount && isNonCurrencySubunitMeasure(ordinaryCount[1]) && !MASKED.test(value))
+    return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为时间、计量或普通词语的计数，未表述金额。') };
   const count = `[${NUMERALS}]+`;
   const date = `(?:[${NUMERALS}]+\\s*年(?:\\s*(?:[${NUMERALS}]+月份?|元月份?|元旦)(?:\\s*[${NUMERALS}]+\\s*日)?)?|\\d{4}[-/.]\\d{1,2}(?:[-/.]\\d{1,2})?)`;
   // Keep the definite relative-month forms aligned with sourceRateUnit's

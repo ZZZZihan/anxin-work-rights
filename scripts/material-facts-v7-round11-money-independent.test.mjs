@@ -145,12 +145,19 @@ for (const expression of ['5元5角2分', '5元５角２分', '5.5元5角', '5�
     const value = expression.startsWith('5.5') ? '5.5元' : expression.startsWith('5万') ? '5万元' : '5元';
     unavailableInSource('😀王甲工资为' + expression + '。', value);
   });
-for (const value of ['5元５角', '５元5角', '5.5元5角', '5万元5角', '5元五角'])
+for (const value of ['5元５角', '５元5角', '5.5元5角', '5万元5角'])
   test('unsupported mixed, scaled, decimal or fullwidth subunits do not become precise fragments: ' + value, () => {
     assert.equal(normalizeMoneyValueV4(value).amount, null);
     const text = '😀王甲工资为' + value + '。', candidate = entry(value, value), source = sourceFor(text);
     stored(source, candidate, ingest(source, [candidate]), null);
   });
+
+test('complete Arabic yuan with Chinese jiao is supported after round13', () => {
+  const value = '5元五角', text = '😀王甲工资为' + value + '。';
+  assert.equal(normalizeMoneyValueV4(value).amount, '5.50');
+  const source = sourceFor(text), candidate = entry(value, value);
+  stored(source, candidate, ingest(source, [candidate]), '5.50');
+});
 
 const positives = [
   ['an ordinary RMB total', '😀王甲工资人民币四万元。', '四万元', '四万元'],
