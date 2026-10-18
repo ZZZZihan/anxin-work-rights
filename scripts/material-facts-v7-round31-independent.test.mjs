@@ -93,7 +93,7 @@ function controlledHelper(platform) {
   };
   const body = helperSource.replace(/^import[^\n]*\n/gmu, '').replace(/^export /gmu, '');
   const api = vm.runInNewContext(body + '\n;({spawnOwnedChild,signalOwnedChild,stopChild,ownedGroupAlive});',
-    { assert, spawn, execFile: () => { throw new Error('Unexpected process-table query in platform-selection fixture'); },
+    { assert, spawn, randomUUID: () => 'synthetic-round31-owner', execFile: () => { throw new Error('Unexpected process-table query in platform-selection fixture'); },
       process: { platform, kill: (...args) => { signals.push(args); } }, setTimeout, clearTimeout, console });
   return { ...api, spawns, signals };
 }

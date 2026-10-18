@@ -118,6 +118,35 @@ function sourceMoneyLayoutEdges(context: AnchoredSourceEvent, normalized: Candid
   return { before, after, matched: edges.matched };
 }
 
+/** A page/row boundary is not evidence that two visible word parts belong to
+ * one word. This view is only for lexical 元/角/分 compounds: other amount,
+ * currency, formula and range continuations retain their separate guards. */
+function sourceMoneyLexicalContinuation(context: AnchoredSourceEvent, normalized: CandidateNormalization, source: FactSource, blockId: string) {
+  const original = { blockText: context.blockText, valueStart: context.valueStart };
+  const isCompound = (view: typeof original) => sourceMoneyHasNonCurrencyYuan(view, normalized) || sourceMoneyHasNonCurrencySubunit(view, normalized);
+  if (isCompound(original)) return { view: original, unresolved: false };
+  const index = source.blocks.findIndex(block => block.id === blockId), block = source.blocks[index], next = source.blocks[index + 1];
+  const edges = monetaryEdges(context, normalized, true);
+  if (!edges || !next || next.page !== block.page || !/^[\s\p{Cf}]*$/u.test(edges.after)) return { view: original, unresolved: false };
+  const joined = { ...original, blockText: `${context.blockText}\n${next.text}` };
+  if (!isCompound(joined)) return { view: original, unresolved: false };
+  const text = next.text.normalize('NFKC').replace(/\p{Cf}/gu, '').trim();
+  // These are explicit headings in the source, not the model's proposed owner.
+  // A complete anonymous name or a role-labelled worker starts another row.
+  if (/^\p{Script=Han}{1,3}某(?=$|[\s，,。；;]|\d{4}年|工[资資]|收到|领取|領取|应付|應付|已付)/u.test(text)
+    || /^(?:工人|员工|員工|劳动者|勞動者|姓名|原告|被告)\s*[:：]?\s*\p{Script=Han}{2,4}(?=$|[\s，,。；;]|\d{4}年|工[资資]|收到|领取|領取)/u.test(text))
+    return { view: original, unresolved: false };
+  // A standalone one-character continuation must also pass the existing finite
+  // compound predicate. Keep the established split 分 / 钟后离开 fixture.
+  const fragment = /^(?:\p{Script=Han}|公司|大[楼樓]|[钟鐘]后离开)[。！？!?；;]?$/u.test(text.replace(/\s/gu, ''));
+  const a = block.bbox, b = next.bbox;
+  const sameRow = a !== null && b !== null && a[3] > 0 && b[3] > 0
+    && Math.min(a[1] + a[3], b[1] + b[3]) - Math.max(a[1], b[1]) >= 0.75 * Math.min(a[3], b[3])
+    && b[0] - (a[0] + a[2]) >= -0.001 && b[0] - (a[0] + a[2]) <= 0.5 * Math.min(a[3], b[3]);
+  // Unknown layout remains unavailable, without asserting a composed word.
+  return { view: fragment || sameRow ? joined : original, unresolved: !fragment && !sameRow };
+}
+
 /** Inspect the original block: a grouping comma may already be outside the local clause. */
 function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: CandidateNormalization, layoutAfter?: string, layoutBefore?: string): boolean {
   const edges = monetaryEdges(context, normalized);
@@ -303,18 +332,20 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       code: 'source_relation_unresolved', message: '源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。',
     });
     if (sourceNormalized.amount !== null) {
-      const blockIndex = source!.blocks.findIndex(block => block.id === candidate.blockId);
-      const subunitSource = { blockText: [context.blockText, ...source!.blocks.slice(blockIndex + 1).map(block => block.text)].join('\n'), valueStart: context.valueStart };
+      const lexical = sourceMoneyLexicalContinuation(context, sourceNormalized.normalization, source!, candidate.blockId);
       // Layout boundaries do not erase an explicitly attached bound or range.
       // Shared finite grammars alone inspect these edges; arbitrary neighboring
       // prose cannot attach, and stored quote/positions stay in their own block.
       const layout = sourceMoneyLayoutEdges(context, sourceNormalized.normalization, source!, candidate.blockId);
       const qualifierStatus = layout && attachedMoneyQualifierStatus(layout.before, layout.after);
       const postposedRate = layout && sourcePostposedRate(layout.after);
-      if (sourceMoneyHasNonCurrencyYuan(subunitSource, sourceNormalized.normalization)) sourceNormalized = {
+      if (lexical.unresolved) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '相邻文本块的词内连续性未证实，可能包含金额单位的普通词续文；保留原文并人工核对边界。'),
+      };
+      else if (sourceMoneyHasNonCurrencyYuan(lexical.view, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文中的元或圆属于普通复合词，未将裁剪片段作为人民币金额。', 'unsupported'),
       };
-      else if (sourceMoneyHasNonCurrencySubunit(subunitSource, sourceNormalized.normalization)) sourceNormalized = {
+      else if (sourceMoneyHasNonCurrencySubunit(lexical.view, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文中的角或分属于时间、计量或普通词语，未将裁剪片段作为分币金额。', 'unsupported'),
       };
       else if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization, raw.subject)) sourceNormalized = {
