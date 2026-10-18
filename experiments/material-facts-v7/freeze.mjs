@@ -13,7 +13,7 @@ export const BACKENDS = ['rules', 'qwen', 'deepseek'];
 export const COUNTS = { dev: 3, holdout: 12, dev_facts: 13, holdout_facts: 43, case_families: 15, source_documents: 7, natural_empty: 2 };
 export const QWEN_MEMORY = { allocator_guideline_gib: 24, wired_gib: 20, cache_mib: 512, prefill_step_size: 128, kv_bits: 4, kv_group_size: 64, quantized_kv_start: 0, critical: 'immediate_stop', warning: '10_seconds', swap_growth_gib: 4, case_timeout_seconds: 600 };
 export const RUN_HASH_FILES = ['lib/material-facts.ts', 'lib/material-fact-types.ts', 'lib/material-facts-v2.ts', 'lib/material-fact-types-v2.ts', 'lib/material-facts-v3.ts', 'lib/material-fact-types-v3.ts',
-  'lib/material-money-v4.ts', 'lib/material-fact-extraction-v4.ts', 'lib/material-fact-source-review.ts', 'lib/material-fact-runtime-ingest.ts',
+  'lib/material-money-v4.ts', 'lib/material-fact-arithmetic-review.ts', 'lib/material-fact-extraction-v4.ts', 'lib/material-fact-source-review.ts', 'lib/material-fact-runtime-ingest.ts',
   'lib/material-fact-event-review.ts', 'lib/material-fact-currency-review.ts', 'lib/material-fact-coverage-review.ts',
   'scripts/fact-runtime-v2.py', 'scripts/fact_memory_runtime.py', 'scripts/fact_api_transport.py', `${EXPERIMENT}/run.mjs`, `${EXPERIMENT}/assess.mjs`, `${EXPERIMENT}/freeze.mjs`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/runtime-policy.json`];
 export const REQUIRED_FILES = [...RUN_HASH_FILES, 'lib/material-money-v4.test.ts', 'lib/material-money-v4.independent.test.ts', 'lib/material-money-v4.review-regression.test.ts',

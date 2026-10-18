@@ -12,6 +12,8 @@ Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的工程�
 
 实验工具审查另发现后端参数预检、开发完成态门禁、历史可执行文件封存和修正目录中断发布四项问题。旧首跑/v1/v2均保留，v2代码另封存26份，当前完整历史归档为36份（原32份归档仍保存）；第三版只重新绑定修复后的实验工具，不新增推理或标签。
 
+最新一轮又实际复现倍数算式的基础金额泄漏，扩展覆盖裁剪value/quote、加减乘除、分数/百分比及跨换行/相邻文本块。`7d746ff`修复后，前三版结果和v3的29份绑定代码继续保留，第四版仅用同一原始回答重新核对当前代码，零新模型请求。
+
 ## 最新修正后描述性指标
 
 每格为 F1（%）。全部指标使用固定的12份材料、43条参考事实评估集，不删除失败或空输出；43是召回率的参考事实分母，F1按 `2TP/(2TP+FP+FN)` 计算。raw 保留非法、重复或证据错误候选；accepted 是协议接受结果，不等于可用事实或用户确认。basic、relational、strict 六层都要求唯一事件对应，逐层增加属性要求；精确定义见 `assess.mjs`、`ANNOTATION.md`。
@@ -22,7 +24,7 @@ Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的工程�
 | Qwen3-32B-4bit | 30.19 | 34.04 | 18.87 | 21.28 | 15.09 | 17.02 |
 | DeepSeek-v4-pro | 72.34 | 72.34 | 57.45 | 57.45 | 53.19 | 53.19 |
 
-Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；三版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/` 与 `corrections-v3/`。v1、v2和最新v3的三路报告逐字相同；上表采用最新v3。
+Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；四版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/`、`corrections-v3/` 与 `corrections-v4/`。v1至v3三路报告逐字相同；v4的规则与DeepSeek报告逐字相同，Qwen仅一条通用核对提示增加“倍数算式”，其余逐案结果及全部六层计数不变。上表采用最新v4，不是模型能力提升。
 
 收紧 value 边界使 Qwen 3个基本、3个关联、2个严格 TP 失效，DeepSeek 1个基本 TP 失效。有些损失来自“月工资16000元”“150万元执行款”超出有限金额包装，而实际金额、角色本来正确，应解释为严格值边界损失，不能全部称金额理解错误。修正允许完整币种前缀、有限工资对象后缀及“整/正”货币终止词；后者是在首跑后的审查中确定，不能倒称事前登记。没有新增 gold 别名。
 
@@ -46,11 +48,13 @@ node experiments/material-facts-v7/verify-frozen.mjs
 node experiments/material-facts-v7/verify-correction-v1.mjs
 # 用26份第二次修正代码快照验证v2。
 node experiments/material-facts-v7/verify-correction-v2.mjs
-# 依据当前代码核对另存的v3；同一原始输出，不调用模型。
-node experiments/material-facts-v7/corrective-assessment-v3.mjs --check
+# 用29份第三次修正代码快照验证v3。
+node experiments/material-facts-v7/verify-correction-v3.mjs
+# 依据当前代码核对另存的v4；同一原始输出，不调用模型。
+node experiments/material-facts-v7/corrective-assessment-v4.mjs --check
 ```
 
-以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1/v2 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行均被拒绝，callback 抛错后临时目录确已删除。
+以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1/v2/v3 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行均被拒绝，callback 抛错后临时目录确已删除。
 
 主要不可变标识：
 
@@ -60,14 +64,15 @@ node experiments/material-facts-v7/corrective-assessment-v3.mjs --check
 | 修正v1 manifest | `eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de` |
 | 修正v2 manifest | `1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80` |
 | 修正v3 manifest | `72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841` |
+| 修正v4 manifest | `3bceefdb375173567fa7ce60c662eae991957ade70bb89f0da989edb7ebd9db6` |
 | 原结果 manifest | `3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee` |
 | 留出材料 | `9ec54411e9008434457ae59f68585f8fb7a6bc6d089cee4e87709bfddd6a2181` |
 | 留出标签 | `abac05fa2c3de7d8e83e866345bf5edaec61c65f8f706bb7d5f0c0d98fa27b64` |
 
 ## 验收限度
 
-工程验证、真实模型首跑、实现者自检、非实现者独立复算分别有记录，人工业务验收尚未进行。最终本机 `npm run check` 通过1660项Vitest、288项运行时/证据测试、材料67通过加1项Linux OCR本机跳过、Python 9+11+16；精确提交的远端CI另行核对，不由本机绿测代替。本机隔离 HTTP 已执行取消/重启14项；最新代码构建的材料事实回归扩展为17项（旧13项回执仍保留），使用合成模型回答，验证 raw 保留、拒收、两次同额事件保留、历史确认和重启复读；它没有使用真实案件或本批全部模型回答走完整用户确认流程。
+工程验证、真实模型首跑、实现者自检、非实现者独立复算分别有记录，人工业务验收尚未进行。最终本机 `npm run check` 通过1789项Vitest、469项运行时/证据测试、材料67通过加1项Linux OCR本机跳过、Python 9+11+16；精确提交的远端CI另行核对，不由本机绿测代替。本机隔离 HTTP 已执行取消/重启14项；最新代码构建的材料事实回归扩展为24项（旧13/17项回执及同24项修前6失败均保留），使用合成模型回答，验证 raw 保留、拒收、两次同额事件保留、历史确认和重启复读；它没有使用真实案件或本批全部模型回答走完整用户确认流程。
 
 本批共46条协议接受金额，20条派生出精确金额、23条概数无精确金额、3条不支持；全部仍带 `source_relation_unresolved`，没有“无核对问题的精确金额”。这说明当前防御保守，不说明46条都语义错误。报告的 `calculation_authorized:false` 是比较工具固定政策字段，不是每条模型候选经过真实 UI 授权流程的证明。
 
-待办与明确语义错误、程序保守拒绝、标签争议分别见 `ERROR_REVIEW.md`、`POSTRUN_LABEL_AUDIT.md`、`POSTRUN_MONEY_AUDIT.md`、`POSTRUN_INDEPENDENT.md`、`POSTRUN_ROUND3_INDEPENDENT.md`、`POSTRUN_ROUND4_INDEPENDENT.md`。没有法律专家/用户业务验收；没有自然零金额、承认的年假部分应付、真实 OCR 图片及两笔同额同属性独立实际工资付款的完整自然覆盖。样本少且来源集中，不形成模型总体能力、真实案件可靠性、训练就绪或生产发布结论。
+待办与明确语义错误、程序保守拒绝、标签争议分别见 `ERROR_REVIEW.md`、`POSTRUN_LABEL_AUDIT.md`、`POSTRUN_MONEY_AUDIT.md`、`POSTRUN_INDEPENDENT.md`、`POSTRUN_ROUND3_INDEPENDENT.md`、`POSTRUN_ROUND4_INDEPENDENT.md`、`POSTRUN_ROUND5_INDEPENDENT.md`。没有法律专家/用户业务验收；没有自然零金额、承认的年假部分应付、真实 OCR 图片及两笔同额同属性独立实际工资付款的完整自然覆盖。样本少且来源集中，不形成模型总体能力、真实案件可靠性、训练就绪或生产发布结论。
