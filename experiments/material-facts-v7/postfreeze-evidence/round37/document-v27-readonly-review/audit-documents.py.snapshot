@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+"""Read JSON/documents only; never import or execute project code or a scorer."""
+import collections
+import datetime
+import hashlib
+import json
+from pathlib import Path
+
+ROOT = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+BASE = ROOT / 'experiments/material-facts-v7'
+OUT = Path(__file__).resolve().parent
+MANIFEST = '37d4f9ae5f64d1dfe97d21a30a0a1d3f7ab4d7df0efa338e2a5f326b0a7cb49e'
+DOCS = ['ISSUE42_ACCEPTANCE.md', 'README.md', 'ERROR_REVIEW.md']
+SYSTEMS = ['rules', 'qwen', 'deepseek']
+LAYER_KEYS = ['raw_basic', 'accepted_basic', 'raw_relational', 'accepted_relational', 'raw_strict', 'accepted_strict']
+relative_paths = DOCS + ['assess.mjs', 'annotation-review.independent.json', 'data/independence.authoring.json',
+                        'corrections-v27/manifest.json', 'corrections-v27/comparison.json']
+relative_paths += [f'corrections-v{version}/report-{system}.json' for version in (26, 27) for system in SYSTEMS]
+raw = {name: (BASE / name).read_bytes() for name in relative_paths}
+sha = lambda value: hashlib.sha256(value).hexdigest()
+assert sha(raw['corrections-v27/manifest.json']) == MANIFEST
+for name in DOCS:
+    with (OUT / (name + '.snapshot')).open('xb') as target:
+        target.write(raw[name])
+
+acceptance = raw['ISSUE42_ACCEPTANCE.md'].decode()
+assert '固定政策' in acceptance and '不代表这46条候选经过真实UI授权' in acceptance
+assert '当前远端CI仍阻塞' in acceptance
+assert '修复后还须核对新的精确提交CI' in acceptance
+assert '不称网页级隔离或统计独立' in acceptance
+assert 'provisional_non_expert' in acceptance
+assert '人工业务验收尚未完成' in acceptance
+assess_lines = raw['assess.mjs'].decode().splitlines()
+policy_lines = [{'line': index + 1, 'text': line} for index, line in enumerate(assess_lines)
+                if 'calculation_authorized: false' in line]
+assert len(policy_lines) == 1
+
+rows, by_system = [], {}
+for system in SYSTEMS:
+    report = json.loads(raw[f'corrections-v27/report-{system}.json'])
+    assert len(report['cases']) == 12
+    nonempty = [case for case in report['cases']
+                if case['accepted_strict']['tp'] + case['accepted_strict']['fn'] > 0]
+    system_rows = []
+    for case in report['cases']:
+        for fact in case['production_defense']:
+            if fact['kind'] == 'money':
+                row = {'system': system, 'case_id': case['id'], **fact}
+                rows.append(row)
+                system_rows.append(row)
+    by_system[system] = {
+        'money_count': len(system_rows),
+        'normalization_counts': dict(collections.Counter(row['normalization'] for row in system_rows)),
+        'nonempty_strict_exact_documents': sum(case['exact_document'] for case in nonempty),
+        'f1_percent_in_document_table_order': [f"{report['metrics'][key]['f1'] * 100:.2f}" for key in LAYER_KEYS],
+        'report_bytes_identical_to_v26': raw[f'corrections-v27/report-{system}.json'] == raw[f'corrections-v26/report-{system}.json'],
+    }
+assert len(rows) == 46
+counts = dict(collections.Counter(row['normalization'] for row in rows))
+assert counts == {'exact': 21, 'approximate': 23, 'unsupported': 2}
+assert all('source_relation_unresolved' in row['issues'] for row in rows)
+assert all(not row['exact_money_without_review_issue'] for row in rows)
+assert all(row['calculation_authorized'] is False for row in rows)
+assert all(row['amount'] is None for row in rows if row['normalization'] != 'exact')
+assert all(item['nonempty_strict_exact_documents'] == 0 for item in by_system.values())
+assert all(item['report_bytes_identical_to_v26'] for item in by_system.values())
+expected_f1 = {
+    'rules': ['8.89', '8.89', '0.00', '0.00', '0.00', '0.00'],
+    'qwen': ['30.19', '34.04', '18.87', '21.28', '15.09', '17.02'],
+    'deepseek': ['72.34', '72.34', '57.45', '57.45', '53.19', '53.19'],
+}
+assert all(by_system[system]['f1_percent_in_document_table_order'] == expected_f1[system] for system in SYSTEMS)
+annotation = json.loads(raw['annotation-review.independent.json'])
+independence = json.loads(raw['data/independence.authoring.json'])
+assert annotation['aggregate'] == {
+    'dev_documents': 3, 'dev_expected_facts': 13, 'holdout_documents': 12,
+    'holdout_expected_facts': 43, 'natural_empty_documents': 2,
+    'official_source_documents': 7, 'case_families': 15,
+    'old_case_registry_entries_checked': 34,
+}
+assert len(independence['source_dependency_counts']) == 7
+assert sum(independence['source_dependency_counts'].values()) == 15
+assert annotation['status'] == 'passed_non_expert_pre_run_technical_review'
+assert 'statistical independence' in independence['limitations']
+unchanged = all((BASE / name).read_bytes() == value for name, value in raw.items())
+assert unchanged
+
+result = {
+    'schema': 'issue42-round37-document-v27-readonly-review/1',
+    'observed_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'status': 'DOCUMENT_BOUNDARIES_CONSISTENT_AFTER_POLICY_WORDING_FIX_CI_PENDING',
+    'root': str(ROOT), 'v27_manifest_sha256': MANIFEST,
+    'method': 'Python standard library reads existing JSON/documents and counts existing production_defense rows; no scorer or project module execution',
+    'source_files': [{'relative_path': name, 'absolute_path': str(BASE / name), 'sha256': sha(value), 'bytes': len(value)}
+                     for name, value in raw.items()],
+    'aggregate': {'accepted_money': 46, 'exact': 21, 'approximate_null': 23, 'unsupported_null': 2,
+                  'all_money_have_relation_warning': True, 'exact_money_without_review_issue': 0},
+    'by_system': by_system,
+    'accepted_money_rows_read_from_report': rows,
+    'fixed_policy_source_lines': policy_lines,
+    'policy_limit': 'calculation_authorized:false is assigned as a constant by assess.mjs; it does not establish actual per-candidate UI authorization or human business acceptance',
+    'documentation_fix_verified': 'ISSUE42_ACCEPTANCE.md explicitly states fixed comparison policy, no real UI authorization proof, human business acceptance incomplete',
+    'pending_ci_wording': 'Current b0a9554 CI failure and requirement to verify a new exact commit remain explicit; no final CI pass inferred',
+    'sample_and_label_boundaries': {'official_pages': 7, 'case_projects': 15, 'development_cases': 3,
+                                   'holdout_cases': 12, 'holdout_gold': 43, 'natural_empty_cases': 2,
+                                   'provisional_non_expert': True,
+                                   'case_project_split_not_page_or_statistical_independence': True,
+                                   'two_publication_pages_overlap_development_and_holdout_as_documented': True,
+                                   'anonymous_identity_and_pretraining_exposure_unknown': True},
+    'all_read_sources_unchanged_after_read': unchanged,
+    'scope_limits': ['No scorer execution or independent event matching recomputation',
+                     'No historical CLI, native tests, build, HTTP, full check, model request, training, deployment or UI authorization test',
+                     'No writes to ROOT/CODE or immutable experiment files',
+                     'This review does not complete expert/user business acceptance or final exact-head CI audit'],
+    'requested_model_configuration': {'model': 'gpt-6.1-sol', 'reasoning_effort': 'ultra', 'actual_backend_independently_verified': False},
+}
+with (OUT / 'document-v27-review.independent.json').open('x') as target:
+    json.dump(result, target, ensure_ascii=False, indent=2)
+    target.write('\n')
+with (OUT / 'DOCUMENT_V27_READONLY_REVIEW.md').open('x') as target:
+    target.write('''# ROUND37 三文档与v27报告只读核对
+
+修正后的三份说明在此次限定核对范围内一致。唯一先前提出的实质措辞问题已修复：`calculation_authorized:false` 是比较工具固定政策，不是这46条候选经过真实UI授权的证据，人工业务验收仍未完成。
+
+本次仅用Python标准库读取ROOT实际三份文档及保存的v27/v26 JSON报告，不调用评分器、不重新建立事件配对，也不运行历史CLI、原生测试、构建、HTTP、完整检查或模型。源码中的常量赋值行和各文件SHA均保存在JSON回执。ROOT/CODE和冻结结果未修改。
+
+直接枚举现有报告中的金额production_defense记录共46条：21条exact、23条approximate/null、2条unsupported/null。46条都有source_relation_unresolved；无核对问题的精确金额为0。规则/Qwen/DeepSeek分别为2/21/23条金额；三系统非空材料整案严格全对均为0。六层F1与三文档表格一致；三路v27逐案报告逐字同v26。这是现有报告读取计数，不是新的评分实验或模型能力改善证明。
+
+来源和标注回执支持7网页、15案件/项目、3开发/12留出、43参考与2自然空材料的记录；文档明确两份出版页跨开发/留出，划分不构成网页级或统计独立，匿名身份和预训练接触未知，标注是非专家研究标注。首跑前冻结与后验同输出复评、保留失败与人工业务验收均分开表述。
+
+当前文档仍明确精确b0a9554的CI失败、HTTP/OCR跳过及artifact为0，修复后必须核对新精确提交；该pendingCI口径准确，本回执不将本地通过升级为远端CI通过。新CI审计另行记录。
+
+请求配置GPT-6.1 Sol/ultra；实际backend不能独立核验。所有读取源在本次前后字节相同。白名单只列本目录明确产物，不扩大复制其他工作区文件。
+''')
+print(json.dumps({'status': result['status'], 'accepted_money': 46, 'exact': 21, 'approximate_null': 23,
+                  'unsupported_null': 2, 'clean_exact': 0, 'read_sources': len(raw), 'all_sources_unchanged': unchanged}, ensure_ascii=False))

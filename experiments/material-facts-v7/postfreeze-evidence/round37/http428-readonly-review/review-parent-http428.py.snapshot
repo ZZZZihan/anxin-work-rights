@@ -1,0 +1,60 @@
+from pathlib import Path
+import json,hashlib,datetime,collections,subprocess
+P=Path(__file__).resolve().parent
+OWN=P.parents[2]
+CODE=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+R=CODE/'.scratch/issue42/round37'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def save(n,v):
+ b=(json.dumps(v,ensure_ascii=False,indent=2)+'\n').encode() if not isinstance(v,bytes) else v
+ with (P/n).open('xb') as f:f.write(b)
+def copy(src,name):
+ b=src.read_bytes();save(name,b);return {'source':str(src),'file':name,'bytes':len(b),'sha256':sha(b)}
+files=[]
+for stem in ['http428-before','http428-final']:
+ for ext in ['json','receipt.json','stdout.log','stderr.log']:
+  files.append(copy(R/(stem+'.'+ext),'parent-'+stem+'.'+ext))
+files.append(copy(CODE/'scripts/material-facts-v7-http-regression.mjs','http428-runner.mjs.snapshot'))
+oldpath=OWN/'postfreeze-evidence/round36/ci-4c3a0cbf-review/parent-http410-final.json'
+files.append(copy(oldpath,'parent-prior-http410-final.json'))
+a=json.loads((P/'parent-http428-before.json').read_text());b=json.loads((P/'parent-http428-final.json').read_text());old=json.loads((P/'parent-prior-http410-final.json').read_text())
+assert a['status']=='FAIL' and b['status']=='PASS'
+assert a['cleanup']==b['cleanup']=={'status':'PASS','failures':[]}
+assert len(a['observations'])==len(b['observations'])==428
+assert collections.Counter(x['status'] for x in a['observations'])=={'PASS':411,'FAIL':17}
+assert all(x['status']=='PASS' for x in b['observations'])
+strip=lambda xs:[{k:v for k,v in x.items() if k not in {'evidenceId','jobId'}} for x in xs]
+assert len(a['syntheticOutputs'])==len(b['syntheticOutputs'])==429
+assert strip(a['syntheticOutputs'])==strip(b['syntheticOutputs'])
+assert all(set(x)=={'evidenceId','jobId','raw','candidates','finish_reason'} for x in b['syntheticOutputs'])
+pa={x['name']:x for x in old['observations']};pb={x['name']:x for x in b['observations']}
+assert len(pa)==410 and len(pb)==428 and pa.keys()<=pb.keys()
+diffs=[{'name':n,'old':v,'new':pb[n]} for n,v in pa.items() if v!=pb[n]]
+assert {x['name'] for x in diffs}=={'round28_subject_conjunction_王和平','worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots'}
+assert pb['round28_subject_conjunction_王和平']['coordinatedGroupStillUnresolved'] is True
+assert pb['worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots']['checkedCases']==427
+amb=['王和欧','王与南','王及区','王跟欧','王暨欧','王或欧','王同欧','王&欧','王／欧']
+for s in amb:
+ x=pb['round37_ambiguous_owner_'+s];assert x['ambiguousSubjectNotUsable'] and x['confirmedScopeSuggestedAmounts']==[] and x['historicalCleanCandidateRechecked'] and x['rawAndStoredHistoryUnchangedOnRead']
+x=pb['round37_ambiguous_owner_王甲'];assert not x['ambiguousSubjectNotUsable'] and x['confirmedScopeSuggestedAmounts']==['4000.00']
+for suffix in ['翻倍','加倍']:
+ for shape in ['full','cropped','layout']:
+  x=pb[f'round37_arithmetic_{suffix}_{shape}'];assert x['amount'] is None and x['historicalExactDowngraded'] and x['rawAndStoredHistoryUnchanged']
+for glyph in ['辞职','辭職']:
+ assert pb['round37_employment_date_'+glyph]['sourceRelationSupported']
+for stem,exit_ in [('before',1),('final',0)]:
+ rec=json.loads((P/f'parent-http428-{stem}.receipt.json').read_text());assert rec['exitCode']==exit_
+ for rel,digest in rec['logs'].items():assert sha((CODE/rel).read_bytes())==digest
+assert not b['actualModelInference'] and b['syntheticInputs'] and not b['holdoutRead'] and not b['historicalReportsOverwritten']
+# Exact raw/candidate payloads from prior 410 survive as an ordered subsequence.
+needle=strip(old['syntheticOutputs']);hay=strip(b['syntheticOutputs']);j=0
+for v in hay:
+ if j<len(needle) and v==needle[j]:j+=1
+assert j==len(needle)
+products={str(p.relative_to(CODE)):sha(p.read_bytes()) for p in [CODE/'lib/material-fact-event-review.ts',CODE/'lib/material-fact-arithmetic-review.ts',CODE/'experiments/material-facts-v7/assess.mjs',CODE/'scripts/material-facts-v7-http-regression.mjs']}
+runner=(P/'http428-runner.mjs.snapshot').read_text()
+for fragment in ["assert.equal(material.raw, injected.raw)","assert.deepEqual(candidate.representation, original", "assert.equal(scoped.body.canCalculate, false)","assert.deepEqual(scoped.body.state.confirmations, {due: null, paid: null})","assert.deepEqual(stored(item.caseId), before)"]:
+ assert fragment in runner
+result={'schema':'issue42-round37-parent-http428-readonly-review/1','observed_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'state':'READONLY_PARENT_EVIDENCE_CHECK_PASS','exact_head_at_read':subprocess.check_output(['git','rev-parse','HEAD'],cwd=CODE,text=True).strip(),'reviewer_did_not_run_http':True,'before':{'checks':428,'pass':411,'fail':17,'exit':1},'after':{'checks':428,'pass':428,'fail':0,'exit':0,'durationSeconds':json.loads((P/'parent-http428-final.receipt.json').read_text())['durationSeconds'],'cleanup':b['cleanup']},'outputs':{'count':429,'equal_except_only_top_level_evidenceId_jobId':True,'raw_candidates_finish_reason_equal':True,'prior_outputs_ordered_subsequence':len(needle)},'prior_410_observations':{'unchanged':408,'removed':[],'changed':diffs,'new':sorted(pb.keys()-pa.keys())},'restart_checked_cases':427,'scope_controls':{'ambiguous_coordinated_subjects':amb,'ambiguous_due_values':[],'positive_subject':'王甲','positive_due_values':['4000.00'],'canCalculate_and_due_paid_confirmation_assertions':False,'note':'These assertions are in the parent-executed runner; this audit checks its bytes and actual PASS report, not a second HTTP execution.'},'boundaries':['Event implementation authored by this reviewer; event HTTP evidence is read-only cross-check, not independent implementation review.','Doubling implementation by MONEY was separately nonimplementer reviewed and actually tested 77 per runtime.','Synthetic confirm_scope is a software fixture, not human business acceptance; canCalculate remains false and no due/paid confirmation is created.','TXT server uses page1; separate module evidence covers page boundary; HTTP does not establish arbitrary OCR or real-case correctness.'],'product_hashes_at_read':products,'files':files}
+save('http428-readonly-review.independent.json',result)
+print(json.dumps({'result':'PASS','outputs':429,'restart':427,'old_unchanged':408,'files':len(files)},ensure_ascii=False))

@@ -1,0 +1,105 @@
+from pathlib import Path
+import hashlib,json,re,shutil,subprocess,difflib
+ROOT=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+OWN=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money')
+PREP=OWN/'.scratch/round37-v27-prepared'
+E=Path('experiments/material-facts-v7')
+OUT=OWN/E/'postfreeze-evidence/round37/v27-prepared'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+assert not PREP.exists()
+manifest_bytes=(ROOT/E/'corrections-v26/manifest.json').read_bytes()
+assert sha(manifest_bytes)=='3046e7bf9318945e38d3c4de724563cd32fbf251629314aedaa419d81cf654cf'
+manifest=json.loads(manifest_bytes)
+assert len(manifest['code_sha256'])==97
+before={p:sha((ROOT/p).read_bytes()) for p in manifest['code_sha256']}
+assert before==manifest['code_sha256']
+PREP.mkdir(parents=True)
+# Supporting bytes are copied for native-only contracts and owned-temp restore;
+# only the explicit archive and six output paths below are delivered to ROOT.
+for path in ['lib','scripts','experiments','docs']:
+    shutil.copytree(ROOT/path,PREP/path,ignore=shutil.ignore_patterns('node_modules','__pycache__'))
+for path in ['package.json','eslint.config.js','eslint.config.mjs']:
+    if (ROOT/path).exists(): shutil.copy2(ROOT/path,PREP/path)
+archive=PREP/E/'correction-code-v26'
+assert not archive.exists()
+archive.mkdir()
+for path,digest in manifest['code_sha256'].items():
+    data=(ROOT/path).read_bytes();assert sha(data)==digest
+    target=archive/(path+'.snapshot');target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
+archived={'schema':'material-facts-v7-correction-code/26','correction_directory':'corrections-v26','storage_suffix':'.snapshot','correction_manifest_sha256':sha(manifest_bytes),'files':manifest['code_sha256']}
+(archive/'manifest.json').write_text(json.dumps(archived,ensure_ascii=False,indent=2)+'\n')
+# Version migration matches letter-qualified identifiers/paths only. Never replace
+# digit substrings in immutable hashes or fixture timeouts.
+def shift(text):
+    text=re.sub(r'(?<=[vV])(?:25|26)(?!\d)',lambda m:str(int(m[0])+1),text)
+    text=re.sub(r'(?<=/)(?:25|26)(?=[\'\"])',lambda m:str(int(m[0])+1),text)
+    return text
+files=[]
+def write(source,target,transform):
+    old=(ROOT/source).read_text();new=transform(old)
+    targetpath=PREP/target;targetpath.parent.mkdir(parents=True,exist_ok=True);targetpath.write_text(new)
+    files.append(str(target))
+    return old,new
+write(E/'historical-v25-execution.mjs',E/'historical-v26-execution.mjs',shift)
+write(E/'verify-correction-v25.mjs',E/'verify-correction-v26.mjs',lambda s:shift(s).replace('twenty-fifth','twenty-sixth'))
+reason=('Apply finite ROUND37 safeguards for directly attached 翻倍/加倍 monetary operations without calculating them; '
+        'treat nonempty coordinated subject fragments as unresolved ownership rather than inferring one worker; '
+        'recognize 辭 only in date-role detection. Align bounded date-containment wrappers in scoring while preserving '
+        'literal date equality, event identity, raw text, code-point positions and historical no-upgrade rules. '
+        'Same original outputs; no inference or label changes.')
+def controller(s):
+    s=shift(s).replace('twenty-sixth','twenty-seventh')
+    s=re.sub(r"change_reason: '[^']*'",'change_reason: '+json.dumps(reason,ensure_ascii=False),s)
+    s=re.sub(r'first_run_and_corrections_[a-z0-9_]+_preserved', 'first_run_and_corrections_'+'_'.join('v'+str(i) for i in range(1,27))+'_preserved', s)
+    return s
+write(E/'corrective-assessment-v26.mjs',E/'corrective-assessment-v27.mjs',controller)
+oldhash25=sha((ROOT/E/'corrections-v25/manifest.json').read_bytes())
+oldhash26=sha(manifest_bytes)
+bridge25hash=sha((ROOT/E/'historical-v25-execution.mjs').read_bytes())
+def native(s):
+    # Advance current v25 to v26, older v24 to v25, future-negative v26 to v27.
+    s=re.sub(r'(?<=[vV])(?:24|25|26)(?!\d)',lambda m:str(int(m[0])+1),s)
+    s=re.sub(r"const V25_BRIDGE = '[a-f0-9]{64}'",f"const V25_BRIDGE = '{bridge25hash}'",s)
+    return s
+write(Path('scripts/material-facts-v7-historical-v25-execution.test.mjs'),Path('scripts/material-facts-v7-historical-v26-execution.test.mjs'),native)
+def historicalgate(s):
+    s=re.sub(r'(?<=[vV])(?:24|25)(?!\d)',lambda m:str(int(m[0])+1),s)
+    s=re.sub(r'(?<=/)(?:24|25)(?=[\'\"])',lambda m:str(int(m[0])+1),s)
+    s=s.replace('94 exact','97 exact').replace('.length, 94)', '.length, 97)')
+    s=s.replace('22, 23, 24, 25].map','22, 23, 24, 25, 26].map')
+    s=re.sub(r"const V25 = '[a-f0-9]{64}'",f"const V25 = '{oldhash25}'",s)
+    s=re.sub(r"const V26 = '[a-f0-9]{64}'",f"const V26 = '{oldhash26}'",s)
+    return s
+write(Path('scripts/material-facts-v7-correction-v25-gates-independent.test.mjs'),Path('scripts/material-facts-v7-correction-v26-gates-independent.test.mjs'),historicalgate)
+def currentgate(s):
+    s=shift(s)
+    s=s.replace('25, 26].map','25, 26, 27].map')
+    s=s.replace('97 exact','100 exact').replace('.length, 97)', '.length, 100)')
+    s=s.replace('all 94 historical','all 97 historical')
+    s=re.sub(r"const V26 = '[a-f0-9]{64}'",f"const V26 = '{oldhash26}'",s)
+    s=s.replace('finite date, complete rate-unit and subject qualifier boundaries','finite doubling, owner ambiguity and date-containment boundaries')
+    return s
+write(Path('scripts/material-facts-v7-correction-v26-gates-independent.test.mjs'),Path('scripts/material-facts-v7-correction-v27-gates-independent.test.mjs'),currentgate)
+# Suggestions must preserve concurrent parent additions when applied; this is a
+# reviewable diff against the captured ROOT package, not a replacement package.
+pkg_old=(ROOT/'package.json').read_text();pkg=json.loads(pkg_old)
+cmd=pkg['scripts']['test:fact-runtime']
+assert 'scripts/material-facts-v7-correction-v26-gates-independent.test.mjs' in cmd
+cmd+=' scripts/material-facts-v7-historical-v26-execution.test.mjs scripts/material-facts-v7-correction-v27-gates-independent.test.mjs'
+pkg['scripts']['test:fact-runtime']=cmd
+pkg_new=json.dumps(pkg,ensure_ascii=False,indent=2)+'\n'
+workflow=Path('.github/workflows/ci.yml');ci_old=(ROOT/workflow).read_text()
+needle='          node experiments/material-facts-v7/corrective-assessment-v26.mjs --check'
+assert ci_old.count(needle)==1
+ci_new=ci_old.replace(needle,'          node experiments/material-facts-v7/verify-correction-v26.mjs\n          node experiments/material-facts-v7/corrective-assessment-v27.mjs --check')
+patch=''.join(difflib.unified_diff(pkg_old.splitlines(True),pkg_new.splitlines(True),fromfile='a/package.json',tofile='b/package.json'))+''.join(difflib.unified_diff(ci_old.splitlines(True),ci_new.splitlines(True),fromfile='a/'+str(workflow),tofile='b/'+str(workflow)))
+(OUT/'package-ci-suggestion.patch').write_text(patch)
+(PREP/'package.json').write_text(pkg_new)
+(PREP/workflow).parent.mkdir(parents=True,exist_ok=True);(PREP/workflow).write_text(ci_new)
+# Record all bindings without importing a controller or touching any publication.
+union=set(manifest['code_sha256'])|{str(E/'historical-v26-execution.mjs'),str(E/'verify-correction-v26.mjs'),str(E/'corrective-assessment-v27.mjs')}
+assert len(union)==100
+for p in files: assert (PREP/p).exists()
+record={'source_root':str(ROOT),'source_head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'prepared_root':str(PREP),'correction_manifest_sha256':sha(manifest_bytes),'archive_paths':97,'archive_manifest_sha256':sha((archive/'manifest.json').read_bytes()),'current_dependency_union':100,'files':{p:sha((PREP/p).read_bytes()) for p in files},'source_code_sha256':before,'inference':False,'actual_historical_cli_executed':False,'published':False}
+(OUT/'preparation.json').write_text(json.dumps(record,ensure_ascii=False,indent=2)+'\n')
+print(json.dumps({k:v for k,v in record.items() if k!='source_code_sha256'},ensure_ascii=False,indent=2))

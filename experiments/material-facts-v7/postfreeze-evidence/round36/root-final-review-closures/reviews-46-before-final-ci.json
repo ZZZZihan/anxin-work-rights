@@ -1,0 +1,504 @@
+{
+  "queriedAt": "2026-10-18T18:18:52.591773+00:00",
+  "headRefOid": "770bd26b1ed3723dcc8a85ebf25d78a8df5a94bf",
+  "state": "OPEN",
+  "reviewDecision": null,
+  "mergeStateStatus": "UNSTABLE",
+  "threads": [
+    {
+      "id": "PRRT_kwDOVApLyM6tnZcD",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305753043,
+            "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Validate backend-specific paths before creating the attempt**\n\nWhen a Qwen invocation omits `--model-path` or `--integrity-dir`, or a DeepSeek invocation omits `--key-file`, these optional values are passed to the worker only after the immutable output directory and its protocol/messages files have been created. The worker then fails during initialization, but a formal `holdout-<backend>-1` directory now exists and the runner refuses to reuse it, so a simple CLI omission can consume the experiment's sole formal attempt without making a model request. Reject missing backend-specific options before `mkdir(out)`.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305753043",
+            "createdAt": "2026-10-18T04:42:41Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": 145,
+            "originalLine": 90
+          },
+          {
+            "databaseId": 4305812437,
+            "body": "修复提交：8bca813776c4fe6dd476e3f0afe2a8fef63698e8；最终证据提交：adfc8b20c6c40e36f8cc6a3468065371b51fd091。\n\n已补齐写入前的后端参数和本机预检。Qwen缺model/integrity参数、目录或小型配置错误，DeepSeek缺key/权限错误/非法端口，以及Python无模型启动探测失败，均发生在正式目录和预算锁创建之前。配置修正后可复用尚未消费的正式路径；已经启动后的失败仍保留且拒绝覆盖。作者47项、独立38项均绿，修前两项最小红与独立16红均保留。原真实6次dev完成记录兼容。权重、依赖、内存和模型加载仍由worker检查，不把预检等同模型可用。\n\n本地最终npm run check为1660 Vitest、288运行时/证据项通过；最新精确提交CI仍在运行：[Check](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39099433143)。独立结论及真实红绿证据见 POSTRUN_ROUND4_INDEPENDENT.md 与 postfreeze-evidence/round4。没有模型重投、训练或生产部署。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305812437",
+            "createdAt": "2026-10-18T05:07:19Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": 145,
+            "originalLine": 90
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tnZcE",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305753045,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Archive the frozen v7 verifier and summarizer**\n\nAs soon as a later fix changes `verify.mjs`, `summarize.mjs`, `freeze.mjs`, or `run.mjs`, this filter omits their frozen versions and `withFrozenCode` instead copies and executes the live files from the current tree. A future verifier change can therefore either make historical verification unusable or, if it weakens a check, silently validate old evidence under logic that was not used for the first run, despite the receipt claiming exact archived execution. Include the frozen v7 executable files in the snapshot manifest and execute those copies.\n\nAGENTS.md reference: [AGENTS.md:L9-L9](https://github.com/ZZZZihan/anxin-work-rights/blob/9b344c4f91b12bfc1695834f3f6d9d1e080d1520/AGENTS.md#L9-L9)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305753045",
+            "createdAt": "2026-10-18T04:42:41Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/verify-frozen.mjs",
+            "line": 30,
+            "originalLine": 24
+          },
+          {
+            "databaseId": 4305812539,
+            "body": "修复提交：8bca813776c4fe6dd476e3f0afe2a8fef63698e8；最终证据提交：adfc8b20c6c40e36f8cc6a3468065371b51fd091。\n\n已新增frozen-code-v2完整36份归档并固定校验原freeze哈希，补齐4个v7执行脚本；旧32份归档保持原样。新归档逐文件记录真实Git blob，不声称当时尚未提交的脚本属于24c8015。当前wrapper只执行恢复后的原verify/summarize等；当前四脚本被替换时历史验证仍PASS60，归档缺失或改字节会拒绝。同一16项测试旧wrapper3绿13红→新16绿；原8门禁也通过。v1/v2的24/26份代码独立封存，旧报告不覆盖。\n\n本地最终npm run check为1660 Vitest、288运行时/证据项通过；最新精确提交CI仍在运行：[Check](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39099433143)。独立结论及真实红绿证据见 POSTRUN_ROUND4_INDEPENDENT.md 与 postfreeze-evidence/round4。没有模型重投、训练或生产部署。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305812539",
+            "createdAt": "2026-10-18T05:07:21Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/verify-frozen.mjs",
+            "line": 30,
+            "originalLine": 24
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tnZcG",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305753047,
+            "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Require completed development runs before freezing**\n\nA diagnostic attempt is counted as readiness solely because its protocol contains the current hashes; `outcome.json`, `results.jsonl`, and the completion status are never read. Since the runner writes the protocol and messages before spawning the worker, an initialization failure or missing executable still adds that backend to `verifiedBackends`, allowing `createFreeze` to proceed to the one-shot holdout even though the final-code development run never completed, contrary to the completion requirement recorded in `DEVELOPMENT.md:5`. Require and validate a completed outcome and its terminal results before accepting the backend.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305753047",
+            "createdAt": "2026-10-18T04:42:41Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/freeze.mjs",
+            "line": null,
+            "originalLine": 186
+          },
+          {
+            "databaseId": 4305812618,
+            "body": "修复提交：8bca813776c4fe6dd476e3f0afe2a8fef63698e8；最终证据提交：adfc8b20c6c40e36f8cc6a3468065371b51fd091。\n\n已新增validateDevelopmentCompletion：当前hash协议还必须配合outcome.completed=true、每个登记case按序唯一的stop终态、对应backend、无截断stdout以及成功进程记录，才贡献开发就绪。无outcome、空文件、缺/重复case、错误backend、未成功退出和截断均拒绝；合法空回答通过，保留的失败历史不妨碍另一完整运行建立就绪。47作者测试和38独立完整性测试通过；6个真实旧dev完成态只读兼容。旧首跑通过原冻结代码校验，不把后验新增门禁倒称预登记。\n\n本地最终npm run check为1660 Vitest、288运行时/证据项通过；最新精确提交CI仍在运行：[Check](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39099433143)。独立结论及真实红绿证据见 POSTRUN_ROUND4_INDEPENDENT.md 与 postfreeze-evidence/round4。没有模型重投、训练或生产部署。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305812618",
+            "createdAt": "2026-10-18T05:07:24Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/freeze.mjs",
+            "line": null,
+            "originalLine": 186
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tnZcJ",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305753049,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Publish the correction directory atomically**\n\nIf the process is interrupted or a write fails after `mkdir(directory)` or after any one artifact is written, it leaves a partial `corrections` directory. Every subsequent `--write` then fails at `mkdir`, while `--check` necessarily fails on the incomplete file set, so the one-time correction cannot be completed without manually deleting historical-looking evidence and bypassing the script's no-overwrite policy. Write the complete set to a new sibling staging directory and rename it into place only after all files succeed.\n\nAGENTS.md reference: [AGENTS.md:L9-L9](https://github.com/ZZZZihan/anxin-work-rights/blob/9b344c4f91b12bfc1695834f3f6d9d1e080d1520/AGENTS.md#L9-L9)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305753049",
+            "createdAt": "2026-10-18T04:42:41Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/corrective-assessment.mjs",
+            "line": null,
+            "originalLine": 56
+          },
+          {
+            "databaseId": 4305812688,
+            "body": "修复提交：8bca813776c4fe6dd476e3f0afe2a8fef63698e8；最终证据提交：adfc8b20c6c40e36f8cc6a3468065371b51fd091。\n\n已将三个当前修正写入口接到publishArtifacts：先预序列化并写唯一同级暂存，完整后rename发布。写失败/SIGKILL保留暂存，不留下半成品最终目录；重试创建新暂存，既有结果、并发输家和symlink都不覆盖。动态旧CLI在第一报告后注入EIO，重试EEXIST；修后同夹具首次失败但最终目录不存在、第二次成功、第三次拒绝覆盖，全部失败记录保留。独立测试还覆盖真正SIGKILL、并发和既有空目录。原/v1/v2保持字节不变，新v3仅另存当前代码绑定，三路报告与v2逐字相同。\n\n本地最终npm run check为1660 Vitest、288运行时/证据项通过；最新精确提交CI仍在运行：[Check](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39099433143)。独立结论及真实红绿证据见 POSTRUN_ROUND4_INDEPENDENT.md 与 postfreeze-evidence/round4。没有模型重投、训练或生产部署。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305812688",
+            "createdAt": "2026-10-18T05:07:26Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/corrective-assessment.mjs",
+            "line": null,
+            "originalLine": 56
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tnk5T",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305828412,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Clear request timers after draining queued events**\n\nWhen a DeepSeek worker writes a `requesting` event and then exits before producing a result, the event parser may still be awaiting its asynchronous log append when `close` resolves. This line clears the currently null timer and then awaits `writeQueue`; the queued handler can subsequently create the 180-second `requestTimer`, with no result event left to clear it. The failed runner therefore remains alive for three minutes after writing its outcome. Clear the timer again after the queue drains, or prevent queued handlers from starting timers once the child has exited.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305828412",
+            "createdAt": "2026-10-18T05:14:05Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": null,
+            "originalLine": 214
+          },
+          {
+            "databaseId": 4305909063,
+            "body": "已在 0abcea4 修复并动态复现。延迟首个events落盘、worker发送requesting后exit7时，修前父进程超过夹具6秒仍不退出；修后自主exit1并保存失败outcome。排队事件在exited/closed后不新建请求定时器，writeQueue排空后finally再次清理。完整requesting/result退出竞态仍成功；忽略SIGTERM的合成worker经宽限后SIGKILL，PID检查ESRCH。作者生命周期10/10及非实现者整合19/19通过。[修前日志](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/experiments/material-facts-v7/postfreeze-evidence/round6/lifecycle-before-red.final-fixture.txt)、[最终日志](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/experiments/material-facts-v7/postfreeze-evidence/round6/lifecycle-after-green.10.txt)。这是本地合成进程验证，未新增模型请求；当前提交CI单独等待。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305909063",
+            "createdAt": "2026-10-18T05:45:48Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": null,
+            "originalLine": 214
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tnk5Y",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305828418,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Serialize diagnostic starts with freezing**\n\nWhen a diagnostic runner passes this one-time absence check just before `createFreeze()` publishes `freeze.json`, nothing prevents it from creating its attempt directory after the freeze has already enumerated development artifacts. The runner then proceeds despite the experiment being frozen, while the immutable freeze omits the new directory; subsequent `verifyPreflight()` fails its development-result coverage check and neither artifact can be safely overwritten. Use a shared freeze/run lock covering this check through attempt allocation and freeze publication.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305828418",
+            "createdAt": "2026-10-18T05:14:05Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": 98,
+            "originalLine": 90
+          },
+          {
+            "databaseId": 4305909279,
+            "body": "已在 0abcea4 使用共享 .experiment.lock 修复。诊断持锁覆盖freeze缺席复核、attempt分配、worker直到终态文件全部写完；createFreeze持同锁覆盖枚举、哈希与独占发布，避免仅锁allocation后仍冻结正在变化的文件。锁在results之外；所有权/目录身份检查后只释放自己的锁；SIGKILL残锁保留并要求核对，不按年龄猜测清理。旧实现9例中3失败→9/9，另有真实runner与freeze互斥2例，作者10项生命周期及独立整合19项均通过。[真实并发修前](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/experiments/material-facts-v7/postfreeze-evidence/round6/freeze-lock-before-red.log)、[修后](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/experiments/material-facts-v7/postfreeze-evidence/round6/freeze-lock-final-green.log)、[独立整合](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/experiments/material-facts-v7/postfreeze-evidence/round6/round6-integrated-runtime-lock-independent-green.txt)。freeze测试原样执行生产临界区，无关数据/模型预检为合成依赖，runner使用有限合成worker，未跑新模型。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305909279",
+            "createdAt": "2026-10-18T05:45:53Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": 98,
+            "originalLine": 90
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tnk5d",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305828423,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Verify the original result manifest byte-for-byte**\n\nThis compares only the parsed manifest object, leaving the historical `result-manifest.json` bytes themselves unbound. Re-serializing that file with identical JSON changes its advertised SHA-256, yet `verify.mjs` and consequently `verify-frozen.mjs` still return `status: \"PASS\"` with the new hash. Since the repository publishes the original manifest hash as an immutable identifier, compare the file bytes to that fixed hash (or archive and verify the exact bytes) rather than accepting arbitrary rewrites.\n\nAGENTS.md reference: [AGENTS.md:L9-L9](https://github.com/ZZZZihan/anxin-work-rights/blob/adfc8b20c6c40e36f8cc6a3468065371b51fd091/AGENTS.md#L9-L9)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305828423",
+            "createdAt": "2026-10-18T05:14:05Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/verify.mjs",
+            "line": 251,
+            "originalLine": 250
+          },
+          {
+            "databaseId": 4305909406,
+            "body": "已在 0abcea4 对历史入口verify-frozen增加原result-manifest固定SHA256 3733e4c…53ee，分别核对源文件和实际交给旧验证器的临时副本；旧封存执行代码和原结果字节均未修改，未给正式结果尚不存在的预检/模块导入阶段增加结果文件要求。压缩JSON、键顺序反转、尾部换行三种语义等价修改，旧CLI实际返回PASS；修后拒绝且API回调不进入。6项修前1过5败→6/6，原36份快照/60结果完整链16/16通过，并由非实现者复跑。[修前](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/experiments/material-facts-v7/postfreeze-evidence/round6/first-manifest-independent-before-red.txt)、[修后](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/experiments/material-facts-v7/postfreeze-evidence/round6/first-manifest-independent-after-green.txt)。v1–v4均保留，新v5对相同原始回答零模型请求复算，三份报告与v4逐字相同。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305909406",
+            "createdAt": "2026-10-18T05:45:55Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/verify.mjs",
+            "line": 251,
+            "originalLine": 250
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tnk5i",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305828428,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Bound worker stderr before queuing log writes**\n\nOnly stdout contributes to the 20 MB output limit; stderr chunks are appended without any byte cap or backpressure. If a model-loading dependency or failed worker floods stderr, each chunk is retained in the promise chain while the file writes catch up, so the runner can exhaust memory or disk long before its 10/40-minute worker timeout fires. Track stderr bytes and terminate the worker at a bounded limit just as the stdout handler does.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305828428",
+            "createdAt": "2026-10-18T05:14:05Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": null,
+            "originalLine": 186
+          },
+          {
+            "databaseId": 4305909527,
+            "body": "已在 0abcea4 给stdout/stderr分别添加20,000,000原始字节上限；每条流收到当前chunk即pause，磁盘操作结束再resume，每流最多一个chunk排队，避免无界promise链。stderr超限中止并保留bounded worker.log/失败outcome，已有失败目录拒绝复用。32MiB错误流旧实现错误地成功，修后失败；慢写条件未落盘排队实测每流<=256KiB；各12MiB的双流仍成功，UTF-8分块保真，原stdout上限保留，忽略SIGTERM的worker实际强杀回收。作者10/10与非实现者整合19/19通过。[修前日志](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/experiments/material-facts-v7/postfreeze-evidence/round6/lifecycle-before-red.final-fixture.txt)、[修后日志](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/experiments/material-facts-v7/postfreeze-evidence/round6/lifecycle-after-green.10.txt)。独立限额不声称任意OS/磁盘故障下绝对内存或活性保证；没有新模型或生产运行。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305909527",
+            "createdAt": "2026-10-18T05:45:58Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": null,
+            "originalLine": 186
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tnvt0",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305898572,
+            "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Raise the parent timeout for the v4 gate suite**\n\nOn this checkout, this newly required suite reached the 120-second parent limit after 141 seconds, causing Node to cancel its final subtests and making `test:fact-runtime` exit 1. The suite serially launches several full correction verifications that may each run for up to 60 seconds, so the parent timeout is lower than the valid cumulative runtime; raise or remove it, or avoid the repeated recomputations, so `npm run check` remains reliable on slower or contended hosts.\n\nAGENTS.md reference: [AGENTS.md:L7-L7](https://github.com/ZZZZihan/anxin-work-rights/blob/3e14bd781a230b3fc937fd6e46a62b8b87232bab/AGENTS.md#L7-L7)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305898572",
+            "createdAt": "2026-10-18T05:41:35Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "scripts/material-facts-v7-correction-v4-gates-independent.test.mjs",
+            "line": null,
+            "originalLine": 34
+          },
+          {
+            "databaseId": 4305982545,
+            "body": "已修复父级超时预算：v4父测试由120秒调整为300秒，覆盖三个串行60秒子CLI及复制/清理；保留全部历史断言。v5/v6门禁同样按实际串行预算设置并在归档代码中运行。审查者记录的141秒超时是原始失败证据，本机没有伪造超时红测。修后历史12项和最终完整检查均通过，旧日志保留。\n\n最终整合提交：bd1cf39e66459f793b7702fa81c328cbd15034e2；完整本机1789应用测试/842运行时证据及v7只读复算通过。证据：experiments/material-facts-v7/postfreeze-evidence/round7、round8；非实现者复核：POSTRUN_ROUND8_INDEPENDENT.md。最新提交CI单独跟进，技术通过不代表人工业务验收。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305982545",
+            "createdAt": "2026-10-18T06:17:28Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "scripts/material-facts-v7-correction-v4-gates-independent.test.mjs",
+            "line": null,
+            "originalLine": 34
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tnvt2",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305898575,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Treat incomplete worker stdout as an incomplete attempt**\n\nIf a worker emits all expected `result` lines but leaves an unterminated stdout fragment before exiting with code 0, this predicate records `completed: true` even while the adjacent receipt records `incomplete_stdout: true`. `checkOutcome()` recomputes completion without checking that flag, so formal verification can pass and permanently manifest a truncated event stream; include `!buffer` in completion and reject `incomplete_stdout` during verification.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305898575",
+            "createdAt": "2026-10-18T05:41:35Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": null,
+            "originalLine": 223
+          },
+          {
+            "databaseId": 4305982670,
+            "body": "已修复：stdout有未终止尾片段时设置incomplete_stdout/stop_reason，保留partial-stdout文件和raw结果，completed必须无buffer。正式checkOutcome同时拒绝true或缺失的incomplete_stdout。真实合成worker发完全部result再留半行：修前错误成功→修后失败且全部证据保留；两后端验证器6项真实红→10项全绿，与生命周期共21项通过。原首跑与旧修正结果不覆盖。\n\n最终整合提交：bd1cf39e66459f793b7702fa81c328cbd15034e2；完整本机1789应用测试/842运行时证据及v7只读复算通过。证据：experiments/material-facts-v7/postfreeze-evidence/round7、round8；非实现者复核：POSTRUN_ROUND8_INDEPENDENT.md。最新提交CI单独跟进，技术通过不代表人工业务验收。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305982670",
+            "createdAt": "2026-10-18T06:17:31Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": null,
+            "originalLine": 223
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tn1fg",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305935630,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Publish freeze.json atomically**\n\nIf `writeFile` fails after partially creating `freeze.json`, `withExperimentLock` releases the lock but leaves the incomplete destination behind; subsequent freezes refuse to overwrite it, while diagnostic runners treat its mere existence as closing the experiment. Recovery therefore requires deleting a file presented as immutable historical evidence. Write the complete receipt to a sibling temporary file and rename it into place only after the write succeeds.\n\nAGENTS.md reference: [AGENTS.md:L9-L9](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/AGENTS.md#L9-L9)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305935630",
+            "createdAt": "2026-10-18T05:56:54Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/freeze.mjs",
+            "line": null,
+            "originalLine": 267
+          },
+          {
+            "databaseId": 4305982825,
+            "body": "已修复并独立复核：同目录wx唯一temp完整write/sync/close后用link原子发布且不覆盖已有freeze，全部处于共享锁内。发布前失败保留temp/失败回执，SIGKILL保留temp/owner锁；link后清理失败明确FROZEN_CLEANUP_WARNING/published:true，返回完整已冻结结果不误报未发布。最终12项故障注入旧1通过11失败→12通过，包含短写、sync/close/link失败、竞态、被杀、清理和回执失败；原生锁9项通过。测试使用真实函数体/进程/文件系统，数据身份门禁为合成替身，不声称断电或跨文件系统保证。\n\n最终整合提交：bd1cf39e66459f793b7702fa81c328cbd15034e2；完整本机1789应用测试/842运行时证据及v7只读复算通过。证据：experiments/material-facts-v7/postfreeze-evidence/round7、round8；非实现者复核：POSTRUN_ROUND8_INDEPENDENT.md。最新提交CI单独跟进，技术通过不代表人工业务验收。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305982825",
+            "createdAt": "2026-10-18T06:17:34Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/freeze.mjs",
+            "line": null,
+            "originalLine": 267
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tn1fi",
+      "isResolved": true,
+      "isOutdated": false,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305935632,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Verify the published v5 manifest byte-for-byte**\n\nThe newly added v5 `--check` parses `manifest.json` before comparison, so re-indenting, reordering, or adding whitespace still returns `PASS` while changing the SHA-256 explicitly published in `README.md` and the round-6 review. This silently invalidates the immutable v5 identifier; compare the raw manifest bytes to the fixed published hash or archive and verify the exact bytes.\n\nAGENTS.md reference: [AGENTS.md:L9-L9](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/AGENTS.md#L9-L9)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305935632",
+            "createdAt": "2026-10-18T05:56:54Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/corrective-assessment-v5.mjs",
+            "line": 38,
+            "originalLine": 38
+          },
+          {
+            "databaseId": 4305982949,
+            "body": "已用原字节归档与当前规范字节双层修复。v5清单及35份代码保留，日常/CI通过verify-correction-v5按归档绑定的原字节摘要核对；v6及37份代码也保留。独立实际复现旧v6只改空白/键序仍PASS；当前v7 --check在语义一致后还比对重算manifest规范字节，两个同JSON改写均以明确manifest bytes changed拒绝。没有修改旧清单去迎合代码或回填已公布SHA；新v7仅复算同一原输出并绑定当前39份代码。\n\n最终整合提交：bd1cf39e66459f793b7702fa81c328cbd15034e2；完整本机1789应用测试/842运行时证据及v7只读复算通过。证据：experiments/material-facts-v7/postfreeze-evidence/round7、round8；非实现者复核：POSTRUN_ROUND8_INDEPENDENT.md。最新提交CI单独跟进，技术通过不代表人工业务验收。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305982949",
+            "createdAt": "2026-10-18T06:17:37Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/corrective-assessment-v5.mjs",
+            "line": 38,
+            "originalLine": 38
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tn1fk",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4305935635,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Reject the reserved budget-lock attempt name**\n\nFor a pre-freeze rules or Qwen diagnostic, `--out .../results/.deepseek-budget.lock` passes this name check and is created as an ordinary immutable attempt directory. Every later DeepSeek run then fails to acquire its reservation lock, and `createFreeze()` explicitly rejects the same entry, so the experiment cannot proceed without renaming or deleting recorded attempt evidence. Reject this reserved basename before creating the attempt.\n\nAGENTS.md reference: [AGENTS.md:L9-L9](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/AGENTS.md#L9-L9)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305935635",
+            "createdAt": "2026-10-18T05:56:54Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": 78,
+            "originalLine": 74
+          },
+          {
+            "databaseId": 4305983079,
+            "body": "已修复：规范化输出路径后，在后端预检、输入读取、锁和attempt目录写入前拒绝.deepseek-budget.lock及ASCII大小写别名，预算锁创建复用同一常量。实际11项旧3通过8失败→11通过，独立复跑通过：没有新锁/attempt，已有锁与失败字节不变，拒绝后普通规则与本地失败哨兵仍可启动并保留预算；普通相近隐藏名仍允许。外层.experiment.lock原已有直接子目录边界，不扩大泛禁名称。\n\n最终整合提交：bd1cf39e66459f793b7702fa81c328cbd15034e2；完整本机1789应用测试/842运行时证据及v7只读复算通过。证据：experiments/material-facts-v7/postfreeze-evidence/round7、round8；非实现者复核：POSTRUN_ROUND8_INDEPENDENT.md。最新提交CI单独跟进，技术通过不代表人工业务验收。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305983079",
+            "createdAt": "2026-10-18T06:17:39Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": 78,
+            "originalLine": 74
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tn_sI",
+      "isResolved": true,
+      "isOutdated": false,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4306002151,
+            "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Raise the nested v4 verification timeout**\n\nIn the newly added CI verification chain, `verify-correction-v5.mjs` executes this archived v5 script, but this 60-second child deadline is no larger than the valid runtime of the recursively copying and recomputing v4 verifier. On a clean checkout of this commit, `node experiments/material-facts-v7/verify-correction-v5.mjs` failed here with `spawnSync ... ETIMEDOUT`, after the standalone v4 verification had passed, so the required CI/check path can fail on an unmodified tree. Increase or remove this nested deadline, or avoid recursively repeating the historical recomputations.\n\nAGENTS.md reference: [AGENTS.md:L7-L7](https://github.com/ZZZZihan/anxin-work-rights/blob/bd1cf39e66459f793b7702fa81c328cbd15034e2/AGENTS.md#L7-L7)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4306002151",
+            "createdAt": "2026-10-18T06:25:22Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/corrective-assessment-v5.mjs",
+            "line": 14,
+            "originalLine": 14
+          },
+          {
+            "databaseId": 4306115195,
+            "body": "已在aee7057处理。原冻结源码/清单/报告字节保持；用版本化只读执行政策向原历史Node子链显式传递一份15分钟绝对截止，每层给父进程预留2秒，不再让嵌套v4的旧60秒提前截断外层验证。白名单不允许run/--write或任意代码，失败照常传播，另存执行回执；未跳过任何历史断言。本机原v5链41.117秒PASS，没有把审查者ETIMEDOUT伪称本地同次复现。实际原生10ms/120ms叶子计时反例红→绿，作者14项+独立4项通过；完整历史链和最新v9写入/只读校验均通过。v8归档43文件不变，v9绑定46文件且不扩写policy-v1。 最终整合npm run check：1789 Vitest、1537运行时、材料67+1本机平台跳过、Python9+11+16通过。独立v9真实门禁5/5；精确提交远端CI已启动待核对。这些均为技术验证，不是人工业务验收。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4306115195",
+            "createdAt": "2026-10-18T07:04:07Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/corrective-assessment-v5.mjs",
+            "line": 14,
+            "originalLine": 14
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tn_sK",
+      "isResolved": true,
+      "isOutdated": true,
+      "comments": {
+        "nodes": [
+          {
+            "databaseId": 4306002153,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Await the in-flight memory sample before releasing the lock**\n\nWhen a Qwen worker exits after the guard on line 221 but while this `appendFile` is pending, `close` resolves and the runner awaits only `writeQueue`; the interval callback itself is not tracked. A diagnostic can therefore save its outcome and release `.experiment.lock` while `memory.jsonl` is still changing, allowing `createFreeze()` to enumerate or hash the file before the append finishes and produce a freeze that immediately fails verification; an append error after exit is also silently suppressed by the catch condition. Fresh evidence beyond the earlier allocation race is that this monitor write is outside the serialized queue, so track and await the in-flight monitor callback before terminal writes and lock release.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4306002153",
+            "createdAt": "2026-10-18T06:25:22Z",
+            "author": {
+              "login": "chatgpt-codex-connector"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": 227,
+            "originalLine": 224
+          },
+          {
+            "databaseId": 4306115275,
+            "body": "已在aee7057修复。保存内存监控promise并与输出写队列一起等待，之后才写结果/outcome和释放实验锁；迟到采样/写入错误保留monitor_error失败，worker已退出也不能转成功。作者实际写入屏障3项、非实现者查询屏障2项均有旧红→新绿；挂起期间freeze因锁而拒绝，既有lifecycle检查继续通过。原日志/失败/快照保留，未调用真实模型。 最终整合npm run check：1789 Vitest、1537运行时、材料67+1本机平台跳过、Python9+11+16通过。独立v9真实门禁5/5；精确提交远端CI已启动待核对。这些均为技术验证，不是人工业务验收。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4306115275",
+            "createdAt": "2026-10-18T07:04:09Z",
+            "author": {
+              "login": "ZZZZihan"
+            },
+            "path": "experiments/material-facts-v7/run.mjs",
+            "line": 227,
+            "originalLine": 224
+          }
+        ]
+      }
+    }
+  ]
+}

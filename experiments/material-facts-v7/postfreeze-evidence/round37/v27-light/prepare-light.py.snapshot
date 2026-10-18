@@ -1,0 +1,36 @@
+from pathlib import Path
+import hashlib,json,re,ast,datetime
+O=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money');R=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards');E=Path('experiments/material-facts-v7');OUT=O/E/'postfreeze-evidence/round37/v27-light';OLD=O/E/'postfreeze-evidence/round35/v26-light'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+source=(OLD/'v26-independent-report-check.final.py').read_text()
+source=source.replace('expected v26 manifest SHA','expected v27 manifest SHA')
+cut=source.index('manifest_bytes = ')
+head,tail=source[:cut],source[cut:]
+head=head.replace('for path, digest in historical.items():','historical["corrections-v26/manifest.json"] = "3046e7bf9318945e38d3c4de724563cd32fbf251629314aedaa419d81cf654cf"\nfor path, digest in historical.items():')
+head=head.replace('range(2, 26)', 'range(2, 27)')
+tail=re.sub(r'v(?:25|26)(?!\d)',lambda m:'v'+str(int(m[0][1:])+1),tail)
+tail=tail.replace('len(manifest["code_sha256"]) == 97','len(manifest["code_sha256"]) == 100')
+tail=tail.replace('len(archive["files"]) == 94','len(archive["files"]) == 97')
+tail=tail.replace('archived_v26_code_paths_verified=94','archived_v26_code_paths_verified=97').replace('current_code_paths_verified=97','current_code_paths_verified=100')
+tail=tail.replace('b737da3de0710decda27f34351e51d86784a45b9f7c019a56b49f3960ca35c19','125283860c9a78e8dca56fc50f7eeba9ee7fcf8ea8149d94c06e0c37bdb37f81')
+script=head+tail
+assert 'len(manifest["code_sha256"]) == 100' in script
+assert 'len(archive["files"]) == 97' in script
+assert 'current_code_paths_verified=100' in script
+ast.parse(script)
+(OUT/'v27-independent-report-check.prepared.py').write_text(script)
+source=(OLD/'capture-v26-light-audit.final.py').read_text()
+source=re.sub(r'v(?:25|26)(?!\d)',lambda m:'v'+str(int(m[0][1:])+1),source)
+source=source.replace('range(2,27)', 'range(2,28)').replace('round35-v27','round37-v27')
+source=source.replace('v27-independent-report-check.final.py','v27-independent-report-check.prepared.py')
+source=source.replace('assert isinstance(parent_protected, dict) and parent_protected','assert isinstance(parent_protected, dict) and len(parent_protected) == 1726')
+ast.parse(source)
+(OUT/'capture-v27-light-audit.prepared.py').write_text(source)
+protection=R/'.scratch/issue42/round37/protected-union-before-v27.json'
+protected=json.loads(protection.read_bytes());assert len(protected)==1726
+record={'status':'PREPARED_NOT_EXECUTED','prepared_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'root':str(R),'parent_protected_path':str(protection),'parent_protected_sha256':sha(protection.read_bytes()),'parent_protected_paths':1726,'expected_current_code_paths':100,'expected_archive_code_paths':97,'expected_original_files':60,'denominators':{'holdout_cases':12,'gold_facts':43,'gold_anchor_spans':41,'saved_match_partitions':216,'aggregate_metric_sets':18},'expected_v27_manifest_sha256':None,'read_actual_reports_and_discover_differences':True,'v27_metrics_or_defense_counts_prepopulated':False,'audit_executed':False,'historical_cli_executed':False,'scorer_imported':False,'model_requests':0,'role':'money/arithmetic product author; independent of score/label implementation; LIGHT arithmetic/bytes only, not human or legal acceptance','syntax_validation':'ast.parse only, no module execution','scripts':{p.name:sha(p.read_bytes()) for p in OUT.glob('*.prepared.py')}}
+(OUT/'prepared-only.receipt.json').write_text(json.dumps(record,ensure_ascii=False,indent=2)+'\n')
+(OUT/'README.md').write_text('v27 LIGHT 仅准备，尚未执行。等父侧实际 write/check PASS 与 v27 manifest SHA 后，才按下列参数运行 capture 脚本：ROOT绝对路径、实际新 manifest SHA、ROOT/.scratch/issue42/round37/protected-union-before-v27.json。该脚本只启动本目录独立 Python 字节/分区算术核查，不加载评分器、不跑历史 CLI 或模型。\n\n预置的是冻结分母与文件契约：12/43/41、216分区/18组metrics、100当前/97历史/60原始，保护1726；没有预置 v27 分数、状态分类或与v26相同的结论。运行时将实际读取并发现任何报告/防御差异。旧v26脚本和证据保持原样。\n')
+entries=[{'source_absolute':str(p),'destination_relative':str(p.relative_to(O)),'sha256':sha(p.read_bytes())} for p in sorted(OUT.iterdir()) if p.is_file() and p.name!='prepared-copy-index.json']
+(OUT/'prepared-copy-index.json').write_text(json.dumps({'status':'PREPARED_NOT_EXECUTED','files':entries},ensure_ascii=False,indent=2)+'\n')
+print(json.dumps(record,ensure_ascii=False,indent=2));print('INDEX',sha((OUT/'prepared-copy-index.json').read_bytes()))

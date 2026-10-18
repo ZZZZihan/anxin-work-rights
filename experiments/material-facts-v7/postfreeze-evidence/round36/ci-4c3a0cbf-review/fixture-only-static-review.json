@@ -1,0 +1,21 @@
+{
+  "changed_files": [
+    "scripts/material-facts-v7-http-process-tree.test.mjs"
+  ],
+  "product_helper_http_package_diff": [],
+  "old_five_lifecycle_assertions_equal": true,
+  "assertion_lines": [
+    "assert.deepEqual(await liveGroupMembers(f.child.pid), [], 'The owned POSIX group has no remaining non-zombie member.');",
+    "assert.equal(await portAlive(f.info.port), false, 'A workerd-like descendant must not retain its socket after stopChild returns.');",
+    "assert.deepEqual(await liveGroupMembers(f.child.pid), [], 'The owned POSIX group has no remaining non-zombie member.');",
+    "assert.equal(await portAlive(f.info.port), false);",
+    "assert.equal(await portAlive(info.port), true, 'Stopping the test Worker must preserve an unrelated process/socket.');"
+  ],
+  "new_checks": [
+    "empty staged JSON is not published",
+    "partial staged JSON is not published",
+    "malformed published JSON remains an error",
+    "real prepublication child exit remains an error"
+  ],
+  "scope": "Read-only exact Git diff; no local project test run. Parent separately reports nine checks pass."
+}

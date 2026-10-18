@@ -1,0 +1,145 @@
+--- b0/scripts/material-facts-http-repeat-signal.test.mjs
++++ reviewed/scripts/material-facts-http-repeat-signal.test.mjs
+@@ -3,7 +3,7 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+ import { spawn, execFileSync } from 'node:child_process';
+-import { connect } from 'node:net';
++import { connect, createServer } from 'node:net';
+ import { mkdtemp, mkdir, readFile, writeFile, copyFile, rm } from 'node:fs/promises';
+ import { dirname, resolve, join } from 'node:path';
+ import { fileURLToPath } from 'node:url';
+@@ -16,6 +16,16 @@
+   socket.once('connect', () => { socket.destroy(); done(true); });
+   socket.once('error', () => { socket.destroy(); done(false); });
+ });
++// Observe a connection established with the original fixture process. A later
++// listener can legitimately reuse its port while the TERM-ignoring descendant
++// keeps group cleanup active; a fresh connect cannot identify the old owner.
++async function observeSocket(port) {
++  const socket = connect({ host: '127.0.0.1', port });
++  const observed = { socket, closed: false };
++  socket.once('close', () => { observed.closed = true; });
++  await new Promise((done, reject) => { socket.once('connect', done); socket.once('error', reject); });
++  return observed;
++}
+ async function until(check, message, milliseconds = 8000) {
+   const deadline = Date.now() + milliseconds;
+   do { if (await check()) return; await pause(20); } while (Date.now() < deadline);
+@@ -29,13 +39,13 @@
+ function terminate(pid) {
+   if (!pid) return;
+   try { process.kill(-pid, 'SIGKILL'); } catch (error) { if (!['ESRCH', 'EPERM'].includes(error.code)) throw error; }
+-  // EPERM is not used as proof of success: every fixture socket is checked below.
++  // EPERM is not proof of success: the original owned groups are checked below.
+ }
+ 
+ const leaf = `import{createServer}from'node:net';import{writeFile,rename}from'node:fs/promises';
+ async function publish(path,value){const temporary=path+'.'+process.pid+'.tmp';await writeFile(temporary,value);await rename(temporary,path);}
+ if(process.argv[3]==='ignore')process.on('SIGTERM',()=>{});
+-const server=createServer(s=>s.end());server.listen(0,'127.0.0.1',async()=>{await publish(process.argv[2],JSON.stringify({pid:process.pid,port:server.address().port}));});`;
++const server=createServer(()=>{});server.listen(0,'127.0.0.1',async()=>{await publish(process.argv[2],JSON.stringify({pid:process.pid,port:server.address().port}));});`;
+ const wrangler = `import{createServer}from'node:http';import{spawn}from'node:child_process';import{mkdir,readFile,writeFile,rename}from'node:fs/promises';import{join}from'node:path';import{DatabaseSync}from'node:sqlite';
+ let markerSequence=0;async function publish(path,value){const temporary=path+'.'+process.pid+'.'+(++markerSequence)+'.tmp';await writeFile(temporary,value);await rename(temporary,path);}
+ const args=process.argv.slice(2),mode=process.env.ANXIN_INTERRUPT_FIXTURE_MODE,dir=process.env.ANXIN_INTERRUPT_FIXTURE_DIR;
+@@ -57,6 +67,9 @@
+    // Establish that the redirected child installed its TERM handler before the
+    // launcher fails; otherwise shutdown could correctly kill it before the test.
+    for(;;){try{await readFile(join(dir,'owned-leaf.json'));break;}catch{await new Promise(done=>setTimeout(done,10));}}
++   // The test must hold the original launcher connection before this deliberate
++   // failure. This handshake adds no signal handler or shutdown behavior.
++   for(;;){try{await readFile(join(dir,'observers-ready'));break;}catch{await new Promise(done=>setTimeout(done,10));}}
+    process.exit(23);
+   }
+  });
+@@ -64,20 +77,28 @@
+ const service = `import{createServer}from'node:http';
+ export async function createMaterialService(){const server=createServer((req,res)=>{res.end('{}');});await new Promise(done=>server.listen(0,'127.0.0.1',done));return{url:'http://127.0.0.1:'+server.address().port,async close(){server.closeAllConnections();await new Promise(done=>server.close(done));}};}`;
+ 
+-for (const runner of ['v7', 'recovery']) for (const mode of ['migration', 'migration-failure']) for (const firstSignal of ['SIGINT', 'SIGTERM']) {
+-  test(`actual ${runner} CLI drains ${mode} after ${firstSignal} repeated during cleanup`, { skip: process.platform === 'win32', timeout: 25000 }, async t => {
++const scenarios = ['v7', 'recovery'].flatMap(runner => ['migration', 'migration-failure'].flatMap(mode =>
++  ['SIGINT', 'SIGTERM'].map(firstSignal => ({ runner, mode, firstSignal }))));
++scenarios.push({ runner: 'v7', mode: 'migration', firstSignal: 'SIGINT', reusePort: true });
++for (const { runner, mode, firstSignal, reusePort = false } of scenarios) {
++  test(`actual ${runner} CLI drains ${mode} after ${firstSignal} repeated during cleanup${reusePort ? ' with unrelated port reuse' : ''}`, { skip: process.platform === 'win32', timeout: 25000 }, async t => {
+     const temp = await mkdtemp(join(tmpdir(), 'anxin-http-repeat-signal-'));
+-    let cli, sibling, childInfo, leafInfo, otherInfo;
++    let cli, sibling, childInfo, leafInfo, otherInfo, rebound;
++    const originalConnections = [];
+     const report = join(temp, 'report.json');
+     let stdout = '', stderr = '';
+     t.diagnostic(JSON.stringify({ node: process.version, runner, mode, firstSignal }));
+     t.after(async () => {
++      for (const observed of originalConnections) observed.socket.destroy();
++      if (rebound) await new Promise(done => rebound.close(done));
+       if (cli && cli.exitCode === null && cli.signalCode === null) cli.kill('SIGKILL');
+       childInfo ??= await json(join(temp, 'owned.json'));
+       leafInfo ??= await json(join(temp, 'owned-leaf.json'));
+       otherInfo ??= await json(join(temp, 'unrelated.json'));
+       terminate(childInfo?.pid); terminate(sibling?.pid);
+-      for (const info of [childInfo, leafInfo, otherInfo].filter(Boolean)) await until(async () => !await alive(info.port), 'Test-owned fixture socket survived emergency cleanup.');
++      // A released port can already belong to another concurrent fixture. Never
++      // treat that new listener as this test's resource or wait for it to stop.
++      for (const pid of [childInfo?.pid, sibling?.pid].filter(Boolean)) await until(() => members(pid).length === 0, 'Test-owned process group survived emergency cleanup.');
+       if (childInfo?.state) {
+         const privateRoot = dirname(childInfo.state);
+         assert(privateRoot.startsWith(tmpdir() + '/') && /anxin-fact(?:s-v7|-recovery)-http-[^/]+$/u.test(privateRoot));
+@@ -112,12 +133,29 @@
+       return true;
+     }, 'Actual CLI did not reach its native child/socket boundary.');
+     assert.equal(await alive(leafInfo.port), true);
++    const launcherConnection = await observeSocket(childInfo.port);
++    originalConnections.push(launcherConnection);
++    const descendantConnection = await observeSocket(leafInfo.port);
++    originalConnections.push(descendantConnection);
++    const unrelatedConnection = await observeSocket(otherInfo.port);
++    originalConnections.push(unrelatedConnection);
++    await writeFile(join(temp, 'observers-ready'), '', { flag: 'wx' });
+     if (mode === 'migration-failure') {
+       // The launcher has already failed. Its finally is stopping the redirected
+       // TERM-ignoring child when the first interrupt arrives.
+       await until(() => members(childInfo.pid).every(([pid]) => Number(pid) !== childInfo.pid), 'Migration leader did not exit before the cleanup interruption.');
+     }
+     cli.kill(firstSignal);
++    if (reusePort) {
++      await until(async () => !await alive(childInfo.port), 'Original launcher listener did not stop before controlled port reuse.', 2000);
++      await until(() => launcherConnection.closed, 'The original listener connection must close before its port is reused.', 2000);
++      assert.equal(descendantConnection.closed, false, 'The original TERM-ignoring descendant must still be active at controlled port reuse.');
++      assert(members(childInfo.pid).some(([pid]) => Number(pid) === leafInfo.pid), 'The original descendant must still belong to its owned group during port reuse.');
++      rebound = createServer(socket => socket.end('unrelated replacement listener'));
++      await new Promise((done, reject) => { rebound.once('error', reject); rebound.listen(childInfo.port, '127.0.0.1', done); });
++      t.diagnostic(JSON.stringify({ controlledPortReuse: true, originalLauncherPid: childInfo.pid, replacementPid: process.pid,
++        replacementOutsideOriginalGroup: !members(childInfo.pid).some(([pid]) => Number(pid) === process.pid) }));
++    }
+     {
+       // A redirected descendant ignores TERM, keeping cleanup active long enough
+       // to deliver repeated real signals. They must not restore default exit.
+@@ -126,7 +164,8 @@
+     let timer;
+     const result = await Promise.race([closed, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Interrupted CLI did not exit within its cleanup deadline.')), 16000); })]).finally(() => clearTimeout(timer));
+     const sockets = { launcher: await alive(childInfo.port), descendant: await alive(leafInfo.port), unrelated: await alive(otherInfo.port) };
+-    t.diagnostic(JSON.stringify({ mode, exit: result, sockets }));
++    const originalSockets = { launcher: !launcherConnection.closed, descendant: !descendantConnection.closed, unrelated: !unrelatedConnection.closed };
++    t.diagnostic(JSON.stringify({ mode, exit: result, sockets, originalSockets, originalGroup: members(childInfo.pid) }));
+     assert.equal(result.signal, null, `CLI bypassed finally on ${result.signal}; ${stderr}`);
+     assert.equal(result.code, 1, 'An interrupted acceptance run must fail.');
+     const recorded = await json(report);
+@@ -135,10 +174,15 @@
+       assert.match((recorded.failure ?? recorded.setupFailure).message, /migrations exited 23/u, 'The original migration failure must survive a cleanup-time signal.');
+       assert(recorded.interruption, 'Cleanup interruption must be recorded alongside the earlier failure.');
+     } else assert(recorded.interruption, 'The first interruption must survive report publication.');
+-    assert.equal(sockets.launcher, false, 'The detached launcher socket must be released before CLI exit.');
+-    assert.equal(sockets.descendant, false, 'The redirected descendant socket must be released before CLI exit.');
++    assert.equal(originalSockets.launcher, false, 'The detached launcher original socket must be released before CLI exit.');
++    assert.equal(originalSockets.descendant, false, 'The redirected descendant original socket must be released before CLI exit.');
+     assert.deepEqual(members(childInfo.pid), [], 'No non-zombie owned group member may remain.');
+     assert.equal(sockets.unrelated, true, 'An unrelated process group must remain alive.');
++    assert.equal(originalSockets.unrelated, true, 'The preexisting unrelated connection must remain alive.');
++    if (reusePort) {
++      assert.equal(sockets.launcher, true, 'The controlled unrelated replacement must own the reused port.');
++      assert.equal(rebound.listening, true, 'Cleanup must leave the unrelated replacement listener alive.');
++    }
+     t.diagnostic(JSON.stringify({ mode, cleanup: recorded.cleanup.status, cleanupOperations: recorded.cleanup.failures.map(item => item.operation) }));
+     assert.deepEqual(recorded.cleanup, { status: 'PASS', failures: [] }, 'Successful owned-group cleanup must not hide a diagnostic failure.');
+     await assert.rejects(readFile(join(dirname(childInfo.state), 'wrangler.json')), { code: 'ENOENT' }, 'Owned disposable configuration/state must be removed after confirmed cleanup.');

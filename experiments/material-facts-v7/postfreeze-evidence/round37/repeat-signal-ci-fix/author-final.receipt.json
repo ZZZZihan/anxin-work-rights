@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-10-18T18:54:53.832332+00:00",
+  "task": "R37 CI39155201166 repeat-signal fixture listener identity investigation and scoped repair",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning_effort": "ultra",
+  "actual_backend_independently_verified": false,
+  "baseline_commit": "b0a9554d0b7ab1a064ce490cee181d2197c31b0c",
+  "ci": {
+    "url": "https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39155201166",
+    "job_url": "https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39155201166/job/117756883216",
+    "runtime_pass": 9074,
+    "runtime_fail": 1,
+    "failure": "v7 migration after SIGINT repeated during cleanup: bare launcher port still connectable",
+    "failure_duration_ms": 9654.282355,
+    "log_sha256": "72f5c9814bacaf5cdc939a4d72f3b4ccdfb5473c70a1daa669c6ed85ea4e308f",
+    "case_cleanup_result_known": false,
+    "listener_owner_known": false,
+    "root_cause_proven": false
+  },
+  "conclusion": "A deterministic native-kernel schedule proves the original bare-port assertion can report an unrelated replacement listener as an owned leak. This repairs that fixture measurement defect; original CI listener identity and cleanup outcome remain unknown.",
+  "change_whitelist": [
+    {
+      "path": "scripts/material-facts-http-repeat-signal.test.mjs",
+      "sha256": "01827620e425b5e19c3913a7ff4533d9d4f394ddefbfd8f788c1fd349ecbb7da"
+    }
+  ],
+  "implementation": [
+    "Hold TCP connections established to the original launcher, descendant and unrelated fixture before sending any signals.",
+    "A ready handshake holds deliberate migration exit23 until those original connections exist; no helper, runner signal handler or shutdown behavior changes.",
+    "Keep original eight combinations; add one controlled unrelated same-port rebind while the original TERM-ignoring descendant is still in its owned group.",
+    "Require original connections closed, original non-zombie PGID empty, original unrelated connection alive, FAIL/interruption/exit23 preservation, cleanup PASS and private state deletion.",
+    "Emergency cleanup verifies owned groups rather than waiting for unknown new listeners on old ports."
+  ],
+  "actual_checks": {
+    "exact_original_case_without_forced_reuse": {
+      "pass": 1,
+      "fail": 0,
+      "note": "Local non-reproduction; cannot establish CI root cause."
+    },
+    "controlled_native_rebind_original_contract": {
+      "pass": 0,
+      "fail": 1,
+      "exit_code": 1,
+      "cleanup_record": "PASS",
+      "original_non_zombie_group": [],
+      "replacement_listener_alive": true,
+      "log": "controlled-rebind-old-contract.stdout.log"
+    },
+    "same_final_protocol_with_only_original_bare_port_assertion_restored": {
+      "pass": 0,
+      "fail": 1,
+      "exit_code": 1,
+      "original_connections_closed": true,
+      "original_non_zombie_group": [],
+      "old_port_new_listener_alive": true,
+      "log": "final-protocol-old-port-assertion.stdout.log"
+    },
+    "final_controlled_rebind": {
+      "pass": 1,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "final-controlled-rebind.stdout.log"
+    },
+    "final_original8_plus_rebind1": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "runtime": "Node24.22.0",
+      "platform": "macOS native processes and kernel sockets",
+      "exit_code": 0,
+      "elapsed_seconds": 49.116,
+      "cleanup_pass": 9,
+      "log": "final-native9-node24.stdout.log"
+    },
+    "syntax": {
+      "exit_code": 0
+    },
+    "eslint": {
+      "exit_code": 0,
+      "warnings": 0,
+      "method": "Exact final bytes on stdin under CODE eslint config with matching scripts filename"
+    },
+    "protected_root_code_baseline_hashes": {
+      "count": 12,
+      "unchanged": true,
+      "before": "final-native9.protected-before.json",
+      "after": "final-native9.protected-after.json"
+    }
+  },
+  "idle_connection_effect": {
+    "original_exact_local_case_duration_ms": 5359,
+    "final_v7_migration_sigint_duration_ms": 5466.064583,
+    "statement": "Original HTTP launcher has no added signal handler. An idle held TCP connection did not prevent TERM termination; all eight original cases still complete within the existing bounded cleanup budget. This is an observed local contract check, not a proof for arbitrary real servers."
+  },
+  "non_implementer_review": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round37/repeat-signal-nonimplementer/review.receipt.json",
+    "sha256": "04032f17174767c8fe35204d514f62de2be89675f9fe2caa5b93a83131b67c1e",
+    "executed": "Node26.11.0 controlled rebind 1P0F; original8 statically reviewed, not rerun by peer"
+  },
+  "limits": [
+    "Original CI 9074P1F and its failure evidence remain preserved; no claim that exact CI root cause has been reproduced or that its cleanup passed.",
+    "Local native kernel tests use actual CLI/helper code with synthetic Wrangler/services, not real model or business acceptance.",
+    "No Linux execution by this author; final Linux CI remains parent integration responsibility.",
+    "No helper/application/model/scorer/frozen data/results changes, no HTTP acceptance/build/full/history CLI/model request/training/deployment/commit/push."
+  ]
+}

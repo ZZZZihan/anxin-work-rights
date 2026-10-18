@@ -1,0 +1,35 @@
+TAP version 13
+# Subtest: actual v7 CLI drains migration after SIGINT repeated during cleanup with unrelated port reuse
+not ok 1 - actual v7 CLI drains migration after SIGINT repeated during cleanup with unrelated port reuse
+  ---
+  duration_ms: 5418.148583
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/experiments/material-facts-v7/postfreeze-evidence/round37/repeat-signal-ci-fix/final-protocol-old-port-assertion.test.mjs:84:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Original bare-port assertion: the detached launcher socket must be released before CLI exit.
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/experiments/material-facts-v7/postfreeze-evidence/round37/repeat-signal-ci-fix/final-protocol-old-port-assertion.test.mjs:177:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# {"node":"v24.22.0","runner":"v7","mode":"migration","firstSignal":"SIGINT"}
+# {"controlledPortReuse":true,"originalLauncherPid":15675,"replacementPid":15672,"replacementOutsideOriginalGroup":true}
+# {"mode":"migration","exit":{"code":1,"signal":null},"sockets":{"launcher":true,"descendant":false,"unrelated":true},"originalSockets":{"launcher":false,"descendant":false,"unrelated":true},"originalGroup":[]}
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5466.3765

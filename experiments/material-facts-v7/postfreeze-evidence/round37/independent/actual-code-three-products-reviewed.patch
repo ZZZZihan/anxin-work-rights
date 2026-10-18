@@ -1,0 +1,84 @@
+--- exact4c/lib/material-fact-event-review.ts
++++ actualCODE/lib/material-fact-event-review.ts
+@@ -29,14 +29,13 @@
+ const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
+ // Date-only cue/bridge aliases, after literal owner/value positions are found.
+ // Folding never changes the subject, date literal, quote or source offsets.
+-const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须', 給: '给', 畢: '毕' };
+-const dateRole = (text: string) => compact(text).replace(/[於職資歸屬間簽訂勞動關終開廠離約發計領實際係該時為調傷並與結後從應須給畢]/gu, glyph => dateGlyphs[glyph]);
++const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 辭: '辞', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须', 給: '给', 畢: '毕' };
++const dateRole = (text: string) => compact(text).replace(/[於職辭資歸屬間簽訂勞動關終開廠離約發計領實際係該時為調傷並與結後從應須給畢]/gu, glyph => dateGlyphs[glyph]);
+ const groupLabel = /[、，,]|班[组組]|公司|[单單]位|集[团團]|工人|[员員]工|[劳勞][动動]者|群[体體]|集[体體]|[众眾]人/u;
+-// Single surnames and placeholder people can form coordinated short subjects
+-// (张和李/甲和乙). These are ambiguity cues, not a whitelist proving identity.
++// The existing terminal-name exception below has no second person fragment.
++// Surname shapes never prove that two nonempty coordinated parts are one worker.
+ const commonSurname = '王李张張刘劉陈陳杨楊黄黃赵趙吴吳周徐孙孫马馬朱胡郭何高林罗羅郑鄭梁谢謝宋唐许許韩韓冯馮邓鄧曹彭曾肖萧蕭田董袁潘于蒋蔣蔡余杜叶葉程苏蘇魏吕呂丁任沈姚卢盧姜崔钟鍾谭譚陆陸汪范金石廖贾賈夏韦韋方白邹鄒孟熊秦邱侯江尹薛阎閻段雷龙龍黎史陶贺賀顾顧毛郝龚龔邵万萬钱錢严嚴武戴莫孔向汤湯';
+ const surname = new RegExp(`^[${commonSurname}]$`, 'u');
+-const shortPerson = new RegExp(`^[甲乙丙丁戊己庚辛壬癸某我你您他她一二三四五六七八九${commonSurname}]$`, 'u');
+ function collectiveSubject(subject: string): boolean {
+   const text = compact(subject);
+   if (groupLabel.test(text) || /等(?:人)?$/u.test(text)
+@@ -46,12 +45,9 @@
+   // A terminal conjunction in a two-codepoint name has no second person (何和,
+   // 周及). Longer incomplete labels and multiple coordinators stay uncertain.
+   if (parts.some(part => !part)) return !(parts.length === 2 && Array.from(text).length === 2 && surname.test(parts[0]) && !parts[1]);
+-  if (parts.length > 2) return true;
+-  if (parts.some(part => Array.from(part).length >= 2)) return true;
+-  // Only the ordinary surname + two-character given-name shape can resolve
+-  // an embedded coordinator; two person fragments or unknown short labels stay
+-  // ambiguous. The surrounding literal owner/role gates must still pass.
+-  return !surname.test(parts[0]) || shortPerson.test(parts[1]);
++  // Every nonempty part may denote a different person. The model's individual
++  // label and a name-shaped literal cannot resolve that source ambiguity.
++  return true;
+ }
+ 
+ function dateSide(text: string): { meanings: DateMeaning[]; joins: number } | null {
+--- exact4c/lib/material-fact-arithmetic-review.ts
++++ actualCODE/lib/material-fact-arithmetic-review.ts
+@@ -66,6 +66,11 @@
+ const SUFFIX_PAY_COMPONENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${PAY_COMPONENT_OPERAND}`, 'u');
+ const PREFIX_PAY_COMPONENT_OPERATOR = new RegExp(`${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}$`, 'u');
+ const PREFIX_PAY_COMPONENT = new RegExp(`(?<!\\p{L}|\\p{N})${PAY_COMPONENT_OPERAND}${CONTINUATION_BRIDGE}$`, 'u');
++// These complete verbs state multiplication without spelling a numeric factor.
++// They apply only immediately after this amount or its finite amount noun,
++// never by searching another clause or treating an earlier wage result as math.
++const DOUBLING = `(?:翻${LINE}*倍|加${LINE}*倍)`;
++const SUFFIX_DOUBLING = new RegExp(`^${DOUBLING}`, 'u');
+ // A presentation hyphen can introduce a payment date or duration. Require a
+ // complete time unit: a bare -2000, -200元 or -50% remains subtraction. This
+ // exception does not apply to an explicit 减/减去 or the mathematical minus −.
+@@ -76,7 +81,7 @@
+ const HYPHEN_TIME = new RegExp(`^-${LINE}*(?:[0-9]{4}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12][0-9]|3[01])|${TIME_INTEGER}年(?:${LINE}*${TIME_INTEGER}月(?:${LINE}*${TIME_INTEGER}日)?)?|${NUMBER}(?:个?月|日|天|小时|分钟|秒))(?![${NUMERALS}点.元圆圓角分%/×*xX÷+−-])`, 'u');
+ 
+ function suffixIsOperation(suffix: string): boolean {
+-  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_PROPORTION_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
++  return (SUFFIX_DOUBLING.test(suffix) || SUFFIX_OPERATOR.test(suffix) || SUFFIX_PROPORTION_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
+ }
+ const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
+ // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
+@@ -89,7 +94,7 @@
+ const AMOUNT_NOUN = ['工资', '基本工资', '月工资', '工资款', '工资总额', '应发工资', '应付工资', '实发工资', '欠付工资', '拖欠工资',
+   '薪资', '薪酬', '奖金', '津贴', '补贴', '劳务费', '劳动报酬', '加班费', '经济补偿金', '赔偿金']
+   .map(noun => Array.from(noun).join(`${LINE}*`)).join('|');
+-const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${PROPORTION})`, 'u');
++const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${DOUBLING}|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${PROPORTION})`, 'u');
+ 
+ function detectionView(value: string): string {
+   const glyphs: Record<string, string> = { 貳: '贰', 參: '叁', 陸: '陆', 獎: '奖', 終: '终', 費: '费', 資: '资', 績: '绩', 貼: '贴', 補: '补', 勞: '劳', 務: '务', 動: '动', 報: '报', 經: '经', 濟: '济', 償: '偿', 賠: '赔', 減: '减', 當: '当', 實: '实', 應: '应', 約: '约', 適: '适', 計: '计', 發: '发', 齡: '龄', 數: '数', 係: '系' };
+--- exact4c/experiments/material-facts-v7/assess.mjs
++++ actualCODE/experiments/material-facts-v7/assess.mjs
+@@ -26,9 +26,9 @@
+     && /^\s*(?:整|正)?\s*(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/u.test(after);
+   // Fold only the finite date boundary view. The original source, value,
+   // quote and code-point offsets, and literal date equality remain unchanged.
+-  const dateBoundary = value => value.replace(/[從後間]/gu, glyph => ({ 從: '从', 後: '后', 間: '间' })[glyph]);
+-  return /^\s*(?:自|从|截至)?\s*$/u.test(dateBoundary(before))
+-    && /^\s*(?:起|止|前|后|间|期间)?\s*$/u.test(dateBoundary(after));
++  const dateBoundary = value => value.replace(/[從後間為]/gu, glyph => ({ 從: '从', 後: '后', 間: '间', 為: '为' })[glyph]);
++  return /^\s*(?:自|从|截至|截止至|截止到|截止|到|至)?\s*$/u.test(dateBoundary(before))
++    && /^\s*(?:以前|以后|之前|之后|为止|起|止|前|后|间|期间)?\s*$/u.test(dateBoundary(after));
+ }
+ 
+ function canonical(candidate) {

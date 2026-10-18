@@ -1,0 +1,104 @@
+"""Read/hash the downloaded checkpoint evidence; never execute a project command."""
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import re
+
+P = Path(__file__).resolve().parent
+CODE = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+
+
+def read(name):
+    return json.loads((P / name).read_text())
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def save(name, obj):
+    with (P / name).open('x') as out:
+        json.dump(obj, out, ensure_ascii=False, indent=2)
+        out.write('\n')
+
+
+log_path = P / 'original-logs/check/12_Run npm run check.txt'
+lines = log_path.read_text().splitlines()
+assertions = []
+needles = [
+    'stop owned HTTP launcher and listening descendant: default',
+    'stop owned HTTP launcher and listening descendant: ignore-term',
+    'stop owned HTTP launcher and listening descendant: redirected-ignore-term',
+    'stop owned HTTP launcher and listening descendant: launcher-exits',
+    'shutdown only signals its own detached process group',
+    'ready marker is not published during empty JSON write',
+    'ready marker is not published during partial JSON write',
+    'ready record preserves malformed JSON failures',
+    'ready record reports a real child exit before publication',
+]
+for needle in needles:
+    found = [{'line': i + 1, 'text': line} for i, line in enumerate(lines) if needle in line]
+    assert len(found) == 1 and '✔' in found[0]['text'], needle
+    assertions.append({'test': needle, **found[0]})
+
+python_counts = [int(x) for x in re.findall(r'Ran (\d+) tests? in', '\n'.join(lines))]
+assert python_counts == [9, 11, 16], python_counts
+for i, line in enumerate(lines):
+    if re.search(r'Ran \d+ tests? in', line):
+        assert any(re.search(r'\bOK\s*$', item) for item in lines[i+1:i+4])
+
+files = read('local-original-results-vs-exact-head.json')['files']
+assert len(files) == 147
+rehash = []
+for item in files:
+    actual = sha(CODE / item['path'])
+    assert actual == item['sha256'], item['path']
+    rehash.append({'path': item['path'], 'sha256': actual})
+
+code_rehash = []
+for item in read('exact-commit-vs-tested-worktree.json'):
+    actual = sha(CODE / item['path'])
+    assert actual == item['head_sha256'] == item['worktree_sha256'], item['path']
+    code_rehash.append({'path': item['path'], 'sha256': actual})
+
+previous = P.parent / 'ci-fa77dbd5-review/copy-index.ci-fa77dbd5.json'
+prior_index = json.loads(previous.read_text())
+for item in prior_index['files']:
+    f = Path(item['source'])
+    assert sha(f) == item['sha256'] and f.stat().st_size == item['bytes'], str(f)
+
+remote = read('artifacts/material-http-regression/http-facts-v7.json')
+prior_remote = P.parents[1] / 'round35/ci-e99df1d3-review/artifacts/material-http-regression/http-facts-v7.json'
+prior = json.loads(prior_remote.read_text())
+assert len(prior['observations']) == 388
+by_name = {x['name']: x for x in remote['observations']}
+assert len(by_name) == len(remote['observations'])
+assert all(by_name[x['name']] == x for x in prior['observations'][:-1])
+
+images = read('artifacts/material-http-regression/http-images.json')
+ocr = [x for x in images['observations'] if 'engine' in x]
+assert ocr and all(x['engine']['ocr'] == ('tesseract_chi_sim_poppler' if x.get('fixture', '').endswith('.pdf') else 'tesseract_chi_sim') and x['engine']['structuring'] == 'ocr_rules' and x['engine']['model'] is None for x in ocr)
+assert images['serviceRestartCoverage'] == 'PASS'
+base = read('artifacts/base-http-regression/synthetic-http-results.json')
+assert base['complete'] is True and base['fixtureRemoved'] is True
+
+out = {
+    'schema': 'exact-ci-additional-evidence-audit/1',
+    'at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'runtime_log': str(log_path.relative_to(P)),
+    'process_tree_original_five_and_four_ready_tests_all_pass': assertions,
+    'python_fullcheck_counts': python_counts,
+    'original_manifest_files_rehashed_unchanged': len(rehash),
+    'original_file_rehash': rehash,
+    'exact_head_eleven_product_harness_files_unchanged_after_audit': code_rehash,
+    'prior_fa77_failure_evidence': {'index_sha256': sha(previous), 'files': len(prior_index['files']), 'all_unchanged': True},
+    'prior_387_http_observations_equal_exact_e99_remote_ci_artifact': True,
+    'ocr_observations_with_native_engine': len(ocr),
+    'ocr_engines': [{'fixture': x.get('fixture'), 'engine': x['engine']} for x in ocr],
+    'ocr_restart_coverage': 'PASS',
+    'synthetic_http_private_fixture_removed': True,
+    'scope': 'Read/hash downloaded evidence and existing local files only; no local project test, HTTP, build, model, or scorer execution.',
+}
+save('additional-evidence-audit.json', out)
+print(json.dumps({'original_files': len(rehash), 'code_files': len(code_rehash), 'prior_failed_checkpoint_files_unchanged': len(prior_index['files']), 'process_tree_tests': len(assertions), 'python': python_counts, 'prior_387_http_observations_equal': True, 'ocr_native_engine_observations': len(ocr)}))

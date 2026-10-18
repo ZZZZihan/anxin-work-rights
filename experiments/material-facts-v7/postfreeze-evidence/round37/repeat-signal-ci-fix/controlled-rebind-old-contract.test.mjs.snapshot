@@ -1,0 +1,155 @@
+// Real CLI subprocesses and kernel sockets; the Wrangler/service fixtures below
+// are synthetic. This does not run an application build or a model.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { spawn, execFileSync } from 'node:child_process';
+import { connect, createServer } from 'node:net';
+import { mkdtemp, mkdir, readFile, writeFile, copyFile, rm } from 'node:fs/promises';
+import { dirname, resolve, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { tmpdir } from 'node:os';
+
+const ROOT = resolve(process.env.ANXIN_HTTP_REPEAT_SIGNAL_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const pause = ms => new Promise(done => setTimeout(done, ms));
+const alive = port => new Promise(done => {
+  const socket = connect({ host: '127.0.0.1', port });
+  socket.once('connect', () => { socket.destroy(); done(true); });
+  socket.once('error', () => { socket.destroy(); done(false); });
+});
+async function until(check, message, milliseconds = 8000) {
+  const deadline = Date.now() + milliseconds;
+  do { if (await check()) return; await pause(20); } while (Date.now() < deadline);
+  assert.fail(message);
+}
+async function json(path) { try { return JSON.parse(await readFile(path, 'utf8')); } catch (error) { if (error.code === 'ENOENT') return; throw error; } }
+function members(pgid) {
+  return execFileSync('/bin/ps', ['-axo', 'pid=,pgid=,stat='], { encoding: 'utf8', timeout: 2000 }).trim().split('\n')
+    .map(line => line.trim().split(/\s+/u)).filter(([, group, state]) => Number(group) === pgid && !/^[ZX]/iu.test(state));
+}
+function terminate(pid) {
+  if (!pid) return;
+  try { process.kill(-pid, 'SIGKILL'); } catch (error) { if (!['ESRCH', 'EPERM'].includes(error.code)) throw error; }
+  // EPERM is not used as proof of success: every fixture socket is checked below.
+}
+
+const leaf = `import{createServer}from'node:net';import{writeFile,rename}from'node:fs/promises';
+async function publish(path,value){const temporary=path+'.'+process.pid+'.tmp';await writeFile(temporary,value);await rename(temporary,path);}
+if(process.argv[3]==='ignore')process.on('SIGTERM',()=>{});
+const server=createServer(s=>s.end());server.listen(0,'127.0.0.1',async()=>{await publish(process.argv[2],JSON.stringify({pid:process.pid,port:server.address().port}));});`;
+const wrangler = `import{createServer}from'node:http';import{spawn}from'node:child_process';import{mkdir,readFile,writeFile,rename}from'node:fs/promises';import{join}from'node:path';import{DatabaseSync}from'node:sqlite';
+let markerSequence=0;async function publish(path,value){const temporary=path+'.'+process.pid+'.'+(++markerSequence)+'.tmp';await writeFile(temporary,value);await rename(temporary,path);}
+const args=process.argv.slice(2),mode=process.env.ANXIN_INTERRUPT_FIXTURE_MODE,dir=process.env.ANXIN_INTERRUPT_FIXTURE_DIR;
+const migration=args[0]==='d1';
+if(migration&&!['migration','migration-failure'].includes(mode)){
+ const state=args[args.indexOf('--persist-to')+1];await mkdir(state,{recursive:true});const db=new DatabaseSync(join(state,'fixture.sqlite'));db.exec('CREATE TABLE cases(id TEXT)');db.close();
+}else{
+ const stage=migration?'migration':'worker';
+ spawn(process.execPath,[join(dir,'leaf.mjs'),join(dir,'owned-leaf.json'),'ignore'],{stdio:'ignore'});
+ const port=migration?0:Number(args[args.indexOf('--port')+1]);
+ const server=createServer(async(req,res)=>{
+  if(req.url==='/api/bootstrap'&&mode==='pending'){res.writeHead(401);res.end('{}');return;}
+  await publish(join(dir,'request.json'),JSON.stringify({path:req.url}));
+  // Deliberately never complete startup or the first business HTTP request.
+ });
+ server.listen(port,'127.0.0.1',async()=>{
+  await publish(join(dir,'owned.json'),JSON.stringify({stage,pid:process.pid,port:server.address().port,state:args[args.indexOf('--persist-to')+1]}));
+  if(mode==='migration-failure'){
+   // Establish that the redirected child installed its TERM handler before the
+   // launcher fails; otherwise shutdown could correctly kill it before the test.
+   for(;;){try{await readFile(join(dir,'owned-leaf.json'));break;}catch{await new Promise(done=>setTimeout(done,10));}}
+   process.exit(23);
+  }
+ });
+}`;
+const service = `import{createServer}from'node:http';
+export async function createMaterialService(){const server=createServer((req,res)=>{res.end('{}');});await new Promise(done=>server.listen(0,'127.0.0.1',done));return{url:'http://127.0.0.1:'+server.address().port,async close(){server.closeAllConnections();await new Promise(done=>server.close(done));}};}`;
+
+for (const runner of ['v7', 'recovery']) for (const mode of ['migration', 'migration-failure']) for (const firstSignal of ['SIGINT', 'SIGTERM']) {
+  test(`actual ${runner} CLI drains ${mode} after ${firstSignal} repeated during cleanup`, { skip: process.platform === 'win32', timeout: 25000 }, async t => {
+    const temp = await mkdtemp(join(tmpdir(), 'anxin-http-repeat-signal-'));
+    let cli, sibling, childInfo, leafInfo, otherInfo, rebound;
+    const report = join(temp, 'report.json');
+    let stdout = '', stderr = '';
+    t.diagnostic(JSON.stringify({ node: process.version, runner, mode, firstSignal }));
+    t.after(async () => {
+      if (rebound) await new Promise(done => rebound.close(done));
+      if (cli && cli.exitCode === null && cli.signalCode === null) cli.kill('SIGKILL');
+      childInfo ??= await json(join(temp, 'owned.json'));
+      leafInfo ??= await json(join(temp, 'owned-leaf.json'));
+      otherInfo ??= await json(join(temp, 'unrelated.json'));
+      terminate(childInfo?.pid); terminate(sibling?.pid);
+      for (const info of [childInfo, leafInfo, otherInfo].filter(Boolean)) await until(async () => !await alive(info.port), 'Test-owned fixture socket survived emergency cleanup.');
+      if (childInfo?.state) {
+        const privateRoot = dirname(childInfo.state);
+        assert(privateRoot.startsWith(tmpdir() + '/') && /anxin-fact(?:s-v7|-recovery)-http-[^/]+$/u.test(privateRoot));
+        await rm(privateRoot, { recursive: true, force: true });
+      }
+      await rm(temp, { recursive: true, force: true });
+    });
+    await mkdir(join(temp, 'scripts'), { recursive: true });
+    await mkdir(join(temp, 'node_modules/wrangler/bin'), { recursive: true });
+    await mkdir(join(temp, 'dist/server'), { recursive: true });
+    await writeFile(join(temp, 'package.json'), '{"type":"module"}');
+    await writeFile(join(temp, 'node_modules/wrangler/package.json'), '{"type":"module"}');
+    const script = runner === 'v7' ? 'material-facts-v7-http-regression.mjs' : 'material-facts-recovery-http-regression.mjs';
+    await copyFile(join(ROOT, 'scripts', script), join(temp, 'scripts', script));
+    await copyFile(join(process.env.ANXIN_HTTP_REPEAT_HELPER_ROOT || ROOT, 'scripts/owned-http-process-group.mjs'), join(temp, 'scripts/owned-http-process-group.mjs'));
+    await writeFile(join(temp, 'scripts/material-service.mjs'), service);
+    await writeFile(join(temp, 'node_modules/wrangler/bin/wrangler.js'), wrangler);
+    await writeFile(join(temp, 'leaf.mjs'), leaf);
+    await writeFile(join(temp, 'dist/server/wrangler.json'), '{"main":"noop.mjs","d1_databases":[]}');
+    sibling = spawn(process.execPath, [join(temp, 'leaf.mjs'), join(temp, 'unrelated.json'), 'normal'], { detached: true, stdio: 'ignore' });
+    cli = spawn(process.execPath, [join(temp, 'scripts', script), report], {
+      cwd: temp, stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, NODE_OPTIONS: '', ANXIN_INTERRUPT_FIXTURE_MODE: mode, ANXIN_INTERRUPT_FIXTURE_DIR: temp },
+    });
+    const closed = new Promise(done => cli.once('close', (code, signal) => done({ code, signal })));
+    cli.stdout.on('data', chunk => { stdout += chunk; }); cli.stderr.on('data', chunk => { stderr += chunk; });
+    await until(async () => {
+      childInfo = await json(join(temp, 'owned.json')); leafInfo = await json(join(temp, 'owned-leaf.json')); otherInfo = await json(join(temp, 'unrelated.json'));
+      if (cli.exitCode !== null || cli.signalCode !== null) assert.fail(`CLI exited before fixture barrier: ${stdout}\n${stderr}`);
+      if (!childInfo || !leafInfo || !otherInfo) return false;
+      if (['startup', 'pending'].includes(mode)) { const request = await json(join(temp, 'request.json')); if (!request || mode === 'pending' && request.path !== '/api/cases') return false; }
+      return true;
+    }, 'Actual CLI did not reach its native child/socket boundary.');
+    assert.equal(await alive(leafInfo.port), true);
+    if (mode === 'migration-failure') {
+      // The launcher has already failed. Its finally is stopping the redirected
+      // TERM-ignoring child when the first interrupt arrives.
+      await until(() => members(childInfo.pid).every(([pid]) => Number(pid) !== childInfo.pid), 'Migration leader did not exit before the cleanup interruption.');
+    }
+    cli.kill(firstSignal);
+    await until(async () => !await alive(childInfo.port), 'Original launcher listener did not stop before controlled rebind.', 2000);
+    rebound = createServer(socket => socket.end('controlled unrelated replacement'));
+    await new Promise((done,reject) => { rebound.once('error',reject); rebound.listen(childInfo.port,'127.0.0.1',done); });
+    t.diagnostic(JSON.stringify({controlledRebind:true,replacementPid:process.pid,oldLauncherPid:childInfo.pid,oldPort:childInfo.port,originalGroupAtRebind:members(childInfo.pid)}));
+    {
+      // A redirected descendant ignores TERM, keeping cleanup active long enough
+      // to deliver repeated real signals. They must not restore default exit.
+      await pause(100); cli.kill(firstSignal); await pause(100); cli.kill(firstSignal);
+    }
+    let timer;
+    const result = await Promise.race([closed, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Interrupted CLI did not exit within its cleanup deadline.')), 16000); })]).finally(() => clearTimeout(timer));
+    const sockets = { launcher: await alive(childInfo.port), descendant: await alive(leafInfo.port), unrelated: await alive(otherInfo.port) };
+    t.diagnostic(JSON.stringify({ mode, exit: result, sockets }));
+    assert.equal(result.signal, null, `CLI bypassed finally on ${result.signal}; ${stderr}`);
+    assert.equal(result.code, 1, 'An interrupted acceptance run must fail.');
+    const recorded = await json(report);
+    assert.equal(recorded?.status, 'FAIL', 'An interrupted run must replace its report with FAIL.');
+    if (mode === 'migration-failure') {
+      assert.match((recorded.failure ?? recorded.setupFailure).message, /migrations exited 23/u, 'The original migration failure must survive a cleanup-time signal.');
+      assert(recorded.interruption, 'Cleanup interruption must be recorded alongside the earlier failure.');
+    } else assert(recorded.interruption, 'The first interruption must survive report publication.');
+    t.diagnostic(JSON.stringify({cleanupBeforeAssertion:recorded.cleanup,originalGroupAtExit:members(childInfo.pid),replacementListening:rebound.listening}));
+    assert.equal(sockets.launcher, false, 'The detached launcher socket must be released before CLI exit.');
+    assert.equal(sockets.descendant, false, 'The redirected descendant socket must be released before CLI exit.');
+    assert.deepEqual(members(childInfo.pid), [], 'No non-zombie owned group member may remain.');
+    assert.equal(sockets.unrelated, true, 'An unrelated process group must remain alive.');
+    t.diagnostic(JSON.stringify({ mode, cleanup: recorded.cleanup.status, cleanupOperations: recorded.cleanup.failures.map(item => item.operation) }));
+    assert.deepEqual(recorded.cleanup, { status: 'PASS', failures: [] }, 'Successful owned-group cleanup must not hide a diagnostic failure.');
+    await assert.rejects(readFile(join(dirname(childInfo.state), 'wrangler.json')), { code: 'ENOENT' }, 'Owned disposable configuration/state must be removed after confirmed cleanup.');
+    assert.equal(recorded.interruption.signal, firstSignal);
+    assert.equal(recorded.actualModelInference, false);
+    assert.equal(recorded.syntheticInputs, true);
+  });
+}

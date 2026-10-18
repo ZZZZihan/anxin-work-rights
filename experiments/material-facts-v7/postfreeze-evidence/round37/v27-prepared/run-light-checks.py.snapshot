@@ -1,0 +1,11 @@
+from pathlib import Path
+import subprocess,json,time,hashlib,os
+O=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money');P=O/'.scratch/round37-v27-prepared';E=Path('experiments/material-facts-v7');OUT=O/E/'postfreeze-evidence/round37/v27-prepared'
+record=json.loads((OUT/'preparation-final.json').read_text());files=list(record['files'])
+def run(label,cmd,timeout=60,env=None):
+ start=time.monotonic();r=subprocess.run(cmd,cwd=P,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=timeout)
+ (OUT/(label+'.stdout.log')).write_bytes(r.stdout);(OUT/(label+'.stderr.log')).write_bytes(r.stderr)
+ receipt={'command':cmd,'cwd':str(P),'node':subprocess.check_output(['node','--version'],text=True).strip(),'exit_code':r.returncode,'elapsed_seconds':round(time.monotonic()-start,6),'actual_historical_cli_executed':False,'model_requests':0,'stdout_sha256':hashlib.sha256(r.stdout).hexdigest(),'stderr_sha256':hashlib.sha256(r.stderr).hexdigest()}
+ (OUT/(label+'.execution.json')).write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps(receipt));assert r.returncode==0,label
+run('native-v26-seven',['node','--test','--test-concurrency=1','scripts/material-facts-v7-historical-v26-execution.test.mjs'])
+for i,p in enumerate(files):run('syntax-'+str(i+1),['node','--check',p])

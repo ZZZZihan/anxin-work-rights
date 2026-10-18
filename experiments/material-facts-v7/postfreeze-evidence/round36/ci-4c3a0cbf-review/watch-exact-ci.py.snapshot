@@ -1,0 +1,30 @@
+from pathlib import Path
+import subprocess,json,datetime,time
+p=Path(__file__).resolve().parent
+repo="repos/ZZZZihan/anxin-work-rights"
+run=39153210775
+head="4c3a0cbfe60623695de5dda67d17339d5e827ac8"
+prev=None
+for i in range(100):
+    stamp=datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    values={}
+    for name,endpoint in [("run",f"{repo}/actions/runs/{run}"),("jobs",f"{repo}/actions/runs/{run}/jobs?per_page=100")]:
+        r=subprocess.run(["gh","api",endpoint],capture_output=True,timeout=30)
+        (p/f"poll-{i:03}-{stamp}-{name}.json").write_bytes(r.stdout)
+        if r.returncode:
+            (p/f"poll-{i:03}-{stamp}-{name}.stderr.log").write_bytes(r.stderr)
+            print(json.dumps({"error":"gh_api_failed","kind":name,"exit":r.returncode}),flush=True)
+            raise SystemExit(r.returncode)
+        values[name]=json.loads(r.stdout)
+    assert values["run"]["head_sha"]==head,values["run"]["head_sha"]
+    jobs=values["jobs"]["jobs"]
+    key=(values["run"]["status"],values["run"]["conclusion"],tuple((j["status"],j["conclusion"],tuple((x["name"],x["status"],x["conclusion"]) for x in j["steps"])) for j in jobs))
+    if key!=prev:
+        print(json.dumps({"at":stamp,"status":values["run"]["status"],"conclusion":values["run"]["conclusion"],"jobs":[{"name":j["name"],"conclusion":j["conclusion"],"active":[x["name"] for x in j["steps"] if x["status"]=="in_progress"],"failed":[x["name"] for x in j["steps"] if x["conclusion"]=="failure"]} for j in jobs]},ensure_ascii=False),flush=True)
+        prev=key
+    if values["run"]["status"]=="completed":
+        (p/"terminal-run.json").write_text(json.dumps(values["run"],indent=2,ensure_ascii=False)+"\n")
+        (p/"terminal-jobs.json").write_text(json.dumps(values["jobs"],indent=2,ensure_ascii=False)+"\n")
+        raise SystemExit(0 if values["run"]["conclusion"]=="success" else 1)
+    time.sleep(45)
+raise SystemExit("watch budget exceeded; not terminal")

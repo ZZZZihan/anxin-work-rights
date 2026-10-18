@@ -1,0 +1,18 @@
+from pathlib import Path
+import json,re,hashlib,difflib
+O=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money');R=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards');P=O/'.scratch/round37-v27-prepared';E=Path('experiments/material-facts-v7');OUT=O/E/'postfreeze-evidence/round37/v27-prepared'
+script=(OUT/'prepare-v27.py').read_text()
+script=script.replace('(?:25|26)\\b','(?:25|26)(?!\\d)').replace('(?:24|25|26)\\b','(?:24|25|26)(?!\\d)').replace('(?:24|25)\\b','(?:24|25)(?!\\d)')
+script=script.replace("s=s.replace('_v24_v25_preserved','_v24_v25_v26_preserved')", "s=re.sub(r'first_run_and_corrections_[a-z0-9_]+_preserved', 'first_run_and_corrections_'+'_'.join('v'+str(i) for i in range(1,27))+'_preserved', s)")
+namespace={'Path':Path,'ROOT':R,'OWN':O,'PREP':P,'E':E,'OUT':OUT,'sha':lambda b:hashlib.sha256(b).hexdigest(),'json':json,'re':re,'files':[],'manifest_bytes':(R/E/'corrections-v26/manifest.json').read_bytes()}
+exec(script[script.index('def shift(text):'):script.index('# Suggestions must preserve')],namespace)
+# Evidence labels also carry versions but have underscore word characters.
+for name in ['scripts/material-facts-v7-correction-v26-gates-independent.test.mjs','scripts/material-facts-v7-correction-v27-gates-independent.test.mjs']:
+ p=P/name;s=p.read_text();s=s.replace("evidence: 'v25_archived_gate", "evidence: 'v26_archived_gate").replace("evidence: 'v26_author_gate", "evidence: 'v27_author_gate");p.write_text(s)
+record=json.loads((OUT/'preparation.json').read_text());record['files']={p:hashlib.sha256((P/p).read_bytes()).hexdigest() for p in namespace['files']};record['preparation_revision']='identifier-boundary correction before executing native contracts'
+(OUT/'preparation-final.json').write_text(json.dumps(record,ensure_ascii=False,indent=2)+'\n');(OUT/'prepare-v27-final.py.snapshot').write_text(script)
+patch=''
+for dst in namespace['files']:
+ old=(R/dst).read_text() if (R/dst).exists() else '';new=(P/dst).read_text();patch+=''.join(difflib.unified_diff(old.splitlines(True),new.splitlines(True),fromfile='a/'+dst if old else '/dev/null',tofile='b/'+dst))
+(OUT/'v27-tooling.patch').write_text(patch)
+print(json.dumps(record['files'],indent=2))
