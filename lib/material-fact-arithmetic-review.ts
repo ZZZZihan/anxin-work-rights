@@ -69,7 +69,9 @@ const PREFIX_PAY_COMPONENT = new RegExp(`(?<!\\p{L}|\\p{N})${PAY_COMPONENT_OPERA
 // These complete verbs state multiplication without spelling a numeric factor.
 // They apply only immediately after this amount or its finite amount noun,
 // never by searching another clause or treating an earlier wage result as math.
-const DOUBLING = `(?:翻${LINE}*倍|加${LINE}*倍)`;
+// A spelled factor still describes an operation on the base (翻一倍/加2倍).
+// Reuse the strict numeric factor; never infer the resulting payable amount.
+const DOUBLING = `(?:翻|加)${LINE}*(?:${FACTOR}${LINE}*)?倍`;
 const SUFFIX_DOUBLING = new RegExp(`^${DOUBLING}`, 'u');
 // A presentation hyphen can introduce a payment date or duration. Require a
 // complete time unit: a bare -2000, -200元 or -50% remains subtraction. This
