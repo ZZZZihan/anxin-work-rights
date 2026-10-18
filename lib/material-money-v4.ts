@@ -1,7 +1,7 @@
 import type { CandidateNormalization, NormalizedCandidateValue, RawCandidateV3 } from './material-fact-types-v3.ts';
 import { getCandidateLocalEvent, normalizeCandidateValue, normalizeMoneyValue } from './material-facts-v3.ts';
 import { parseAmount } from './material-facts.ts';
-import { moneyTokenHasNonCurrencyYuan, sourceMoneyHasNonCurrencyYuan, moneyTokenHasNonCurrencySubunit, isNonCurrencySubunitMeasure, sourceMoneyHasNonCurrencySubunit, isRmbCurrencyUnitAt, monetaryExpressionHasUnsupportedCurrency, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
+import { moneyTokenHasNonCurrencyYuan, sourceMoneyHasNonCurrencyYuan, moneyTokenHasNonCurrencySubunit, isNonCurrencyAngleCountWord, isNonCurrencySubunitMeasure, sourceMoneyHasNonCurrencySubunit, isRmbCurrencyUnitAt, monetaryExpressionHasUnsupportedCurrency, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
 import { MONEY_BOUND_PREFIX, MONEY_BOUND_SUFFIX, attachedMoneyQualifierStatus as attachedQualifierStatus, hasMoneyRange, isMoneyRangeEndpoint, moneyQualifierDetectionView } from './material-fact-range-review.ts';
 
@@ -471,13 +471,18 @@ export function classifyMonetaryExpression(value: string): MonetaryExpressionCla
   if (ratioDescription.test(detection.replace(/為/gu, '为'))) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为比例或百分比，未表述金额。') };
   const proportionDescription = new RegExp(`^(?:打)?(?:${ratioNumber}(?:成(?:[0-9零〇一二三四五六七八九半])?|折)|半[成折]|[对對]折)$`, 'u');
   if (proportionDescription.test(detection)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为成数或折扣，未表述金额。') };
+  // Whole counted compounds must precede the explicit-subunit branch. The
+  // same finite words guard parsed tokens and cropped source edges, while
+  // 五角钱, a true currency amount, and unknown prose remain reviewable.
+  const ordinaryCount = detection.match(new RegExp(`^[${NUMERALS}]+([角分].*)$`, 'u'));
+  if (ordinaryCount && isNonCurrencyAngleCountWord(ordinaryCount[1]))
+    return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为角的计量或完整普通词语，未表述金额。') };
   const explicit = /人民[币幣]|[¥￥]/u.test(value) || monetaryExpressionHasUnsupportedCurrency(value)
     || [...value.matchAll(/[元圆圓]/gu)].some(match => isRmbCurrencyUnitAt(value, match.index))
     || [...detection.matchAll(new RegExp(`[${NUMERALS}]+[角分]`, 'gu'))]
       .some(match => !moneyTokenHasNonCurrencySubunit(match[0], detection.slice(match.index + match[0].length)));
   if (normalization.status === 'exact' || explicit) return { kind: 'monetary', normalization };
   if (MASKED.test(detection) && /工资|薪资|薪酬|金额|款项|欠薪|报酬|劳务费|付款|应付|实付|已付|尚欠|欠款/u.test(value)) return { kind: 'monetary', normalization };
-  const ordinaryCount = detection.match(new RegExp(`^[${NUMERALS}]+([角分].*)$`, 'u'));
   if (ordinaryCount && isNonCurrencySubunitMeasure(ordinaryCount[1]) && !MASKED.test(detection))
     return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为时间、计量或普通词语的计数，未表述金额。') };
   const count = `[${NUMERALS}]+`;

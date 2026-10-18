@@ -97,6 +97,15 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
   if (raw.kind !== 'date' || raw.meaning !== 'payment_date' || raw.scope !== 'individual') return false;
   const value = dateRole(raw.value), left = dateRole(before), right = dateRole(after);
   const wage = '(?:工资|薪酬|薪资)';
+  // An explicit recurring wage schedule identifies its payment date, not an
+  // actual receipt or a money payer. The located single owner and full left/
+  // right envelopes cannot absorb negation, another person or a partial date.
+  if (recurringPaymentDate.test(value)) {
+    const payment = '(?:支付|发放|给付|給付|付清)';
+    if (new RegExp(`^(?:的)?${wage}$`, 'u').test(left)
+      && new RegExp(`^${payment}$`, 'u').test(right)) return true;
+    return left === '' && new RegExp(`^${payment}${wage}$`, 'u').test(right);
+  }
   const point = new RegExp(`^${calendarDate}$`, 'u');
   // The wage belongs to the already located owner. No new person, calendar
   // fragment, negation or procedural command can be absorbed by these layouts.

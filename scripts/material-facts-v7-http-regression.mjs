@@ -1313,6 +1313,68 @@ try {
     return { freshAmount: amount, historicalUnsupportedNotUpgraded: amount !== null, rawAndStoredHistoryUnchanged: true };
   });
   // End ROUND31 additions.
+  // ROUND32: estimates remain unavailable, complete angle nouns stay in raw
+  // rejection records, and recurring payment layouts retain same-worker scope.
+  const round32Bounds = [
+    ...['约有','大约有','将近有'].flatMap(prefix => [false,true].map(full => ({name: `${prefix}-${full}`, text: `测试王甲工资${prefix}4000元。`, value: full ? `${prefix}4000元` : '4000元', amount: null}))),
+    {name: 'layout', text: '测试王甲工资约有\n4000元。', value: '4000元', amount: null},
+    {name: 'another-clause', text: '测试王乙约有三人同行。测试王甲工资4000元。', value: '4000元', amount: '4000.00'},
+  ];
+  for (const entry of round32Bounds) await scenario(`round32_bound_${entry.name}`, async () => {
+    const [item] = await fixture(`round32-bound-${entry.name}`, [{ text: entry.text, exactSource: true, candidates: [money(entry.value, entry.value, {meaning: 'other_money', completeness: 'not_applicable', period: null})] }]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, entry.amount);
+    if (entry.amount === null) {
+      assert.notEqual(material.candidates[0].normalization.status, 'exact');
+      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '4000.00';
+      old.normalization = {rawValue: old.value, amount: old.amount, status: 'exact', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic historical exact estimate for ROUND32 downgrade check'};
+      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, entry.amount); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round32-bound-${entry.name}`, item, state: before});
+    return {amount: entry.amount, historicalExactDowngraded: entry.amount === null, rawAndStoredHistoryUnchanged: true};
+  });
+  for (const [name, text, supported] of [
+    ['wage-first', '测试王甲工资每月15日发放。', true],
+    ['date-first', '测试王甲每月15日支付工资。', true],
+    ['other-worker', '测试王甲记载测试王乙工资每月15日发放。', false],
+    ['denied', '测试王甲工资每月15日未发放。', false],
+  ]) await scenario(`round32_date_${name}`, async () => {
+    const value = '每月15日';
+    const candidate = {kind: 'date', value, quote: value, subject: '测试王甲', scope: 'individual', meaning: 'payment_date', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated'};
+    const [item] = await fixture(`round32-date-${name}`, [{text, exactSource: true, candidates: [candidate]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !supported);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !supported); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round32-date-${name}`, item, state: before});
+    return {supported, rawAndStoredHistoryUnchanged: true};
+  });
+  for (const value of ['五角星', '三角洲', '八角亭', '五角大楼']) await scenario(`round32_nonmoney_${value}`, async () => {
+    const [item] = await fixture(`round32-angle-${value}`, [{text: `测试王甲材料记载${value}。`, exactSource: true, candidates: [money(value, value, {meaning: 'other_money', completeness: 'not_applicable', period: null})]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 0); assert.equal(material.rejected.length, 1); assert.equal(JSON.parse(material.raw).candidates[0].value, value); assert.match(material.rejected[0].reason, /没有金额表达/u);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    const reread = rawAndLocations(item, read.body); assert.deepEqual(reread.candidates, []); assert.deepEqual(reread.rejected, material.rejected); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round32-angle-${value}`, item, state: before});
+    return {accepted: 0, rejected: 1, rawAndStoredHistoryUnchanged: true};
+  });
+  // Explicit RMB cannot convert the clipped beginning of an angle noun to cents.
+  for (const [name, text, value, quote] of [
+    ['full', '测试王甲材料记载人民币五角星。', '人民币五角星', '人民币五角星'],
+    ['value-crop', '测试王甲材料记载人民币五角星。', '人民币五角', '人民币五角星'],
+    ['value-quote-crop', '测试王甲材料记载人民币五角星。', '人民币五角', '人民币五角'],
+    ['layout-crop', '测试王甲材料记载人民币五角\n星。', '人民币五角', '人民币五角'],
+  ]) await scenario(`round32_rmb_angle_${name}`, async () => {
+    const [item] = await fixture(`round32-rmb-angle-${name}`, [{text, exactSource: true, candidates: [money(value, quote, {meaning: 'other_money', completeness: 'not_applicable', period: null})]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, null); assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '0.50';
+    old.normalization = {rawValue: old.value, amount: old.amount, status: 'exact', matchedText: '人民币五角', span: {start: 0, end: 5}, reason: 'Synthetic historical clipped RMB angle noun'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round32-rmb-angle-${name}`, item, state: before});
+    return {amount: null, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true};
+  });
+  // End ROUND32 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
