@@ -1,0 +1,106 @@
+{
+  "schema": "anxin.material-facts-v7.round26-source-event-author.v1",
+  "recorded_at": "2026-10-18T12:29:52.732977+00:00",
+  "scope": "Synthetic source/event implementation author checks only; no HTTP, model, build, full check or frozen experiment recomputation.",
+  "requested_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "fixed_commit": "ec8dc649f3857771003eeafe0d87df1645635ded",
+  "baseline_acquisition": "source-event-baseline-acquisition.json",
+  "files": {
+    "lib/material-fact-source-review.ts": "087c975872c0e44eb07172cebebddc763232b7494b880e57ae45b33461936d8a",
+    "lib/material-fact-event-review.ts": "c5f9317c4c0df198e79f57cac9264e1dee6e639a462bf3ec84f84e88256d0a9f",
+    "scripts/material-fact-postposed-unit-source-review.test.mjs": "eb72c0eaece016c5d88128bee903372868c48ec4ac0d162a0bba6d4a5decaba9"
+  },
+  "patch": {
+    "path": "source-event-postposed-unit.patch",
+    "sha256": "3bb490933277bb86b605ff7da678c6599da3bd877ae20aad5995b8d35b2c2da3"
+  },
+  "behavior": [
+    "Only explicit postposed 按小时/月/日/天/件 optionally followed by 计算/计酬/计价/计薪/计, or 按时 with an explicit counting word, is a supported denominator.",
+    "Source denominator checks do not exempt a model-supplied subject; total/wrong rate is unavailable, including historical exact read-time review.",
+    "Correct declared rates support same-event attribution through a finite suffix; complete-total relationship remains unchanged.",
+    "Explicit arithmetic-free rate wording may continue through whitespace or neighboring source blocks; punctuation/person/prose does not connect unrelated events.",
+    "An attached unknown tail after this explicit rate remains unavailable, including through layout; no calculation or automatic confirmation occurs.",
+    "Original raw, value, quote, subject/period/assertion and CP positions remain unchanged; historical null is never upgraded."
+  ],
+  "checks": [
+    {
+      "name": "same final author test, fixed ec8 source/event and dependencies",
+      "tests": 104,
+      "pass": 30,
+      "fail": 74,
+      "exit_code": 1,
+      "log": "postposed-unit-source-fixed-ec8-final-red.txt"
+    },
+    {
+      "name": "same final author test, only two source/event overlays against fixed ec8 dependencies",
+      "tests": 104,
+      "pass": 104,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "postposed-unit-source-final-green.txt"
+    },
+    {
+      "name": "author plus finite normalizer cross cases, MONEY read-only overlay",
+      "tests": 114,
+      "pass": 114,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "postposed-unit-source-combined-green.txt",
+      "dependencies": "combined-dependencies.json"
+    },
+    {
+      "name": "seven existing source/rate/date/role regression suites, combined isolated fixture",
+      "tests": 628,
+      "pass": 628,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "postposed-unit-related-regressions-green.txt"
+    },
+    {
+      "name": "three-file ESLint with config inside isolated base",
+      "exit_code": 0,
+      "log": "postposed-unit-source-scoped-eslint.txt"
+    },
+    {
+      "name": "new test syntax",
+      "exit_code": 0,
+      "log": "postposed-unit-source-syntax.txt"
+    }
+  ],
+  "logs_sha256": {
+    "postposed-unit-source-fixed-ec8-final-red.txt": "17a03b133a42f5f07880ed67bfb0ad2f8e799c3837b4590e8790bb368811c679",
+    "postposed-unit-source-final-green.txt": "5808e74468feab301dbad73d899e454872a180835b60c429260e437e6c02677a",
+    "postposed-unit-source-combined-green.txt": "be5249c9591fdd69f3dbbb6617bf8ef31cc28ab60395cddf80ff920f2fbe4fc0",
+    "postposed-unit-related-regressions-green.txt": "f9d898ce25b5933bcc5aea161ee09d8541743c612b2a7b1d99d284b8fc73046d",
+    "postposed-unit-source-scoped-eslint.txt": "5a8d8ecb6e128428b35b5c6b7750f8d01f7085977121d52b3401eec3e176dd77",
+    "postposed-unit-source-syntax.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "retained_intermediates": [
+    {
+      "path": "postposed-unit-source-fixed-ec8-fixture-invalid.txt",
+      "classification": "fixture-invalid, not defect evidence",
+      "reason": "Initial synthetic rate completeness was unknown rather than schema-required not_applicable. Preserved; corrected before effective red."
+    },
+    {
+      "path": "postposed-unit-source-fixed-ec8-red.txt",
+      "classification": "earlier valid 100-case red, retained; final 104-case red is primary"
+    },
+    {
+      "path": "postposed-unit-source-author-green.txt",
+      "classification": "earlier 100-case green, retained; final 104-case green is primary"
+    },
+    {
+      "path": "postposed-unit-source-eslint.txt",
+      "classification": "out-of-base three-file ignore warnings; not claimed as lint validation. Rechecked inside isolated config base."
+    }
+  ],
+  "limits": [
+    "No actual model output or business acceptance.",
+    "No edits to ROOT/CODE by this author; parent performs integration and HTTP/full validation.",
+    "An unrelated unknown source prefix still requires attribution review; the patch does not remove that pre-existing warning."
+  ]
+}

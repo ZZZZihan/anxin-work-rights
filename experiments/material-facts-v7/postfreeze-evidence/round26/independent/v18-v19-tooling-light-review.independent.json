@@ -1,0 +1,53 @@
+{
+  "status": "PASS_FOR_LIGHT_TOOLING_SCOPE",
+  "reviewer": "non-implementer subagent v7_independent",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning_effort": "ultra",
+  "actual_backend_independently_verified": false,
+  "source_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+  "reviewed": {
+    "status": "PASS",
+    "scope": "read-only archive hashes, union counts, original gate snapshot and fixed policy bytes; no historical CLI",
+    "v18_manifest_sha256": "67cfc9e3746d5de87492bebe903da1d773fa39e50da056978104b0b8a32c99aa",
+    "v18_archive_manifest_sha256": "c0449dc488d98f3f2720f740561a451fe57b96afbfd21873bd70d06ba81b2b73",
+    "archive_paths": 73,
+    "future_v19_union_paths": 76,
+    "v18_current_gate_preserved_sha256": "05c103f86b52ab08960dd1f6bcecb68c5b257215e1dccf9eb7566fe546ff5584",
+    "reviewed_sha256": {
+      "experiments/material-facts-v7/historical-v18-execution.mjs": "f918ac0870769f475ddb3a7a6d47cbf8cb263500c2bd9a549a4686381bd91e0a",
+      "experiments/material-facts-v7/verify-correction-v18.mjs": "70ef9d3bb6e2296bdd98da74c0ee38b6fda331ac2d35fa9a2ab7fc7f9c167eac",
+      "experiments/material-facts-v7/corrective-assessment-v19.mjs": "b36786e9d7fd0a64fcef4d2ffc8a77d9682ad96a0359796c5b6eb111aeaddae7",
+      "scripts/material-facts-v7-historical-v18-execution.test.mjs": "686ad4cd4ceb208813111ca884c53ef10d8295118f0a0b5c78b9bca557cc282f",
+      "scripts/material-facts-v7-correction-v18-gates-independent.test.mjs": "7acce8c51148c9e3504ef2845d486f35c718eaef43ac9e3ae3baf9267acaff04",
+      "scripts/material-facts-v7-correction-v19-gates-independent.test.mjs": "6f50a9b8ad49fb1d13efbcbb59b094a2a0e85e6a0602491e24390d70eab6b644"
+    },
+    "v19_formal_manifest_exists": false,
+    "deep_chain_executed": false,
+    "model_requests": 0
+  },
+  "actual_native_checks": {
+    "script": "scripts/material-facts-v7-historical-v18-execution.test.mjs",
+    "node": "v24.19.0",
+    "pass": 7,
+    "fail": 0,
+    "exit_code": 0,
+    "evidence_prefix": "v18-v19-native-bridge-independent"
+  },
+  "static_conclusions": [
+    "The new bridge accepts only exact archived v18 assessment --check; v1 policy and older bridge white lists remain unchanged.",
+    "Inherited started/root_deadline fields remain fixed; each child reserves 2000ms and true native exec preserves child status and stdout/stderr. Owned receipts are removed, inherited receipts remain caller-owned.",
+    "The wrapper binds the original v18 manifest bytes through the archive manifest, validates all 73 snapshot hashes before callback, writes original bytes only in an owned temporary tree and removes that tree in finally.",
+    "The v19 controller first executes the archived v18 check, then computes current acceptance once from unchanged original outputs. It uses exclusive atomic publication; --check verifies both canonical manifest bytes and individual artifact bytes.",
+    "The current gate retains original/freeze/policy constants and tests union76, restore73 cleanup, real CLI equivalent-JSON refusal and current-code drift refusal. The historical gate preserves archived assertions."
+  ],
+  "actual_v19_write_or_check_executed": false,
+  "actual_v19_five_gates_executed": false,
+  "model_requests": 0,
+  "new_inference": false,
+  "blocking_findings_in_tooling_scope": [],
+  "application_status": "BLOCKED_UNTIL_ROUND26_FIVE_FINDINGS_ARE_FIXED",
+  "limits": [
+    "Native synthetic checks do not replace the future v19 full-chain gates.",
+    "No arbitrary hostile filesystem concurrency or legal/user acceptance is claimed."
+  ]
+}
