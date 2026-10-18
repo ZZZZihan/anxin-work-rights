@@ -1,0 +1,54 @@
+{
+  "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "commit": "37e304de5a1beae2a3f82e91d40dfc1983ac3324",
+  "reviewed_sha256": {
+    "lib/material-fact-range-review.ts": "68910b8b75ea2cdb5f9f109fb27982314750442b7aa42b895d767e6594575fbf",
+    "scripts/material-facts-v7-http-regression.mjs": "26c4f96e2ee93bb97c1a9e230026107e4dab874bd8dd59cee1ca920196ea9d91",
+    "scripts/material-fact-postposed-bound.test.mjs": "a4f12bd4794bbb5b94ca669da82e9ae39a381a005264bd282a1f92431c18e0c8",
+    "scripts/owned-http-process-group.mjs": "460130907f28e027bcc15368aac87bf82c7e9b7dfa7c22eefe021895cddd007a"
+  },
+  "probe_temp": "/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin-round20-range-review-te21phcw",
+  "review_role": "Non-implementer review of ROOT range suffix changes and HTTP148 additions only; money/arithmetic authorship is separate.",
+  "mode": "static plus isolated parser/candidate probes; no fullcheck, HTTP, model, real holdout or deep correction CLI executed",
+  "reviewed_files_still_match_start": {
+    "lib/material-fact-range-review.ts": true,
+    "scripts/material-facts-v7-http-regression.mjs": true,
+    "scripts/material-fact-postposed-bound.test.mjs": true,
+    "scripts/owned-http-process-group.mjs": true
+  },
+  "static_checks": {
+    "prior_runner_is_byte_identical_after_only_round20_block_removed": true,
+    "prior_runner_sha256": "ceb39aeb013789756d96dd9534a9901ab27c705bdfb67ae7eb5b2aa01fd93aed",
+    "new_round20_scenarios": 17,
+    "new_null_cases_forced_historical_exact": 11,
+    "new_exact_positive_cases": 6,
+    "all_new_scenarios_call_fixture_real_txt_path": true,
+    "all_new_scenarios_check_raw_locations_representation": true,
+    "all_new_scenarios_check_terminal_candidate_count_and_status": true,
+    "all_new_scenarios_compare_full_d1_revision_state_and_history_before_after_get": true,
+    "all_new_scenarios_add_durable_restart_snapshots": true,
+    "cleanup_tail_and_process_helper_unchanged_against_head": true,
+    "runner_uses_synthetic_rules_service_no_model_inference": true
+  },
+  "probe_log": "http148-nonimplementer-review.probe.actual-2.txt",
+  "probe_log_sha256": "c3be816ffcfa603cd4249329391117f971ca8e215ea0549ccfeca9063866a98a",
+  "fixture_error": "First probe invocation used an incorrect temporary path and failed before imports with ERR_MODULE_NOT_FOUND; empty stdout retained as probe.actual.txt. Correct metadata-derived second path produced actual-2 log.",
+  "findings": [
+    {
+      "kind": "availability_regression",
+      "severity": "P2 candidate for root decision",
+      "examples": [
+        "王甲工资四万元不到三天付清",
+        "王甲工资四万元未满三个月已付清"
+      ],
+      "old_full_and_crop": "40000.00",
+      "new_full_and_crop": null,
+      "reason": "Unbounded postposed suffix head is matched before the following explicit duration; known exact wage becomes approximate.",
+      "extra_crop_only_example": "王甲工资四万元不止一次催讨; old crop=40000.00, new crop=null; old whole already null.",
+      "safety_leak": false,
+      "parent_notified": true
+    }
+  ],
+  "new_http_actual_reports": "Pending parent-provided old/new HTTP148 results; this receipt does not claim actual 148 checks passed.",
+  "product_files_modified": false
+}

@@ -24,6 +24,9 @@ const QUALIFIED_SYMBOL = `(?<![A-Z])(?:[A-Z]\\.?){1,3}${HORIZONTAL_SPACE}${CURRE
 const JAPANESE_YEN = `(?<![A-Z])J\\.?P\\.?(?:N\\.?)?${HORIZONTAL_SPACE}¥`;
 const FOREIGN_MARKER = `(?:${CURRENCY_NAMES}|${CURRENCY_CODES}|${QUALIFIED_SYMBOL}|${CURRENCY_SYMBOLS}|${CURRENCY_WORDS}|${JAPANESE_YEN})`;
 const FOREIGN_LITERAL = new RegExp(FOREIGN_MARKER, 'iu');
+// A deliberately narrow name shape, not identity validation. Complex supplied
+// subjects keep the currency guard: 王甲港币 or 王甲以美元 cannot hide a marker.
+const CURRENCY_NAME_SUBJECT = new RegExp(`^[王李张張刘劉陈陳杨楊黄黃赵趙吴吳周徐孙孫马馬朱胡郭何高林罗羅郑鄭梁谢謝宋唐许許韩韓冯馮邓鄧曹彭曾肖萧蕭田董袁潘于蒋蔣蔡余杜叶葉程苏蘇魏吕呂丁任沈姚卢盧姜崔钟鍾谭譚陆陸汪范金石廖贾賈夏韦韋方白邹鄒孟熊秦邱侯江尹薛阎閻段雷龙龍黎史陶贺賀顾顧毛郝龚龔邵万萬钱錢严嚴武戴莫孔向汤湯]${FOREIGN_MARKER}$`, 'iu');
 // NFKC folds fullwidth letters, symbols and punctuation for detection only. A
 // source newline or clause delimiter never becomes a bridge to another event.
 const BRIDGE = String.raw`(?:[^\S\r\n\u2028\u2029]|[:=()\[\]{}【】“”‘’"'])*`;
@@ -47,6 +50,18 @@ const TOKEN_UNIT = new RegExp(`^${RMB_UNIT}`, 'u');
 // clipped source review; a preceding RMB marker cannot turn a tuple into money.
 // 元组装费 is a yuan amount followed by 组装费, not the compound 元组.
 const NON_CURRENCY_YUAN_WORD = /^(?:元(?:旦|宵|年|月|素|件|音|[组組](?![装裝])|[宝寶])|[圆圓](?:满|滿|形|圈|周|桌|柱|锥|錐|球|筒|盘|盤|弧|环|環))/u;
+const NUMERIC_CHARACTER = /[0-9零〇一二三四五六七八九十百千万萬亿億两兩壹贰叁肆伍陆柒捌玖拾佰仟]/u;
+
+// These complete lexical compounds use 元 as a word component. Do not ban
+// arbitrary 元论/元催化 continuations: 五元论文费 and 五元催化器维修费
+// still describe a yuan amount followed by its purpose.
+function ordinaryYuanCompoundAt(value: string, index: number): boolean {
+  const before = value.slice(0, index), after = value.slice(index);
+  const head = before.slice(-1), previous = before.slice(-2, -1);
+  if (previous && NUMERIC_CHARACTER.test(previous)) return false;
+  return /[二2]/u.test(head) && /^元[论論](?![文证證述])/u.test(after)
+    || /[三3]/u.test(head) && /^元催化(?:器|剂|劑)/u.test(after);
+}
 
 // Detection copies may be folded, but callers keep their original text and
 // offsets. Format controls must not split a visible currency name or unit.
@@ -65,7 +80,10 @@ export function monetaryExpressionHasUnsupportedCurrency(value: string): boolean
  * the 圆 in 圆满 as currency. The same lexical boundary serves parsing/review. */
 export function isRmbCurrencyUnitAt(value: string, index: number): boolean {
   const rest = currencyText(value.slice(index));
-  return TOKEN_UNIT.test(rest) && !NON_CURRENCY_YUAN_WORD.test(rest.replace(/\s/gu, ''));
+  const before = currencyText(value.slice(0, index)).replace(/\s/gu, '');
+  const after = rest.replace(/\s/gu, '');
+  return TOKEN_UNIT.test(rest) && !NON_CURRENCY_YUAN_WORD.test(after)
+    && !ordinaryYuanCompoundAt(before + after, before.length);
 }
 
 /** Test the original token plus its immediate continuation on detection copies.
@@ -74,17 +92,45 @@ export function moneyTokenHasNonCurrencyYuan(token: string, after: string): bool
   const part = currencyText(token).replace(/\s/gu, '');
   const tail = currencyText(after).replace(/\s/gu, '');
   const whole = part + tail;
-  return [...part.matchAll(/[元圆圓]/gu)].some(match => NON_CURRENCY_YUAN_WORD.test(whole.slice(match.index)))
-    || (!/[元圆圓]/u.test(part) && NON_CURRENCY_YUAN_WORD.test(tail));
+  return [...part.matchAll(/[元圆圓]/gu)].some(match => NON_CURRENCY_YUAN_WORD.test(whole.slice(match.index)) || ordinaryYuanCompoundAt(whole, match.index))
+    || (!/[元圆圓]/u.test(part) && (NON_CURRENCY_YUAN_WORD.test(tail) || ordinaryYuanCompoundAt(whole, part.length)));
 }
 
-function anchoredMoneyEdges(source: AnchoredMoneySource, normalized: CandidateNormalization) {
+// A supplied subject is evidence only at one complete, same-clause occurrence
+// before this amount. Never infer a name in the standalone literal parser, and
+// never exempt a currency word itself just because the model calls it a subject.
+function beforeWithoutAnchoredSubject(text: string, start: number, end: number, subject: string | null): string {
+  const before = text.slice(0, start);
+  if (!subject || /[，,。！？!?；;\r\n\u2028\u2029]/u.test(subject)) return before;
+  const detection = currencyText(subject).trim();
+  if (!CURRENCY_NAME_SUBJECT.test(detection)) return before;
+  const separators = /[，,。！？!?；;\r\n\u2028\u2029]/u;
+  let left = start, right = end;
+  while (left > 0 && !separators.test(text[left - 1])) left--;
+  while (right < text.length && !separators.test(text[right])) right++;
+  const clause = text.slice(left, right), offset = clause.indexOf(subject);
+  if (offset < 0 || clause.indexOf(subject, offset + 1) >= 0) return before;
+  const subjectStart = left + offset, subjectEnd = subjectStart + subject.length;
+  if (subjectEnd > start) return before;
+  const preceding = currencyText(text.slice(left, subjectStart));
+  // Do not trim a supplied substring out of a larger person's name. A finite
+  // role label can introduce the complete subject; arbitrary prose cannot.
+  if (/[\p{L}\p{N}]$/u.test(preceding)
+    && !/(?:员工|員工|工人|劳动者|勞動者|原告|被告|申请人|申請人|向|给|給)$/u.test(preceding)) return before;
+  const following = currencyText(text.slice(subjectEnd, start));
+  if (!new RegExp(`^${BRIDGE}(?:的${BRIDGE})?(?:${WAGE_CURRENCY_WORD}|人民币|人民幣|${FOREIGN_MARKER}|[0-9零〇一二三四五六七八九十])`, 'iu').test(following)) return before;
+  // Parentheses are a neutral bridge, not deletion: an external marker may
+  // still attach through the subject, while split letters cannot form a marker.
+  return text.slice(0, subjectStart) + '()' + text.slice(subjectEnd, start);
+}
+
+function anchoredMoneyEdges(source: AnchoredMoneySource, normalized: CandidateNormalization, subject: string | null = null) {
   if (!normalized.span) return null;
   const characters = Array.from(normalized.rawValue);
   const start = source.valueStart + characters.slice(0, normalized.span.start).join('').length;
   const end = source.valueStart + characters.slice(0, normalized.span.end).join('').length;
   return {
-    before: currencyText(source.blockText.slice(0, start)),
+    before: currencyText(beforeWithoutAnchoredSubject(source.blockText, start, end, subject)),
     token: currencyText(source.blockText.slice(start, end)),
     after: currencyText(source.blockText.slice(end)),
   };
@@ -97,8 +143,8 @@ function anchoredMoneyEdges(source: AnchoredMoneySource, normalized: CandidateNo
  * untouched source; only the two resulting edges are folded for comparison.
  * ¥/￥, 人民币, CNY and RMB retain the existing RMB compatibility policy.
  */
-export function sourceMoneyHasUnsupportedCurrency(source: AnchoredMoneySource, normalized: CandidateNormalization): boolean {
-  const edges = anchoredMoneyEdges(source, normalized);
+export function sourceMoneyHasUnsupportedCurrency(source: AnchoredMoneySource, normalized: CandidateNormalization, subject: string | null = null): boolean {
+  const edges = anchoredMoneyEdges(source, normalized, subject);
   if (!edges) return false;
   // A model can retain the yen sign inside value while cropping its JP prefix.
   // Include the token's leading currency characters when checking that edge.

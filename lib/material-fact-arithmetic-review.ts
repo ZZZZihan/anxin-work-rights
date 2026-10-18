@@ -1,6 +1,6 @@
 // Detect only an operator or multiplier attached to the anchored amount.
 // This is not an evaluator, and detection copies never replace source evidence.
-const NUMERALS = '0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟';
+const NUMERALS = '0-9零〇一二三四五六七八九十百千万萬亿億两兩壹贰叁肆伍陆柒捌玖拾佰仟';
 const NUMBER = `[${NUMERALS}]+(?:[.点][${NUMERALS}]+)?`;
 const FACTOR = `[+−负負-]?${NUMBER}`;
 // Currency, whole-amount and bracket wrappers may have been cropped off value.
@@ -24,6 +24,14 @@ const NAMED_OPERAND = `(?:(?:${OPERAND_MODIFIER})${LINE}*(?:的${LINE}*)?){0,2}(
 const SYMBOLIC_OPERAND = '(?:(?<![A-Za-z0-9_])[A-Za-z_][A-Za-z0-9_]{0,31}(?![A-Za-z0-9_])|(?<![α-ωΑ-Ω])[α-ωΑ-Ω](?![α-ωΑ-Ω]))';
 const UNKNOWN_OPERAND = `(?:${NAMED_OPERAND}|${SYMBOLIC_OPERAND})`;
 const OPERAND = `(?:${FACTOR}|${UNKNOWN_OPERAND})`;
+// Coefficients and ratios can have names unknown to this parser. Bound the
+// complete Han name to 16 characters and require its coefficient suffix, then
+// use it only on explicit arithmetic paths. This is not arbitrary prose.
+const COEFFICIENT_OPERAND = `(?:[\\p{Script=Han}]${LINE}*){0,14}(?:系${LINE}*[数數]|比${LINE}*例)`;
+const EXPLICIT_OPERAND = `(?:${OPERAND}|${COEFFICIENT_OPERAND})`;
+// Single-character operators must not cut ordinary words such as 加班费 or
+// 除外. Multi-character operator words and symbols already state the operation.
+const COEFFICIENT_OPERATOR = `(?:乘${LINE}*以|除${LINE}*以|分${LINE}*之|加${LINE}*上|减${LINE}*去|另${LINE}*加|乘|除(?!${LINE}*(?:外|了))|加(?!${LINE}*(?:班|薪))|减(?!${LINE}*(?:免|薪))|[×*xX÷/+−-])`;
 // 成/折 name proportions of the anchored base, never the payable result.
 // Keep their grammar finite and require attachment (的/打/operator, or the
 // same-line bare factor rule). Do not read 八成 in independent prose as math.
@@ -34,10 +42,12 @@ const PREFIX_PROPORTION = new RegExp(`(?:${PROPORTION})${CONTINUATION_BRIDGE}的
 const PREFIX_PROPORTION_FACTOR = new RegExp(`(?:${PROPORTION})${CONTINUATION_BRIDGE}$`, 'u');
 const PREFIX_OPERATOR = new RegExp(`(?:倍${CONTINUATION_BRIDGE}(?:的${CONTINUATION_BRIDGE})?|${OPERATOR}${CONTINUATION_BRIDGE})$`, 'u');
 const PREFIX_FACTOR = new RegExp(`${FACTOR}${CONTINUATION_BRIDGE}$`, 'u');
-const PREFIX_UNKNOWN_OPERAND = new RegExp(`(?:${UNKNOWN_OPERAND})${CONTINUATION_BRIDGE}$`, 'u');
+const PREFIX_UNKNOWN_OPERAND = new RegExp(`(?:${UNKNOWN_OPERAND}|${COEFFICIENT_OPERAND})${CONTINUATION_BRIDGE}$`, 'u');
 const SUFFIX_MULTIPLIER = new RegExp(`^${OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
-const SUFFIX_FRACTION = new RegExp(`^(?:${OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
+const SUFFIX_EXPLICIT_MULTIPLIER = new RegExp(`^${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
+const SUFFIX_FRACTION = new RegExp(`^(?:${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${EXPLICIT_OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
 const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
+const SUFFIX_COEFFICIENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${COEFFICIENT_OPERAND}`, 'u');
 // A presentation hyphen can introduce a payment date or duration. Require a
 // complete time unit: a bare -2000, -200元 or -50% remains subtraction. This
 // exception does not apply to an explicit 减/减去 or the mathematical minus −.
@@ -48,7 +58,7 @@ const TIME_INTEGER = `[${NUMERALS}]+`;
 const HYPHEN_TIME = new RegExp(`^-${LINE}*(?:[0-9]{4}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12][0-9]|3[01])|${TIME_INTEGER}年(?:${LINE}*${TIME_INTEGER}月(?:${LINE}*${TIME_INTEGER}日)?)?|${NUMBER}(?:个?月|日|天|小时|分钟|秒))(?![${NUMERALS}点.元圆圓角分%/×*xX÷+−-])`, 'u');
 
 function suffixIsOperation(suffix: string): boolean {
-  return SUFFIX_OPERATOR.test(suffix) && !HYPHEN_TIME.test(suffix);
+  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
 }
 const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
 // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
@@ -101,7 +111,7 @@ export function hasAttachedMoneyArithmetic(before: string, after: string): boole
   }
   if (suffix.startsWith('的')) {
     suffix = suffix.slice(1).replace(LEADING_FACTOR_WRAPPERS, '');
-    return SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix) || SUFFIX_PROPORTION.test(suffix);
+    return SUFFIX_EXPLICIT_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix) || SUFFIX_PROPORTION.test(suffix);
   }
   if (suffixIsOperation(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
   return !/[\r\n\u2028\u2029]/u.test(bridge) && (SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_PROPORTION.test(suffix));

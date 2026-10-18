@@ -12,8 +12,8 @@ export type MonetaryExpressionClassification = {
 
 const MAX_INPUT = 4000;
 const LOWER_DIGITS = '零一二三四五六七八九';
-const NUMERALS = '0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟';
-const LOWER = '零〇一二三四五六七八九十百千万亿两';
+const NUMERALS = '0-9零〇一二三四五六七八九十百千万萬亿億两兩壹贰叁肆伍陆柒捌玖拾佰仟';
+const LOWER = '零〇一二三四五六七八九十百千万萬亿两';
 const SINGLE_DIGIT = '零〇一二三四五六七八九两壹贰叁肆伍陆柒捌玖';
 const MASKED = /[xX×＊*]|未知|不详|不明|待定|无法确定|未提供|未明确|未载明|未记载|未披露|未列明|未注明|未约定|未确定|待确认|待核实|待补充|[?？□＿_]|\.{2,}|…/u;
 const UNCERTAIN = /(?:可能|或许|大概|估计|不确定|待核|暂计|暂定)/u;
@@ -38,7 +38,7 @@ export function hasUnfinishedMoneyRangeAfter(after: string): boolean {
   return RANGE_NUMERIC_AFTER.test(detection) && !RANGE_TIME_AFTER.test(detection);
 }
 
-const TOKEN = new RegExp(`(?:人民[币幣]\\s*)?[¥￥]?\\s*(?:(?:\\d[\\d,，]*(?:\\.\\d+)?)\\s*(?:万|亿)?|[${LOWER}壹贰叁肆伍陆柒捌玖拾佰仟]+)\\s*[元圆圓](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`, 'gu');
+const TOKEN = new RegExp(`(?:人民[币幣]\\s*)?[¥￥]?\\s*(?:(?:\\d[\\d,，]*(?:\\.\\d+)?)\\s*(?:万|萬|亿)?|[${LOWER}壹贰叁肆伍陆柒捌玖拾佰仟]+)\\s*[元圆圓](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`, 'gu');
 
 function result(rawValue: string, status: CandidateNormalization['status'], reason: string, match?: { text: string; index: number; amount: string }): CandidateNormalization {
   return { rawValue, status, amount: match?.amount ?? null, matchedText: match?.text ?? null,
@@ -206,7 +206,7 @@ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization 
     if (new RegExp(`[${NUMERALS}０-９]`, 'u').test(rest)) return result(rawValue, 'multiple_amounts', '原文仍有无法解释为日期、计数或倍数的数字，可能存在省略币种的另一笔金额或复杂中文数表达。');
     // Currency spelling aliases exist only in this parse copy after the raw
     // token is anchored. Returned evidence and code-point spans use text/rawValue.
-    const parseText = text.replace(/^人民幣/u, '人民币').replace(/圓/gu, '圆');
+    const parseText = text.replace(/^人民幣/u, '人民币').replace(/圓/gu, '圆').replace(/萬/gu, '万');
     const onlyLower = new RegExp(`^(?:人民币\\s*)?[¥￥]?\\s*[${LOWER}]+\\s*[元圆][0-9${LOWER}${SINGLE_DIGIT}角分整正]*$`, 'u').test(parseText);
     const onlyFinancial = new RegExp(`^(?:人民币\\s*)?[¥￥]?\\s*[零壹贰叁肆伍陆柒捌玖拾佰仟万亿]+\\s*[元圆][0-9${SINGLE_DIGIT}角分整正]*$`, 'u').test(parseText);
     const parsed = onlyLower ? parseLowerAmount(parseText) : onlyFinancial ? parseFinancialSubunits(parseText) : parseArabicSubunits(parseText) ?? normalizeMoneyValue(parseText).amount;
@@ -257,7 +257,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
       const supportedRate = rateText?.match(/^(小时|月|日|天|时|件)/u)?.[1];
       if (sourceMoneyHasNonCurrencyYuan({ blockText: candidate.quote, valueStart: quoteOffset }, normalized)) normalized = result(candidate.value, 'unsupported', '原文中的元或圆属于完整普通词语，裁剪后的片段未作为人民币金额。');
       else if (sourceMoneyHasNonCurrencySubunit({ blockText: candidate.quote, valueStart: quoteOffset }, normalized)) normalized = result(candidate.value, 'unsupported', '原文中的角或分属于普通词语，裁剪后的片段未作为分币金额。');
-      else if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
+      else if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized, candidate.subject)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
       else if (suffixRate && !supportedRate) normalized = result(candidate.value, 'unsupported', '原文金额直接附着不受支持的费率单位，保留原文且未换算为总额或现有费率单位。');
       else if (supportedRate && (candidate.meaning !== 'rate' || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== rateUnits[supportedRate]))) normalized = result(candidate.value, 'rate_unit_mismatch', '原文紧贴的费率单位与金额角色或候选费率单位冲突。');
       else if (isMoneyRangeEndpoint(rangeBefore, rangeToken, rangeAfter)) normalized = result(candidate.value, 'range', '当前金额在原文中直接属于区间端点。');

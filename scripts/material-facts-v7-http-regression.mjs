@@ -785,6 +785,35 @@ try {
     return { accepted: 0, rejected: 1, rawAndStoredHistoryUnchanged: true };
   });
   // End ROUND19 additions.
+  // ROUND20: keep prior scenarios intact; inspect original qualifiers and subject spans.
+  for (const spec of [
+    ...['不到', '不止', '开外'].map(suffix => ({ name: `postposed-bound-${suffix}`, text: `测试王甲工资四万元${suffix}。`, value: '四万元', amount: null, status: 'approximate', oldAmount: '40000.00' })),
+    ...['提成比例', '社保缴费比例', '奖金系数'].map(operand => ({ name: `named-operand-${operand}`, text: `测试王甲工资四万元乘以${operand}。`, value: '四万元', amount: null, status: 'unsupported', oldAmount: '40000.00' })),
+    { name: 'traditional-wan', text: '测试王甲工资人民幣四萬圓。', value: '人民幣四萬圓', amount: '40000.00', status: 'exact' },
+    { name: 'traditional-wan-cents', text: '测试王甲工资四萬圓五角。', value: '四萬圓五角', amount: '40000.50', status: 'exact' },
+    { name: 'traditional-wan-bound', text: '测试王甲工资四萬圓不到。', value: '四萬圓', amount: null, status: 'approximate', oldAmount: '40000.00' },
+    ...[['二元论', '二元', '2.00'], ['三元催化器', '三元', '3.00']].map(([word, value, oldAmount]) => ({ name: `ordinary-compound-${word}`, text: `测试王甲材料记载${word}。`, value, amount: null, status: 'unsupported', oldAmount })),
+    ...['王美元', '李港元'].flatMap(subject => [false, true].map(full => ({ name: `subject-currency-${subject}-${full}`, text: `${subject}工资四万元。`, value: '四万元', quote: full ? `${subject}工资四万元。` : '四万元', amount: '40000.00', status: 'exact', attributes: { subject } }))),
+    ...['王美元', '李港元'].map(subject => ({ name: `subject-with-real-foreign-${subject}`, text: `${subject}工资以港币支付四万元。`, value: '四万元', amount: null, status: 'unsupported', oldAmount: '40000.00', attributes: { subject } })),
+  ]) await scenario(`round20_${spec.name}`, async () => {
+    const [item] = await fixture(`round20-${spec.name}`, [{ text: spec.text, candidates: [money(spec.value, spec.quote || spec.value, { period: null, ...spec.attributes })] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    assert.equal(material.candidates[0].amount, spec.amount); assert.equal(material.candidates[0].normalization.status, spec.status);
+    if (spec.amount === null) {
+      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
+      old.amount = spec.oldAmount;
+      old.normalization = { rawValue: spec.value, amount: spec.oldAmount, status: 'exact', matchedText: spec.value, span: { start: 0, end: Array.from(spec.value).length }, reason: 'Synthetic pre-fix round20 exact amount' };
+      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body).candidates[0];
+    assert.equal(checked.amount, spec.amount); assert.equal(checked.normalization.status, spec.status);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round20-${spec.name}`, item, state: before });
+    return { amount: spec.amount, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: spec.amount === null };
+  });
+  // End ROUND20 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
