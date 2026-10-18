@@ -33,7 +33,8 @@ function failsWith(action, pattern) {
 
 // V4 is now historical: restore its sealed execution dependencies before
 // running the same eight original assertions against owned corruption fixtures.
-test('independent v4 gates bind the archived v3 and current arithmetic code', { timeout: 120000 }, async t => withCorrectionV4Code(async ROOT => {
+// Three serial CLIs each allow 60s; leave time for all plus archive copies/cleanup.
+test('independent v4 gates bind the archived v3 and current arithmetic code', { timeout: 300000 }, async t => withCorrectionV4Code(async ROOT => {
   const { withCorrectionV3Code } = await import(pathToFileURL(resolve(ROOT, EXPERIMENT, 'verify-correction-v3.mjs')).href);
   const historical = ['freeze.json', 'result-manifest.json', 'corrections/manifest.json',
     'corrections-v2/manifest.json', 'corrections-v3/manifest.json', 'corrections-v4/manifest.json'];

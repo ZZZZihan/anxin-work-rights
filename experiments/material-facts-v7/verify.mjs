@@ -80,6 +80,7 @@ function checkOutcome(backend, outcome, rows, ids) {
   const attempted = new Set(outcome.attempts.flatMap(attempt => attempt.ids));
   assert(rows.every(row => attempted.has(row.id)), `${backend} result has no process attempt`);
   for (const attempt of outcome.attempts) {
+    assert.equal(attempt.incomplete_stdout, false, `${backend} incomplete or missing stdout termination evidence`);
     const completed = attempt.code === 0 && !attempt.stop_reason && attempt.ids.every(id => rows.some(row => row.id === id && row.finish_reason === 'stop'));
     assert.equal(attempt.completed, completed, `${backend} process completion receipt is inconsistent`);
   }

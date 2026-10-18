@@ -1,0 +1,1468 @@
+
+> anxin-work-rights@1.0.0 check
+> npm run typecheck && npm run lint && npm test && npm run build && npm run data:check && npm run data:runtime:check && npm run test:materials && npm run test:fact-runtime
+
+
+> anxin-work-rights@1.0.0 typecheck
+> tsc --noEmit --pretty false
+
+
+> anxin-work-rights@1.0.0 lint
+> eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern js --ignore-pattern screenshot.py
+
+
+/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/atomic-green-repro.mjs
+  1:14  warning  'mkdir' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/atomic-red-repro.mjs
+  1:14  warning  'mkdir' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 2 problems (0 errors, 2 warnings)
+
+
+> anxin-work-rights@1.0.0 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards
+
+ ✓ lib/material-fact-pr40-final-review.test.ts (50 tests) 83ms
+ ✓ lib/material-fact-pr40-independent.test.ts (63 tests) 84ms
+ ✓ lib/material-money-v4.review-regression.test.ts (55 tests) 72ms
+ ✓ lib/material-fact-pr40-currency-date-independent.test.ts (67 tests) 87ms
+ ✓ lib/material-facts-v7-runtime-independent.test.ts (47 tests) 102ms
+ ✓ lib/material-fact-pr40-followup.test.ts (156 tests) 107ms
+ ✓ deploy/synthetic-http/material-config.test.mjs (9 tests) 475ms
+   ✓ Wrangler credentials remain private on both success and failure > suppresses both real child streams, disables disk logging and strips migration error payloads  453ms
+ ✓ deploy/local-cloud/readiness.test.mjs (9 tests) 543ms
+   ✓ actual isolated HTTPS certificate checks > enforces the wall-clock deadline even while HTTPS keeps sending bytes  405ms
+ ✓ lib/material-fact-rmb-unit.test.ts (49 tests) 51ms
+ ✓ lib/material-fact-currency-review.test.ts (114 tests) 57ms
+ ✓ lib/material-fact-date-event-review.test.ts (96 tests) 46ms
+ ✓ lib/material-money-v4.test.ts (485 tests) 115ms
+ ✓ lib/material-fact-source-review.test.ts (72 tests) 68ms
+ ✓ lib/material-fact-pr40-regression.test.ts (28 tests) 55ms
+ ✓ lib/material-fact-pr40-currency-boundary-independent.test.ts (10 tests) 35ms
+ ✓ lib/cases-step-feedback.test.ts (5 tests) 39ms
+ ✓ lib/material-money-v4.independent.test.ts (10 tests) 17ms
+ ✓ lib/material-fact-calendar-money.test.ts (4 tests) 21ms
+ ✓ lib/material-facts-v3.test.ts (95 tests) 21ms
+ ✓ lib/material-facts-v2.test.ts (27 tests) 19ms
+ ✓ lib/client.test.ts (7 tests) 13ms
+ ✓ lib/material-fact-coverage-review.test.ts (30 tests) 17ms
+ ✓ lib/material-facts-v6-eval.test.ts (12 tests) 15ms
+ ✓ lib/public-retrieval.test.ts (15 tests) 1187ms
+   ✓ public labor knowledge retrieval on frozen official records > rebuild verification matches the committed index without writing  616ms
+   ✓ public labor knowledge retrieval on frozen official records > rejects altered paragraph references and invented provision text before index output  536ms
+ ✓ lib/material-facts-review.test.ts (31 tests) 15ms
+ ✓ lib/client-uuid.test.ts (2 tests) 3ms
+ ✓ deploy/synthetic-http/stop-control.test.mjs (3 tests) 4ms
+ ✓ lib/validation.test.ts (4 tests) 6ms
+ ✓ lib/material-facts-v5-eval.test.ts (7 tests) 8ms
+ ✓ lib/material-service-client.test.ts (45 tests) 13ms
+ ✓ lib/legal.test.ts (3 tests) 2ms
+ ✓ lib/draft-copies.test.ts (7 tests) 2ms
+ ✓ deploy/synthetic-http/environment.test.mjs (12 tests) 1424ms
+   ✓ session boundaries and worker identity > refuses occupied Worker ports and unrelated 401/other-instance readiness  310ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > retains the key for a DELETE retry when late-put cleanup fails
+evidence upload incomplete Error: synthetic late cleanup failure
+    at Object.delete (/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/lib/evidence-concurrency.test.ts:141:36)
+    at Module.POST (/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/app/api/evidence/route.ts:100:70)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/lib/evidence-concurrency.test.ts:149:13
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+ ✓ deploy/synthetic-http/regional-demo.test.mjs (14 tests) 1747ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > rolls back cancellation if marking deletion fails and preserves the uploaded bytes
+evidence deletion incomplete Error: D1_ERROR: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at Module.DELETE (/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/app/api/evidence/route.ts:128:22)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/lib/evidence-concurrency.test.ts:170:15
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20 {
+  [cause]: Error: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+      at D1DatabaseSessionAlwaysPrimary._sendOrThrow (cloudflare-internal:d1-api:189:24)
+      at async cloudflare-internal:d1-api:137:19
+      at async #fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4923:18)
+      at async ProxyServer.fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4823:14) {
+    [cause]: undefined
+  }
+}
+
+ ✓ lib/evidence-concurrency.test.ts (4 tests) 1728ms
+   ✓ evidence upload and cancellation interleavings > keeps original bytes when identical concurrent requests finalize the same upload  318ms
+   ✓ evidence upload and cancellation interleavings > cleans a put that completes after DELETE without recreating the cancelled UUID  412ms
+   ✓ evidence upload and cancellation interleavings > retains the key for a DELETE retry when late-put cleanup fails  347ms
+ ✓ lib/material-fact-pr40-currency-date-api-independent.test.ts (2 tests) 2300ms
+   ✓ PR40 independent D1 API: runtime currency/date source review survives reload and scope > never promotes unmarked money through ingest, reload or confirmed scope; independent manual amounts remain usable  1563ms
+   ✓ PR40 independent D1 API: runtime currency/date source review survives reload and scope > returns a persisted receipt date with a mislabel warning without rewriting the model role  737ms
+ ✓ lib/server-schema.test.ts (4 tests) 2681ms
+   ✓ persisted local schema upgrades > upgrades a journal-free old database without losing drafts, records or file bytes  1354ms
+   ✓ persisted local schema upgrades > adopts a fresh runtime-created database so later explicit migrations are harmless  479ms
+   ✓ persisted local schema upgrades > finishes a partial upgrade and preserves existing revisions and journal entries  431ms
+   ✓ persisted local schema upgrades > leaves production schemas to explicit migrations and can reopen a migrated database locally  416ms
+ ✓ lib/material-lifecycle-review.test.ts (5 tests) 3038ms
+   ✓ independent material lifecycle review regressions > independent: cancellation captures a job attached before deletion transaction starts  878ms
+   ✓ independent material lifecycle review regressions > independent: archival during submission cancels the late job and keeps analysis inaccessible  591ms
+   ✓ independent material lifecycle review regressions > independent: foreign deletion leaves owner records and original bytes intact  644ms
+   ✓ independent material lifecycle review regressions > independent: offline cache cleanup is reported while original and analysis deletion finish  661ms
+stderr | lib/evidence-fact-cleanup.test.ts > evidence deletion acknowledges its durable fact cancellation > makes no external cancellation when the deleting transaction rolls back
+evidence deletion incomplete Error: D1_ERROR: synthetic evidence transaction failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at Module.DELETE (/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/app/api/evidence/route.ts:128:22)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/lib/evidence-fact-cleanup.test.ts:126:13
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20 {
+  [cause]: Error: synthetic evidence transaction failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+      at D1DatabaseSessionAlwaysPrimary._sendOrThrow (cloudflare-internal:d1-api:189:24)
+      at async cloudflare-internal:d1-api:137:19
+      at async #fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4923:18)
+      at async ProxyServer.fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4823:14) {
+    [cause]: undefined
+  }
+}
+
+ ✓ lib/evidence-fact-cleanup.test.ts (7 tests) 3705ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > removes the successful cancellation journal so a later offline case request has no false pending cleanup  835ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > keeps a failed cancellation durable after the evidence is gone and retries it on an owned request  610ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > acknowledges only the captured owner, case and job while preserving other queued tasks  444ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > preserves a newer active job when the already deleted evidence is retried  489ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > does not cancel or change facts for a missing or foreign evidence ID  440ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > makes no external cancellation when the deleting transaction rolls back  397ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > reports pending and retains the journal when the remote deletion succeeds but its acknowledgement fails  491ms
+ ✓ lib/material-fact-cleanup.test.ts (9 tests) 4238ms
+   ✓ durable cancellation after case fact invalidation > retries a timed-out cancellation on the next owned case request after the fact row is gone  949ms
+   ✓ durable cancellation after case fact invalidation > preserves active work for a company/status no-op and an ordinary case step change  483ms
+   ✓ durable cancellation after case fact invalidation > does not invalidate or cancel another owner case  304ms
+   ✓ durable cancellation after case fact invalidation > does not drain another owner or another case even when this request has a pending job  456ms
+   ✓ durable cancellation after case fact invalidation > journals replacements but a pending old job cannot cancel the newer active job  339ms
+   ✓ durable cancellation after case fact invalidation > bounds retries and stops at the first unavailable service without dropping any queued IDs  497ms
+   ✓ durable cancellation after case fact invalidation > ignores local starting claims and invalid IDs while deletion still clears malformed old state  416ms
+   ✓ durable cancellation after case fact invalidation > uses identical local and explicit migration statements and upgrades the old 0004 schema safely  500ms
+ ✓ lib/material-fact-poll-concurrency.test.ts (6 tests) 4683ms
+   ✓ material fact read-side job consumption concurrency > converges two same-job ready reads without duplicating state, audit or cancellation  1114ms
+   ✓ material fact read-side job consumption concurrency > converges two failed-job reads and preserves the failure for an explicit retry  782ms
+   ✓ material fact read-side job consumption concurrency > returns the stored result if the winning reader already removed the remote job  678ms
+   ✓ material fact read-side job consumption concurrency > does not turn a late old poll into a successful write over a replacement job  627ms
+   ✓ material fact read-side job consumption concurrency > keeps generation changes and user exclusions as genuine conflicts  960ms
+   ✓ material fact read-side job consumption concurrency > rechecks ownership and archive status before returning a converged snapshot  521ms
+ ✓ lib/material-fact-retention.test.ts (7 tests) 4773ms
+   ✓ completed fact result retention across an inactive page > recovers the original ready result after six minutes and commits it only once  1143ms
+   ✓ completed fact result retention across an inactive page > recovers the original ready result after 30 minutes 59.999 seconds and commits it only once  704ms
+   ✓ completed fact result retention across an inactive page > converges two returning readers near the deadline to one raw import and one D1 write  632ms
+   ✓ completed fact result retention across an inactive page > fails closed exactly 31 minutes before polling and cancels the owned task  592ms
+   ✓ completed fact result retention across an inactive page > fails closed past 31 minutes before polling and cancels the owned task  571ms
+   ✓ completed fact result retention across an inactive page > allows an explicit exclusion after six minutes to cancel retained output without importing it  564ms
+   ✓ completed fact result retention across an inactive page > keeps an earlier cancellation effective when the inactive page returns at six minutes  566ms
+ ✓ lib/material-analysis.test.ts (9 tests) 5370ms
+   ✓ material extraction boundaries and persisted ownership > uploads exact bytes, deduplicates starts, persists grounded fields and real public citations, and protects review revisions  1253ms
+   ✓ material extraction boundaries and persisted ownership > rejects cross-user reads, starts and edits without service calls or state changes  652ms
+   ✓ material extraction boundaries and persisted ownership > preserves the original through service failure and recovers only through explicit retry  694ms
+   ✓ material extraction boundaries and persisted ownership > rejects changed original bytes before sending a job  407ms
+   ✓ material extraction boundaries and persisted ownership > does not revive results when a file is deleted while the provider returns  576ms
+   ✓ material extraction boundaries and persisted ownership > blocks archived case access and unsupported formats  403ms
+   ✓ material extraction boundaries and persisted ownership > cancels a job whose ID arrives only after the original was deleted  494ms
+   ✓ material extraction boundaries and persisted ownership > turns expired/unknown provider jobs into visible retryable failures  645ms
+ ✓ lib/material-fact-recovery.test.ts (26 tests) 14619ms
+   ✓ material fact transient transport recovery and bounded ownership > retains a running job after transient timeout and consumes its later success  1021ms
+   ✓ material fact transient transport recovery and bounded ownership > retains a running job after transient 503 and consumes its later success  682ms
+   ✓ material fact transient transport recovery and bounded ownership > retains a running job after transient invalid JSON and consumes its later success  627ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps missing body recoverable without cancelling a possibly healthy task  602ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps null body recoverable without cancelling a possibly healthy task  577ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps unknown state recoverable without cancelling a possibly healthy task  571ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps array running state recoverable without cancelling a possibly healthy task  574ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps array ready state recoverable without cancelling a possibly healthy task  552ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps incomplete ready envelope recoverable without cancelling a possibly healthy task  533ms
+   ✓ material fact transient transport recovery and bounded ownership > preserves readable raw output from an incomplete envelope without making it a material or total  534ms
+   ✓ material fact transient transport recovery and bounded ownership > preserves an explicit terminal service failure and cleans up immediately  474ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps invalid candidate protocol terminal and preserves raw output rather than authorizing it  467ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps truncated model output terminal and preserves raw output rather than authorizing it  467ms
+   ✓ material fact transient transport recovery and bounded ownership > uses elapsed time rather than a small retry count for repeated transport errors  817ms
+   ✓ material fact transient transport recovery and bounded ownership > a normal running reply clears the consecutive-error window before a later interruption  502ms
+   ✓ material fact transient transport recovery and bounded ownership > permits the queue plus runtime budget, then terminates a job past the 31-minute total bound  566ms
+   ✓ material fact transient transport recovery and bounded ownership > records the first legacy transport failure and bounds it without inventing a start date  555ms
+   ✓ material fact transient transport recovery and bounded ownership > retains compatibility for an old starting claim and expires it without polling a fabricated job  525ms
+   ✓ material fact transient transport recovery and bounded ownership > persists the caller UUID before POST and does not poll while submission is pending  426ms
+   ✓ material fact transient transport recovery and bounded ownership > recovers a POST whose service accepted the known UUID but whose response was lost  459ms
+   ✓ material fact transient transport recovery and bounded ownership > a transient loser returns the same-job completed snapshot without resurrecting it  563ms
+   ✓ material fact transient transport recovery and bounded ownership > converges two readers recording the first warning for the same still-running job: partial raw=false  506ms
+   ✓ material fact transient transport recovery and bounded ownership > converges two readers recording the first warning for the same still-running job: partial raw=true  492ms
+   ✓ material fact transient transport recovery and bounded ownership > never attaches a mismatched submission acknowledgement instead of the claimed UUID  504ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps a transient old poll conflicting after replacement job  560ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps a transient old poll conflicting after new generation  461ms
+ ✓ lib/material-fact-submit-rejection-independent.test.ts (31 tests) 16381ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > persists a definite HTTP 429 rejection as failed and never polls a nonexistent job  941ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 400 rejection is terminal without manufacturing model data  602ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 401 rejection is terminal without manufacturing model data  498ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 403 rejection is terminal without manufacturing model data  498ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 404 rejection is terminal without manufacturing model data  472ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 408 rejection is terminal without manufacturing model data  473ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 409 rejection is terminal without manufacturing model data  469ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 410 rejection is terminal without manufacturing model data  453ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 413 rejection is terminal without manufacturing model data  455ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 415 rejection is terminal without manufacturing model data  438ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 422 rejection is terminal without manufacturing model data  425ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 499 rejection is terminal without manufacturing model data  426ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recognizes plain text 429 from HTTP status independently of its response body  428ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recognizes malformed JSON 400 from HTTP status independently of its response body  416ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recognizes empty 422 from HTTP status independently of its response body  420ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recognizes unreadable 429 from HTTP status independently of its response body  419ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recognizes oversized 413 from HTTP status independently of its response body  425ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after HTTP 503 after acceptance, without another POST  552ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after malformed HTTP 500 after acceptance, without another POST  543ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after network timeout after acceptance, without another POST  551ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after network reset after acceptance, without another POST  546ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after successful empty reply, without another POST  541ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after successful malformed reply, without another POST  545ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after successful unreadable body, without another POST  551ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > does not fabricate a result or resubmit when a 503 was not actually accepted  503ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > blocks another owner before dispatching or changing the fact row  376ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > a late 429 cannot overwrite a newer source generation or revive its retired UUID  555ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > a late 429 cannot overwrite a newer job in the same generation  687ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > a late rejection preserves intervening manual facts instead of silently overwriting them  649ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > never restores revoked manual confirmations after definite rejection  743ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > never restores revoked manual confirmations after uncertain acceptance and later success  779ms
+ ✓ lib/material-fact-store.test.ts (36 tests) 22529ms
+   ✓ material facts API and transactional persistence > keeps extraction as candidates, binds actor to authentication, and persists raw provenance  1079ms
+   ✓ material facts API and transactional persistence > persists empty extraction diagnostics without authorizing totals  642ms
+   ✓ material facts API and transactional persistence > returns an actionable 400 for ready OCR over the extraction limit without claiming a job or clearing scope  554ms
+   ✓ material facts API and transactional persistence > keeps an exact observation after an approximate duplicate through the real polling store without rewriting historical results  685ms
+   ✓ material facts API and transactional persistence > returns current coverage for a nonempty historical v2 record without storing a derived display diagnostic  950ms
+   ✓ material facts API and transactional persistence > returns source attribution warnings for non-total and date candidates after persistence reload  568ms
+   ✓ material facts API and transactional persistence > persists the original amount span and exact normalization separately  542ms
+   ✓ material facts API and transactional persistence > binds cropped group quotes to the source before offering personal totals  597ms
+   ✓ material facts API and transactional persistence > keeps a source approximate amount non-exact when the model omits the qualifier  579ms
+   ✓ material facts API and transactional persistence > persists and rechecks PR40 group header without exposing an available personal total  663ms
+   ✓ material facts API and transactional persistence > persists and rechecks PR40 other worker without exposing an available personal total  663ms
+   ✓ material facts API and transactional persistence > persists and rechecks PR40 partial due without exposing an available personal total  655ms
+   ✓ material facts API and transactional persistence > persists and rechecks PR40 postposed partial without exposing an available personal total  661ms
+   ✓ material facts API and transactional persistence > persists and rechecks PR40 foreign currency without exposing an available personal total  657ms
+   ✓ material facts API and transactional persistence > does not suggest a total from a cropped monetary token: 18000元 as 8000元  545ms
+   ✓ material facts API and transactional persistence > does not suggest a total from a cropped monetary token: 80000元 as 0000元  529ms
+   ✓ material facts API and transactional persistence > does not suggest a total from a cropped monetary token: 1000元/月 as 1000元  540ms
+   ✓ material facts API and transactional persistence > persists failed cleanup after completing a fact job and retries on the next owned read  558ms
+   ✓ material facts API and transactional persistence > requires explicit totals and commits integer arithmetic plus receipt in D1  743ms
+   ✓ material facts API and transactional persistence > does not produce a calculation receipt when the final SQL loses generation CAS  726ms
+   ✓ material facts API and transactional persistence > preserves exact cents for a negative sub-yuan difference  716ms
+   ✓ material facts API and transactional persistence > accepts explicit zero and rejects blank totals without modifying confirmation  750ms
+   ✓ material facts API and transactional persistence > invalidates confirmations from the first upload intent and blocks omitted new sources  741ms
+   ✓ material facts API and transactional persistence > clears derived private text at deletion and rejects late stale actions  571ms
+   ✓ material facts API and transactional persistence > makes archive/restore and company changes invalidate earlier authorizations  813ms
+   ✓ material facts API and transactional persistence > captures and cancels a fact job on case invalidation, but preserves a job on no-op changes  723ms
+   ✓ material facts API and transactional persistence > rejects stale concurrent revisions without a second write  555ms
+   ✓ material facts API and transactional persistence > cancels a job started while another upload changes the generation  492ms
+   ✓ material facts API and transactional persistence > keeps a late unattached job retryable when its first cancellation fails  508ms
+   ✓ material facts API and transactional persistence > claims re-extraction before a delayed service call and blocks concurrent calculation  814ms
+   ✓ material facts API and transactional persistence > expires an interrupted starting claim without querying a fabricated remote job  352ms
+   ✓ material facts API and transactional persistence > retains a temporarily unreachable job for polling recovery without fabricating candidates  399ms
+   ✓ material facts API and transactional persistence > invalidates earlier confirmations while an ambiguous submission is being reconciled  674ms
+   ✓ material facts API and transactional persistence > keeps malformed original model output for review while the source stays unresolved  438ms
+   ✓ material facts API and transactional persistence > preserves incomplete model output without accepting even syntactically valid candidates  483ms
+   ✓ material facts API and transactional persistence > blocks dispatch for malformed stored original blocks and rejects client-owned state  361ms
+
+ Test Files  46 passed (46)
+      Tests  1789 passed (1789)
+   Start at  14:03:36
+   Duration  23.51s (transform 1.49s, setup 0ms, collect 8.93s, tests 92.60s, environment 4ms, prepare 3.12s)
+
+
+> anxin-work-rights@1.0.0 build
+> vinext build
+
+
+  vinext build  (Vite 8.3.0)
+
+(node:56248) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[1/5] analyze client references...
+transforming...
+✓ 282 modules transformed.
+rendering chunks...
+✓ built in 314ms
+[2/5] analyze server references...
+transforming...
+✓ 191 modules transformed.
+rendering chunks...
+✓ built in 161ms
+[3/5] build rsc environment...
+transforming...
+✓ 273 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 342ms
+[4/5] build client environment...
+transforming...
+✓ 1700 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 695ms
+[5/5] build ssr environment...
+transforming...
+✓ 195 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 312ms
+[0m
+  Route (app)
+  ┌ ƒ /                         
+  ├ λ /api/bootstrap            
+  ├ λ /api/cases                
+  ├ λ /api/cases/:id/facts      
+  ├ λ /api/chat                 
+  ├ λ /api/documents            
+  ├ λ /api/evidence             
+  ├ λ /api/evidence/:id/analysis
+  ├ λ /api/evidence/:id/download
+  ├ λ /api/knowledge            
+  └ λ /api/synthetic-ready      
+
+  λ API  ƒ Dynamic
+
+  Build complete. Run `vinext start` to start the production server.
+
+
+> anxin-work-rights@1.0.0 data:check
+> python3 -B scripts/public-data.py verify && python3 -B -m unittest discover -s scripts/tests -p test_public_data.py
+
+{
+  "status": "PASS",
+  "data_fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a",
+  "counts": {
+    "sources": 12,
+    "source_paragraphs": 1453,
+    "cases": 14,
+    "cases_by_topic": {
+      "employment_relationship": 8,
+      "wage_arrears": 8
+    },
+    "laws": 8,
+    "selected_provisions": 54,
+    "field_citations": 620,
+    "evidence_descriptions": 22,
+    "original_case_exhibits": 0,
+    "linked_rule_citations": 10,
+    "unlinked_rule_citations": 9,
+    "cases_with_undisclosed_region": 14,
+    "cases_with_undisclosed_decision_date": 14
+  }
+}
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 1.394s
+
+OK
+
+> anxin-work-rights@1.0.0 data:runtime:check
+> python3 -B scripts/build-public-index.py --check
+
+{"status": "PASS", "fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a", "bytes": 232203, "checkOnly": true}
+
+> anxin-work-rights@1.0.0 test:materials
+> node --test scripts/fact-jobs.test.mjs scripts/material-runner.test.mjs scripts/material-service.test.mjs scripts/material-ocr-linux.test.mjs
+
+✔ service selects the bounded runtime and only forwards an explicit loopback port (3.187709ms)
+✔ production inference forwards text blocks without private filename or source metadata (0.628458ms)
+✔ oversized fact input reports a split-material client error before queueing inference (0.71475ms)
+▶ Qwen preflight requires normal measurable memory before spawning
+  ✔ 2 (0.145375ms)
+  ✔ 4 (0.092667ms)
+  ✔ 1 (0.088709ms)
+  ✔ 0 (0.045416ms)
+  ✔ undefined (0.041583ms)
+✔ Qwen preflight requires normal measurable memory before spawning (0.792667ms)
+✔ cancellation during preflight never spawns a late model (0.124584ms)
+✔ external critical guard covers loading, escalates after 3 seconds, and waits for close (0.606417ms)
+✔ warning must remain continuous for 10 seconds and normal pressure resets it (0.771042ms)
+✔ swap guard uses pre-spawn baseline and stops only above 4 GiB growth (0.356709ms)
+✔ lost monitor fails closed even before any model telemetry (0.276292ms)
+✔ an in-flight memory sample cannot signal a child after successful exit (0.262917ms)
+✔ absolute 600-second timeout also bounds the remote backend (0.277125ms)
+✔ raw unfinished answers survive and a nonzero exit cannot authorize stop (0.471875ms)
+✔ UTF-8 split across pipe chunks preserves the exact raw Chinese answer (0.346541ms)
+✔ decoded Chinese output still obeys the byte limit instead of a character limit (0.796583ms)
+✔ output limit terminates with the same grace period and never exposes stderr (0.589417ms)
+✔ a missing executable rejects only after close and releases queue ownership (12.798084ms)
+✔ queue cancel and close hold ownership until the process actually closes (0.552708ms)
+✔ real child ignoring SIGTERM exits before cancellation permits the next process (3225.705417ms)
+✔ fact queue rejects caller-controlled backend and preserves rule candidates (1.547167ms)
+✔ bounded queue cancellation discards late results and unblocks shutdown (0.297125ms)
+✔ real loopback fact HTTP requires token, blocks browser and arbitrary model config (26.956166ms)
+✔ caller job ID: same source retries share queued, running and ready work (0.531334ms)
+✔ caller job ID: binds all source contents and ignores JSON object key order (0.2465ms)
+✔ caller job ID: unknown and known cancellation block delayed submissions (0.130167ms)
+✔ caller job ID: finished-result expiry leaves a full replay-window tombstone (0.138208ms)
+✔ finished result retention: a tab returning after six minutes recovers the unchanged raw result (0.082584ms)
+✔ finished result retention: the complete 31-minute window is readable before expiry becomes 410 (0.120084ms)
+✔ finished result retention: queued and late completions each keep a full window after finishing (0.216083ms)
+✔ finished result retention: cancellation immediately hides work and discards a late completion (0.229584ms)
+✔ finished result retention: 32 cached jobs remain bounded and expiry restores capacity (11.365042ms)
+✔ finished result retention: failed jobs also remain recoverable for the full window (0.152833ms)
+✔ caller job ID: bounded tombstones reserve cancellation for admitted work (5.376333ms)
+✔ caller job ID: malformed IDs and unsupported fields do not admit work (0.179666ms)
+✔ caller job ID: discarded HTTP submit response is safely retried and bound to source (8.616125ms)
+✔ caller job ID: HTTP cancellation before the complete POST body prevents late creation (5.360542ms)
+✔ TSV preserves page references, normalised left-top boxes, confidence and recognised text (4.130292ms)
+✔ TSV rejects ungrounded coordinates, missing dimensions, control text and oversized pages (0.37475ms)
+✔ image preflight checks PNG/JPEG dimensions before decoding (0.250417ms)
+✔ PDF preflight rejects encryption, page truncation and a large later page before rendering (0.608666ms)
+✔ private executable/language/library configuration is passed only to Tesseract (4.631042ms)
+✔ missing Chinese language/tool capabilities fail explicitly while TXT remains advertised (0.324792ms)
+✔ all PDF pages retain page IDs, bounded rendering arguments and citations; over-limit PDF never renders (3.049083ms)
+✔ PDF password errors and OCR timeouts expose stable errors, not subprocess paths or stderr (1.525375ms)
+✔ aborting a direct OCR child kills and settles it before caller cleanup (305.479166ms)
+✔ a missing direct executable closes and rejects without hanging startup (0.597375ms)
+﹣ real Linux Tesseract/Poppler recognises explicit synthetic PNG/PDF fixtures without model inference (0.049333ms) # Tesseract is the supported Linux runtime; macOS real OCR uses Apple Vision and is tested in material-service.test.mjs.
+✔ runner waits for close and records failure after parse error (3208.242708ms)
+✔ runner waits for close and records failure after stdout-write error (197.49125ms)
+✔ runner waits for close and records failure after stderr-write error (193.489167ms)
+✔ runner preserves stdout and stderr UTF-8 across byte boundaries (196.985666ms)
+✔ all routes require the caller token, reject browser origins and client parameters (33.855083ms)
+✔ TXT jobs run actual UTF-8 extraction and explicit rules with verbatim field citations (422.463583ms)
+✔ model fields require allowed keys, existing blocks and exact original text (0.964625ms)
+✔ recorded real Apple HTTP misclassifications are rejected without adding or changing model fields (0.97925ms)
+✔ semantic model rejections are visible in job warnings and cannot be filled by rules (105.784375ms)
+✔ Ollama calls reject redirects and a model transport failure cannot become rule success (106.262584ms)
+✔ recorded synthetic Apple candidates can lose display ID prefixes while exact citations stay mandatory (0.258916ms)
+✔ temporary cleanup failures remain visible without hanging cancellation or the next job (105.708958ms)
+✔ an occupied listen port removes the newly created private service directory (0.885167ms)
+✔ job capacity is bounded and a restart cannot expose prior in-memory jobs (3316.120166ms)
+✔ deleting a ready job clears cached content and DELETE is idempotent (106.281458ms)
+✔ at most two jobs wait and deletion cancels running/queued OCR without reviving results (1951.007583ms)
+✔ real platform OCR recognises synthetic PNG/PDF, preserves bboxes, rejects broken images and six-page PDFs (3275.914125ms)
+ℹ tests 68
+ℹ suites 0
+ℹ pass 67
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 9603.053292
+
+> anxin-work-rights@1.0.0 test:fact-runtime
+> python3 -B scripts/fact_memory_runtime_test.py && python3 -B scripts/fact_api_transport_test.py && node --test scripts/fact-runtime-runner.test.mjs scripts/material-facts-v4-assessment.test.mjs scripts/material-facts-panel.test.mjs scripts/material-facts-v7-assessment-independent.test.mjs scripts/material-facts-v7-freeze-independent.test.mjs scripts/material-fact-relative-month.test.mjs scripts/material-facts-v7-postfreeze-p1-independent.test.mjs scripts/material-facts-v7-correction-gates.test.mjs scripts/material-fact-dedup-review.test.mjs scripts/material-facts-v7-round3-independent.test.mjs scripts/material-facts-v7-correction-v2-gates.test.mjs scripts/material-facts-v7-run-readiness.test.mjs scripts/material-facts-v7-full-archive.test.mjs scripts/material-facts-v7-experiment-integrity-independent.test.mjs scripts/material-fact-arithmetic-source-review.test.mjs scripts/material-facts-v7-arithmetic-independent.test.mjs scripts/material-facts-v7-correction-v4-gates-independent.test.mjs scripts/material-facts-v7-run-lifecycle.test.mjs scripts/material-facts-v7-freeze-lock.test.mjs scripts/material-facts-v7-first-manifest-independent.test.mjs scripts/material-facts-v7-correction-v5-gates-independent.test.mjs scripts/material-fact-arithmetic-noun.test.mjs scripts/material-fact-currency-rate-source-review.test.mjs scripts/material-facts-v7-round7-business-independent.test.mjs scripts/material-facts-v7-http-process-tree.test.mjs scripts/material-facts-v7-outcome-stream.test.mjs scripts/material-facts-v7-correction-v6-gates-independent.test.mjs
+
+...........
+----------------------------------------------------------------------
+Ran 11 tests in 0.002s
+
+OK
+................
+----------------------------------------------------------------------
+Ran 16 tests in 0.094s
+
+OK
+✔ API runner preserves earlier response and rejects late success after deadline (239.516375ms)
+✔ API runner preserves earlier response and rejects late success after cancel (181.256792ms)
+✔ complete literal rejects the monetary operand: 四万元工资的2倍 (3.933125ms)
+✔ a full quote cannot make a cropped operand precise: 四万元工资的2倍 (10.619792ms)
+✔ historical precision cannot bypass the full source block: 四万元工资的2倍 (5.768834ms)
+✔ complete literal rejects the monetary operand: 四万元基本工资的2倍 (0.0595ms)
+✔ a full quote cannot make a cropped operand precise: 四万元基本工资的2倍 (0.190042ms)
+✔ historical precision cannot bypass the full source block: 四万元基本工资的2倍 (1.686375ms)
+✔ finite amount noun requires a multiplier after explicit 的: 工资 (1.912542ms)
+✔ finite amount noun requires a multiplier after explicit 的: 基本工资 (0.730125ms)
+✔ finite amount noun requires a multiplier after explicit 的: 月工资 (0.626625ms)
+✔ finite amount noun requires a multiplier after explicit 的: 工资款 (1.173541ms)
+✔ finite amount noun requires a multiplier after explicit 的: 工资总额 (0.380166ms)
+✔ finite amount noun requires a multiplier after explicit 的: 应发工资 (0.318792ms)
+✔ finite amount noun requires a multiplier after explicit 的: 应付工资 (0.319792ms)
+✔ finite amount noun requires a multiplier after explicit 的: 实发工资 (0.302417ms)
+✔ finite amount noun requires a multiplier after explicit 的: 欠付工资 (0.336ms)
+✔ finite amount noun requires a multiplier after explicit 的: 拖欠工资 (0.294625ms)
+✔ finite amount noun requires a multiplier after explicit 的: 薪资 (0.354833ms)
+✔ finite amount noun requires a multiplier after explicit 的: 薪酬 (0.334875ms)
+✔ finite amount noun requires a multiplier after explicit 的: 奖金 (0.358875ms)
+✔ finite amount noun requires a multiplier after explicit 的: 津贴 (0.325292ms)
+✔ finite amount noun requires a multiplier after explicit 的: 补贴 (0.313417ms)
+✔ finite amount noun requires a multiplier after explicit 的: 劳务费 (0.347625ms)
+✔ finite amount noun requires a multiplier after explicit 的: 劳动报酬 (0.317167ms)
+✔ finite amount noun requires a multiplier after explicit 的: 加班费 (0.327625ms)
+✔ finite amount noun requires a multiplier after explicit 的: 经济补偿金 (2.02325ms)
+✔ finite amount noun requires a multiplier after explicit 的: 赔偿金 (1.078792ms)
+✔ layout/Unicode detection preserves the raw quote: "工资的\n2倍" (9.54475ms)
+✔ layout/Unicode detection preserves the raw quote: "\n工资的两倍" (2.668291ms)
+✔ layout/Unicode detection preserves the raw quote: "基本工资\n的2倍" (0.525291ms)
+✔ layout/Unicode detection preserves the raw quote: "基本\n工资的二倍" (0.210375ms)
+✔ layout/Unicode detection preserves the raw quote: "工‍资的２⁠倍" (0.219625ms)
+✔ layout/Unicode detection preserves the raw quote: " 基 本 工 资 的 （ ２．５ 倍 ）" (0.233167ms)
+✔ layout/Unicode detection preserves the raw quote: "（工资）的（二倍）" (0.222792ms)
+✔ layout/Unicode detection preserves the raw quote: "工资的 2倍" (0.191708ms)
+✔ layout/Unicode detection preserves the raw quote: "工资的 二倍" (0.19775ms)
+✔ layout/Unicode detection preserves the raw quote: "劳动\n报酬的二倍" (0.190125ms)
+✔ layout/Unicode detection preserves the raw quote: "劳务费的\n两倍" (0.289291ms)
+✔ v2 persisted exact amounts are downgraded without changing the original record (1.453416ms)
+✔ a named amount followed by an explicit operator is still an operand: "工资×2" (0.400125ms)
+✔ a named amount followed by an explicit operator is still an operand: "基本工资＊２" (0.388291ms)
+✔ a named amount followed by an explicit operator is still an operand: "工资x2" (0.307416ms)
+✔ a named amount followed by an explicit operator is still an operand: "劳务费乘以二" (0.319916ms)
+✔ a named amount followed by an explicit operator is still an operand: "劳动报酬乘\n以2" (0.299667ms)
+✔ a named amount followed by an explicit operator is still an operand: "工资除以二" (0.290417ms)
+✔ a named amount followed by an explicit operator is still an operand: "工资／２" (0.309333ms)
+✔ a named amount followed by an explicit operator is still an operand: "基本工资+\n2000元" (0.354583ms)
+✔ a named amount followed by an explicit operator is still an operand: "工资加上二" (1.852875ms)
+✔ a named amount followed by an explicit operator is still an operand: "工资−二" (0.33925ms)
+✔ a named amount followed by an explicit operator is still an operand: "劳动报酬减\n去2" (0.290958ms)
+✔ a named amount followed by an explicit operator is still an operand: "工资×\n２⁠" (0.253042ms)
+✔ a named amount followed by an explicit operator is still an operand: "工资乘以负二" (0.266167ms)
+✔ same-line bare noun multiplier rejects the complete monetary operand: 工资2倍 (0.046625ms)
+✔ same-line bare noun multiplier cannot be made precise by cropping: 工资2倍 (0.308917ms)
+✔ same-line bare noun multiplier rejects the complete monetary operand: 基本工资２倍 (0.020042ms)
+✔ same-line bare noun multiplier cannot be made precise by cropping: 基本工资２倍 (0.253709ms)
+✔ a bare factor may attach only directly to a finite noun on the same line: "工资二倍" (0.136667ms)
+✔ a bare factor may attach only directly to a finite noun on the same line: "工资两倍" (0.107459ms)
+✔ a bare factor may attach only directly to a finite noun on the same line: "工资2.5倍" (0.110042ms)
+✔ a bare factor may attach only directly to a finite noun on the same line: "基本工资２．５倍" (0.1095ms)
+✔ a bare factor may attach only directly to a finite noun on the same line: "工‍资２⁠倍" (0.109166ms)
+✔ a bare factor may attach only directly to a finite noun on the same line: " 基 本 工 资 ２ 倍" (0.113958ms)
+✔ a bare factor may attach only directly to a finite noun on the same line: "工资款2倍" (0.128834ms)
+✔ a bare factor may attach only directly to a finite noun on the same line: "工资总额2倍" (0.108584ms)
+✔ a bare factor may attach only directly to a finite noun on the same line: "劳务费负二倍" (0.116167ms)
+✔ a bare factor may attach only directly to a finite noun on the same line: "劳动报酬2倍" (0.114ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "。另一工人工资的2倍另案处理。" (0.026333ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "，另一工人劳务费的2倍另案处理。" (0.02ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "\n另一工人工资的2倍另案处理。" (0.01725ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "工资已付。另一人工资的两倍。" (0.023917ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "基本工资，共2名工人。" (0.013291ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "\n2倍工资另案处理。" (0.012791ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "工资另案处理按2倍。" (0.012708ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "工资2人" (0.012875ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "基本工资２名工人" (0.013417ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "工资\n2倍" (0.012875ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "\n工资2倍" (0.013167ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "基\n本工资2倍" (0.012625ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "工资2\n倍" (0.015833ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "工资 2倍" (0.019791ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "工资2 倍" (0.012333ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "/月" (0.07375ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "/日" (0.0505ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "/小时" (0.0225ms)
+✔ sentence breaks, other prose and genuine rates do not create noun arithmetic: "/件" (0.0155ms)
+✔ established multiplier wages, counts and independent amounts stay precise (1.792041ms)
+✔ the existing direct operator/fraction grammar remains intact (0.888834ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的2倍 (37.301541ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的二倍 (0.867416ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的两倍 (2.351709ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的2.5倍 (1.259125ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的２．５倍 (0.455208ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元​的２⁠倍 (0.41675ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元 的 ( 二 倍 ) (0.422958ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元整的2倍 (0.361125ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 2倍的四万元 (2.852125ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 二倍的四万元 (0.47675ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: ２⁠倍的（人民币四万元） (0.432791ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 2×四万元 (0.404167ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元×2 (0.41125ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元＊２ (0.351834ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元x2 (0.335666ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元乘以二 (0.623083ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元除以二 (0.343083ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元/2 (0.32725ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元／２ (0.334ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 2乘以人民币四万元 (0.340042ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 2÷四万元 (0.325208ms)
+✔ a cropped 40000元 cannot hide attached arithmetic: 40000元的2倍 (1.277125ms)
+✔ a cropped 40000 cannot hide attached arithmetic: 40000元的2倍 (1.781208ms)
+✔ a cropped 40000 cannot hide attached arithmetic: 40000人民币的2倍 (0.485667ms)
+✔ a cropped 40000 cannot hide attached arithmetic: 2倍的人民币40000元 (0.278875ms)
+✔ a cropped 40000元 cannot hide attached arithmetic: 40000元乘以2 (0.327917ms)
+✔ a cropped 40000元 cannot hide attached arithmetic: 40000元÷2 (0.310583ms)
+✔ a cropped 40000元 cannot hide attached arithmetic: 40000元+2000元 (0.351375ms)
+✔ a cropped 40000元 cannot hide attached arithmetic: 40000元加2000元 (0.323417ms)
+✔ a cropped 40000元 cannot hide attached arithmetic: 40000元减2000元 (0.305417ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 二加上四万元 (0.312084ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 二减去四万元 (0.347833ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元加上二 (0.352666ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元减去二 (0.326084ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的
+2倍 (3.58275ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元
+的2倍 (0.377291ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元×
+2 (0.497958ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元
+×2 (0.459583ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元乘以
+二 (0.377792ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 2倍的
+四万元 (1.508625ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 2×
+四万元 (0.776833ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元+
+2000元 (0.330625ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元 的2倍 (0.316167ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的 2倍 (0.30375ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的负二倍 (0.306042ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的負２倍 (0.2985ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元乘以负2 (0.286875ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的二分之一 (2.478167ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的一半 (1.090458ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的半 (0.526125ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的50% (1.165208ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的５０％ (0.828833ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的百分之五十 (0.369291ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的
+二分之一 (0.312ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元
+的50% (0.28175ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的（二​分之一） (0.320625ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元乘
+以2 (0.506334ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元除
+以二 (0.235542ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元加
+上二 (0.230834ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的二
+分
+之一 (0.230125ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的1/2倍 (0.276625ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的二分之一倍 (0.294209ms)
+✔ a cropped 四万元 cannot hide attached arithmetic: 四万元的１／２ (0.278958ms)
+✔ a historical v2 precise amount is also constrained: 40000元的2倍 (0.729542ms)
+✔ a historical v2 precise amount is also constrained: 2倍的40000元 (0.162166ms)
+✔ a historical v2 precise amount is also constrained: 40000元/2 (0.14425ms)
+✔ other prose, events or line boundaries do not attach arithmetic: 王甲欠薪四万元。另一工人按2倍计算。 (0.467875ms)
+✔ other prose, events or line boundaries do not attach arithmetic: 另一工人按2倍计算。王甲欠薪四万元。 (0.276292ms)
+✔ other prose, events or line boundaries do not attach arithmetic: 王甲欠薪四万元，另一工人按2倍计算。 (0.113958ms)
+✔ other prose, events or line boundaries do not attach arithmetic: 王甲欠薪四万元
+2倍工资另案处理。 (0.087542ms)
+✔ other prose, events or line boundaries do not attach arithmetic: 2倍的
+王甲欠薪四万元。 (0.096084ms)
+✔ other prose, events or line boundaries do not attach arithmetic: 王甲起算后两倍工资四万元。 (0.105792ms)
+✔ other prose, events or line boundaries do not attach arithmetic: 王甲两倍工资共四万元。 (0.094334ms)
+✔ other prose, events or line boundaries do not attach arithmetic: 王甲欠薪四万元。另一工人工资的50%。 (0.086667ms)
+✔ other prose, events or line boundaries do not attach arithmetic: 王甲欠薪四万元
+50%工资另案处理。 (0.08575ms)
+✔ other prose, events or line boundaries do not attach arithmetic: 王甲欠薪四万元，另一工人工资的二分之一。 (0.083083ms)
+✔ a real /月 rate remains precise (0.548333ms)
+✔ a real /日 rate remains precise (0.131167ms)
+✔ a real /小时 rate remains precise (0.104417ms)
+✔ a real /件 rate remains precise (0.120042ms)
+✔ shared detection views fold compatibility/control characters without joining lines or events (0.095125ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪四万元的","2倍"] (0.268541ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪四万元","的2倍"] (0.195083ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪四万元","×2"] (0.223166ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪四万元×","2"] (0.188375ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪四万元乘以","二"] (0.198083ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪四万元","加上2000元"] (0.197125ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪2倍的","四万元"] (0.454125ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪2×","四万元"] (0.172667ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪四万元的","二分之一"] (0.188625ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪四万元","的一半"] (0.185042ms)
+✔ adjacent source blocks continue explicit arithmetic: ["王甲欠薪四万元","的50%"] (0.178458ms)
+✔ source-block boundaries do not connect an unrelated event: ["王甲欠薪四万元","2倍工资另案处理"] (0.145125ms)
+✔ source-block boundaries do not connect an unrelated event: ["王甲欠薪四万元。","的2倍另案处理"] (0.079042ms)
+✔ source-block boundaries do not connect an unrelated event: ["王甲欠薪四万元","王乙工资2倍"] (0.075ms)
+✔ source-block boundaries do not connect an unrelated event: ["王甲欠薪四万元","另一工人工资","的2倍"] (0.075625ms)
+✔ a cropped wage value cannot erase 港币支付 currency attribution (26.654583ms)
+✔ a cropped wage value cannot erase 港币工资 currency attribution (4.169084ms)
+✔ a cropped wage value cannot erase 港币计价工资 currency attribution (0.590209ms)
+✔ a cropped wage value cannot erase 港幣支付 currency attribution (0.467583ms)
+✔ a cropped wage value cannot erase 港幣工资 currency attribution (0.38975ms)
+✔ a cropped wage value cannot erase 港幣计价工资 currency attribution (0.400584ms)
+✔ a cropped wage value cannot erase 美元支付 currency attribution (0.901625ms)
+✔ a cropped wage value cannot erase 美元工资 currency attribution (0.412042ms)
+✔ a cropped wage value cannot erase 美元计价工资 currency attribution (0.409625ms)
+✔ a cropped wage value cannot erase HKD支付 currency attribution (0.502583ms)
+✔ a cropped wage value cannot erase HKD工资 currency attribution (0.393ms)
+✔ a cropped wage value cannot erase HKD计价工资 currency attribution (0.31275ms)
+✔ a cropped wage value cannot erase ＨＫＤ支付 currency attribution (0.317042ms)
+✔ a cropped wage value cannot erase ＨＫＤ工资 currency attribution (0.297458ms)
+✔ a cropped wage value cannot erase ＨＫＤ计价工资 currency attribution (0.335833ms)
+✔ a cropped wage value cannot erase 港​币支付 currency attribution (0.360375ms)
+✔ a cropped wage value cannot erase 港​币工资 currency attribution (0.337791ms)
+✔ a cropped wage value cannot erase 港​币计价工资 currency attribution (0.32475ms)
+✔ a finite same-event currency bridge remains unavailable: 港币发放 (0.836833ms)
+✔ a finite same-event currency bridge remains unavailable: 港币结算工资 (0.376ms)
+✔ a finite same-event currency bridge remains unavailable: 港币基本工资为 (4.248125ms)
+✔ a finite same-event currency bridge remains unavailable: 港币计价的工资为 (0.397708ms)
+✔ a finite same-event currency bridge remains unavailable: 港币支付共计 (1.213709ms)
+✔ a finite same-event currency bridge remains unavailable: 港币工资： (2.19925ms)
+✔ a finite same-event currency bridge remains unavailable: 港币 工资 为  (0.407667ms)
+✔ a postposed same-event currency cannot be cropped: 以港币支付 (7.339542ms)
+✔ a postposed same-event currency cannot be cropped: 工资以美元计价 (0.99175ms)
+✔ a postposed same-event currency cannot be cropped: 工资以美元支付 (0.386125ms)
+✔ a postposed same-event currency cannot be cropped: 币种为港币 (0.318958ms)
+✔ a postposed same-event currency cannot be cropped: 币种：ＨＫＤ (0.311583ms)
+✔ a postposed same-event currency cannot be cropped:  工资 以 港​币 发放 (0.327917ms)
+✔ a postposed same-event currency cannot be cropped: 按美元结算 (0.308666ms)
+✔ a postposed currency on another event does not change RMB: "，王乙工资以港币支付三万元" (6.256416ms)
+✔ a postposed currency on another event does not change RMB: "。另一工人的币种为美元" (1.484917ms)
+✔ a postposed currency on another event does not change RMB: "\n以港币支付王乙工资" (0.178542ms)
+✔ a postposed currency on another event does not change RMB: " 币种为美元" (0.848125ms)
+✔ a postposed currency on another event does not change RMB: " 工资以美元计价" (0.160416ms)
+✔ a postposed currency on another event does not change RMB: "王乙工资以港币支付三万元" (0.218875ms)
+✔ foreign wages in another clause do not change RMB ("，", before) (0.2175ms)
+✔ foreign wages in another clause do not change RMB ("，", after) (0.109667ms)
+✔ foreign wages in another clause do not change RMB (",", before) (0.1225ms)
+✔ foreign wages in another clause do not change RMB (",", after) (0.997417ms)
+✔ foreign wages in another clause do not change RMB ("。", before) (0.135833ms)
+✔ foreign wages in another clause do not change RMB ("。", after) (0.106208ms)
+✔ foreign wages in another clause do not change RMB ("；", before) (0.113209ms)
+✔ foreign wages in another clause do not change RMB ("；", after) (0.095083ms)
+✔ foreign wages in another clause do not change RMB (";", before) (0.097417ms)
+✔ foreign wages in another clause do not change RMB (";", after) (0.101791ms)
+✔ foreign wages in another clause do not change RMB ("\n", before) (0.112292ms)
+✔ foreign wages in another clause do not change RMB ("\n", after) (0.09325ms)
+✔ foreign wages in another clause do not change RMB ("\r\n", before) (0.117583ms)
+✔ foreign wages in another clause do not change RMB ("\r\n", after) (2.720792ms)
+✔ foreign wages in another clause do not change RMB (" ", before) (0.30175ms)
+✔ foreign wages in another clause do not change RMB (" ", after) (0.140833ms)
+✔ foreign wages in another clause do not change RMB (" ", before) (0.134416ms)
+✔ foreign wages in another clause do not change RMB (" ", after) (0.132ms)
+✔ cropped monthly wage standard is not an arrears amount: 月工资标准为 (0.431125ms)
+✔ a declared month rate matches its finite source standard: 月工资标准为 (0.552791ms)
+✔ a declared day rate cannot borrow a monthly standard: 月工资标准为 (0.297875ms)
+✔ cropped monthly wage standard is not an arrears amount: 月薪标准： (0.365458ms)
+✔ a declared month rate matches its finite source standard: 月薪标准： (0.120583ms)
+✔ a declared day rate cannot borrow a monthly standard: 月薪标准： (0.237083ms)
+✔ cropped monthly wage standard is not an arrears amount: 每月基本工资 (0.33525ms)
+✔ a declared month rate matches its finite source standard: 每月基本工资 (0.142917ms)
+✔ a declared day rate cannot borrow a monthly standard: 每月基本工资 (0.258416ms)
+✔ cropped monthly wage standard is not an arrears amount: 月工资约定为 (0.421459ms)
+✔ a declared month rate matches its finite source standard: 月工资约定为 (0.126083ms)
+✔ a declared day rate cannot borrow a monthly standard: 月工资约定为 (0.237542ms)
+✔ cropped monthly wage standard is not an arrears amount: 月工资标准是 (0.337875ms)
+✔ a declared month rate matches its finite source standard: 月工资标准是 (0.136083ms)
+✔ a declared day rate cannot borrow a monthly standard: 月工资标准是 (0.243834ms)
+✔ cropped monthly wage standard is not an arrears amount: 月薪约定为 (0.301667ms)
+✔ a declared month rate matches its finite source standard: 月薪约定为 (0.108083ms)
+✔ a declared day rate cannot borrow a monthly standard: 月薪约定为 (1.150083ms)
+✔ cropped monthly wage standard is not an arrears amount: 每月基本工资标准为 (0.825375ms)
+✔ a declared month rate matches its finite source standard: 每月基本工资标准为 (0.192583ms)
+✔ a declared day rate cannot borrow a monthly standard: 每月基本工资标准为 (0.542584ms)
+✔ cropped monthly wage standard is not an arrears amount: 每月工资标准： (1.131375ms)
+✔ a declared month rate matches its finite source standard: 每月工资标准： (0.354708ms)
+✔ a declared day rate cannot borrow a monthly standard: 每月工资标准： (0.309042ms)
+✔ cropped monthly wage standard is not an arrears amount: 月基本工资标准为 (0.40475ms)
+✔ a declared month rate matches its finite source standard: 月基本工资标准为 (0.118042ms)
+✔ a declared day rate cannot borrow a monthly standard: 月基本工资标准为 (0.332792ms)
+✔ cropped monthly wage standard is not an arrears amount: 月 工资 标准 为  (0.319041ms)
+✔ a declared month rate matches its finite source standard: 月 工资 标准 为  (0.117542ms)
+✔ a declared day rate cannot borrow a monthly standard: 月 工资 标准 为  (0.350375ms)
+✔ 2024年7月工资合计 remains a bounded wage-period amount (0.231375ms)
+✔ 2024年7月基本工资为 remains a bounded wage-period amount (0.172167ms)
+✔ ２０２４年７月工资合计 remains a bounded wage-period amount (0.11025ms)
+✔ ２０２４年７月基本工资为 remains a bounded wage-period amount (0.120958ms)
+✔ 二〇二四年七月工资合计 remains a bounded wage-period amount (0.115459ms)
+✔ 二〇二四年七月基本工资为 remains a bounded wage-period amount (0.1205ms)
+✔ 上月工资合计 remains a bounded wage-period amount (0.107458ms)
+✔ 上月基本工资为 remains a bounded wage-period amount (0.101583ms)
+✔ 本月工资合计 remains a bounded wage-period amount (0.110875ms)
+✔ 本月基本工资为 remains a bounded wage-period amount (0.099208ms)
+✔ 下月工资合计 remains a bounded wage-period amount (0.096166ms)
+✔ 下月基本工资为 remains a bounded wage-period amount (0.116875ms)
+✔ 该月工资合计 remains a bounded wage-period amount (0.6345ms)
+✔ 该月基本工资为 remains a bounded wage-period amount (0.142667ms)
+✔ 上个月工资合计 remains a bounded wage-period amount (0.099583ms)
+✔ 上个月基本工资为 remains a bounded wage-period amount (0.09275ms)
+✔ 这月工资合计 remains a bounded wage-period amount (0.087ms)
+✔ 这月基本工资为 remains a bounded wage-period amount (0.099ms)
+✔ an explicit wage standard remains a rate after 2026年1月工资标准为 (0.33925ms)
+✔ a correct monthly rate survives the period-qualified standard 2026年1月工资标准为 (0.139792ms)
+✔ an explicit wage standard remains a rate after 2026年1月薪标准： (0.302542ms)
+✔ a correct monthly rate survives the period-qualified standard 2026年1月薪标准： (0.103417ms)
+✔ an explicit wage standard remains a rate after 本月工资标准为 (0.279583ms)
+✔ a correct monthly rate survives the period-qualified standard 本月工资标准为 (0.107083ms)
+✔ an explicit wage standard remains a rate after 本月薪标准： (0.280375ms)
+✔ a correct monthly rate survives the period-qualified standard 本月薪标准： (0.098417ms)
+✔ an explicit wage standard remains a rate after 上月工资标准为 (0.292417ms)
+✔ a correct monthly rate survives the period-qualified standard 上月工资标准为 (0.106042ms)
+✔ an explicit wage standard remains a rate after 上月薪标准： (0.271958ms)
+✔ a correct monthly rate survives the period-qualified standard 上月薪标准： (0.094167ms)
+✔ a monthly standard in a separate clause cannot lend its rate ("，") (0.092416ms)
+✔ a monthly standard in a separate clause cannot lend its rate ("。") (0.073125ms)
+✔ a monthly standard in a separate clause cannot lend its rate ("\n") (0.069209ms)
+✔ a monthly standard in a separate clause cannot lend its rate (" ") (0.087834ms)
+✔ a monthly standard in a separate clause cannot lend its rate (" ") (0.084708ms)
+✔ rate-prefix detection does not erase a line boundary ("\n") (1.299459ms)
+✔ rate-prefix detection does not erase a line boundary (" ") (0.114833ms)
+✔ rate-prefix detection does not erase a line boundary (" ") (0.106ms)
+✔ historical v2 amount also obeys source attribution: 王甲港币工资40000元。 (1.23825ms)
+✔ historical v2 amount also obeys source attribution: 王甲月工资标准为40000元。 (2.005459ms)
+✔ direct currency guard uses the anchored token, not arbitrary earlier text (0.125542ms)
+✔ two non-unique bare quotes retain both same-attribute payments for review (22.279709ms)
+✔ a unique quote with two possible value positions cannot prove duplicate identity (4.354709ms)
+✔ an arbitrary narrative cannot evict the minimal amount, reversed=false (25.315166ms)
+✔ a unique finite RMB wrapper still identifies one occurrence, reversed=false (1.960833ms)
+✔ the same unique value with different quote extents still collapses, reversed=false (0.632667ms)
+✔ non-overlapping same-attribute payment events remain distinct, reversed=false (0.562958ms)
+✔ an arbitrary narrative cannot evict the minimal amount, reversed=true (4.531333ms)
+✔ a unique finite RMB wrapper still identifies one occurrence, reversed=true (0.573917ms)
+✔ the same unique value with different quote extents still collapses, reversed=true (0.551708ms)
+✔ non-overlapping same-attribute payment events remain distinct, reversed=true (0.580166ms)
+✔ equal values in separate source blocks remain distinct (0.561083ms)
+✔ different assertions at one unique position remain separate observations (6.82075ms)
+✔ 上月工资 is a period amount, including when the quote crops the month (18.801167ms)
+✔ 本月工资 is a period amount, including when the quote crops the month (1.148333ms)
+✔ 下月工资 is a period amount, including when the quote crops the month (0.399458ms)
+✔ 上个月工资 is a period amount, including when the quote crops the month (0.315792ms)
+✔ 下个月工资 is a period amount, including when the quote crops the month (0.321542ms)
+✔ 上一个月工资 is a period amount, including when the quote crops the month (1.415875ms)
+✔ 下一个月工资 is a period amount, including when the quote crops the month (0.993333ms)
+✔ 这个月工资 is a period amount, including when the quote crops the month (0.494334ms)
+✔ 这月工资 is a period amount, including when the quote crops the month (0.320916ms)
+✔ 当月工资 is a period amount, including when the quote crops the month (0.732542ms)
+✔ 该月工资 is a period amount, including when the quote crops the month (0.961709ms)
+✔ 2026年1月工资 remains a calendar period rather than a monthly rate (1.590708ms)
+✔ 一月工资 remains a calendar period rather than a monthly rate (1.024459ms)
+✔ 正月工资 remains a calendar period rather than a monthly rate (0.648541ms)
+✔ 腊月工资 remains a calendar period rather than a monthly rate (0.500625ms)
+✔ a cropped total cannot hide the real monthly rate: 月工资1000元 (0.778208ms)
+✔ a correctly declared monthly rate remains exact: 月工资1000元 (1.543542ms)
+✔ a cropped total cannot hide the real monthly rate: 月薪1000元 (0.904542ms)
+✔ a correctly declared monthly rate remains exact: 月薪1000元 (0.744709ms)
+✔ a cropped total cannot hide the real monthly rate: 每月工资1000元 (0.725166ms)
+✔ a correctly declared monthly rate remains exact: 每月工资1000元 (0.634416ms)
+✔ a cropped total cannot hide the real monthly rate: 每月1000元 (0.220667ms)
+✔ a correctly declared monthly rate remains exact: 每月1000元 (0.171875ms)
+✔ a cropped total cannot hide the real monthly rate: 1000元/月 (0.659792ms)
+✔ a correctly declared monthly rate remains exact: 1000元/月 (0.93725ms)
+✔ a cropped total cannot hide the real monthly rate: 1000元每月 (0.165ms)
+✔ a correctly declared monthly rate remains exact: 1000元每月 (0.161875ms)
+✔ an explicit rate suffix still governs an amount associated with a relative month (0.198833ms)
+✔ a real monthly rate still rejects a mismatched declared day rate (0.1495ms)
+✔ a relative-month word inside the complete subject cannot hide a real monthly rate (0.185875ms)
+✔ a relative month following that complete subject still names a period (0.165291ms)
+✔ an explicit 月薪 rate is not exempted by a preceding relative-month word (0.144917ms)
+✔ late calculation response cannot restore old results: lower generation and revision (99.442042ms)
+✔ late calculation response cannot restore old results: same generation and lower revision (53.073875ms)
+✔ late calculation response cannot restore old results: lower generation even with higher revision (24.668333ms)
+✔ accepts a current mutation response generation=1, revision=11 (17.579791ms)
+✔ accepts a current mutation response generation=2, revision=1 (24.500125ms)
+✔ a stale scope response preserves the local scope draft and emits no success notice (15.954ms)
+✔ a stale amount confirmation cannot clear the amount or explanation draft (17.933583ms)
+✔ an older manual GET does not reset reviewed draft checks or replace the displayed version (14.725333ms)
+✔ a late POST 409 cannot add an error or lock a newer GET generation=2, revision=1 (17.521875ms)
+✔ a late POST 409 cannot add an error or lock a newer GET generation=1, revision=20 (12.890833ms)
+✔ a late POST 500 cannot add an error or lock a newer GET generation=2, revision=1 (13.089709ms)
+✔ a late POST 500 cannot add an error or lock a newer GET generation=1, revision=20 (13.045083ms)
+✔ a current POST 409 still reports the failure and preserves the amount draft (15.651834ms)
+✔ a current POST 500 still reports the failure and preserves the amount draft (14.059125ms)
+✔ a GET 409 started before a newer POST success cannot overwrite its status (15.339792ms)
+✔ a GET 500 started before a newer POST success cannot overwrite its status (17.889042ms)
+✔ frozen v4 assessor retains null as a raw false positive (1.154584ms)
+✔ frozen v4 assessor retains 1 as a raw false positive (0.627334ms)
+✔ frozen v4 assessor retains "8000元" as a raw false positive (0.083583ms)
+✔ frozen v4 assessor retains true as a raw false positive (0.089667ms)
+✔ frozen v4 assessor retains [] as a raw false positive (0.0645ms)
+✔ frozen v4 assessor retains {} as a raw false positive (0.058875ms)
+✔ malformed candidates do not discard a valid later/earlier answer: invalidFirst=true (0.58775ms)
+✔ malformed candidates do not discard a valid later/earlier answer: invalidFirst=false (0.149333ms)
+✔ raw malformed observations remain false positives with an empty gold set (0.096583ms)
+✔ a non-stop answer cannot count as accepted business facts (0.13275ms)
+✔ all valid gold categories short-circuit non-object raw candidates (0.171292ms)
+✔ maximum matching does not let duplicates inflate recall (0.063917ms)
+{"evidence":"implementation_hash","path":"lib/material-money-v4.ts","sha256":"3ebe3b80971a74af09b05b3ba17a5f5b597d042b0b12ffb787066a4d71d8e6a5"}
+{"evidence":"implementation_hash","path":"lib/material-fact-source-review.ts","sha256":"1da900cf5c9ddaa62dec8548eff8c528ade853549853a248bb647e18cf06b035"}
+{"evidence":"implementation_hash","path":"lib/material-fact-runtime-ingest.ts","sha256":"a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f"}
+{"evidence":"implementation_hash","path":"experiments/material-facts-v7/assess.mjs","sha256":"d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"}
+{"evidence":"full-arithmetic","expression":"四万元的2倍","parsed":{"rawValue":"四万元的2倍","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元的2倍","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元的2倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元的两倍","parsed":{"rawValue":"四万元的两倍","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元的两倍","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元的两倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元的2.5倍","parsed":{"rawValue":"四万元的2.5倍","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元的2.5倍","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元的2.5倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"2倍的四万元","parsed":{"rawValue":"2倍的四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"2倍的四万元","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"2倍的四万元","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"二倍的人民币四万元","parsed":{"rawValue":"二倍的人民币四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"二倍的人民币四万元","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"二倍的人民币四万元","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元乘以2","parsed":{"rawValue":"四万元乘以2","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元乘以2","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元乘以2","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"2乘以四万元","parsed":{"rawValue":"2乘以四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"2乘以四万元","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"2乘以四万元","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元除以2","parsed":{"rawValue":"四万元除以2","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元除以2","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元除以2","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"2除以四万元","parsed":{"rawValue":"2除以四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"2除以四万元","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"2除以四万元","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元/2","parsed":{"rawValue":"四万元/2","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元/2","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元/2","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元×2","parsed":{"rawValue":"四万元×2","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元×2","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元×2","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元的２倍","parsed":{"rawValue":"四万元的２倍","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元的２倍","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元的２倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元的2‍倍","parsed":{"rawValue":"四万元的2‍倍","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元的2‍倍","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元的2‍倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元的负二倍","parsed":{"rawValue":"四万元的负二倍","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元的负二倍","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元的负二倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元乘以负2","parsed":{"rawValue":"四万元乘以负2","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元乘以负2","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元乘以负2","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元的1/2倍","parsed":{"rawValue":"四万元的1/2倍","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元的1/2倍","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元的1/2倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"full-arithmetic","expression":"四万元的二分之一倍","parsed":{"rawValue":"四万元的二分之一倍","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。"},"key":null}
+{"evidence":"cropped-value-full-quote","expression":"四万元的二分之一倍","normalized":{"value":"四万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}}
+{"evidence":"cropped-value-and-quote","expression":"四万元的二分之一倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"accepted":1,"rejected":[]}
+{"evidence":"historical-display","quoteStyle":"full","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"historical-display","quoteStyle":"cropped","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"explicit-line-continuation","expression":"四万元的\n2倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。"}}
+{"evidence":"explicit-line-continuation","expression":"四万元\n的2倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。"}}
+{"evidence":"explicit-line-continuation","expression":"四万元×\n2","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。"}}
+{"evidence":"explicit-line-continuation","expression":"四万元 ×2","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}
+{"evidence":"explicit-line-continuation","expression":"四万元的 2倍","amount":null,"normalization":{"rawValue":"四万元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。"}}
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元的2倍 (6.341792ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元的2倍 (9.197709ms)
+✔ source review prevents cropping both the operand value and quote: 四万元的2倍 (7.234041ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元的两倍 (0.150667ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元的两倍 (0.143791ms)
+✔ source review prevents cropping both the operand value and quote: 四万元的两倍 (1.005625ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元的2.5倍 (0.108542ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元的2.5倍 (0.098042ms)
+✔ source review prevents cropping both the operand value and quote: 四万元的2.5倍 (1.048584ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 2倍的四万元 (0.21325ms)
+✔ quote-aware normalization cannot lose an attached operation: 2倍的四万元 (1.681959ms)
+✔ source review prevents cropping both the operand value and quote: 2倍的四万元 (0.55175ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 二倍的人民币四万元 (0.076792ms)
+✔ quote-aware normalization cannot lose an attached operation: 二倍的人民币四万元 (0.070333ms)
+✔ source review prevents cropping both the operand value and quote: 二倍的人民币四万元 (0.4245ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元乘以2 (0.306584ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元乘以2 (0.059542ms)
+✔ source review prevents cropping both the operand value and quote: 四万元乘以2 (0.380792ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 2乘以四万元 (0.055208ms)
+✔ quote-aware normalization cannot lose an attached operation: 2乘以四万元 (0.0595ms)
+✔ source review prevents cropping both the operand value and quote: 2乘以四万元 (0.344875ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元除以2 (0.051625ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元除以2 (0.051208ms)
+✔ source review prevents cropping both the operand value and quote: 四万元除以2 (0.65825ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 2除以四万元 (0.047792ms)
+✔ quote-aware normalization cannot lose an attached operation: 2除以四万元 (0.050666ms)
+✔ source review prevents cropping both the operand value and quote: 2除以四万元 (0.282542ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元/2 (0.05675ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元/2 (0.052292ms)
+✔ source review prevents cropping both the operand value and quote: 四万元/2 (0.315958ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元×2 (0.045084ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元×2 (0.051834ms)
+✔ source review prevents cropping both the operand value and quote: 四万元×2 (0.270834ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元的２倍 (0.057084ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元的２倍 (0.05475ms)
+✔ source review prevents cropping both the operand value and quote: 四万元的２倍 (6.729708ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元的2‍倍 (0.069916ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元的2‍倍 (0.061583ms)
+✔ source review prevents cropping both the operand value and quote: 四万元的2‍倍 (0.329833ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元的负二倍 (0.049667ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元的负二倍 (0.04925ms)
+✔ source review prevents cropping both the operand value and quote: 四万元的负二倍 (0.817291ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元乘以负2 (0.365083ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元乘以负2 (0.05725ms)
+✔ source review prevents cropping both the operand value and quote: 四万元乘以负2 (3.269583ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元的1/2倍 (2.2995ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元的1/2倍 (0.119584ms)
+✔ source review prevents cropping both the operand value and quote: 四万元的1/2倍 (0.411833ms)
+✔ full arithmetic literal has no exact base amount or exact comparison key: 四万元的二分之一倍 (0.058583ms)
+✔ quote-aware normalization cannot lose an attached operation: 四万元的二分之一倍 (0.053375ms)
+✔ source review prevents cropping both the operand value and quote: 四万元的二分之一倍 (0.29675ms)
+✔ a complete arithmetic candidate remains raw and reviewable without a computed or base amount (0.734917ms)
+✔ historical exact operand is downgraded for display without editing stored evidence: full (2.438792ms)
+✔ historical exact operand is downgraded for display without editing stored evidence: cropped (0.435625ms)
+✔ read-time review never upgrades a historically unsupported operand after a parser change (1.24525ms)
+✔ all six scoring layers reject an entire formula borrowing the anchor of its base operand (1.127292ms)
+✔ all six scoring layers reject a cropped operand borrowing the complete formula event (0.501625ms)
+✔ literal formula extraction can score correctly while providing no derived money amount (1.839083ms)
+✔ a formula operand cannot take credit from a different uniquely quoted exact-payment event (2.111291ms)
+✔ explicit arithmetic continuation remains unavailable after quote cropping: "四万元的\n2倍" (2.446875ms)
+✔ explicit arithmetic continuation remains unavailable after quote cropping: "四万元\n的2倍" (1.182916ms)
+✔ explicit arithmetic continuation remains unavailable after quote cropping: "四万元×\n2" (0.839708ms)
+✔ explicit arithmetic continuation remains unavailable after quote cropping: "四万元 ×2" (0.255375ms)
+✔ explicit arithmetic continuation remains unavailable after quote cropping: "四万元的 2倍" (0.2445ms)
+✔ explicit arithmetic in the next OCR block is not lost: "的2倍" (0.290583ms)
+✔ explicit arithmetic in the next OCR block is not lost: "×\n2" (0.288125ms)
+✔ an explicit prefixed multiplier in the previous OCR block cannot be cropped (1.497209ms)
+✔ arithmetic guard preserves a plain literal total (0.567583ms)
+✔ arithmetic guard preserves an independent headcount (1.866209ms)
+✔ arithmetic guard preserves a duration count (0.232083ms)
+✔ arithmetic guard preserves a genuine monthly rate (16.163792ms)
+✔ arithmetic guard preserves a genuine piece rate with a small numeric numerator (0.472291ms)
+✔ arithmetic guard preserves a multiplier in another sentence (0.277833ms)
+✔ arithmetic guard preserves a multiplier after an explicit line boundary (0.234583ms)
+✔ arithmetic guard preserves the same amount in a later independent arithmetic event (0.244ms)
+✔ arithmetic guard preserves the same amount in an earlier independent arithmetic event (0.219292ms)
+✔ arithmetic guard preserves a bare multiplier after a line boundary without an explicit continuation (0.225291ms)
+✔ all six layers require the same source event, including basic (25.621083ms)
+✔ the correct second occurrence matches; first-index location is forbidden (3.924167ms)
+✔ a whole paragraph containing two equal amounts from different events is ambiguous (0.533875ms)
+✔ a bare amount quote repeated at two source locations cannot borrow the first location (0.376584ms)
+✔ unannotated repeated locations remain unresolved rather than disappearing (0.42275ms)
+✔ a whole paragraph with a unique matching value is usable evidence (1.36275ms)
+✔ identical words in another block cannot match the expected block event (1.207292ms)
+✔ a quote assembled across blocks is invalid and remains a raw false positive (0.299375ms)
+✔ multiple identical source occurrences may match only when all belong to the same registered event (3.567709ms)
+✔ source anchor offsets are Unicode code points even after astral and combining characters (3.767583ms)
+✔ registered containment supports a literal currency prefix within the same event (1.232875ms)
+✔ event identity does not use a self-reported subject to resolve a two-event quote (0.832667ms)
+✔ a party admission cannot impersonate a later same-value court order by self-reporting decided (2.269875ms)
+✔ schema or literal evidence violation is a raw FP: missing quote (0.756334ms)
+✔ schema or literal evidence violation is a raw FP: missing blockId (0.295292ms)
+✔ schema or literal evidence violation is a raw FP: missing required rateUnit (0.173167ms)
+✔ schema or literal evidence violation is a raw FP: extra field (0.368834ms)
+✔ schema or literal evidence violation is a raw FP: invalid scope enum (0.738416ms)
+✔ schema or literal evidence violation is a raw FP: invalid payment completeness (0.539916ms)
+✔ schema or literal evidence violation is a raw FP: empty quote (0.229209ms)
+✔ schema or literal evidence violation is a raw FP: fabricated quote (0.153333ms)
+✔ schema or literal evidence violation is a raw FP: wrong blockId (0.134541ms)
+✔ schema or literal evidence violation is a raw FP: unsupported subject (0.158042ms)
+✔ malformed raw values are counted and do not abort a valid neighboring candidate (1.138875ms)
+✔ raw duplicate predictions do not inflate recall (1.049458ms)
+✔ two real same-value same-attribute payments preserve two source events in raw and accepted layers (1.597583ms)
+✔ event matching preserves the separate basic and relational attribute contract (2.907333ms)
+✔ different semantic facts may inherit a shared registered event without duplicating the amount (1.294709ms)
+✔ finite alternatives inherit their expected event and cannot authorize another same-value event (1.3975ms)
+✔ non-stop output retains raw observation but supplies no accepted facts (0.6735ms)
+▶ historical-code and correction gates reject isolated evidence corruption
+  ✔ unaltered copied evidence passes the real historical verifier (3488.300583ms)
+  ✔ a missing historical manifest path is rejected (4.845208ms)
+  ✔ an extra historical manifest path is rejected (1.39125ms)
+  ✔ modified historical snapshot bytes are rejected (3.892958ms)
+  ✔ an absent historical snapshot file is rejected (2.977167ms)
+  ✔ changed first-run result bytes block correction before reassessment (3414.80925ms)
+  ✔ a throwing callback removes its owned temporary reconstruction (1483.449708ms)
+✔ historical-code and correction gates reject isolated evidence corruption (10203.534459ms)
+▶ independent correction-v2 gates preserve correction-v1 evidence and cleanup
+  ✔ unaltered correction-v1 CLI checks exact archived code and original artifacts (5321.127333ms)
+  ✔ missing correction snapshot manifest path rejects before callback (3.276625ms)
+  ✔ additional correction snapshot manifest path rejects before callback (1.674125ms)
+  ✔ changed archived runtime bytes reject before callback (3.334292ms)
+  ✔ missing archived runtime file rejects before callback (3.381ms)
+  ✔ changed correction-v1 manifest bytes reject before callback (1.327458ms)
+  ✔ changed correction-v1 report bytes block v2 before reassessment or writing (4941.603542ms)
+  ✔ throwing reconstruction callback cleans only its owned temporary directory (651.007667ms)
+  ✔ successful reconstruction callback also removes its temporary directory (912.241166ms)
+  ✔ v2 --write refuses an existing output directory and preserves its sentinel (5592.48675ms)
+✔ independent correction-v2 gates preserve correction-v1 evidence and cleanup (19126.209042ms)
+{"evidence":"v4-baseline","v4_manifest_sha256":"3bceefdb375173567fa7ce60c662eae991957ade70bb89f0da989edb7ebd9db6","v3_manifest_sha256":"72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841"}
+▶ independent v4 gates bind the archived v3 and current arithmetic code
+  ✔ published v4 binds all 29 archived v3 files and both new execution dependencies (27626.421375ms)
+  ✔ a changed previous manifest cannot silently select a different history (1.77875ms)
+  ✔ a changed archived money snapshot is refused before restoring code (2.068042ms)
+  ✔ a missing archived executable is refused before restoring code (1.084458ms)
+  ✔ v4 rejects changed v3 report bytes through the archived verifier (12340.698ms)
+  ✔ unchanged behavior with a changed arithmetic helper still invalidates v4 (21162.776875ms)
+  ✔ archived code is restored and owned temporary files are cleaned after callback failure (475.446584ms)
+{"evidence":"historical_hashes_unchanged","freeze.json":"0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2","result-manifest.json":"3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee","corrections/manifest.json":"eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de","corrections-v2/manifest.json":"1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80","corrections-v3/manifest.json":"72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841","corrections-v4/manifest.json":"3bceefdb375173567fa7ce60c662eae991957ade70bb89f0da989edb7ebd9db6"}
+✔ independent v4 gates bind the archived v3 and current arithmetic code (65009.299ms)
+▶ v5 seals the shared lock and bounded runner code without rewriting v4
+  ✔ the published version binds both new execution dependencies and the archived v4 manifest (0.4725ms)
+{"evidence":"v5_current_code_drift_refused","path":"experiments/material-facts-v7/experiment-lock.mjs","original_sha256":"eccebd49c4c2d8391878322c982992a1ea297cc1a81489c869d9b2b83a98b94f","altered_sha256":"f72532184cae83d67d25a641d15229bbee48e96cebde157a8ae12f0de6977842","refusal":"Correction v5 manifest changed"}
+  ✔ a comment-only current experiment-lock.mjs drift is refused by the real v5 check (52056.347125ms)
+{"evidence":"v5_current_code_drift_refused","path":"experiments/material-facts-v7/run.mjs","original_sha256":"53196e59f91d4862c1acc4ca8e7e8cd788e0e0ea4586f9e0bbff9063c8e2afc2","altered_sha256":"86741d1e564b129a76c4fb37c95c19c1dea4ad5b4d49e21797d2bf212d9ea5bf","refusal":"Correction v5 manifest changed"}
+  ✔ a comment-only current run.mjs drift is refused by the real v5 check (39511.769625ms)
+{"evidence":"source_and_historical_bytes_unchanged","v5_manifest_sha256":"eb79da00daa92966f081a2eba35d7355e258a45d18411570834efc62d632e32e"}
+✔ v5 seals the shared lock and bounded runner code without rewriting v4 (94792.59775ms)
+▶ v6 preserves the v5 archive and binds its current arithmetic dependency
+  ✔ current v6 seals its historical verifier and the same original outputs (7.973167ms)
+  ✔ the real v5 wrapper rejects snapshot changes before entering its callback (78.780792ms)
+  ✔ the real v5 wrapper rejects manifest changes before entering its callback (46.572166ms)
+{"evidence":"v6_current_helper_hash_refused","refusal":"Correction v6 manifest changed"}
+  ✔ a comment-only current helper drift fails the actual v6 check after the historical chain passes (57463.912666ms)
+{"evidence":"v6_independent_gate_protected_bytes_unchanged","manifests":{"freeze.json":"0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2","result-manifest.json":"3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee","corrections/manifest.json":"eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de","corrections-v2/manifest.json":"1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80","corrections-v3/manifest.json":"72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841","corrections-v4/manifest.json":"3bceefdb375173567fa7ce60c662eae991957ade70bb89f0da989edb7ebd9db6","corrections-v5/manifest.json":"eb79da00daa92966f081a2eba35d7355e258a45d18411570834efc62d632e32e","corrections-v6/manifest.json":"0c9ef56e30e278c816e088a934df1cb8f0cdc944c262b9bd9f88be146909ee69"}}
+✔ v6 preserves the v5 archive and binds its current arithmetic dependency (57604.795166ms)
+✔ formal runner rejects missing Qwen model arguments without consuming the unique attempt or starting a worker (390.453875ms)
+✔ formal runner rejects missing Qwen integrity directory without consuming the unique attempt or starting a worker (235.748292ms)
+✔ formal runner rejects unreadable Qwen model path without consuming the unique attempt or starting a worker (226.781375ms)
+✔ formal runner rejects missing DeepSeek credential argument without consuming the unique attempt or starting a worker (226.28875ms)
+✔ formal runner rejects unreadable DeepSeek credential file without consuming the unique attempt or starting a worker (229.372583ms)
+✔ formal runner rejects missing Python executable without consuming the unique attempt or starting a worker (248.139208ms)
+✔ formal runner rejects non-numeric transport port without consuming the unique attempt or starting a worker (226.383792ms)
+✔ formal runner rejects zero transport port without consuming the unique attempt or starting a worker (234.591333ms)
+✔ formal runner rejects out-of-range transport port without consuming the unique attempt or starting a worker (244.906291ms)
+✔ formal rules need no model arguments and save all registered terminal rows (267.378916ms)
+✔ all three completed development attempts may legitimately return no candidates (87.623125ms)
+✔ matching protocol and code hashes cannot make missing outcome development-ready (87.299916ms)
+✔ matching protocol and code hashes cannot make incomplete outcome development-ready (91.18325ms)
+✔ matching protocol and code hashes cannot make missing terminal results development-ready (70.665125ms)
+✔ matching protocol and code hashes cannot make empty terminal stream development-ready (67.936958ms)
+✔ matching protocol and code hashes cannot make partial terminal stream development-ready (75.099292ms)
+✔ matching protocol and code hashes cannot make duplicate terminal IDs development-ready (68.679291ms)
+✔ matching protocol and code hashes cannot make foreign backend terminal rows development-ready (52.313916ms)
+✔ matching protocol and code hashes cannot make non-stop terminal result development-ready (63.811459ms)
+✔ matching protocol and code hashes cannot make truncated JSONL tail development-ready (61.197333ms)
+✔ successful rows cannot hide a failed model process receipt (51.60175ms)
+✔ an audited failed history does not prevent a separate complete current-code attempt from contributing readiness (37.752583ms)
+✔ historical restoration replaces all four changed live v7 executables with their frozen bytes (2856.204792ms)
+✔ historical restoration rejects a missing required archived executable before invoking its callback (1453.202042ms)
+✔ historical restoration rejects a changed required archived executable before invoking its callback (1447.651916ms)
+✔ historical restoration cleans temporary code after callback failure while preserving the original error (2497.202375ms)
+✔ atomic publication keeps a complete legitimate empty-candidate artifact set (2.107917ms)
+✔ a mid-write fault preserves evidence outside the final directory and permits an exact retry (2.208709ms)
+✔ invalid empty set is rejected before creating either a final publication or a partial stage (0.415292ms)
+✔ invalid parent traversal is rejected before creating either a final publication or a partial stage (0.308667ms)
+✔ invalid undefined JSON is rejected before creating either a final publication or a partial stage (0.373541ms)
+✔ invalid non-serializable JSON is rejected before creating either a final publication or a partial stage (0.435875ms)
+✔ a destination created while staging is preserved and the complete unpublished stage remains evidence (2.255958ms)
+✔ atomic publication cannot replace an empty directory (0.588834ms)
+✔ atomic publication cannot replace an existing history (0.947ms)
+✔ atomic publication cannot replace an symlink (1.32325ms)
+✔ two complete concurrent publishers cannot overwrite the winning immutable artifact set (2.78075ms)
+✔ SIGKILL leaves an unpublished stage and a later publisher can complete without erasing it (122.802084ms)
+{"evidence":"wrapper_under_review","sha256":"aae2e203ce8f1423277e43fac83605f703562b68bcce6ae80fe05d9fea1235fa","original_manifest_sha256":"3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee"}
+▶ first-run manifest binding uses original bytes, not JSON equivalence
+  ✔ the exact original bytes still pass full historical verification (3416.653ms)
+{"evidence":"equivalent_manifest","variant":"compact serialization","sha256":"8aad8fa2670be14f559e3653208b46c7b38eb3106f9890f38c2f996a32fdab28","cli_returned":null,"refused":true}
+  ✔ same JSON with compact serialization is refused by the historical CLI (128.707875ms)
+{"evidence":"equivalent_manifest","variant":"reordered top-level keys","sha256":"15f47b2ad6c46c24150ceb8758819162218386abdd6ed954a24e70f8cc6475fd","cli_returned":null,"refused":true}
+  ✔ same JSON with reordered top-level keys is refused by the historical CLI (119.720542ms)
+{"evidence":"equivalent_manifest","variant":"one extra terminal newline","sha256":"a6e692f577a2ec5702a9e97f35184c8c2f29a85c13afb199fe71930ac6ba2e3e","cli_returned":null,"refused":true}
+  ✔ same JSON with one extra terminal newline is refused by the historical CLI (123.947958ms)
+  ✔ the exported reconstruction API refuses a changed manifest before executing its callback (2.217875ms)
+{"evidence":"original_artifacts_unchanged","result_manifest_sha256":"3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee","freeze_sha256":"0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2"}
+✔ first-run manifest binding uses original bytes, not JSON equivalence (5575.610625ms)
+✔ native rules diagnostic rejects the real holdout before creating any attempt (359.373292ms)
+✔ native diagnostic rejects a changed development source even when all three IDs remain unchanged (240.974833ms)
+✔ native freeze CLI executes its argument guard through a temporary-directory path alias (191.802208ms)
+✔ native verify CLI executes its argument guard through a temporary-directory path alias (178.857666ms)
+✔ native summarize CLI executes its argument guard through a temporary-directory path alias (183.58375ms)
+✔ a complete development-only fixture passes the independent pre-freeze binding check (112.992375ms)
+✔ pre-freeze development check rejects altered model messages (95.483583ms)
+✔ pre-freeze development check rejects a non-development case_ids receipt (81.611ms)
+✔ pre-freeze development check rejects a non-development input_sha256 receipt (72.94025ms)
+✔ freeze rejects a formal attempt directory before reading or freezing any new labels (69.174708ms)
+✔ development binding rejects a disguised pre-freeze formal attempt (56.428583ms)
+✔ native runner never overwrites an existing attempt directory (220.735708ms)
+✔ freeze creation and later diagnostic runs both preserve an existing freeze byte for byte (234.429833ms)
+✔ prior budget counts both development and stopped formal attempts without refunding unreturned cases (71.684958ms)
+✔ an existing atomic DeepSeek budget lock blocks native runner before inference and is left for reconciliation (473.044125ms)
+✔ native runner reserves the entire next development batch before spending the remaining budget (488.361375ms)
+✔ native diagnostic owner prevents freeze until terminal artifacts exist; original failure bytes remain (523.881167ms)
+✔ native freeze enumeration through publication excludes a concurrent diagnostic allocation (418.500166ms)
+✔ native concurrent diagnostic contenders fail closed and only the owner releases the lock (293.045ms)
+✔ callback failure preserves its error and releases the owned lock (292.316166ms)
+✔ killed owner leaves its lock and evidence for explicit reconciliation instead of automatic stale removal (426.721291ms)
+✔ preexisting unrecognized and symlink locks are never automatically removed (283.858917ms)
+✔ changed owner token and unexpected lock files prevent cleanup without swallowing the callback failure (30.757292ms)
+✔ freeze preserves an existing freeze byte for byte and releases its own lock (158.472125ms)
+✔ current run hashes bind the shared helper while its live directory stays outside results (0.249958ms)
+▶ complete first-run archive restores every bound executable and rejects archive corruption
+  ✔ all 36 selected paths and bytes match the original freeze (5.941875ms)
+  ✔ changed live run/freeze/verify/summarize restore to their original bytes (1686.332958ms)
+  ✔ the real historical verifier still checks all 60 original result artifacts (3052.986625ms)
+  ✔ missing archived run.mjs is rejected (3.120541ms)
+  ✔ changed archived run.mjs is rejected (3.762042ms)
+  ✔ missing archived freeze.mjs is rejected (2.284917ms)
+  ✔ changed archived freeze.mjs is rejected (2.72225ms)
+  ✔ missing archived verify.mjs is rejected (2.6615ms)
+  ✔ changed archived verify.mjs is rejected (4.850834ms)
+  ✔ missing archived summarize.mjs is rejected (3.836125ms)
+  ✔ changed archived summarize.mjs is rejected (3.243875ms)
+  ✔ a required executable omitted from the new manifest is rejected (2.205792ms)
+  ✔ an unregistered executable added to the new manifest is rejected (1.833458ms)
+  ✔ changed original result bytes are rejected by the archived historical verifier (2948.508917ms)
+  ✔ a throwing callback removes the temporary reconstruction (1272.393292ms)
+✔ complete first-run archive restores every bound executable and rejects archive corruption (10962.946125ms)
+ℹ historical receipt: {"status":"PASS","preflight":false,"planned_per_backend":12,"runs":[{"name":"holdout-rules-1","backend":"rules","split":"holdout","planned":12,"returned":12,"completed":12,"protocol_valid":12},{"name":"holdout-qwen-1","backend":"qwen","split":"holdout","planned":12,"returned":12,"completed":12,"protocol_valid":12},{"name":"holdout-deepseek-1","backend":"deepseek","split":"holdout","planned":12,"returned":12,"completed":12,"protocol_valid":12}],"budget":{"attempts":3,"reserved_upper_usd":0.51686844,"limit_usd":2},"result_files":60,"result_manifest_sha256":"3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee","inference":false,"training":false,"execution":"exact_archived_first_run_code_in_temporary_directory","current_code_claim":false}
+{"evidence":"production_http_lifecycle_under_test","sha256":"02bc99ae87733d69b0adcd85c914c70ff40975d3f00e772f17b342131ebbd849"}
+✔ stop owned HTTP launcher and listening descendant: default (337.835208ms)
+✔ stop owned HTTP launcher and listening descendant: ignore-term (5264.361958ms)
+✔ stop owned HTTP launcher and listening descendant: redirected-ignore-term (279.077917ms)
+✔ stop owned HTTP launcher and listening descendant: launcher-exits (260.01975ms)
+✔ shutdown only signals its own detached process group (389.807333ms)
+✔ qwen complete newline-terminated stream remains verifiable (0.649584ms)
+✔ qwen incomplete stream is rejected even when completed=true (0.630666ms)
+✔ qwen incomplete stream is rejected even when completed=false (0.12475ms)
+✔ qwen missing stream-completeness evidence is rejected (0.141334ms)
+✔ qwen a non-stream process failure remains a preserved failed receipt (0.07975ms)
+✔ deepseek complete newline-terminated stream remains verifiable (0.152958ms)
+✔ deepseek incomplete stream is rejected even when completed=true (0.079125ms)
+✔ deepseek incomplete stream is rejected even when completed=false (0.065875ms)
+✔ deepseek missing stream-completeness evidence is rejected (0.080625ms)
+✔ deepseek a non-stream process failure remains a preserved failed receipt (0.083ms)
+{"evidence":"implementation_hash","path":"lib/material-money-v4.ts","sha256":"3ebe3b80971a74af09b05b3ba17a5f5b597d042b0b12ffb787066a4d71d8e6a5"}
+{"evidence":"implementation_hash","path":"lib/material-fact-source-review.ts","sha256":"1da900cf5c9ddaa62dec8548eff8c528ade853549853a248bb647e18cf06b035"}
+{"evidence":"implementation_hash","path":"lib/material-fact-runtime-ingest.ts","sha256":"a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f"}
+{"evidence":"implementation_hash","path":"experiments/material-facts-v7/assess.mjs","sha256":"d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"}
+{"evidence":"cropped_range","text":"王甲2024年7月完整应付工资为人民币3万元至人民币4万元。","raw":{"kind":"money","value":"人民币3万元","quote":"人民币3万元","blockId":"b1","subject":"王甲","scope":"individual","meaning":"due_total","completeness":"complete","period":"2024年7月","rateUnit":null,"assertion":"narrated"},"whole":{"rawValue":"人民币3万元至人民币4万元","status":"range","amount":null,"matchedText":null,"span":null,"reason":"金额属于区间，未选取单个端点。"},"normalized_with_full_quote":{"value":"人民币3万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"人民币3万元","status":"range","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接属于区间端点。"}},"stored_amount":null,"stored_normalization":{"rawValue":"人民币3万元","status":"range","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接属于区间端点。"},"stored_issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}],"six_counts":{"raw_basic":[0,1,1],"raw_relational":[0,1,1],"raw_strict":[0,1,1],"accepted_basic":[0,1,1],"accepted_relational":[0,1,1],"accepted_strict":[0,1,1]},"production_defense":[{"index":0,"kind":"money","amount":null,"normalization":"range","issues":["source_relation_unresolved","source_amount_context_mismatch"],"exact_money_without_review_issue":false,"calculation_authorized":false}]}
+{"evidence":"whole_paragraph","text":"王甲声称公司长期拖欠其工资，现要求支付4000元并追究责任。","gold":{"kind":"money","value":"4000元","quote":"王甲声称公司长期拖欠其工资，现要求支付4000元并追究责任。","blockId":"b1","subject":"王甲","scope":"individual","meaning":"arrears","completeness":"not_applicable","period":null,"rateUnit":null,"assertion":"claimed"},"raw":{"kind":"money","value":"王甲声称公司长期拖欠其工资，现要求支付4000元并追究责任。","quote":"王甲声称公司长期拖欠其工资，现要求支付4000元并追究责任。","blockId":"b1","subject":"王甲","scope":"individual","meaning":"arrears","completeness":"not_applicable","period":null,"rateUnit":null,"assertion":"claimed"},"anchors":[{"id":"wage-event","anchors":[{"blockId":"b1","start":19,"end":24}]}],"raw_key":"exact:4000.00","gold_key":"exact:4000.00","event":{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":0,"end":30}]},"six_counts":{"raw_basic":[0,1,1],"raw_relational":[0,1,1],"raw_strict":[0,1,1],"accepted_basic":[0,1,1],"accepted_relational":[0,1,1],"accepted_strict":[0,1,1]},"production_defense":[{"index":0,"kind":"money","amount":"4000.00","normalization":"exact","issues":["source_relation_unresolved"],"exact_money_without_review_issue":false,"calculation_authorized":false}]}
+{"evidence":"relative_wage_period","relative":"上月","text":"王甲上月工资为4000元。","raw":{"kind":"money","value":"4000元","quote":"王甲上月工资为4000元。","blockId":"b1","subject":"王甲","scope":"individual","meaning":"due_total","completeness":"complete","period":"上月","rateUnit":null,"assertion":"narrated"},"amount":"4000.00","normalization":{"rawValue":"4000元","status":"exact","amount":"4000.00","matchedText":"4000元","span":{"start":0,"end":5},"reason":"唯一完整人民币金额已精确解析；原文和位置保持不变。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"}]}
+{"evidence":"relative_wage_period","relative":"本月","text":"王甲本月工资为4000元。","raw":{"kind":"money","value":"4000元","quote":"王甲本月工资为4000元。","blockId":"b1","subject":"王甲","scope":"individual","meaning":"due_total","completeness":"complete","period":"本月","rateUnit":null,"assertion":"narrated"},"amount":"4000.00","normalization":{"rawValue":"4000元","status":"exact","amount":"4000.00","matchedText":"4000元","span":{"start":0,"end":5},"reason":"唯一完整人民币金额已精确解析；原文和位置保持不变。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"}]}
+{"evidence":"relative_wage_period","relative":"下月","text":"王甲下月工资为4000元。","raw":{"kind":"money","value":"4000元","quote":"王甲下月工资为4000元。","blockId":"b1","subject":"王甲","scope":"individual","meaning":"due_total","completeness":"complete","period":"下月","rateUnit":null,"assertion":"narrated"},"amount":"4000.00","normalization":{"rawValue":"4000元","status":"exact","amount":"4000.00","matchedText":"4000元","span":{"start":0,"end":5},"reason":"唯一完整人民币金额已精确解析；原文和位置保持不变。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"}]}
+✔ 4305687517: a cropped first endpoint of an RMB-to-RMB range never becomes an exact amount (18.795083ms)
+✔ 4305687521: a whole narrative paragraph cannot be the value of one anchored amount (4.764083ms)
+✔ 4305687523: 上月工资 identifies a period rather than a rate (1.870625ms)
+✔ 4305687523: 本月工资 identifies a period rather than a rate (0.361209ms)
+✔ 4305687523: 下月工资 identifies a period rather than a rate (0.268375ms)
+✔ finite RMB prefix aligns at the same Unicode amount occurrence: 人民币 (2.581667ms)
+✔ finite RMB prefix aligns at the same Unicode amount occurrence: RMB (1.036958ms)
+✔ finite RMB prefix aligns at the same Unicode amount occurrence: CNY (0.7345ms)
+✔ finite RMB prefix aligns at the same Unicode amount occurrence: ¥ (0.756041ms)
+✔ finite RMB prefix aligns at the same Unicode amount occurrence: ￥ (3.601791ms)
+✔ finite RMB prefix and wage suffix permit both containment directions (5.677833ms)
+✔ a narrative or object phrase around an exact amount cannot borrow its anchor: 王甲声称应支付4000元 (0.43225ms)
+✔ a narrative or object phrase around an exact amount cannot borrow its anchor: 4000元并追究责任 (0.341417ms)
+✔ a narrative or object phrase around an exact amount cannot borrow its anchor: 4000元执行款 (0.462417ms)
+✔ a bare-number clipping cannot borrow the event of a complete monetary value (1.942292ms)
+✔ date boundary wrappers align an event but never replace exact date-value equality (16.912459ms)
+✔ a year clipped out of a full date is not its registered event (0.758083ms)
+✔ postfreeze currency grammar permits an optional exactness terminator: 八百零四元六角整 (4.534625ms)
+✔ postfreeze currency grammar permits an optional exactness terminator: 四万元正 (4.446416ms)
+✔ currency containment still rejects clipped cents, units or magnitude: 八百零四元六角整/八百零四元 (0.670917ms)
+✔ currency containment still rejects clipped cents, units or magnitude: 四万元五角整/四万元 (0.265166ms)
+✔ currency containment still rejects clipped cents, units or magnitude: 四万元整/四万 (1.424375ms)
+{"evidence":"implementation_hash","path":"lib/material-fact-runtime-ingest.ts","sha256":"a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f"}
+{"evidence":"implementation_hash","path":"lib/material-money-v4.ts","sha256":"3ebe3b80971a74af09b05b3ba17a5f5b597d042b0b12ffb787066a4d71d8e6a5"}
+{"evidence":"implementation_hash","path":"lib/material-fact-source-review.ts","sha256":"1da900cf5c9ddaa62dec8548eff8c528ade853549853a248bb647e18cf06b035"}
+{"evidence":"implementation_hash","path":"experiments/material-facts-v7/assess.mjs","sha256":"d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"}
+{"evidence":"repeated-short-quote","raw_count":2,"accepted_count":2,"accepted_values":["四万元","四万元"],"accepted_amounts":[null,null],"rejected":[],"six_counts":{"raw_basic":[0,2,2],"raw_relational":[0,2,2],"raw_strict":[0,2,2],"accepted_basic":[0,2,2],"accepted_relational":[0,2,2],"accepted_strict":[0,2,2]},"event_alignment":{"raw":[{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]},{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]}],"accepted":[{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]},{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]}]}}
+{"evidence":"unique-quote-repeated-value","raw_count":2,"accepted_count":2,"accepted_values":["四万元","四万元"],"accepted_amounts":[null,null],"rejected":[],"six_counts":{"raw_basic":[0,2,2],"raw_relational":[0,2,2],"raw_strict":[0,2,2],"accepted_basic":[0,2,2],"accepted_relational":[0,2,2],"accepted_strict":[0,2,2]},"event_alignment":{"raw":[{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]},{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]}],"accepted":[{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]},{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]}]}}
+{"evidence":"illegal-wrapper-false","raw_count":2,"accepted_count":2,"accepted_values":["😀王甲2024年7月完整应付工资为四万元。","四万元"],"accepted_amounts":["40000.00","40000.00"],"rejected":[],"six_counts":{"raw_basic":[1,1,0],"raw_relational":[1,1,0],"raw_strict":[1,1,0],"accepted_basic":[1,1,0],"accepted_relational":[1,1,0],"accepted_strict":[1,1,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":0,"end":21}]},{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":20}]}],"accepted":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":0,"end":21}]},{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":20}]}]}}
+{"evidence":"unique-finite-wrapper-false","raw_count":2,"accepted_count":1,"accepted_values":["人民币四万元"],"accepted_amounts":["40000.00"],"rejected":[{"index":1,"reason":"同一源文位置、同一事实属性及规范化状态的候选重复；不同发生位置及待核金额分别保留"}],"six_counts":{"raw_basic":[1,1,0],"raw_relational":[1,1,0],"raw_strict":[1,1,0],"accepted_basic":[1,0,0],"accepted_relational":[1,0,0],"accepted_strict":[1,0,0]},"event_alignment":{"raw":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":23}]},{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":20,"end":23}]}],"accepted":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":23}]}]}}
+{"evidence":"illegal-wrapper-true","raw_count":2,"accepted_count":2,"accepted_values":["四万元","😀王甲2024年7月完整应付工资为四万元。"],"accepted_amounts":["40000.00","40000.00"],"rejected":[],"six_counts":{"raw_basic":[1,1,0],"raw_relational":[1,1,0],"raw_strict":[1,1,0],"accepted_basic":[1,1,0],"accepted_relational":[1,1,0],"accepted_strict":[1,1,0]},"event_alignment":{"raw":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":20}]},{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":0,"end":21}]}],"accepted":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":20}]},{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":0,"end":21}]}]}}
+{"evidence":"unique-finite-wrapper-true","raw_count":2,"accepted_count":1,"accepted_values":["四万元"],"accepted_amounts":["40000.00"],"rejected":[{"index":1,"reason":"同一源文位置、同一事实属性及规范化状态的候选重复；不同发生位置及待核金额分别保留"}],"six_counts":{"raw_basic":[1,1,0],"raw_relational":[1,1,0],"raw_strict":[1,1,0],"accepted_basic":[1,0,0],"accepted_relational":[1,0,0],"accepted_strict":[1,0,0]},"event_alignment":{"raw":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":20,"end":23}]},{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":23}]}],"accepted":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":20,"end":23}]}]}}
+{"evidence":"non-money-period","value":"这个月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"这个月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"这个月工资\",\"quote\":\"王甲材料仅记载“这个月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-这个月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":13}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"这月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"这月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"这月工资\",\"quote\":\"王甲材料仅记载“这月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-这月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":12}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"当月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"当月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"当月工资\",\"quote\":\"王甲材料仅记载“当月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-当月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":12}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"该月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"该月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"该月工资\",\"quote\":\"王甲材料仅记载“该月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-该月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":12}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"上个月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"上个月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"上个月工资\",\"quote\":\"王甲材料仅记载“上个月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-上个月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":13}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"下个月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"下个月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"下个月工资\",\"quote\":\"王甲材料仅记载“下个月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-下个月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":13}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"上一个月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"上一个月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"上一个月工资\",\"quote\":\"王甲材料仅记载“上一个月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-上一个月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":14}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"下一个月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"下一个月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"下一个月工资\",\"quote\":\"王甲材料仅记载“下一个月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-下一个月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":14}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"这个月的工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"这个月的工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"这个月的工资\",\"quote\":\"王甲材料仅记载“这个月的工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-这个月的工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":14}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"下一个月的工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"下一个月的工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"下一个月的工资\",\"quote\":\"王甲材料仅记载“下一个月的工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-下一个月的工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":15}]}],"accepted":[]}}
+✔ 4305746125: unresolved occurrences retain both observations: repeated-short-quote (13.51425ms)
+✔ 4305746125: unresolved occurrences retain both observations: unique-quote-repeated-value (2.07675ms)
+✔ 4305746130: narrative containment cannot suppress the valid minimum in narrative-first order (14.453541ms)
+✔ a true unique finite RMB wrapper still deduplicates in full-first order (3.094042ms)
+✔ two distinct uniquely quoted equal payments survive in source order (5.805834ms)
+✔ different assertions at a unique occurrence never deduplicate in source order (3.256416ms)
+✔ 4305746130: narrative containment cannot suppress the valid minimum in minimum-first order (2.778333ms)
+✔ a true unique finite RMB wrapper still deduplicates in cropped-first order (2.540459ms)
+✔ two distinct uniquely quoted equal payments survive in reverse order (3.721708ms)
+✔ different assertions at a unique occurrence never deduplicate in reverse order (1.58425ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 这个月工资 (1.892958ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 这月工资 (0.453167ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 当月工资 (0.251917ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 该月工资 (0.236708ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 上个月工资 (0.215166ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 下个月工资 (0.190041ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 上一个月工资 (0.214667ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 下一个月工资 (0.223375ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 这个月的工资 (0.208458ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 下一个月的工资 (0.787209ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 工资金额不详 (0.952292ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 这个月工资金额不详 (0.269833ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 工资金额另议 (1.783083ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 新型工资口径待核 (0.483125ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 四万元至五万元 (0.626917ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 四万元港币 (0.248625ms)
+{"evidence":"implementation_hash","path":"lib/material-money-v4.ts","sha256":"3ebe3b80971a74af09b05b3ba17a5f5b597d042b0b12ffb787066a4d71d8e6a5"}
+{"evidence":"implementation_hash","path":"lib/material-fact-source-review.ts","sha256":"1da900cf5c9ddaa62dec8548eff8c528ade853549853a248bb647e18cf06b035"}
+{"evidence":"implementation_hash","path":"lib/material-fact-runtime-ingest.ts","sha256":"a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f"}
+{"evidence":"implementation_hash","path":"experiments/material-facts-v7/assess.mjs","sha256":"d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"}
+{"evidence":"unavailable-round7","text":"😀王甲的工资以港币支付四万元。","quote":"😀王甲的工资以港币支付四万元。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲的工资以港币支付四万元。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲的工资以港币支付四万元。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲港币工资四万元。","quote":"😀王甲港币工资四万元。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲港币工资四万元。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲港币工资四万元。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲港币计价工资四万元。","quote":"😀王甲港币计价工资四万元。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲港币计价工资四万元。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲港币计价工资四万元。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲工资四万元以港币支付。","quote":"😀王甲工资四万元以港币支付。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲工资四万元以港币支付。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲工资四万元以港币支付。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲工资四万元工资以美元计价。","quote":"😀王甲工资四万元工资以美元计价。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲工资四万元工资以美元计价。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲工资四万元工资以美元计价。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲工资四万元币种为港币。","quote":"😀王甲工资四万元币种为港币。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲工资四万元币种为港币。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲工资四万元币种为港币。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲月工资标准为四万元。","quote":"😀王甲月工资标准为四万元。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"rate_unit_mismatch","message":"候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲月工资标准为四万元。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"rate_unit_mismatch","message":"候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲月工资标准为四万元。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"rate_unit_mismatch","message":"候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲月工资约定为四万元。","quote":"😀王甲月工资约定为四万元。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"rate_unit_mismatch","message":"候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲月工资约定为四万元。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"rate_unit_mismatch","message":"候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲月工资约定为四万元。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"rate_unit_mismatch","message":"候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲每月基本工资标准为四万元。","quote":"😀王甲每月基本工资标准为四万元。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"rate_unit_mismatch","message":"候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲每月基本工资标准为四万元。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"rate_unit_mismatch","message":"候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲每月基本工资标准为四万元。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"rate_unit_mismatch","message":"候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资的2倍。","quote":"😀王甲2024年7月完整应付工资为四万元工资的2倍。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资的2倍。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资的2倍。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元劳务费的两倍。","quote":"😀王甲2024年7月完整应付工资为四万元劳务费的两倍。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元劳务费的两倍。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元劳务费的两倍。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元劳动报酬的2.5倍。","quote":"😀王甲2024年7月完整应付工资为四万元劳动报酬的2.5倍。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元劳动报酬的2.5倍。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元劳动报酬的2.5倍。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资款的二分之一倍。","quote":"😀王甲2024年7月完整应付工资为四万元工资款的二分之一倍。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资款的二分之一倍。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资款的二分之一倍。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资总额×2。","quote":"😀王甲2024年7月完整应付工资为四万元工资总额×2。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资总额×2。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资总额×2。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资乘以2。","quote":"😀王甲2024年7月完整应付工资为四万元工资乘以2。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资乘以2。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资乘以2。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资2倍。","quote":"😀王甲2024年7月完整应付工资为四万元工资2倍。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资2倍。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元工资2倍。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元基本工资２倍。","quote":"😀王甲2024年7月完整应付工资为四万元基本工资２倍。","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元基本工资２倍。","quote":"四万元","history":false,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+{"evidence":"unavailable-round7","text":"😀王甲2024年7月完整应付工资为四万元基本工资２倍。","quote":"四万元","history":true,"amount":null,"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"}]}
+✔ currency prefix payment cannot survive source cropping: full (13.8095ms)
+✔ currency prefix payment cannot survive source cropping: cropped (1.33925ms)
+✔ currency prefix payment cannot survive source cropping: historical-cropped (0.644708ms)
+✔ currency prefix wage cannot survive source cropping: full (0.467833ms)
+✔ currency prefix wage cannot survive source cropping: cropped (1.811834ms)
+✔ currency prefix wage cannot survive source cropping: historical-cropped (0.465417ms)
+✔ currency prefix valuation cannot survive source cropping: full (0.370625ms)
+✔ currency prefix valuation cannot survive source cropping: cropped (0.313167ms)
+✔ currency prefix valuation cannot survive source cropping: historical-cropped (0.350875ms)
+✔ currency suffix payment cannot survive source cropping: full (3.722209ms)
+✔ currency suffix payment cannot survive source cropping: cropped (0.345292ms)
+✔ currency suffix payment cannot survive source cropping: historical-cropped (0.291333ms)
+✔ currency suffix valuation cannot survive source cropping: full (0.262792ms)
+✔ currency suffix valuation cannot survive source cropping: cropped (0.233583ms)
+✔ currency suffix valuation cannot survive source cropping: historical-cropped (1.778291ms)
+✔ currency suffix declared cannot survive source cropping: full (0.608208ms)
+✔ currency suffix declared cannot survive source cropping: cropped (0.443084ms)
+✔ currency suffix declared cannot survive source cropping: historical-cropped (0.299167ms)
+✔ monthly standard cannot survive source cropping: full (4.70825ms)
+✔ monthly standard cannot survive source cropping: cropped (0.363208ms)
+✔ monthly standard cannot survive source cropping: historical-cropped (0.350041ms)
+✔ monthly agreed cannot survive source cropping: full (0.403084ms)
+✔ monthly agreed cannot survive source cropping: cropped (0.692917ms)
+✔ monthly agreed cannot survive source cropping: historical-cropped (0.382042ms)
+✔ monthly basic standard cannot survive source cropping: full (0.60325ms)
+✔ monthly basic standard cannot survive source cropping: cropped (0.3005ms)
+✔ monthly basic standard cannot survive source cropping: historical-cropped (0.313083ms)
+✔ wage-noun arithmetic cannot normalize to its operand: 四万元工资的2倍 (0.821208ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资的2倍 / full (0.42675ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资的2倍 / cropped (0.257709ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资的2倍 / historical-cropped (0.259458ms)
+✔ six layers cannot borrow the base event through a wage-noun formula: 四万元工资的2倍 (1.795083ms)
+✔ wage-noun arithmetic cannot normalize to its operand: 四万元劳务费的两倍 (0.08475ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元劳务费的两倍 / full (0.317083ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元劳务费的两倍 / cropped (0.268584ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元劳务费的两倍 / historical-cropped (0.306ms)
+✔ six layers cannot borrow the base event through a wage-noun formula: 四万元劳务费的两倍 (0.640583ms)
+✔ wage-noun arithmetic cannot normalize to its operand: 四万元劳动报酬的2.5倍 (0.079292ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元劳动报酬的2.5倍 / full (0.312584ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元劳动报酬的2.5倍 / cropped (0.293375ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元劳动报酬的2.5倍 / historical-cropped (0.279708ms)
+✔ six layers cannot borrow the base event through a wage-noun formula: 四万元劳动报酬的2.5倍 (0.647959ms)
+✔ wage-noun arithmetic cannot normalize to its operand: 四万元工资款的二分之一倍 (0.664792ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资款的二分之一倍 / full (0.598ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资款的二分之一倍 / cropped (0.247667ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资款的二分之一倍 / historical-cropped (0.251792ms)
+✔ six layers cannot borrow the base event through a wage-noun formula: 四万元工资款的二分之一倍 (0.534541ms)
+✔ wage-noun arithmetic cannot normalize to its operand: 四万元工资总额×2 (0.06475ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资总额×2 / full (0.26125ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资总额×2 / cropped (0.237041ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资总额×2 / historical-cropped (0.260791ms)
+✔ six layers cannot borrow the base event through a wage-noun formula: 四万元工资总额×2 (0.527375ms)
+✔ wage-noun arithmetic cannot normalize to its operand: 四万元工资乘以2 (0.063ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资乘以2 / full (0.298041ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资乘以2 / cropped (0.27575ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资乘以2 / historical-cropped (0.316583ms)
+✔ six layers cannot borrow the base event through a wage-noun formula: 四万元工资乘以2 (0.625ms)
+✔ wage-noun arithmetic cannot normalize to its operand: 四万元工资2倍 (0.0655ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资2倍 / full (0.295917ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资2倍 / cropped (0.263667ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元工资2倍 / historical-cropped (0.299917ms)
+✔ six layers cannot borrow the base event through a wage-noun formula: 四万元工资2倍 (1.1615ms)
+✔ wage-noun arithmetic cannot normalize to its operand: 四万元基本工资２倍 (0.115583ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元基本工资２倍 / full (0.310917ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元基本工资２倍 / cropped (0.27125ms)
+✔ wage-noun source arithmetic remains unavailable: 四万元基本工资２倍 / historical-cropped (0.269916ms)
+✔ six layers cannot borrow the base event through a wage-noun formula: 四万元基本工资２倍 (0.467459ms)
+✔ finite guards preserve ordinary calendar basic wages (0.214959ms)
+✔ finite guards preserve relative calendar basic wages (0.15375ms)
+✔ finite guards preserve a bare next-line multiplier after a wage noun (2.669584ms)
+✔ finite guards preserve ordinary total over three months (0.169167ms)
+✔ finite guards preserve genuine monthly standard (1.004125ms)
+✔ finite guards preserve genuine monthly basic standard (0.320959ms)
+✔ finite guards preserve foreign currency in earlier event (1.049625ms)
+✔ finite guards preserve foreign currency in later event (0.164292ms)
+✔ finite guards preserve multiplier in later event (0.141417ms)
+✔ finite guards preserve same amount and multiplier in later event (0.15ms)
+✔ finite guards preserve same amount and foreign currency in later event (0.1565ms)
+✔ unresolved money stays raw and reviewable: 工资若干元 (0.199541ms)
+✔ unresolved money stays raw and reviewable: 四万余元 (0.084666ms)
+✔ unresolved money stays raw and reviewable: 四万至五万元 (0.148375ms)
+✔ unresolved money stays raw and reviewable: ****元 (0.094333ms)
+✔ a requesting event queued behind disk I/O cannot keep an exited worker parent alive (939.611583ms)
+✔ stderr overflow stops the finite worker and preserves a bounded failed attempt (1253.993208ms)
+✔ a stderr producer ignoring SIGTERM is killed within the grace period and leaves no live worker (3900.318042ms)
+✔ stdout and stderr pause independently while writes are pending rather than accumulating promises (1532.099375ms)
+✔ complete requesting/result events queued past process exit remain successful and drain before parent exit (779.969041ms)
+✔ stdout retains its own byte cap and failure receipt (852.40675ms)
+✔ the stdout cap and stderr cap are independent rather than a shared total (1112.266334ms)
+✔ backpressure preserves UTF-8 split across stdout chunks (810.746292ms)
+✔ the actual diagnostic runner holds the freeze lock until terminal output is saved (1053.200416ms)
+✔ the actual diagnostic runner cannot allocate during or after freeze publication (825.030875ms)
+✔ all stop results followed by an unterminated stdout fragment remain a preserved failed attempt (764.710083ms)
+✔ missing DeepSeek credential rejects before allocating the unique formal attempt (301.6145ms)
+✔ a current-hash failed Qwen outcome cannot establish development readiness (85.057416ms)
+✔ Qwen missing both rejects before creating any artifacts (221.15075ms)
+✔ Qwen missing model-path rejects before creating any artifacts (221.499292ms)
+✔ Qwen missing integrity-dir rejects before creating any artifacts (229.562334ms)
+✔ Qwen invalid model directory rejects before creating any artifacts (232.436125ms)
+✔ Qwen invalid integrity directory rejects before creating any artifacts (217.198417ms)
+✔ Qwen invalid configuration JSON rejects before creating any artifacts (230.199084ms)
+✔ Qwen invalid integrity receipt rejects before creating any artifacts (261.770959ms)
+✔ DeepSeek missing credential rejects without spending an attempt (232.517541ms)
+✔ DeepSeek directory credential rejects without spending an attempt (225.375833ms)
+✔ DeepSeek empty credential rejects without spending an attempt (229.791959ms)
+✔ DeepSeek shared credential rejects without spending an attempt (222.361208ms)
+✔ DeepSeek port 0 rejects before allocating an attempt (210.2305ms)
+✔ DeepSeek port 65536 rejects before allocating an attempt (198.308959ms)
+✔ DeepSeek port -1 rejects before allocating an attempt (202.039083ms)
+✔ DeepSeek port 1.5 rejects before allocating an attempt (205.393459ms)
+✔ DeepSeek port not-a-port rejects before allocating an attempt (202.724083ms)
+✔ invalid Python missing rejects before creating any artifacts (213.104792ms)
+✔ invalid Python non-executable rejects before creating any artifacts (237.962834ms)
+✔ invalid Python probe-failure rejects before creating any artifacts (415.884583ms)
+✔ a missing worker script rejects without consuming the formal attempt (195.163375ms)
+✔ a corrected configuration can reuse the same unconsumed path, while a started worker failure is immutable (808.652208ms)
+✔ rules can complete without any model paths, credentials or interpreter (255.414958ms)
+✔ complete current-hash runs with empty candidate arrays qualify all backends without a score threshold (79.990167ms)
+✔ development readiness rejects missing outcome despite current protocol hashes (46.14925ms)
+✔ development readiness rejects missing results despite current protocol hashes (52.900083ms)
+✔ development readiness rejects empty results despite current protocol hashes (72.483833ms)
+✔ development readiness rejects missing case despite current protocol hashes (67.127167ms)
+✔ development readiness rejects duplicate case despite current protocol hashes (78.581708ms)
+✔ development readiness rejects foreign case despite current protocol hashes (86.549208ms)
+✔ development readiness rejects wrong backend despite current protocol hashes (55.844042ms)
+✔ development readiness rejects nonterminal result despite current protocol hashes (43.243209ms)
+✔ development readiness rejects unterminated JSONL despite current protocol hashes (51.74425ms)
+✔ development readiness rejects truncated JSON despite current protocol hashes (48.802209ms)
+✔ development readiness rejects partial worker stdout despite current protocol hashes (46.899666ms)
+✔ rules false completion cannot be hidden by otherwise complete stop rows (51.57525ms)
+✔ qwen false completion cannot be hidden by otherwise complete stop rows (48.058708ms)
+✔ deepseek false completion cannot be hidden by otherwise complete stop rows (50.82575ms)
+✔ Qwen unsuccessful process receipt code cannot be ready (54.623ms)
+✔ Qwen unsuccessful process receipt signal cannot be ready (57.617792ms)
+✔ Qwen unsuccessful process receipt stop_reason cannot be ready (72.557959ms)
+✔ Qwen unsuccessful process receipt incomplete_stdout cannot be ready (87.293542ms)
+✔ Qwen unsuccessful process receipt ids cannot be ready (80.85375ms)
+✔ Qwen unsuccessful process receipt missing attempt cannot be ready (66.308625ms)
+✔ a preserved failed historical attempt does not veto a separate complete current run (54.239167ms)
+✔ all six original successful development artifacts satisfy completion without rewriting them (4.911041ms)
+ℹ tests 814
+ℹ suites 0
+ℹ pass 814
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 95107.229083

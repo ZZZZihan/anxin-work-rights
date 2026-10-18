@@ -1,0 +1,62 @@
+[
+  {
+    "pr": "p45",
+    "head": "7d746ffaa5283f0a48a31383ce7d65fffe365917",
+    "thread": "PRRT_kwDOVApLyM6tnswC",
+    "comment": {
+      "databaseId": 4305879072,
+      "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Reject source currencies separated by attribution words**\n\nFresh evidence in the current tree shows that a minimal `四万元` candidate from `王甲的工资以港币支付四万元` is accepted with `amount: \"40000.00\"` and `status: \"exact\"`. This guard recognizes only currency markers directly adjoining the amount, so ordinary attribution phrases such as `港币工资四万元`, `工资以港币支付四万元`, and `港币计价工资四万元` bypass it; the new lowercase-Chinese parser then represents a foreign-currency value as exact RMB. Extend the anchored check to finite same-event currency-attribution wording without crossing clause boundaries.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4305879072"
+    }
+  },
+  {
+    "pr": "p45",
+    "head": "7d746ffaa5283f0a48a31383ce7d65fffe365917",
+    "thread": "PRRT_kwDOVApLyM6tnswF",
+    "comment": {
+      "databaseId": 4305879078,
+      "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Reject multipliers linked through wage nouns**\n\nFresh evidence after the multiplier fix shows that the bridge intentionally excludes wage nouns, so `四万元工资的2倍`, `四万元基本工资的2倍`, and a cropped `四万元` from those source phrases still normalize to exact `40000.00`. Because the remaining `2倍` is later discarded as an allowed count, runtime ingestion retains the operand as an exact amount rather than an unsupported expression. Permit a finite set of directly attached amount nouns before `的…倍`, while continuing to stop at punctuation or unrelated prose.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4305879078"
+    }
+  },
+  {
+    "pr": "p45",
+    "head": "7d746ffaa5283f0a48a31383ce7d65fffe365917",
+    "thread": "PRRT_kwDOVApLyM6tnswI",
+    "comment": {
+      "databaseId": 4305879081,
+      "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Recognize rate labels before accepting lowercase totals**\n\nWith the newly supported lowercase amount, a mislabeled total candidate for `四万元` in `王甲月工资标准为四万元`, `王甲月薪标准：四万元`, or `王甲每月基本工资四万元` now survives this source-unit check as exact `40000.00`. `sourceRateUnit` only permits a short list of tokens immediately after `月工资`/`月薪`, so common rate words such as `标准`, `基本`, and `约定为` prevent it from detecting the monthly rate and applying `rate_unit_mismatch`. Extend the finite rate-prefix grammar to cover these explicit wage-standard constructions while retaining the calendar-month exemptions.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4305879081"
+    }
+  },
+  {
+    "pr": "p45",
+    "head": "7d746ffaa5283f0a48a31383ce7d65fffe365917",
+    "thread": "PRRT_kwDOVApLyM6tnswL",
+    "comment": {
+      "databaseId": 4305879085,
+      "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Terminate the whole Worker process tree before restarting**\n\nThe built-in restart scenario calls this helper and proceeds as soon as the Wrangler parent emits `exit`, but `child.kill()` signals only that parent and does not establish that its launcher/workerd descendants have closed. The cancellation runner changed in this same commit uses a detached process group and waits for `close` specifically because parent exit can precede descendant teardown; here, a surviving descendant can keep the disposable D1 state or Wrangler sockets active while the next Worker starts, making the required HTTP regression flaky and allowing final cleanup to report success with an orphan still running. Apply the same process-group and close-wait teardown to this runner.\n\nAGENTS.md reference: [AGENTS.md:L7-L7](https://github.com/ZZZZihan/anxin-work-rights/blob/7d746ffaa5283f0a48a31383ce7d65fffe365917/AGENTS.md#L7-L7)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4305879085"
+    }
+  },
+  {
+    "pr": "p46",
+    "head": "0abcea42de71dcc70980a24f8faa68c8894082cb",
+    "thread": "PRRT_kwDOVApLyM6tnvt0",
+    "comment": {
+      "databaseId": 4305898572,
+      "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Raise the parent timeout for the v4 gate suite**\n\nOn this checkout, this newly required suite reached the 120-second parent limit after 141 seconds, causing Node to cancel its final subtests and making `test:fact-runtime` exit 1. The suite serially launches several full correction verifications that may each run for up to 60 seconds, so the parent timeout is lower than the valid cumulative runtime; raise or remove it, or avoid the repeated recomputations, so `npm run check` remains reliable on slower or contended hosts.\n\nAGENTS.md reference: [AGENTS.md:L7-L7](https://github.com/ZZZZihan/anxin-work-rights/blob/3e14bd781a230b3fc937fd6e46a62b8b87232bab/AGENTS.md#L7-L7)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305898572"
+    }
+  },
+  {
+    "pr": "p46",
+    "head": "0abcea42de71dcc70980a24f8faa68c8894082cb",
+    "thread": "PRRT_kwDOVApLyM6tnvt2",
+    "comment": {
+      "databaseId": 4305898575,
+      "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Treat incomplete worker stdout as an incomplete attempt**\n\nIf a worker emits all expected `result` lines but leaves an unterminated stdout fragment before exiting with code 0, this predicate records `completed: true` even while the adjacent receipt records `incomplete_stdout: true`. `checkOutcome()` recomputes completion without checking that flag, so formal verification can pass and permanently manifest a truncated event stream; include `!buffer` in completion and reject `incomplete_stdout` during verification.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305898575"
+    }
+  }
+]

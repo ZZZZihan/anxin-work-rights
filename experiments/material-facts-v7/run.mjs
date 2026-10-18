@@ -234,13 +234,16 @@ if (backend === 'rules') {
     process.removeListener('SIGTERM', cancelParent); process.removeListener('SIGINT', cancelParent);
   }
   buffer += stdoutDecoder.end();
-  if (buffer) await writeFile(resolve(out, `partial-stdout-${attempts.length + 1}.txt`), buffer);
+  if (buffer) {
+    await writeFile(resolve(out, `partial-stdout-${attempts.length + 1}.txt`), buffer);
+    stopReason ??= 'incomplete_stdout';
+  }
   for (const row of resultRows) {
     const failedWorker = (backend === 'qwen' && (stopReason || result.code !== 0)) || row.id === interruptedRequestId;
     const terminal = failedWorker ? { ...row, original_finish_reason: row.finish_reason, finish_reason: stopReason ?? 'process_error' } : row;
     await appendFile(resolve(out, 'results.jsonl'), JSON.stringify(terminal) + '\n');
   }
-  attempts.push({ ids: batch.map(row => row.id), completed: result.code === 0 && !stopReason && batch.every(item => resultRows.some(row => row.id === item.id && row.finish_reason === 'stop')), ...result, stop_reason: stopReason, ...(writeFailure ? { output_error_type: writeFailure.name ?? 'Error' } : {}), seconds: (Date.now() - started) / 1000, incomplete_stdout: !!buffer });
+  attempts.push({ ids: batch.map(row => row.id), completed: result.code === 0 && !stopReason && !buffer && batch.every(item => resultRows.some(row => row.id === item.id && row.finish_reason === 'stop')), ...result, stop_reason: stopReason, ...(writeFailure ? { output_error_type: writeFailure.name ?? 'Error' } : {}), seconds: (Date.now() - started) / 1000, incomplete_stdout: !!buffer });
   await save('outcome.json', { completed: attempts.length === batches.length && attempts.every(row => row.completed), isolation: backend === 'qwen' ? 'fresh_process_per_document' : 'sequential_requests', attempts });
   if (backend === 'qwen' && (stopReason || result.code !== 0)) break;
   if (backend === 'qwen' && attempts.length < batches.length) {

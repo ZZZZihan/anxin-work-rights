@@ -35,6 +35,8 @@ const complete = async () => { for (const row of rows) {
 } };
 if (process.env.LIFECYCLE_SCENARIO === 'exit-during-log') {
   await event({type:'requesting',id:rows[0].id}); process.exitCode = 7;
+} else if (process.env.LIFECYCLE_SCENARIO === 'trailing-fragment') {
+  await complete(); await send(process.stdout, '{\"type\":\"telemetry\"');
 } else if (process.env.LIFECYCLE_SCENARIO === 'queued-success') {
   await complete();
 } else if (process.env.LIFECYCLE_SCENARIO === 'hold') {
@@ -257,4 +259,17 @@ test('the actual diagnostic runner cannot allocate during or after freeze public
   assert.equal(after.code, 1); assert.match(after.stderr, /Diagnostic attempts are closed/);
   await assert.rejects(stat(after.out), { code: 'ENOENT' });
   await assert.rejects(stat(resolve(f.root, E, '.experiment.lock')), { code: 'ENOENT' });
+});
+
+// A complete set of result lines does not complete a truncated event stream.
+test('all stop results followed by an unterminated stdout fragment remain a preserved failed attempt', async t => {
+  const f = await fixture(t), result = await run(f, 'trailing-fragment');
+  assert.equal(result.code, 1, result.stderr);
+  const outcome = JSON.parse(await readFile(resolve(result.out, 'outcome.json')));
+  assert.equal(outcome.completed, false);
+  assert.equal(outcome.attempts[0].completed, false);
+  assert.equal(outcome.attempts[0].incomplete_stdout, true);
+  assert.equal(outcome.attempts[0].stop_reason, 'incomplete_stdout');
+  assert.equal(await readFile(resolve(result.out, 'partial-stdout-1.txt'), 'utf8'), '{"type":"telemetry"');
+  assert.equal((await readFile(resolve(result.out, 'results.jsonl'), 'utf8')).trim().split('\n').length, f.rows.length);
 });

@@ -5,15 +5,16 @@ import { execFileSync } from 'node:child_process';
 import { cp, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const CURRENT_ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const E = 'experiments/material-facts-v7';
+const { withCorrectionV5Code } = await import(pathToFileURL(resolve(CURRENT_ROOT, E, 'verify-correction-v5.mjs')));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 
 // Only copies are changed. These are real read-only correction CLI calls,
 // including its historical verification chain; no runner or model is invoked.
-test('v5 seals the shared lock and bounded runner code without rewriting v4', { timeout: 300000 }, async t => {
+test('v5 seals the shared lock and bounded runner code without rewriting v4', { timeout: 360000 }, async t => withCorrectionV5Code(async ROOT => {
   const base = resolve(ROOT, E);
   const manifest = JSON.parse(await readFile(resolve(base, 'corrections-v5/manifest.json')));
   const paths = ['freeze.json', 'result-manifest.json', 'corrections/manifest.json',
@@ -51,4 +52,4 @@ test('v5 seals the shared lock and bounded runner code without rewriting v4', { 
     for (const [path, digest] of Object.entries(before)) assert.equal(sha(await readFile(resolve(ROOT, path))), digest, 'Independent fixture changed live bytes: ' + path);
     console.log(JSON.stringify({ evidence: 'source_and_historical_bytes_unchanged', v5_manifest_sha256: before[`${E}/corrections-v5/manifest.json`] }));
   }
-});
+}, CURRENT_ROOT));
