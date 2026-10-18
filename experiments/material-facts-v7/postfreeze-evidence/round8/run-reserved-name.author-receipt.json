@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "round": 8,
+  "author": "v7_money",
+  "finding": "PR46 4305935635 / PRRT_kwDOVApLyM6tn1fk",
+  "baseline": {
+    "integration_head": "ba3d5cc5cae1fbe1b5f554c0b9affd649f8fc7cc",
+    "note": "Copied the current integration working-tree run.mjs, including existing uncommitted round7 changes; not the HEAD blob.",
+    "run_sha256": "3cbd9a03a1fb111e64c1ba57636c277fd12bea430fc33eca2b1e94a3d23ff7a0"
+  },
+  "changed_files": [
+    {
+      "file": "experiments/material-facts-v7/run.mjs",
+      "sha256": "ecdbfebd4ccf96b5f7c3273bc208137ff53f69ea0edd62dba0baa9b66d4177bf"
+    },
+    {
+      "file": "scripts/material-facts-v7-run-reserved-name.test.mjs",
+      "sha256": "ab7dd9db2714f9147b2b7095dea859769ebf82b3e88f5bcdde2e60a56f119bb7"
+    }
+  ],
+  "behavior": {
+    "reserved_result_name": ".deepseek-budget.lock",
+    "case": "Reject ASCII case variants after resolve/basename, including default macOS case-insensitive aliases.",
+    "placement": "Before backend preflight, input file reads, experiment-lock acquisition and every mkdir/artifact write.",
+    "other_control_directory": ".experiment.lock lives outside results and remains excluded by the unchanged direct-child path rule.",
+    "scope": "No blanket dot-directory ban; unrelated neighbouring names remain usable. No automatic cleanup or repair of an existing control lock."
+  },
+  "checks": [
+    {
+      "log": "run-reserved-name.before-red.txt",
+      "tests": 11,
+      "pass": 3,
+      "fail": 8,
+      "exit_code": 1
+    },
+    {
+      "log": "run-reserved-name.after-green.txt",
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "exit_code": 0
+    },
+    {
+      "log": "run-reserved-name.eslint.txt",
+      "exit_code": 0,
+      "stdout": "empty",
+      "stderr": "empty"
+    }
+  ],
+  "test_command": "MATERIAL_FACTS_V7_SOURCE_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards MATERIAL_FACTS_V7_ENGINEERING_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money node --test scripts/material-facts-v7-run-reserved-name.test.mjs",
+  "lint_command": "npx eslint experiments/material-facts-v7/run.mjs scripts/material-facts-v7-run-reserved-name.test.mjs",
+  "coverage": [
+    "Exact reserved basename, uppercase/mixed case, canonical parent traversal and trailing slash.",
+    "Reject before missing backend credentials or input reads, without creating result root or experiment lock.",
+    "Existing budget lock and unrelated old attempt bytes remain unchanged.",
+    "After rejection, ordinary rules completes; the synthetic DeepSeek executable starts and fails with code 7, preserving the failure and its cost reservation. Retry cannot overwrite it.",
+    "Unrelated hidden diagnostic and .deepseek-budget.locked are accepted and append-only.",
+    "Experiment-root control lock cannot be named as an output path and is preserved."
+  ],
+  "provenance": [
+    "Original logs are from local native CLI tests with three newly synthesized source objects, never original inputs or labels.",
+    "Fixture imports/copies current source code and public policy receipts only. It never executes the actual model worker: a local executable answers the Python readiness probe, writes a sentinel and exits 7.",
+    "The initial shell wrapper attempted to save the test exit code in zsh read-only status after the red log had been fully written; this emitted a separate wrapper error. The preserved native test log itself records the genuine 3-pass/8-fail baseline, with run.mjs still byte-identical to its snapshot. The green wrapper used run_exit.",
+    "The baseline root working tree had unrelated ongoing changes, retained without modification. This author writes only own run.mjs, the new test and newly created round8 evidence."
+  ],
+  "limits": [
+    "Local synthetic runner checks only, not real model/API, training, HTTP, full freeze publication or production deployment.",
+    "Only observed control names are reserved. New future result-root control paths must be added to the same path policy.",
+    "Existing malicious/interrupted budget locks are not removed; manual reconciliation remains required.",
+    "Parent owns full integrated checks, independent review, freeze changes, version binding and any commit/push."
+  ],
+  "evidence_files": [
+    {
+      "file": "run-reserved-name.after-green.txt",
+      "sha256": "77b670a82fb4f99afc78afb2bb0d59e0cda8c53dc31fbee05e9d0adc2451ec72",
+      "bytes": 1308,
+      "counts": {
+        "tests": 11,
+        "pass": 11,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "run-reserved-name.before-red.txt",
+      "sha256": "5921b4f9751bd097e6882d80b2ffd1402c7787932158564116f029d90f1df81d",
+      "bytes": 11534,
+      "counts": {
+        "tests": 11,
+        "pass": 3,
+        "fail": 8,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "run-reserved-name.eslint.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "file": "run-reserved-name.patch",
+      "sha256": "510cbfa64da2e694f9d26bb941dca179cc8fe4b6416129ddd17adebcd2e4c0fc",
+      "bytes": 1550
+    },
+    {
+      "file": "run.mjs.baseline.snapshot",
+      "sha256": "3cbd9a03a1fb111e64c1ba57636c277fd12bea430fc33eca2b1e94a3d23ff7a0",
+      "bytes": 20005
+    }
+  ]
+}

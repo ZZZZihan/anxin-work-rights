@@ -19,7 +19,7 @@ export const RUN_HASH_FILES = ['lib/material-facts.ts', 'lib/material-fact-types
   'scripts/fact-runtime-v2.py', 'scripts/fact_memory_runtime.py', 'scripts/fact_api_transport.py', `${EXPERIMENT}/run.mjs`, `${EXPERIMENT}/assess.mjs`, `${EXPERIMENT}/freeze.mjs`, `${EXPERIMENT}/experiment-lock.mjs`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/runtime-policy.json`];
 export const REQUIRED_FILES = [...RUN_HASH_FILES, 'lib/material-money-v4.test.ts', 'lib/material-money-v4.independent.test.ts', 'lib/material-money-v4.review-regression.test.ts',
   'lib/material-fact-source-review.test.ts', 'lib/material-facts-v7-runtime-independent.test.ts', 'lib/material-fact-calendar-money.test.ts',
-  'lib/material-fact-store.ts', 'scripts/fact-jobs.mjs', 'scripts/material-facts-v7-assessment-independent.test.mjs', 'scripts/material-facts-v7-freeze-independent.test.mjs', 'scripts/material-facts-v7-run-readiness.test.mjs', 'scripts/material-facts-v7-run-lifecycle.test.mjs', 'scripts/material-facts-v7-freeze-lock.test.mjs', 'scripts/material-facts-v7-outcome-stream.test.mjs', 'scripts/material-facts-v7-http-regression.mjs',
+  'lib/material-fact-store.ts', 'scripts/fact-jobs.mjs', 'scripts/material-facts-v7-assessment-independent.test.mjs', 'scripts/material-facts-v7-freeze-independent.test.mjs', 'scripts/material-facts-v7-run-readiness.test.mjs', 'scripts/material-facts-v7-run-lifecycle.test.mjs', 'scripts/material-facts-v7-freeze-lock.test.mjs', 'scripts/material-facts-v7-freeze-atomic-publication.test.mjs', 'scripts/material-facts-v7-run-reserved-name.test.mjs', 'scripts/material-facts-v7-outcome-stream.test.mjs', 'scripts/material-facts-v7-http-regression.mjs',
   `${EXPERIMENT}/PROTOCOL.md`, `${EXPERIMENT}/ANNOTATION.md`, `${EXPERIMENT}/model-identity.json`, `${EXPERIMENT}/api-models-preflight.json`, `${EXPERIMENT}/annotation-review.independent.json`,
   `${EXPERIMENT}/technical-review.json`, `${EXPERIMENT}/technical-review.initial.json`, `${EXPERIMENT}/benchmark-review.independent.json`, `${EXPERIMENT}/benchmark-review.initial.json`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/SOURCE_REVIEW.md`, `${EXPERIMENT}/REVIEW.md`, `${EXPERIMENT}/DEVELOPMENT.md`,
   `${LEGACY}/verify.mjs`, `${LEGACY}/freeze.mjs`, `${LEGACY}/freeze.json`, `${LEGACY}/result-manifest.json`];
@@ -264,7 +264,46 @@ export async function createFreeze(root = ROOT) {
     case_ids: validation.sets.holdout.inputs.map(row => row.id), dev_case_ids: validation.sets.dev.inputs.map(row => row.id),
     input_sha256: sha(await readFile(resolve(root, EXPERIMENT, 'data/holdout.inputs.jsonl'))), messages_sha256: sha(await messageBytes(validation.sets.holdout.inputs, root)),
     dev_input_sha256: sha(await readFile(resolve(root, EXPERIMENT, 'data/dev.inputs.jsonl'))), dev_messages_sha256: sha(await messageBytes(validation.sets.dev.inputs, root)), qwen, legacy, files };
-  await writeFile(destination, JSON.stringify(freeze, null, 2) + '\n', { flag: 'wx' });
+  // A direct exclusive write can leave a truncated immutable freeze on ENOSPC
+  // or process death. Stage complete bytes in the same directory, then link to
+  // the final name atomically. Unlike rename(), link() never replaces a prior
+  // destination. The shared experiment lock covers staging through publication.
+  const { open, link, unlink } = await import('node:fs/promises');
+  const { randomUUID } = await import('node:crypto');
+  const temporaryName = `.freeze-${process.pid}-${randomUUID()}`;
+  const temporary = resolve(root, EXPERIMENT, `${temporaryName}.tmp`);
+  const failureRecord = resolve(root, EXPERIMENT, `${temporaryName}.failure.json`);
+  let handle = null, published = false, stage = 'open';
+  try {
+    handle = await open(temporary, 'wx', 0o600);
+    stage = 'write'; await handle.writeFile(JSON.stringify(freeze, null, 2) + '\n');
+    stage = 'sync'; await handle.sync();
+    stage = 'close'; await handle.close(); handle = null;
+    stage = 'publish'; await link(temporary, destination); published = true;
+    stage = 'cleanup'; await unlink(temporary);
+  } catch (error) {
+    const failures = [error];
+    if (handle) { try { await handle.close(); } catch (closeError) { failures.push(closeError); } }
+    // Failed stages are evidence, never garbage to delete automatically. A
+    // SIGKILL cannot write this receipt; its unique temp and owner lock remain.
+    const describe = failure => ({ name: failure.name, code: failure.code, message: failure.message });
+    let receiptWritten = false;
+    try {
+      await writeFile(failureRecord, JSON.stringify({ schema: 'material-facts-v7-freeze-publication-failure/1', at: new Date().toISOString(),
+        temporary_file: `${temporaryName}.tmp`, stage, published, errors: failures.map(describe) }, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+      receiptWritten = true;
+    } catch (receiptError) { failures.push(receiptError); }
+    if (published) {
+      // link() is the commit boundary. Cleanup cannot roll back or relabel this
+      // complete immutable freeze as unpublished; retain evidence and report it.
+      console.warn(JSON.stringify({ status: 'FROZEN_CLEANUP_WARNING', published: true, stage,
+        temporary_file: `${temporaryName}.tmp`, failure_receipt: `${temporaryName}.failure.json`, receipt_written: receiptWritten, errors: failures.map(describe) }));
+      return freeze;
+    }
+    const message = `Freeze publication failed at ${stage}: ${failures.map(failure => failure.message).join('; ')}. Retain ${temporaryName}.tmp and ${temporaryName}.failure.json for reconciliation.`;
+    if (failures.length > 1) throw new AggregateError(failures, message);
+    const failure = new Error(message, { cause: error }); failure.code = error.code; throw failure;
+  }
   return freeze;
   });
 }

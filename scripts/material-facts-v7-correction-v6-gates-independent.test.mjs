@@ -7,15 +7,16 @@ import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const CURRENT_ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const E = 'experiments/material-facts-v7';
-const { withCorrectionV5Code } = await import(pathToFileURL(resolve(ROOT, E, 'verify-correction-v5.mjs')));
+const { withCorrectionV5Code } = await import(pathToFileURL(resolve(CURRENT_ROOT, E, 'verify-correction-v5.mjs')));
+const { withCorrectionV6Code } = await import(pathToFileURL(resolve(CURRENT_ROOT, E, 'verify-correction-v6.mjs')));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
-const bytesAt = path => readFile(resolve(ROOT, E, path));
 
 // No runner or model is invoked. Only disposable copies are altered; the real
 // historical wrapper and the current read-only correction CLI enforce refusal.
-test('v6 preserves the v5 archive and binds its current arithmetic dependency', { timeout: 240000 }, async t => {
+test('v6 preserves the v5 archive and binds its current arithmetic dependency', { timeout: 300000 }, async t => withCorrectionV6Code(async ROOT => {
+  const bytesAt = path => readFile(resolve(ROOT, E, path));
   const protectedNames = ['freeze.json', 'result-manifest.json', 'corrections/manifest.json',
     ...[2, 3, 4, 5, 6].map(version => `corrections-v${version}/manifest.json`)];
   const before = Object.fromEntries(await Promise.all(protectedNames.map(async path => [path, sha(await bytesAt(path))])));
@@ -68,4 +69,4 @@ test('v6 preserves the v5 archive and binds its current arithmetic dependency', 
   });
   for (const [path, digest] of Object.entries(before)) assert.equal(sha(await bytesAt(path)), digest, path);
   console.log(JSON.stringify({ evidence: 'v6_independent_gate_protected_bytes_unchanged', manifests: before }));
-});
+}, CURRENT_ROOT));
