@@ -12,7 +12,8 @@ export function validateRuntimeCandidateOutput(raw: string, source: FactSource):
   const original = validateCandidateOutput(raw, source);
   const parsed = parseCandidateOutput(raw).parsed as { schemaVersion: 3; candidates: unknown[] };
   const candidates: CandidateBatchV3['candidates'] = [], rejected: CandidateBatchV3['rejected'] = [];
-  const seen = new Set<string>();
+  type Occurrence = { blockId: string; start: number; end: number };
+  const seen = new Map<string, Array<{ occurrence: Occurrence | null; fallback: string }>>();
   parsed.candidates.forEach((entry, index) => {
     const single = validateCandidateOutput(JSON.stringify({ schemaVersion: 3, candidates: [entry] }), source);
     const accepted = single.candidates[0];
@@ -41,20 +42,30 @@ export function validateRuntimeCandidateOutput(raw: string, source: FactSource):
     const uniqueAnchor = block && quoteAt >= 0 && block.text.indexOf(candidate.quote, quoteAt + 1) < 0
       && valueAt >= 0 && candidate.quote.indexOf(value.value, valueAt + 1) < 0;
     const anchorStart = uniqueAnchor ? Array.from(block.text.slice(0, quoteAt + valueAt)).length : null;
-    const sourceLocation = anchorStart !== null ? [candidate.blockId, anchorStart, anchorStart + Array.from(value.value).length]
-        : [candidate.blockId, candidate.start, candidate.end, candidate.quote];
+    const occurrence = anchorStart !== null ? { blockId: candidate.blockId, start: anchorStart,
+      end: anchorStart + Array.from(value.value).length } : null;
+    const fallback = JSON.stringify([candidate.blockId, candidate.start, candidate.end, candidate.quote]);
     const key = JSON.stringify([value.kind, value.meaning, normalization.status,
       normalization.amount ?? normalization.rawValue, value.subject, value.scope, value.period,
       value.completeness, value.assertion, value.rateUnit,
       // A source-normalization downgrade reached via a cropped quote is not a
       // new observation when the final status/value and anchor already match.
       isV3Candidate(reviewed) ? reviewed.reviewIssues.map(issue => String(issue.code))
-        .filter(code => code !== 'source_amount_context_mismatch').sort() : [], sourceLocation]);
-    if (seen.has(key)) {
+        .filter(code => code !== 'source_amount_context_mismatch').sort() : []]);
+    const observations = seen.get(key) ?? [];
+    const duplicate = observations.some(previous => occurrence && previous.occurrence
+      ? occurrence.blockId === previous.occurrence.blockId
+        && ((occurrence.start <= previous.occurrence.start && occurrence.end >= previous.occurrence.end)
+          || (previous.occurrence.start <= occurrence.start && previous.occurrence.end >= occurrence.end))
+      : !occurrence && !previous.occurrence && fallback === previous.fallback);
+    // Equivalent nested literals (人民币四万元 / 四万元) refer to the same
+    // uniquely located amount. Non-overlapping occurrences remain separate.
+    if (duplicate) {
       rejected.push({ index, reason: '同一源文位置、同一事实属性及规范化状态的候选重复；不同发生位置及待核金额分别保留' });
       return;
     }
-    seen.add(key);
+    observations.push({ occurrence, fallback });
+    seen.set(key, observations);
     candidates.push(isV3Candidate(reviewed) ? reviewed : candidate);
   });
   const batch = { ...original, candidates, rejected };

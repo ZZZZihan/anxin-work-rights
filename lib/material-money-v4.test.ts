@@ -180,3 +180,70 @@ describe('v7 integration compatibility and definite wage descriptions', () => {
     expect(normalizeCandidateValueV4(raw).amount).toBe('8000.00');
   });
 });
+
+describe('PR45 minimal literal and modifier regressions', () => {
+  it.each(['四万元港幣', '新台币1000元', '加拿大元1000元', '新台币工资1000元'])('does not convert the foreign literal %s to RMB', value => {
+    expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: value, amount: null });
+    expect(canonicalMonetaryExpression(value)).toBeNull();
+  });
+  it.each(['数十万元', '几十万元', '负数四万元', '负值四万元'])('does not select a positive exact tail from %s', value => {
+    expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: value, amount: null });
+    expect(canonicalMonetaryExpression(value)).toBeNull();
+  });
+  it.each(['数十万元', '几十万元'])('keeps the source modifier outside the cropped value in %s', literal => {
+    expect(normalizeCandidateValueV4(money({ value: '十万元', quote: `王甲工资为${literal}` })).amount).toBeNull();
+  });
+  it.each(['2024年元月工资', '元月份工资', '元旦工资', '圆满完成工资发放', '元月', '元旦', '圆满'])('does not treat the ordinary phrase %s as money', value => {
+    expect(classifyMonetaryExpression(value)).toMatchObject({ kind: 'not_monetary', normalization: { status: 'not_money', amount: null } });
+  });
+});
+
+describe('shared attached amount qualifiers and adjacent counterexamples', () => {
+  it.each([
+    ['逾四万元', '四万元'], ['不到四万元', '四万元'], ['不止四万元', '四万元'],
+    ['四万元出头', '四万元'], ['四万元有余', '四万元'], ['四万元许', '四万元'], ['好几万元', '万元'],
+  ])('keeps the complete and cropped forms of %s non-exact', (value, cropped) => {
+    expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: value, status: 'approximate', amount: null });
+    expect(canonicalMonetaryExpression(value)).not.toBe(canonicalMonetaryExpression('四万元'));
+    expect(normalizeCandidateValueV4(money({ value: cropped, quote: `王甲工资为${value}` })).amount).toBeNull();
+  });
+  it.each(['最近工资四万元', '工资最近四万元', '工资约定为四万元', '工资数额为四万元', '三个月工资共四万元', '三个员工工资共四万元', '元旦工资四万元', '元月工资四万元', '圆满完成工资四万元的发放'])('keeps an independently complete amount in %s', quote => {
+    expect(normalizeMoneyValueV4(quote).amount).toBe('40000.00');
+    expect(normalizeCandidateValueV4(money({ quote })).amount).toBe('40000.00');
+  });
+  it.each(['三个员工', '三位工人', '三个劳动者'])('recognizes the explicit headcount %s without inventing money', value => {
+    expect(classifyMonetaryExpression(value).kind).toBe('not_monetary');
+    expect(normalizeMoneyValueV4(value).amount).toBeNull();
+  });
+});
+
+describe('adjacent currency, modifier and ordinary-word boundaries', () => {
+  it.each(['1000元新臺幣', 'ＣＡＤ1000元', 'ＮＴ＄1000元', '加\u200b拿大元工资1000元', '1000元加\u200b元'])('uses the shared folded foreign-currency vocabulary for %s', value => {
+    expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: value, status: 'unsupported', amount: null, span: null });
+    expect(canonicalMonetaryExpression(value)).toBeNull();
+  });
+  it.each([
+    ['數十万元', '十万元'], ['幾十万元', '十万元'], ['数百万元', '百万元'], ['数 人民币十万元', '十万元'],
+    ['负值为人民币四万元', '四万元'], ['負數四万元', '四万元'], ['負值金額為四万元', '四万元'], ['正数四万元', '四万元'],
+    ['负数：四万元', '四万元'], ['负的四万元', '四万元'],
+    ['负\u200d四万元', '四万元'], ['数\u200d十万元', '十万元'],
+  ])('shares the whole/source modifier boundary for %s', (value, cropped) => {
+    expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: value, amount: null, span: null });
+    expect(canonicalMonetaryExpression(value)).toBeNull();
+    expect(normalizeCandidateValueV4(money({ value: cropped, quote: `😀王甲工资为${value}` })).amount).toBeNull();
+  });
+  it.each(['元月份', '2024年元月', '2024年元月份的基本工资', '二〇二四年元旦工资', '圓滿', '圆满完成工资支付工作'])('recognizes a complete non-money phrase %s', value => {
+    expect(classifyMonetaryExpression(value).kind).toBe('not_monetary');
+    expect(normalizeMoneyValueV4(value).amount).toBeNull();
+  });
+  it.each(['元月工资未知', '元旦工资未明确', '圆满完成工资发放但金额不详', '元月X元', '元旦?元'])('keeps unknown or masked monetary evidence in %s', value => {
+    expect(classifyMonetaryExpression(value).kind).toBe('monetary');
+    expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: value, status: 'masked', amount: null });
+  });
+  it.each(['2024元旦工资', '四万元素', '四万圆满'])('does not crop a unit out of an ordinary word in %s', value => {
+    expect(normalizeMoneyValueV4(value).amount).toBeNull();
+  });
+  it('does not borrow a foreign currency from a different source event', () => {
+    expect(normalizeCandidateValueV4(money({ quote: '王甲工资四万元，王乙工资1000美元' })).amount).toBe('40000.00');
+  });
+});

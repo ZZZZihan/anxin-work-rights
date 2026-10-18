@@ -1,0 +1,76 @@
+Original captured tool stdout (not a replay)
+Captured at: 2026-10-18T03:59:23.418Z
+Tool chunk: 8aaa26
+Exit code: 1
+Context: 2 failures for invisible format controls separating negative/indefinite modifiers.
+
+--- original stdout follows unmodified ---
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money
+
+·········································································································································································································································································xx···············
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/material-money-v4.test.ts > adjacent currency, modifier and ordinary-word boundaries > shares the whole/source modifier boundary for 负‍四万元
+AssertionError: expected { rawValue: '负\u200d四万元', …(5) } to match object { rawValue: '负\u200d四万元', …(2) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "rawValue": "负‍四万元",
+-   "span": null,
++   "span": {
++     "end": 5,
++     "start": 2,
++   },
+  }
+
+ ❯ lib/material-money-v4.test.ts:227:42
+    225|     ['负\u200d四万元', '四万元'], ['数\u200d十万元', '十万元'],
+    226|   ])('shares the whole/source modifier boundary for %s', (value, cropp…
+    227|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    228|     expect(canonicalMonetaryExpression(value)).toBeNull();
+    229|     expect(normalizeCandidateValueV4(money({ value: cropped, quote: `�…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/material-money-v4.test.ts > adjacent currency, modifier and ordinary-word boundaries > shares the whole/source modifier boundary for 数‍十万元
+AssertionError: expected { rawValue: '数\u200d十万元', …(5) } to match object { rawValue: '数\u200d十万元', …(2) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "100000.00",
+    "rawValue": "数‍十万元",
+-   "span": null,
++   "span": {
++     "end": 5,
++     "start": 2,
++   },
+  }
+
+ ❯ lib/material-money-v4.test.ts:227:42
+    225|     ['负\u200d四万元', '四万元'], ['数\u200d十万元', '十万元'],
+    226|   ])('shares the whole/source modifier boundary for %s', (value, cropp…
+    227|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    228|     expect(canonicalMonetaryExpression(value)).toBeNull();
+    229|     expect(normalizeCandidateValueV4(money({ value: cropped, quote: `�…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 280 passed (282)
+   Start at  11:59:22
+   Duration  480ms (transform 62ms, setup 0ms, collect 71ms, tests 37ms, environment 0ms, prepare 45ms)
+

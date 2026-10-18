@@ -1,0 +1,191 @@
+Original captured tool stdout (not a replay)
+Captured at: 2026-10-18T03:56:23.907Z
+Tool chunk: 26a366
+Exit code: 1
+Context: 9 failures: 6 newly probed attached qualifiers, 2 recent/最近 counterexamples, and 1 exploratory unsupported count phrase 三个员工. The count phrase was subsequently restricted to the existing supported 三个月 grammar; no count-parser expansion was made. Preserve this extra failure in the original output.
+
+--- original stdout follows unmodified ---
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money
+
+···········································································································································································································································xxxxxx·xx··x···
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/material-money-v4.test.ts > shared attached amount qualifiers and adjacent counterexamples > keeps the complete and cropped forms of 逾四万元 non-exact
+AssertionError: expected { rawValue: '逾四万元', …(5) } to match object { rawValue: '逾四万元', …(2) }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "rawValue": "逾四万元",
+-   "status": "approximate",
++   "status": "exact",
+  }
+
+ ❯ lib/material-money-v4.test.ts:206:42
+    204|     ['四万元出头', '四万元'], ['四万元有余', '四万元'], ['四万元许', '四万元'], ['好几万元', '万元'…
+    205|   ])('keeps the complete and cropped forms of %s non-exact', (value, c…
+    206|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    207|     expect(canonicalMonetaryExpression(value)).not.toBe(canonicalMonet…
+    208|     expect(normalizeCandidateValueV4(money({ value: cropped, quote: `王…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  lib/material-money-v4.test.ts > shared attached amount qualifiers and adjacent counterexamples > keeps the complete and cropped forms of 不到四万元 non-exact
+AssertionError: expected { rawValue: '不到四万元', …(5) } to match object { rawValue: '不到四万元', …(2) }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "rawValue": "不到四万元",
+-   "status": "approximate",
++   "status": "exact",
+  }
+
+ ❯ lib/material-money-v4.test.ts:206:42
+    204|     ['四万元出头', '四万元'], ['四万元有余', '四万元'], ['四万元许', '四万元'], ['好几万元', '万元'…
+    205|   ])('keeps the complete and cropped forms of %s non-exact', (value, c…
+    206|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    207|     expect(canonicalMonetaryExpression(value)).not.toBe(canonicalMonet…
+    208|     expect(normalizeCandidateValueV4(money({ value: cropped, quote: `王…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  lib/material-money-v4.test.ts > shared attached amount qualifiers and adjacent counterexamples > keeps the complete and cropped forms of 不止四万元 non-exact
+AssertionError: expected { rawValue: '不止四万元', …(5) } to match object { rawValue: '不止四万元', …(2) }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "rawValue": "不止四万元",
+-   "status": "approximate",
++   "status": "exact",
+  }
+
+ ❯ lib/material-money-v4.test.ts:206:42
+    204|     ['四万元出头', '四万元'], ['四万元有余', '四万元'], ['四万元许', '四万元'], ['好几万元', '万元'…
+    205|   ])('keeps the complete and cropped forms of %s non-exact', (value, c…
+    206|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    207|     expect(canonicalMonetaryExpression(value)).not.toBe(canonicalMonet…
+    208|     expect(normalizeCandidateValueV4(money({ value: cropped, quote: `王…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  lib/material-money-v4.test.ts > shared attached amount qualifiers and adjacent counterexamples > keeps the complete and cropped forms of 四万元出头 non-exact
+AssertionError: expected { rawValue: '四万元出头', …(5) } to match object { rawValue: '四万元出头', …(2) }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "rawValue": "四万元出头",
+-   "status": "approximate",
++   "status": "exact",
+  }
+
+ ❯ lib/material-money-v4.test.ts:206:42
+    204|     ['四万元出头', '四万元'], ['四万元有余', '四万元'], ['四万元许', '四万元'], ['好几万元', '万元'…
+    205|   ])('keeps the complete and cropped forms of %s non-exact', (value, c…
+    206|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    207|     expect(canonicalMonetaryExpression(value)).not.toBe(canonicalMonet…
+    208|     expect(normalizeCandidateValueV4(money({ value: cropped, quote: `王…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  lib/material-money-v4.test.ts > shared attached amount qualifiers and adjacent counterexamples > keeps the complete and cropped forms of 四万元有余 non-exact
+AssertionError: expected { rawValue: '四万元有余', …(5) } to match object { rawValue: '四万元有余', …(2) }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "rawValue": "四万元有余",
+-   "status": "approximate",
++   "status": "exact",
+  }
+
+ ❯ lib/material-money-v4.test.ts:206:42
+    204|     ['四万元出头', '四万元'], ['四万元有余', '四万元'], ['四万元许', '四万元'], ['好几万元', '万元'…
+    205|   ])('keeps the complete and cropped forms of %s non-exact', (value, c…
+    206|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    207|     expect(canonicalMonetaryExpression(value)).not.toBe(canonicalMonet…
+    208|     expect(normalizeCandidateValueV4(money({ value: cropped, quote: `王…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  lib/material-money-v4.test.ts > shared attached amount qualifiers and adjacent counterexamples > keeps the complete and cropped forms of 四万元许 non-exact
+AssertionError: expected { rawValue: '四万元许', …(5) } to match object { rawValue: '四万元许', …(2) }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "rawValue": "四万元许",
+-   "status": "approximate",
++   "status": "exact",
+  }
+
+ ❯ lib/material-money-v4.test.ts:206:42
+    204|     ['四万元出头', '四万元'], ['四万元有余', '四万元'], ['四万元许', '四万元'], ['好几万元', '万元'…
+    205|   ])('keeps the complete and cropped forms of %s non-exact', (value, c…
+    206|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    207|     expect(canonicalMonetaryExpression(value)).not.toBe(canonicalMonet…
+    208|     expect(normalizeCandidateValueV4(money({ value: cropped, quote: `王…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  lib/material-money-v4.test.ts > shared attached amount qualifiers and adjacent counterexamples > keeps an independently complete amount in 最近工资四万元
+ FAIL  lib/material-money-v4.test.ts > shared attached amount qualifiers and adjacent counterexamples > keeps an independently complete amount in 工资最近四万元
+ FAIL  lib/material-money-v4.test.ts > shared attached amount qualifiers and adjacent counterexamples > keeps an independently complete amount in 三个员工工资共四万元
+AssertionError: expected null to be '40000.00' // Object.is equality
+
+- Expected: 
+"40000.00"
+
++ Received: 
+null
+
+ ❯ lib/material-money-v4.test.ts:211:49
+    209|   });
+    210|   it.each(['最近工资四万元', '工资最近四万元', '工资约定为四万元', '工资数额为四万元', '三个员工工资共四万元',…
+    211|     expect(normalizeMoneyValueV4(quote).amount).toBe('40000.00');
+       |                                                 ^
+    212|     expect(normalizeCandidateValueV4(money({ quote })).amount).toBe('4…
+    213|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 241 passed (250)
+   Start at  11:56:23
+   Duration  487ms (transform 63ms, setup 0ms, collect 71ms, tests 36ms, environment 0ms, prepare 43ms)
+

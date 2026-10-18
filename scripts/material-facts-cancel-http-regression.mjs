@@ -23,14 +23,40 @@ const token = randomBytes(32).toString('hex');
 const observations = [];
 const calls = [];
 const cleanupFailures = [];
+const workerRuns = [];
 const workerEnv = { ...process.env, WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false' };
 const wrangler = resolve(root, 'node_modules/wrangler/bin/wrangler.js');
 let temp, worker, workerError, service, proxy, db, configPath, base;
+let workerClosed;
 let failure, phase = 'setup', mode = 'normal';
 let holdGetJob, pollEntered, releaseHeldPoll, pendingPoll;
 
-const sanitize = value => String(value).replaceAll(token, '[redacted]');
+const sanitize = value => {
+  let text = String(value).replaceAll(token, '[redacted]');
+  // Wrangler abbreviates long bindings (for example, a token prefix + "...").
+  // Redact known-token fragments too, rather than assuming complete printing.
+  for (let length = token.length - 1; length >= 8; length--) {
+    text = text.replaceAll(token.slice(0, length), '[redacted]').replaceAll(token.slice(-length), '[redacted]');
+  }
+  return text;
+};
 const errorRecord = error => ({ name: sanitize(error?.name || 'Error'), message: sanitize(error?.message || String(error)) });
+const workerLogLimit = 32_000;
+const capturedLog = () => ({ text: '', truncated: false });
+const appendLog = (log, chunk) => {
+  const text = log.text + chunk;
+  log.truncated ||= text.length > workerLogLimit;
+  log.text = text.slice(0, workerLogLimit);
+};
+const safeLog = log => {
+  let text = sanitize(log.text);
+  // Truncation or early process exit can end inside the private token. Remove
+  // a trailing partial token after whole-token replacement, even on short logs.
+  for (let length = token.length - 1; length > 0; length--) {
+    if (text.endsWith(token.slice(0, length))) { text = text.slice(0, -length) + '[redacted]'; break; }
+  }
+  return { text, truncated: log.truncated };
+};
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const bounded = async (promise, milliseconds, message) => {
   let timer;
@@ -138,18 +164,29 @@ async function startWorker() {
   const port = Number(new URL(free).port);
   await new Promise(resolve => probe.close(resolve));
   workerError = undefined;
-  worker = spawn(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', String(port)], {
-    cwd: root, stdio: 'ignore', env: workerEnv,
+  const run = { index: workerRuns.length + 1, httpPort: port, inspectorPort: 0, startedAt: new Date().toISOString(), ready: false, exitCode: null, signal: null, stdout: capturedLog(), stderr: capturedLog() };
+  workerRuns.push(run);
+  // Wrangler's supported port 0 lets the OS allocate an inspector socket
+  // atomically. A restart must not share the default inspector's port probe.
+  worker = spawn(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', String(port), '--inspector-port', '0'], {
+    cwd: root, stdio: ['ignore', 'pipe', 'pipe'], env: workerEnv, detached: process.platform !== 'win32',
   });
+  const child = worker;
+  run.pid = child.pid ?? null;
+  child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
+  child.stdout.on('data', chunk => appendLog(run.stdout, chunk));
+  child.stderr.on('data', chunk => appendLog(run.stderr, chunk));
+  child.once('exit', (code, signal) => { run.exitCode = code; run.signal = signal; });
+  workerClosed = new Promise(resolve => child.once('close', () => { run.closedAt = new Date().toISOString(); resolve(); }));
   worker.once('error', error => { workerError = error; });
   base = free;
   for (let attempt = 0; attempt < 90; attempt++) {
     if (workerError) throw workerError;
-    if (worker.exitCode !== null || worker.signalCode !== null) throw new Error('Isolated Worker exited before readiness.');
+    if (worker.exitCode !== null || worker.signalCode !== null) throw new Error(`Isolated Worker exited before readiness (attempt ${run.index}, exit ${worker.exitCode}, signal ${worker.signalCode}). See workerRuns diagnostics.`);
     try {
       const response = await fetch(`${base}/api/bootstrap`, { signal: AbortSignal.timeout(1000) });
       await response.arrayBuffer();
-      if (response.status === 401) return;
+      if (response.status === 401) { run.ready = true; return; }
     } catch { /* bounded startup; this URL was allocated by the runner */ }
     await wait(250);
   }
@@ -157,16 +194,27 @@ async function startWorker() {
 }
 
 async function stopWorker() {
-  if (!worker || worker.exitCode !== null || worker.signalCode !== null) return;
+  if (!worker) return;
   const child = worker;
-  const exited = new Promise(resolve => child.once('exit', resolve));
-  child.kill('SIGTERM');
-  try { await bounded(exited, 5000, 'Isolated Worker did not stop after SIGTERM.'); }
+  const signalOwnedProcesses = signal => {
+    if (!child.pid) return;
+    try {
+      // Only this runner's detached process group is signalled. Wrangler's
+      // launcher, CLI and workerd descendants must all release local sockets.
+      if (process.platform === 'win32') child.kill(signal);
+      else process.kill(-child.pid, signal);
+    } catch (error) { if (error.code !== 'ESRCH') throw error; }
+  };
+  signalOwnedProcesses('SIGTERM');
+  // close also waits for the inherited stdout/stderr pipes. exit alone can
+  // precede descendant termination, causing the next startup to race teardown.
+  try { await bounded(workerClosed, 5000, 'Isolated Worker did not close after SIGTERM.'); }
   catch {
-    child.kill('SIGKILL');
-    await bounded(exited, 5000, 'Isolated Worker did not stop after SIGKILL.');
+    signalOwnedProcesses('SIGKILL');
+    await bounded(workerClosed, 5000, 'Isolated Worker did not close after SIGKILL.');
   }
   worker = undefined;
+  workerClosed = undefined;
 }
 
 async function cleanup(name, operation) {
@@ -523,6 +571,7 @@ finally {
     boundary: 'production Worker HTTP + disposable on-disk D1 SQLite + real material service rules jobs + loopback timeout/503 injection',
     actualModelInference: false, syntheticInputs: true, recordedAt: new Date().toISOString(),
     observations, failure, cleanup: { status: cleanupFailures.length ? 'FAIL' : 'PASS', failures: cleanupFailures }, calls,
+    workerRuns: workerRuns.map(run => ({ ...run, stdout: safeLog(run.stdout), stderr: safeLog(run.stderr) })),
   }, null, 2) + '\n');
 }
 

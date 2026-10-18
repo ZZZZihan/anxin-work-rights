@@ -1,0 +1,34 @@
+{
+  "status": "FAIL",
+  "mode": "fact-cancellation",
+  "boundary": "production Worker HTTP + disposable on-disk D1 SQLite + real material service rules jobs + loopback timeout/503 injection",
+  "actualModelInference": false,
+  "syntheticInputs": true,
+  "recordedAt": "2026-10-18T03:46:22.951Z",
+  "observations": [
+    {
+      "name": "real_15s_http_timeout_erases_fact_text_but_retains_job_id",
+      "status": "PASS",
+      "milliseconds": 15028,
+      "jobRetained": true,
+      "factRowRemoved": true
+    }
+  ],
+  "failure": {
+    "phase": "retry_after_worker_restart",
+    "name": "Error",
+    "message": "Isolated Worker exited before readiness."
+  },
+  "cleanup": {
+    "status": "PASS",
+    "failures": []
+  },
+  "calls": [
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/3bf0c5ea-062f-4f4b-ad71-97752e6da82c",
+      "mode": "timeout",
+      "authenticated": true
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import type { CandidateNormalization, NormalizedCandidateValue, RawCandidateV3 } from './material-fact-types-v3.ts';
 import { getCandidateLocalEvent, normalizeCandidateValue, normalizeMoneyValue } from './material-facts-v3.ts';
 import { parseAmount } from './material-facts.ts';
-import { sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
+import { isRmbCurrencyUnitAt, monetaryExpressionHasUnsupportedCurrency, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 
 export type MonetaryExpressionClassification = {
   kind: 'monetary' | 'not_monetary' | 'undetermined';
@@ -13,16 +13,30 @@ const LOWER_DIGITS = '零一二三四五六七八九';
 const NUMERALS = '0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟';
 const LOWER = '零〇一二三四五六七八九十百千万亿两';
 const SINGLE_DIGIT = '零〇一二三四五六七八九两壹贰叁肆伍陆柒捌玖';
-const FOREIGN = /美元|美金|港币|港元|澳元|欧元|日元|英镑|韩元|新加坡元|(?:USD|HKD|AUD|EUR|JPY|GBP|KRW|SGD)|[$€£₩±]/iu;
 const MASKED = /[xX×＊*]|未知|不详|不明|待定|无法确定|未提供|未明确|未载明|未记载|未披露|未列明|未注明|未约定|未确定|待确认|待核实|待补充|[?？□＿_]|\.{2,}|…/u;
 const UNCERTAIN = /(?:可能|或许|大概|估计|不确定|待核|暂计|暂定)/u;
-const APPROXIMATE = new RegExp(`(?:大约|约(?!定|束)|将近|接近|超过|不足|至少|至多|不超过|不少于|不低于|不高于|不得少于|不得低于|不得超过|不得高于|上限|下限|最高|最低)|近\\s*(?:工资|人民币|[¥￥${NUMERALS}])|[${NUMERALS}]\\s*(?:多|余)(?:万|亿)?[元圆]|[元圆]\\s*(?:左右|上下|以上|以下|多|余|起)`, 'u');
+const APPROXIMATE = new RegExp(`(?:大约|约(?!定|束)|将近|接近|超过|不足|至少|至多|不超过|不少于|不低于|不高于|不得少于|不得低于|不得超过|不得高于|上限|下限|最高|最低)|(?<!最)近\\s*(?:工资|人民币|[¥￥${NUMERALS}])|[${NUMERALS}]\\s*(?:多|余)(?:万|亿)?[元圆]|[元圆]\\s*(?:左右|上下|以上|以下|多|余|起)`, 'u');
 const RANGE = new RegExp(`[${NUMERALS},.，]+\\s*[元圆]?\\s*(?:至|到|[~～—–-])\\s*[${NUMERALS},.，]+\\s*[元圆]`, 'u');
 const TOKEN = new RegExp(`(?:人民币\\s*)?[¥￥]?\\s*(?:(?:\\d[\\d,，]*(?:\\.\\d+)?)\\s*(?:万|亿)?|[${LOWER}壹贰叁肆伍陆柒捌玖拾佰仟]+)\\s*[元圆](?:[${SINGLE_DIGIT}]角)?(?:零?[${SINGLE_DIGIT}]分)?(?:整|正)?`, 'gu');
+const PREFIX_CURRENCY_PART = String.raw`(?:[^\S\r\n\u2028\u2029]|人民币|人民幣|[¥￥:：=()（）])`;
+const SIGNED_PREFIX = new RegExp(`(?:负数|負數|负值|負值|正数|正數|正值|[负負+＋\\-－−﹣±])(?:${PREFIX_CURRENCY_PART}|的|为|為|是|金额|金額|数值|數值|工资|薪资|薪酬|计|計|共|合计|合計)*$`, 'u');
+const INDEFINITE_PREFIX = new RegExp(`(?:数|數|几|幾)${PREFIX_CURRENCY_PART}*$`, 'u');
+const APPROXIMATE_PREFIX = new RegExp(`(?:大约|约(?!定|束)|将近|接近|(?<!最)近|逾|不到|不止|超过|不足|至少|至多|不超过|不少于|不低于|不高于|不得少于|不得低于|不得超过|不得高于|上限|下限|最高|最低)(?:${PREFIX_CURRENCY_PART}|为|应付|工资|薪酬|薪资|金额|款项|计|共|合计|税前|税后)*$`, 'u');
+const APPROXIMATE_SUFFIX = /^[^\S\r\n\u2028\u2029]*(?:[/／]\s*(?:小时|月|日|天|时|件)\s*)?(?:左右|上下|以上|以下|多|余|起|出头|有余|许)/u;
 
 function result(rawValue: string, status: CandidateNormalization['status'], reason: string, match?: { text: string; index: number; amount: string }): CandidateNormalization {
   return { rawValue, status, amount: match?.amount ?? null, matchedText: match?.text ?? null,
     span: match ? { start: Array.from(rawValue.slice(0, match.index)).length, end: Array.from(rawValue.slice(0, match.index + match.text.length)).length } : null, reason };
+}
+
+// Both full literals and clipped source values must consume a modifier before
+// the numeric token. It cannot silently turn 数十万 or 负数四万 into its tail.
+function attachedQualifierStatus(before: string, after: string): 'unsupported' | 'approximate' | null {
+  // Fold only the detection copies; keep line boundaries and every raw offset.
+  const prefixView = before.normalize('NFKC').replace(/\p{Cf}/gu, '');
+  const suffixView = after.normalize('NFKC').replace(/\p{Cf}/gu, '');
+  if (SIGNED_PREFIX.test(prefixView)) return 'unsupported';
+  return INDEFINITE_PREFIX.test(prefixView) || APPROXIMATE_PREFIX.test(prefixView) || APPROXIMATE_SUFFIX.test(suffixView) ? 'approximate' : null;
 }
 
 function smallInteger(value: string): bigint | null {
@@ -109,13 +123,13 @@ function remainingNumbers(rawValue: string, index: number, text: string): string
   const count = `[${NUMERALS}]+`;
   return rest.replace(/\d{4}[-/.]\d{1,2}(?:[-/.]\d{1,2})?/gu, '')
     .replace(new RegExp(`${count}\\s*年(?:\\s*${count}\\s*月(?:\\s*${count}\\s*日)?)?`, 'gu'), '')
-    .replace(new RegExp(`${count}(?:\\.\\d+)?\\s*(?:个?月|天|日|小时|分钟|件|名|人|倍|年)`, 'gu'), '');
+    .replace(new RegExp(`${count}(?:\\.\\d+)?\\s*(?:个?月|天|日|小时|分钟|件|(?:个|名|位)(?:工人|员工|劳动者)|名|人|倍|年)`, 'gu'), '');
 }
 
 /** Parse one complete RMB literal with exact cents, preserving the unmodified evidence. */
 export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization {
   if (rawValue.length > MAX_INPUT) return result(rawValue, 'unsupported', '金额原文超过4000字符上限，未尝试解析或截断。');
-  if (FOREIGN.test(rawValue)) return result(rawValue, 'unsupported', '仅支持明确人民币金额，外币、币种冲突和正负范围符号未转换。');
+  if (monetaryExpressionHasUnsupportedCurrency(rawValue) || /±/u.test(rawValue)) return result(rawValue, 'unsupported', '仅支持明确人民币金额，外币、币种冲突和正负范围符号未转换。');
   if (/[％%]|百分之/u.test(rawValue)) return result(rawValue, 'percentage', '比例不能作为精确金额。');
   if (MASKED.test(rawValue)) return result(rawValue, 'masked', '金额未知、未明确或被遮盖；保留原文且不转换为零。');
   if (UNCERTAIN.test(rawValue)) return result(rawValue, 'uncertain', '金额有不确定或待核表述。');
@@ -127,6 +141,9 @@ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization 
   if (matches.length === 1) {
     const match = matches[0], text = match[0].trimStart(), index = match.index + match[0].length - text.length;
     const before = rawValue.slice(0, index).trimEnd(), after = rawValue.slice(index + text.length);
+    const qualifierStatus = attachedQualifierStatus(before, after);
+    if (qualifierStatus) return result(rawValue, qualifierStatus, '完整金额带有数量不定、概数界限或正负限定，未截取其中的精确正数。');
+    if (!isRmbCurrencyUnitAt(rawValue, index + text.search(/[元圆]/u))) return result(rawValue, 'unsupported', '匹配到的元或圆属于普通词语，不能截成金额单位。');
     if (new RegExp(`[${NUMERALS},.，负負+＋\\-－−﹣¥￥]$`, 'u').test(before)
       || new RegExp(`^[${NUMERALS},.，元圆角分整正]`, 'u').test(after)) return result(rawValue, 'unsupported', '完整金额的数字、单位或符号边界不合法，未截取其中有效片段。');
     const rest = remainingNumbers(rawValue, index, text)
@@ -164,16 +181,13 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
       const suffixRate = after.match(/^\s*[/／]\s*(小时|月|日|天|时|件)/u);
       const rateUnits: Record<string, RawCandidateV3['rateUnit']> = { 小时: 'hour', 月: 'month', 日: 'day', 天: 'day', 时: 'hour', 件: 'piece' };
       const rangeBefore = new RegExp(`[${NUMERALS},.，]+\\s*[元圆]?\\s*(?:至|到|[~～—–-])\\s*$`, 'u');
+      const qualifierStatus = attachedQualifierStatus(before, after);
       if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
       else if (suffixRate && (candidate.meaning !== 'rate' || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== rateUnits[suffixRate[1]]))) normalized = result(candidate.value, 'rate_unit_mismatch', '原文紧贴的费率单位与金额角色或候选费率单位冲突。');
       else if (rangeBefore.test(before) || new RegExp(`^\\s*(?:至|到|[~～—–-])\\s*[${NUMERALS}]`, 'u').test(after)) normalized = result(candidate.value, 'range', '当前金额在原文中直接属于区间端点。');
-      else if (/(?:大约|约(?!定|束)|将近|接近|(?<!最)近|超过|不足|至少|至多|不超过|不少于|不低于|不高于|不得少于|不得低于|不得超过|不得高于|上限|下限|最高|最低)(?:为|应付|工资|薪酬|薪资|金额|款项|人民币|计|共|合计|税前|税后|\s)*$/u.test(before)
-        || /^\s*(?:[/／]\s*(?:小时|月|日|天|时|件)\s*)?(?:左右|上下|以上|以下|多|余|起)/u.test(after)) normalized = result(candidate.value, 'approximate', '当前金额在原文中直接附着概数或界限修饰词。');
+      else if (qualifierStatus) normalized = result(candidate.value, qualifierStatus, '当前金额在原文中直接附着数量不定、概数界限或正负限定，未截取为精确正数。');
       else if (/(?:可能|或许|大概|估计|待核|暂计|暂定)(?:为|工资|金额|人民币|\s)*$/u.test(before) || /(?:或|或者)\s*$/u.test(before)
         || new RegExp(`^\\s*(?:或|或者)\\s*[${NUMERALS}]`, 'u').test(after)) normalized = result(candidate.value, 'uncertain', '当前金额在原文中有直接附着的不确定或备选表述。');
-      else if (/(?:负数|負數|负值|負值|[负負+＋\-－−﹣±])\s*$/u.test(before)
-        || /(?:美元|美金|港币|港元|澳元|欧元|日元|英镑|韩元|新加坡元|USD|HKD|AUD|EUR|JPY|GBP|KRW|SGD|[$€£₩])\s*$/iu.test(before)
-        || /^\s*(?:美元|美金|港币|港元|澳元|欧元|日元|英镑|韩元|新加坡元|USD|HKD|AUD|EUR|JPY|GBP|KRW|SGD|[$€£₩])/iu.test(after)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着正负或外币标记。');
       else if (bareValue && !attachedCurrency) normalized = result(candidate.value, 'unsupported', 'value 和当前原文锚点均无明确人民币单位，未猜测这是金额。');
       else if (new RegExp(`[${NUMERALS},.，]$`, 'u').test(beforeBoundary)
         || new RegExp(`[${NUMERALS}][元圆]?\\s*(?:点|又|分之|加上|另加|加|减|乘|除)\\s*$`, 'u').test(beforeBoundary)
@@ -190,17 +204,21 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
  */
 export function classifyMonetaryExpression(value: string): MonetaryExpressionClassification {
   const normalization = normalizeMoneyValueV4(value);
-  const explicit = /人民币|[¥￥]|[元圆]|(?:USD|HKD|AUD|EUR|JPY|GBP|KRW|SGD)|[$€£₩]/iu.test(value)
+  const explicit = /人民币|[¥￥]/u.test(value) || monetaryExpressionHasUnsupportedCurrency(value)
+    || [...value.matchAll(/[元圆圓]/gu)].some(match => isRmbCurrencyUnitAt(value, match.index))
     || new RegExp(`[${NUMERALS}]+[角分](?!钟)`, 'u').test(value);
   if (normalization.status === 'exact' || explicit) return { kind: 'monetary', normalization };
   if (MASKED.test(value) && /工资|薪资|薪酬|金额|款项|欠薪|报酬|劳务费|付款|应付|实付|已付|尚欠|欠款/u.test(value)) return { kind: 'monetary', normalization };
   const count = `[${NUMERALS}]+`;
-  const date = `(?:[${NUMERALS}]+\\s*年(?:\\s*[${NUMERALS}]+\\s*月(?:\\s*[${NUMERALS}]+\\s*日)?)?|\\d{4}[-/.]\\d{1,2}(?:[-/.]\\d{1,2})?)`;
-  const wageStage = `(?:${date}(?:\\s*(?:至|到|[~～—–-])\\s*${date})?|[${NUMERALS}]+月份?|某月|本月|上月|下月|每月|离职前|入职前|入职后|试用期)`;
+  const date = `(?:[${NUMERALS}]+\\s*年(?:\\s*(?:[${NUMERALS}]+月份?|元月份?|元旦)(?:\\s*[${NUMERALS}]+\\s*日)?)?|\\d{4}[-/.]\\d{1,2}(?:[-/.]\\d{1,2})?)`;
+  const wageStage = `(?:${date}(?:\\s*(?:至|到|[~～—–-])\\s*${date})?|[${NUMERALS}]+月份?|元月份?|元旦|某月|本月|上月|下月|每月|离职前|入职前|入职后|试用期)`;
   const wageDescription = new RegExp(`^(?:${wageStage}\\s*)?(?:的)?(?:基本|其他|其余|全部|正常|岗位|绩效|应付|已付|实付|税前|税后)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:合计|总额)?$`, 'u');
   if (wageDescription.test(value.trim()) && !MASKED.test(value)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为工资名称或期间描述，未表述金额。') };
+  const ordinaryWord = /^(?:元月份?|元旦|元宵(?:节)?|元年|元素|元件|元音|[圆圓](?:满|滿|形|圈|周))$/u;
+  const wageCompletion = /^(?:已|已经)?[圆圓][满滿](?:完成)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:发放|支付|结算)(?:工作)?$/u;
+  if (!MASKED.test(value) && (ordinaryWord.test(value.trim()) || wageCompletion.test(value.trim()) || new RegExp(`^${date}$`, 'u').test(value.trim()))) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为日期、普通词语或工资发放描述，未表述金额。') };
   const withoutDatesAndCounts = value.trim().replace(/\d{4}[-/.]\d{1,2}(?:[-/.]\d{1,2})?/gu, '')
-    .replace(new RegExp(`${count}\\s*(?:年|个?月|天|日|小时|分钟|件|名(?:工人|员工|劳动者)?|个?人|位|个|倍|次)`, 'gu'), '')
+    .replace(new RegExp(`${count}\\s*(?:年|个?月|天|日|小时|分钟|件|名(?:工人|员工|劳动者)?|(?:个|位)(?:工人|员工|劳动者)|个?人|位|个|倍|次)`, 'gu'), '')
     .replace(/(?:工资|薪资|薪酬|劳务费|劳动报酬|应付|已付|实付|月薪|日薪|时薪|工作|为|是|按月|按日|发放|支付|劳动者|每月|每年|每|共计|计|[\s，,。:：;；至到])/gu, '');
   if ((!value.trim() || !withoutDatesAndCounts) && !MASKED.test(value)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为日期、普通计数或无金额工资描述。') };
   return { kind: 'undetermined', normalization };

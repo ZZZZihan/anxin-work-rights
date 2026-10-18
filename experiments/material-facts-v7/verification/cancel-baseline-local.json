@@ -1,0 +1,156 @@
+{
+  "status": "PASS",
+  "mode": "fact-cancellation",
+  "boundary": "production Worker HTTP + disposable on-disk D1 SQLite + real material service rules jobs + loopback timeout/503 injection",
+  "actualModelInference": false,
+  "syntheticInputs": true,
+  "recordedAt": "2026-10-18T03:52:03.897Z",
+  "observations": [
+    {
+      "name": "real_15s_http_timeout_erases_fact_text_but_retains_job_id",
+      "status": "PASS",
+      "milliseconds": 15023,
+      "jobRetained": true,
+      "factRowRemoved": true
+    },
+    {
+      "name": "same_owner_noop_after_worker_restart_retries_saved_id_and_deletes_journal",
+      "status": "PASS"
+    },
+    {
+      "name": "company_status_noop_and_ordinary_step_do_not_cancel_active_job",
+      "status": "PASS"
+    },
+    {
+      "name": "real_503_keeps_journal_while_owner_and_case_isolation_preserve_foreign_jobs",
+      "status": "PASS"
+    },
+    {
+      "name": "old_job_journal_retry_cannot_cancel_or_overwrite_new_active_job",
+      "status": "PASS"
+    },
+    {
+      "name": "late_real_http_ready_poll_loses_revision_cas_and_cannot_overwrite_new_extraction",
+      "status": "PASS"
+    },
+    {
+      "name": "sqlite_transaction_rolls_back_case_invalidation_fact_delete_and_journal_together",
+      "status": "PASS"
+    },
+    {
+      "name": "evidence_success_acknowledges_journal_so_later_offline_request_has_no_false_pending",
+      "status": "PASS",
+      "deleteStatus": 200,
+      "deletePending": false,
+      "remoteStatusAfterDelete": 404,
+      "remainingJournalJobs": [],
+      "subsequentRequestStatus": 200,
+      "subsequentPending": false,
+      "unnecessaryDeleteCalls": 0
+    },
+    {
+      "name": "evidence_failed_cancel_retains_id_after_evidence_removal_and_owned_request_retries",
+      "status": "PASS"
+    },
+    {
+      "name": "evidence_ack_deletes_only_captured_owner_case_job_and_preserves_other_queued_tasks",
+      "status": "PASS"
+    },
+    {
+      "name": "missing_foreign_and_repeated_evidence_delete_do_not_cancel_new_active_job",
+      "status": "PASS"
+    },
+    {
+      "name": "evidence_transaction_rollback_preserves_facts_file_and_journal_and_never_cancels_remote_job",
+      "status": "PASS"
+    },
+    {
+      "name": "successful_remote_cancel_with_failed_ack_keeps_pending_and_retries_idempotently",
+      "status": "PASS"
+    },
+    {
+      "name": "all_real_http_deletes_used_private_service_authentication",
+      "status": "PASS",
+      "deleteCalls": 12,
+      "noSecretsRecorded": true
+    }
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "failures": []
+  },
+  "calls": [
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/5a69b4b4-fc03-4829-becd-c581c8890d8c",
+      "mode": "timeout",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/5a69b4b4-fc03-4829-becd-c581c8890d8c",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/1a65c6a5-b8e7-4020-b7ab-67a856cb24dd",
+      "mode": "503",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/1a65c6a5-b8e7-4020-b7ab-67a856cb24dd",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/98d2a074-321f-4423-9511-8823e8716037",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/4569b090-132d-4ce0-80cb-8f6911ef9dc2",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/55c6d5ef-1216-4f49-b9d9-a4e66681ddfb",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/a04d69dc-f2f4-445c-8332-a5b8ec1fe619",
+      "mode": "503",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/a04d69dc-f2f4-445c-8332-a5b8ec1fe619",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/79162c15-32e3-4a60-83af-86575b31be8b",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/ad9b0c56-3b75-478c-a3ec-bc49bf9efa39",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/ad9b0c56-3b75-478c-a3ec-bc49bf9efa39",
+      "mode": "normal",
+      "authenticated": true
+    }
+  ]
+}

@@ -23,6 +23,7 @@ const HORIZONTAL_SPACE = String.raw`[^\S\r\n\u2028\u2029]*`;
 const QUALIFIED_SYMBOL = `(?<![A-Z])(?:[A-Z]\\.?){1,3}${HORIZONTAL_SPACE}${CURRENCY_SYMBOLS}`;
 const JAPANESE_YEN = `(?<![A-Z])J\\.?P\\.?(?:N\\.?)?${HORIZONTAL_SPACE}¥`;
 const FOREIGN_MARKER = `(?:${CURRENCY_NAMES}|${CURRENCY_CODES}|${QUALIFIED_SYMBOL}|${CURRENCY_SYMBOLS}|${CURRENCY_WORDS}|${JAPANESE_YEN})`;
+const FOREIGN_LITERAL = new RegExp(FOREIGN_MARKER, 'iu');
 // NFKC folds fullwidth letters, symbols and punctuation for detection only. A
 // source newline or clause delimiter never becomes a bridge to another event.
 const BRIDGE = String.raw`(?:[^\S\r\n\u2028\u2029]|[:=()\[\]{}【】“”‘’"'])*`;
@@ -37,15 +38,30 @@ const RMB_UNIT = '(?:元(?!旦|宵|年|月|素|件|音)|[圆圓](?!满|滿|形|�
 const RMB_SUFFIX = new RegExp(`^${BRIDGE}(?:人民币|人民幣|(?:CNY|RMB)(?![A-Z])|¥|${RMB_UNIT})`, 'iu');
 const TOKEN_UNIT = new RegExp(`^${RMB_UNIT}`, 'u');
 
+// Detection copies may be folded, but callers keep their original text and
+// offsets. Format controls must not split a visible currency name or unit.
+function currencyText(text: string): string {
+  return text.normalize('NFKC').replace(/\p{Cf}/gu, '');
+}
+
+/** A complete candidate literal may not discard any conflicting currency in
+ * that literal. Source blocks still require the narrower anchored checks below,
+ * so another event cannot lend or invalidate the current event's currency. */
+export function monetaryExpressionHasUnsupportedCurrency(value: string): boolean {
+  return FOREIGN_LITERAL.test(currencyText(value));
+}
+
+/** Test a unit at an original UTF-16 offset without treating the 元 in 元旦 or
+ * the 圆 in 圆满 as currency. The same lexical boundary serves parsing/review. */
+export function isRmbCurrencyUnitAt(value: string, index: number): boolean {
+  return TOKEN_UNIT.test(currencyText(value.slice(index)));
+}
+
 function anchoredMoneyEdges(source: AnchoredMoneySource, normalized: CandidateNormalization) {
   if (!normalized.span) return null;
   const characters = Array.from(normalized.rawValue);
   const start = source.valueStart + characters.slice(0, normalized.span.start).join('').length;
   const end = source.valueStart + characters.slice(0, normalized.span.end).join('').length;
-  // Invisible format controls may split a visible currency name or symbol.
-  // Remove them only in the detection copy; source offsets and line boundaries
-  // remain unchanged, and raw/model text is never rewritten.
-  const currencyText = (text: string) => text.normalize('NFKC').replace(/\p{Cf}/gu, '');
   return {
     before: currencyText(source.blockText.slice(0, start)),
     token: currencyText(source.blockText.slice(start, end)),
@@ -75,7 +91,7 @@ export function sourceMoneyHasExplicitRmbCurrency(source: AnchoredMoneySource, n
   const edges = anchoredMoneyEdges(source, normalized);
   if (!edges) return false;
   const unitInToken = [...edges.token.matchAll(/[元圆圓]/gu)]
-    .some(match => TOKEN_UNIT.test(edges.token.slice(match.index) + edges.after));
+    .some(match => isRmbCurrencyUnitAt(edges.token + edges.after, match.index));
   const inToken = !/[\r\n\u2028\u2029]/u.test(edges.token)
     && (/(?:人民币|人民幣|¥)/u.test(edges.token) || unitInToken);
   return inToken || RMB_PREFIX.test(edges.before) || RMB_SUFFIX.test(edges.after);
