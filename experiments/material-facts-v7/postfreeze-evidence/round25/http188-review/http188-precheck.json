@@ -1,0 +1,173 @@
+{
+  "schema": "anxin.material-facts-v7.http188-fixture-review-precheck.v1",
+  "status": "PRECHECK_PASS_AWAITING_PARENT_AFTER_FINAL",
+  "recorded_at": "2026-10-18T11:54:54.089312+00:00",
+  "reviewer": "v7_data",
+  "role_boundary": "HTTP fixture and evidence review by a non-author of this runner change; reviewer implemented the separate runtime dedup patch, so this is not independent product-implementation review.",
+  "actions": {
+    "read_only_code_and_reports": true,
+    "started_http": false,
+    "built_app": false,
+    "ran_fullcheck": false,
+    "called_models": false,
+    "modified_frozen_objects": false
+  },
+  "inputs": {
+    "scripts/material-facts-v7-http-regression.mjs": {
+      "sha256": "e3fe3582f5972536f83d082ec6b93ced6de4428eb9b858dc61a128a4537cae99",
+      "bytes": 99316
+    },
+    ".scratch/issue42/round24/http182-after-final.json": {
+      "sha256": "3269ada612dac282fedc80e2859e543e91800462ee57d7b6e5338c693734890f",
+      "bytes": 422220
+    },
+    ".scratch/issue42/round25/http188-before-f16.json": {
+      "sha256": "51073b1ee15bd8b5bd7219d029f8c7c51044108982c8fbe5f11c25b2799a98d0",
+      "bytes": 437297
+    },
+    ".scratch/issue42/round25/http188-before-f16.log": {
+      "sha256": "61b242f135ec327a87534579a471b6768c159fec7f729da1dbc33d1828ca4c7b",
+      "bytes": 191
+    },
+    ".scratch/issue42/round25/http186-before-f16.json": {
+      "sha256": "8a7374725d1a4f509750d23ca279a993199944f6cf1c4f780b26b512355e907d",
+      "bytes": 432845
+    },
+    ".scratch/issue42/round25/http186-before-f16.log": {
+      "sha256": "3f29b43234082b89b169994b65dd1ef62102e140752cae134d313445098cf336",
+      "bytes": 191
+    }
+  },
+  "source_inheritance": {
+    "baseline_commit": "f16c59bc08c823538df00d6fa1fd2dbc139cd5a2",
+    "baseline_script_sha256": "a06cdb38380ef37af63657fdff2bc11e93dcceeb9aff5dabab2554b1fbdb8d70",
+    "current_script_sha256": "e3fe3582f5972536f83d082ec6b93ced6de4428eb9b858dc61a128a4537cae99",
+    "only_change": "one 40-line ROUND25 block",
+    "remove_block_restores_baseline_bytes": true,
+    "prior_182_scenario_source_unchanged": true
+  },
+  "observation_inheritance": {
+    "old_report": {
+      "total": 182,
+      "pass": 182,
+      "fail": 0,
+      "cleanup": {
+        "status": "PASS",
+        "failures": []
+      }
+    },
+    "before_report": {
+      "total": 188,
+      "pass": 184,
+      "fail": 4,
+      "cleanup": {
+        "status": "PASS",
+        "failures": []
+      }
+    },
+    "prior_nonrestart_observations_deep_equal": 181,
+    "new_observation_indices_zero_based": [
+      177,
+      178,
+      179,
+      180,
+      181,
+      182
+    ],
+    "new_observations": [
+      {
+        "name": "round25_cropped_whole_terminator_整",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\nnull !== '4000.00'\n"
+        }
+      },
+      {
+        "name": "round25_cropped_whole_terminator_正",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\nnull !== '4000.00'\n"
+        }
+      },
+      {
+        "name": "round25_postposed_rmb_wrapper_false",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n2 !== 1\n"
+        }
+      },
+      {
+        "name": "round25_postposed_rmb_wrapper_true",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n2 !== 1\n"
+        }
+      },
+      {
+        "name": "round25_question-after-whole_remains_unavailable",
+        "status": "PASS",
+        "amount": null,
+        "historicalExactDowngraded": true,
+        "rawAndStoredHistoryUnchanged": true
+      },
+      {
+        "name": "round25_subunit-after-whole-next-block_remains_unavailable",
+        "status": "PASS",
+        "amount": null,
+        "historicalExactDowngraded": true,
+        "rawAndStoredHistoryUnchanged": true
+      }
+    ],
+    "old_restart": {
+      "name": "worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots",
+      "status": "PASS",
+      "checkedCases": 181,
+      "storedRawAndHistoryUnchanged": true,
+      "privateServiceAuthentication": true
+    },
+    "before_restart": {
+      "name": "worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots",
+      "status": "PASS",
+      "checkedCases": 183,
+      "storedRawAndHistoryUnchanged": true,
+      "privateServiceAuthentication": true
+    },
+    "restart_count_interpretation": "Before has 183 stored snapshots: old 181 plus the two new safety controls. Four failing new scenarios do not reach durableSnapshots.push. Restart checks stored state/raw/history equality, not a repeat assertion of every derived amount."
+  },
+  "raw_inheritance": {
+    "old_count": 183,
+    "before_count": 189,
+    "remove_before_indices_zero_based": [
+      178,
+      179,
+      180,
+      181,
+      182,
+      183
+    ],
+    "restored_raw_string_sequence_equal": true,
+    "restored_candidates_and_finish_reason_equal": true,
+    "excluded_dynamic_fields": [
+      "evidenceId",
+      "jobId"
+    ],
+    "raw_sequence_sha256": "562129574502975318d0ab2af239e9fa57c82bc84f9b517372e97c834f118412",
+    "raw_sequence_hash_encoding": "SHA256 of UTF-8 JSON array of raw strings, ensure_ascii=false and separators=(comma,colon)."
+  },
+  "new_fixture_assertion_boundaries": [
+    "整/正: fresh cropped 4000元 becomes exact 4000.00; forced historical unsupported remains unsupported/null and stored raw/history are unchanged.",
+    "Postposed 人民币: same attributes and unique source occurrence in both output orders become one accepted candidate while both candidates stay in raw; GET leaves stored state/history unchanged.",
+    "Question mark and next-TXT-block 5角: fresh candidate amount stays null; forced historical exact is downgraded at read without rewriting stored state/history.",
+    "Shared helpers check original value/quote/representation, Unicode code-point source slice and source hash; shared unconfirmed checks prohibit auto confirmation or calculation."
+  ],
+  "evidence_limitations": [
+    "No real model inference: synthetic candidate outputs are injected into a real local HTTP/Worker/material-service persistence path.",
+    "This reviewer did not launch the reported HTTP runs; conclusions use the script and parent-generated JSON/log artifacts.",
+    "Build source identity is not independently re-established by this precheck; script baseline and report bytes are hashed here.",
+    "Final after report is pending parent completion notification; no final green claim is made."
+  ]
+}

@@ -13,5 +13,8 @@ export default defineConfig([
     'js/**',
     'styles/**',
     'screenshot.py',
+    // Partial historical source snapshots are hash-checked evidence, not app modules.
+    'experiments/material-facts-v7/postfreeze-evidence/round21/source-author/nonimplementer-review-snapshots/**',
+    'experiments/material-facts-v7/postfreeze-evidence/round22/source-author/assess-http160-nonimplementer-snapshots/**',
   ]),
 ]);

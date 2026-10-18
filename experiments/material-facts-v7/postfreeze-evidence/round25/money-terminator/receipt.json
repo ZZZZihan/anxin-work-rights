@@ -1,0 +1,94 @@
+{
+  "task": "ROUND25 PR45 omitted whole-amount terminator safety closure",
+  "baseline_revision": "f16c59bc08c823538df00d6fa1fd2dbc139cd5a2",
+  "baseline_money_sha256": "3896323f62f1a6a58d75d6d6a943478e649432ec22f38c935fd917af9e353acc",
+  "baseline_source_sha256": "fec875b32820a9dd6654a2f69e1ac9e7f3e6bb1fa9a748e2839f1d9c4d556b56",
+  "product_files": {
+    "lib/material-money-v4.ts": "2953a2461a728235a590463ee0a133b2bc59093b70afb6198a02b2854cbeb192",
+    "lib/material-fact-source-review.ts": "b214b4e47fad22463970f0989d5b1b3ebeba487d4a07290bb39c34af03f1c5a5"
+  },
+  "author_test": {
+    "file": "scripts/material-fact-whole-money-terminator.test.mjs",
+    "sha256": "4339b6aac0326e3164ed92910929856a8d5c1c4d22d82b7ac6adcd769b288b3c"
+  },
+  "configuration": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning": "ultra",
+    "actual_model_backend_independently_verified": false,
+    "actual_node": "v26.11.0"
+  },
+  "executions": [
+    {
+      "log": "before-f16.actual.log",
+      "tests": 162,
+      "pass": 122,
+      "fail": 40,
+      "exit_code": 1,
+      "scope": "Exact f16 products with original first162 author bytes; actual pre-fix red."
+    },
+    {
+      "log": "after-first.actual.log",
+      "tests": 162,
+      "pass": 148,
+      "fail": 14,
+      "exit_code": 1,
+      "scope": "First minimal money-only ending exception introduced actual unsafe question/layout continuations. Retained, not final success."
+    },
+    {
+      "log": "after-safety.actual.log",
+      "tests": 162,
+      "pass": 162,
+      "fail": 0,
+      "exit_code": 0,
+      "scope": "Both final product files, original first162 author bytes."
+    },
+    {
+      "log": "before-f16.final342.actual.log",
+      "tests": 342,
+      "pass": 298,
+      "fail": 44,
+      "exit_code": 1,
+      "scope": "Exact same final342 author bytes against exact f16 product files."
+    },
+    {
+      "log": "after-expanded.actual.log",
+      "tests": 342,
+      "pass": 342,
+      "fail": 0,
+      "exit_code": 0,
+      "scope": "Final author342 against exact f16 lib plus only the two product overlays."
+    },
+    {
+      "log": "key-guards.final.actual.log",
+      "tests": 706,
+      "pass": 706,
+      "fail": 0,
+      "exit_code": 0,
+      "scope": "Six named old guard suites, exact f16 lib/scripts/assess plus only the two product overlays; see command JSON."
+    },
+    {
+      "log": "lint.actual.log",
+      "exit_code": 0,
+      "scope": "ESLint only the two product files and new author script; empty stdout/stderr."
+    }
+  ],
+  "api": {
+    "name": "hasUnsafeWholeMoneyContinuation",
+    "signature": "(candidate: Pick<RawCandidateV3, 'meaning' | 'rateUnit'>, normalized: CandidateNormalization, after: string): boolean",
+    "semantics": "Checks one existing 整/正 terminator at a complete token edge; detection-only tail reuses existing numeric/currency/rate/range/qualifier/arithmetic/uncertainty guards. No amount calculation or raw/span mutation."
+  },
+  "preserved": [
+    "Original raw JSON, candidate representation/value/quote and source SHA",
+    "Supplementary Unicode and code-point quote start/end",
+    "No storage/history mutation during read review",
+    "Unavailable historical amount remains unavailable; new parsing does not auto-upgrade old null",
+    "Supported month/day/hour/piece rate distinction and separate-person event controls",
+    "Original fixedf16 and all intermediate failures remain append-only evidence"
+  ],
+  "limitations": [
+    "Synthetic native author checks and old regression execution are implementation self-checks, not nonimplementer review or real-case acceptance.",
+    "No HTTP, npm fullcheck, CI, model generation, training, deployment, git commit/push or freeze/result rewrite was performed here.",
+    "The finite existing marker grammar is not a claim of complete Chinese semantic coverage. Cropped values with additional prose after the terminator retain the prior conservative behavior unless existing guards already support them.",
+    "Parent and independent reviewer own final integration, Node24/HTTP verification and nonimplementer acceptance."
+  ]
+}

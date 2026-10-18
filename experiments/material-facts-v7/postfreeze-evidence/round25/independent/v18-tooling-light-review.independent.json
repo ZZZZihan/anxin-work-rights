@@ -1,0 +1,54 @@
+{
+  "schema": "material-facts-v7-independent-light-tooling-review/1",
+  "status": "PASS_WITH_EXECUTION_LIMITS",
+  "reviewer_implemented_these_tools": false,
+  "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+  "reviewed_sha256": {
+    "experiments/material-facts-v7/historical-v17-execution.mjs": "3387bb340948a120053c54312768cfa59fa04a60dd89cfba505693405f40e744",
+    "experiments/material-facts-v7/verify-correction-v17.mjs": "225faac1a51942996572fa51ca83e3d10a7c7df383401f80077ada49effb53fa",
+    "experiments/material-facts-v7/corrective-assessment-v18.mjs": "96859be7b86c3cdb4cc43b860399728420a3e8c58679b0e60442483e42fae7fe",
+    "scripts/material-facts-v7-historical-v17-execution.test.mjs": "aaec728b399622609e1946d8ed9910a91ed778da0dbe10849afc4877350b6565",
+    "scripts/material-facts-v7-correction-v17-gates-independent.test.mjs": "7ef7ebc91438f50b064838fa296c5f1c5b9769e87cc0e863d8678a1d4e76a325",
+    "scripts/material-facts-v7-correction-v18-gates-independent.test.mjs": "05c103f86b52ab08960dd1f6bcecb68c5b257215e1dccf9eb7566fe546ff5584"
+  },
+  "historical_v17_manifest_sha256": "55ec4fd2dae91d3b0512b3bc0e75284a44008c6388e479d553896abf0db9badd",
+  "archive_count": 70,
+  "archive_exact_file_set_and_bytes": true,
+  "expected_current_v18_union": 73,
+  "old_current_v17_gate_preserved_sha256": "1bbc1305cd508a57b4a59749f099a3add7362d076351c64ef6c1bdebc5b91481",
+  "bridge_version_substitution_only": true,
+  "bridge_version_normalized_diff": "",
+  "native_execution": {
+    "schema": "round25-light-tool-independent-execution/1",
+    "start_utc": "2026-10-18T11:49:23.650694+00:00",
+    "end_utc": "2026-10-18T11:49:24.204047+00:00",
+    "wall_seconds": 0.5531988750444725,
+    "command": [
+      "/Users/xuzihan/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "--test",
+      "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/scripts/material-facts-v7-historical-v17-execution.test.mjs"
+    ],
+    "exit_code": 0,
+    "log_sha256": "45998fa5aab3cc334e114de42d8ecd23c0e71173a0fc6694449cd5b92eadab85",
+    "script_sha256": "aaec728b399622609e1946d8ed9910a91ed778da0dbe10849afc4877350b6565",
+    "deep_historical_chain_executed": false,
+    "model_calls": 0
+  },
+  "static_findings": [],
+  "static_scope": [
+    "v18 first restores and verifies archived v17 via its exact read-only narrow bridge, then computes current acceptance from unchanged original outputs once",
+    "new bridge retains immutable v1 900s absolute budget, 2s child reserve, native exec and receipt ownership; does not widen older target whitelist",
+    "new v18 gate binds 73 dependencies, 70-source restoration and callback cleanup, plus actual CLI byte refusal; not executed before formal v18 artifact exists",
+    "converted historical v17 gate checks archived bytes, preserves current gate snapshot, and runs the archived CLI via the narrow bridge; no actual deep execution in this review"
+  ],
+  "not_executed": [
+    "v18 --write",
+    "v18 --check",
+    "v18 actual five gates",
+    "historical deep chain",
+    "model",
+    "HTTP",
+    "full npm check"
+  ],
+  "configuration_review": "archival-config-boundary-review.final.independent.json"
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "material-facts-v7-runtime-only-independent-review/1",
+  "status": "PASS",
+  "exit_code": 0,
+  "script_sha256": "7f28f4fd6c4dc7e7fa0fdb8e6b5b4b1bfd6e18944d5bdf0f1306ff4bc714a2de",
+  "runtime_sha256": "cbf7c724c30568ed1c5640410d6027baaed47503a4a09b7e39ed4e2ff0bd2bbc",
+  "baseline_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/.scratch/round25-fixed-f16",
+  "overlay": "only DATA final runtime-ingest.ts over exact f16 lib",
+  "command": [
+    "/Users/xuzihan/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "--test",
+    "--test-name-pattern",
+    "one unique occurrence|different equal-value|ambiguous repeated|ordinary narrative",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs"
+  ],
+  "elapsed_seconds": 0.19015666597988456,
+  "stdout_sha256": "cb02d4ac59935924974d9f594baae139fd45a4a04e360de2e9239f036f1061bf",
+  "source_diff": "--- fixed-f16/lib/material-fact-runtime-ingest.ts\n+++ data-final/lib/material-fact-runtime-ingest.ts\n@@ -66,7 +66,7 @@\n       // Sharing an exact parsed amount does not make an arbitrary narrative a\n       // duplicate of its minimal literal. Only these finite wrappers may nest.\n       return /^\\s*(?:(?:人民[币幣]|RMB|CNY|[¥￥])\\s*)?$/iu.test(before)\n-        && /^\\s*(?:整|正)?\\s*(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\\s*)?$/u.test(after);\n+        && /^\\s*(?:整|正)?\\s*(?:(?:人民[币幣]|RMB|CNY)\\s*)?(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\\s*)?$/iu.test(after);\n     });\n     // A non-unique quote/value has no proven occurrence identity. Retain every\n     // such observation for review instead of deduplicating a fallback position.\n",
+  "static_findings": [],
+  "static_scope": [
+    "Only after-wrapper regexp changes from f16; unique source occurrence, same normalization/status/issues and attributes remain required",
+    "Optional RMB denomination is ordered after optional 整/正 and before the existing finite wage suffix; arbitrary narrative, conflict currency and non-overlapping source events cannot collapse"
+  ],
+  "not_claimed": [
+    "terminal normalization fix",
+    "new model quality",
+    "HTTP or restart",
+    "whole current CODE integration"
+  ],
+  "temporary_overlay_removed": true
+}

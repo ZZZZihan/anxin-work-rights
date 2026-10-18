@@ -1,0 +1,11 @@
+# 第二十五轮：有限整正终止词与后置人民币同源去重
+
+固定旧应用f16c59bc08c823538df00d6fa1fd2dbc139cd5a2，CI39123689400成功；新两项P2仍需独立复现，不能用绿CI或过时标记判定解决。v17已不可变发布，manifest55ec4fd2dae91d3b0512b3bc0e75284a44008c6388e479d553896abf0db9badd；独立216分区/70当前/67历史/原60、实际5门禁均通过，作为ARTIFACT_PASS_APPLICATION_BLOCKED检查点保留。当前70份代码逐字归档到correction-code-v17，修后将另存v18，不覆盖原结果。
+
+裁掉4000元整/正的终止词误拒实际定位在money-v4候选边界；仅修改source-review会漏完整quote或违背历史不升级政策。作者首版虽恢复正例，但检查发现整正后的问号以及邻块角分/单位/未知等14条新误放，已保留中间失败并阻止集成；最终必须继续验证同族原防护。后置人民币包装只在同唯一发生位置与相同属性下去重，不按数值跨事件折叠，raw重复序列保留。
+
+同186项初始HTTP固定f16为182通过4失败、cleanup通过；4失败精确为整/正fresh金额null和两种RMB输出顺序各接受两个候选。后续在同一脚本再加入问号和邻块5角的守护正控，最终188项前后对照另留日志，不把不同场景数混成一组比较。旧182保留。
+
+实验整合的首次完整检查在typecheck因两个不完整历史源码快照目录失败，原日志保存于round24/root-code/integrated-root-full-check-final.log。仅将round21/source-author/nonimplementer-review-snapshots与round22/source-author/assess-http160-nonimplementer-snapshots从应用TS/ESLint入口排除；档案原字节、路径与哈希保留，真实应用和可执行实验工具不排除。修后限定typecheck和lint退出0，独立列集复核另留回执。该调整不改评分、代码绑定或历史执行政策。
+
+未新增模型请求、训练、合并或生产部署；自然材料覆盖和非专家标注限制保持。最终回归、整合、v18与CI结果完成后追加。

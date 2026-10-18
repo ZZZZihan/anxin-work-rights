@@ -1,0 +1,245 @@
+{"evidence":"round25_wrapper_source","path":"lib/material-money-v4.ts","sha256":"3896323f62f1a6a58d75d6d6a943478e649432ec22f38c935fd917af9e353acc"}
+{"evidence":"round25_wrapper_source","path":"lib/material-fact-source-review.ts","sha256":"fec875b32820a9dd6654a2f69e1ac9e7f3e6bb1fa9a748e2839f1d9c4d556b56"}
+{"evidence":"round25_wrapper_source","path":"lib/material-fact-runtime-ingest.ts","sha256":"fdc82090ed1bc739cc753658492d6711b56eeef5c583aee925669f7058bb8262"}
+{"evidence":"round25_terminal_observation","terminal":"整","layout":"same","quoteNormalization":null,"observations":[{"quote":"4000元","fresh":null,"storedExact":null,"storedUnsupported":null},{"quote":"😀王甲工资4000元整。","fresh":null,"storedExact":null,"storedUnsupported":null}]}
+{"evidence":"round25_terminal_observation","terminal":"整","layout":"newline","quoteNormalization":"not-applicable","observations":[{"quote":"4000元","fresh":"4000.00","storedExact":"4000.00","storedUnsupported":null},{"quote":"😀王甲工资4000元\n整。","fresh":"4000.00","storedExact":"4000.00","storedUnsupported":null}]}
+{"evidence":"round25_terminal_observation","terminal":"整","layout":"block","quoteNormalization":"not-applicable","observations":[{"quote":"4000元","fresh":"4000.00","storedExact":"4000.00","storedUnsupported":null},{"quote":"😀王甲工资4000元","fresh":"4000.00","storedExact":"4000.00","storedUnsupported":null}]}
+{"evidence":"round25_terminal_observation","terminal":"正","layout":"same","quoteNormalization":null,"observations":[{"quote":"4000元","fresh":null,"storedExact":null,"storedUnsupported":null},{"quote":"😀王甲工资4000元正。","fresh":null,"storedExact":null,"storedUnsupported":null}]}
+{"evidence":"round25_terminal_observation","terminal":"正","layout":"newline","quoteNormalization":"not-applicable","observations":[{"quote":"4000元","fresh":"4000.00","storedExact":"4000.00","storedUnsupported":null},{"quote":"😀王甲工资4000元\n正。","fresh":"4000.00","storedExact":"4000.00","storedUnsupported":null}]}
+{"evidence":"round25_terminal_observation","terminal":"正","layout":"block","quoteNormalization":"not-applicable","observations":[{"quote":"4000元","fresh":"4000.00","storedExact":"4000.00","storedUnsupported":null},{"quote":"😀王甲工资4000元","fresh":"4000.00","storedExact":"4000.00","storedUnsupported":null}]}
+✖ cropping only a whole-amount terminal preserves the amount without history upgrade: 整/same (45.5325ms)
+✔ cropping only a whole-amount terminal preserves the amount without history upgrade: 整/newline (6.698458ms)
+✔ cropping only a whole-amount terminal preserves the amount without history upgrade: 整/block (1.93875ms)
+✖ cropping only a whole-amount terminal preserves the amount without history upgrade: 正/same (2.278584ms)
+✔ cropping only a whole-amount terminal preserves the amount without history upgrade: 正/newline (1.884791ms)
+✔ cropping only a whole-amount terminal preserves the amount without history upgrade: 正/block (1.917625ms)
+✔ actual omitted subunits and malformed continuations remain null, while full subunits stay precise (4.056458ms)
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: 人民币false (2.570083ms)
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: 人民币true (1.056917ms)
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: 人民幣false (1.086542ms)
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: 人民幣true (1.094458ms)
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: RMBfalse (1.168292ms)
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: RMBtrue (0.891584ms)
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: CNYfalse (0.888625ms)
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: CNYtrue (0.914208ms)
+✔ different equal-value events retain both postposed wrappers in the same or separate blocks (1.422291ms)
+✔ ambiguous repeated quotes and different assertions do not borrow wrapper deduplication (1.184625ms)
+✔ ordinary narrative around an amount is not a permitted finite wrapper (0.978333ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 8
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 170.470417
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-round25-wrapper-independent.test.mjs:48:3
+✖ cropping only a whole-amount terminal preserves the amount without history upgrade: 整/same (45.5325ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  null !== '4000.00'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs:62:35)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '4000.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round25-wrapper-independent.test.mjs:48:3
+✖ cropping only a whole-amount terminal preserves the amount without history upgrade: 正/same (2.278584ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  null !== '4000.00'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs:62:35)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '4000.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round25-wrapper-independent.test.mjs:85:3
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: 人民币false (2.570083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round25-wrapper-independent.test.mjs:85:3
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: 人民币true (1.056917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round25-wrapper-independent.test.mjs:85:3
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: 人民幣false (1.086542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round25-wrapper-independent.test.mjs:85:3
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: 人民幣true (1.094458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round25-wrapper-independent.test.mjs:85:3
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: RMBfalse (1.168292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round25-wrapper-independent.test.mjs:85:3
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: RMBtrue (0.891584ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round25-wrapper-independent.test.mjs:85:3
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: CNYfalse (0.888625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round25-wrapper-independent.test.mjs:85:3
+✖ one unique occurrence with a postposed RMB wrapper collapses in both orders: CNYtrue (0.914208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round25-wrapper-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

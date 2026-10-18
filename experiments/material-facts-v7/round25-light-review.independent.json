@@ -1,0 +1,90 @@
+{
+  "schema": "material-facts-v7-round25-light-review/1",
+  "status": "LIGHT_REVIEW_COMPLETE_APPLICATION_PENDING",
+  "author": "independent non-implementer",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning_effort": "ultra",
+  "actual_backend_independently_verified": false,
+  "scope": [
+    "Two reported wrapper findings after f16",
+    "Finite terminal continuation safety controls",
+    "v18 tools and narrow historical adaptation",
+    "Exact two archival configuration exclusions"
+  ],
+  "fixed_baseline": {
+    "commit": "f16c59bc08c823538df00d6fa1fd2dbc139cd5a2",
+    "snapshot_record": "fixed-f16-baseline.json",
+    "wrapper_test": {
+      "count": 18,
+      "pass": 8,
+      "fail": 10,
+      "exit": 1,
+      "log": "fixed-f16-wrapper-independent-before-red.txt",
+      "failures": "2 same-clause terminal positives plus 8 postposed RMB dedup positives"
+    },
+    "terminal_safety_test": {
+      "count": 8,
+      "pass": 6,
+      "fail": 2,
+      "exit": 1,
+      "log": "fixed-f16-terminal-safety-independent-before.txt",
+      "meaning": "Six existing unsafe-continuation guards already pass; two independent-event terminal positives expose the same existing crop rejection. These are controls, not new safety-fix benefits."
+    }
+  },
+  "dedup_only_overlay": {
+    "runtime_sha256": "cbf7c724c30568ed1c5640410d6027baaed47503a4a09b7e39ed4e2ff0bd2bbc",
+    "tests": 11,
+    "pass": 11,
+    "exit": 0,
+    "only_ingest_over_exact_f16": true,
+    "receipt": "postposed-rmb-dedup-independent-overlay-review.json"
+  },
+  "tools": {
+    "receipt": "v18-tooling-light-review.independent.json",
+    "native_tests": 7,
+    "pass": 7,
+    "archive_exact_paths": 70,
+    "expected_current_union": 73,
+    "deep_chain_executed": false,
+    "v18_artifacts_published": false
+  },
+  "config": {
+    "receipt": "archival-config-boundary-review.final.independent.json",
+    "excluded_exact_directories": 2,
+    "excluded_ts_files_observed": 5,
+    "retained_archival_files_sha256_checked": 11,
+    "parent_original_six_ts_count_corrected": true,
+    "active_product_files_remain_included": true
+  },
+  "script_contract": {
+    "wrapper_count": 18,
+    "terminal_safety_count": 8,
+    "scripts_locked": true,
+    "scoped_eslint_exit_codes": [
+      0,
+      0
+    ]
+  },
+  "invariants": [
+    "Synthetic original raw output and representations retained",
+    "Original source quote CP positions retained including astral Unicode",
+    "Fresh accepted candidate distinguished from amount availability",
+    "Stored unsupported amounts never upgraded and stored exact unsafe values downgraded",
+    "No confirmation and canCalculate=false",
+    "Different events, ambiguous locations and different assertions retain candidates"
+  ],
+  "pending": [
+    "Final MONEY/source implementation and real CODE integration",
+    "Final 26 tests under Node24 and Node26 on CODE",
+    "Final source-diff review and application closure"
+  ],
+  "not_executed": [
+    "model/inference",
+    "HTTP/Worker",
+    "build",
+    "full npm check",
+    "v18 write/check or actual five gates",
+    "commit/push/merge/deploy"
+  ],
+  "blocking_findings_at_this_stage": "Two reported product findings are reproduced; first unsafe MONEY patch was rejected by its author/root. No final integrated product conclusion yet. No new independent tool/config/dedup-only blocker found."
+}

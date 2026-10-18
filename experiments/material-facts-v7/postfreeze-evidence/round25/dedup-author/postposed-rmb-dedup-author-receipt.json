@@ -1,0 +1,133 @@
+{
+  "schema": "material-fact-postposed-rmb-dedup-author/1",
+  "reviewed_at_utc": "2026-10-18T11:49:08.176661+00:00",
+  "review_thread": "PRRT_kwDOVApLyM6tqFW3",
+  "role": "author synthetic actual runtime/store checks, not independent or human business acceptance",
+  "requested_model": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "baseline": {
+    "commit": "f16c59bc08c823538df00d6fa1fd2dbc139cd5a2",
+    "runtime_sha256": "fdc82090ed1bc739cc753658492d6711b56eeef5c583aee925669f7058bb8262",
+    "CODE_lib_matches_commit_after_tests": true
+  },
+  "changed_files_sha256": {
+    "lib/material-fact-runtime-ingest.ts": "cbf7c724c30568ed1c5640410d6027baaed47503a4a09b7e39ed4e2ff0bd2bbc",
+    "scripts/material-fact-postposed-rmb-dedup.test.mjs": "4261b7d25792e7c4a292d0bd0a7d49a9edb11795ecd1e498e5da966a6f815d04"
+  },
+  "patch": {
+    "path": "postposed-rmb-dedup.patch",
+    "sha256": "4cdffa3afd73d353b5e09bd1c82a20a3bb3ffe3c75980aab6531aef046d3c0dd",
+    "runtime_scope": "one suffix-regex line: optional named postfix RMB marker after existing optional 整/正 and before existing finite simplified/traditional wage nouns; no other runtime hunk"
+  },
+  "results": {
+    "final_valid_fixed_old": {
+      "tests": 34,
+      "passed": 16,
+      "failed": 18,
+      "exit_code": 1,
+      "log": "postposed-rmb-dedup-final-valid-fixed-f16-before-red.log",
+      "exact_amount_preconditions_failed": 0
+    },
+    "final_valid_fixed_new": {
+      "tests": 34,
+      "passed": 34,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "postposed-rmb-dedup-final-valid-after-green.log"
+    },
+    "existing_dedup": {
+      "tests": 36,
+      "passed": 36,
+      "failed": 0,
+      "exit_code": 0,
+      "suites": {
+        "original_dedup": 12,
+        "traditional_dedup": 24
+      },
+      "log": "postposed-rmb-dedup-existing-regressions-green.log"
+    },
+    "scoped_lint": {
+      "exit_code": 0,
+      "log": "postposed-rmb-dedup-scoped-lint.log",
+      "notice": "isolated tree has no React package resolution; eslint assumes latest React; no file lint errors"
+    },
+    "syntax": {
+      "runtime_exit_code": 0,
+      "test_exit_code": 0,
+      "log": "postposed-rmb-dedup-syntax.log"
+    }
+  },
+  "intermediate_evidence": [
+    {
+      "log": "postposed-rmb-dedup-fixed-f16-before-red.log",
+      "test_snapshot": "postposed-rmb-dedup-initial-test.mjs.snapshot",
+      "passed": 16,
+      "failed": 18,
+      "note": "Initial test checked counts before exact-value preconditions. Superseded by final valid fixed-old evidence, not deleted."
+    },
+    {
+      "log": "postposed-rmb-dedup-final-test-fixed-f16-before-red.log",
+      "test_snapshot": "postposed-rmb-dedup-intermediate-test.mjs.snapshot",
+      "passed": 16,
+      "failed": 18,
+      "note": "Despite its historical filename, this was an intermediate fixture. Two 整 cases failed exact-value precondition because minimal value omitted 整; do not classify these two as product red."
+    },
+    {
+      "log": "postposed-rmb-dedup-after-green.log",
+      "test_snapshot": "postposed-rmb-dedup-intermediate-test.mjs.snapshot",
+      "passed": 32,
+      "failed": 2,
+      "note": "Despite its filename this log is NOT green. Both failures were the same over-strict fixture expectation; final fixture uses complete minimal 4000元整 and re-runs both fixed-old and fixed-new."
+    }
+  ],
+  "invariants": [
+    "same unique occurrence exact named postfix RMB forms collapse in both output orders",
+    "first accepted representation remains original and both original candidates remain in raw",
+    "different source events, blocks, assertions, ambiguous quotes or repeated value locations remain separate",
+    "conflicting currency keeps amount null and does not become a finite duplicate wrapper",
+    "arbitrary narrative before or after the literal cannot evict its minimal amount",
+    "existing simplified/traditional three wage noun wrappers remain supported",
+    "original source/value/quote/Unicode codepoint positions preserved; actual ingestion store counts and coverage checked",
+    "no automatic confirmation or calculation created; prior state not mutated"
+  ],
+  "reproduction": {
+    "dependency_root": "MATERIAL_FACT_TEST_ROOT=/path/to/exact-f16-checkout",
+    "runtime_override": "MATERIAL_FACT_RUNTIME_MODULE=/path/to/runtime.ts-or-snapshot",
+    "command": [
+      "node",
+      "--test",
+      "scripts/material-fact-postposed-rmb-dedup.test.mjs"
+    ]
+  },
+  "evidence_sha256": {
+    "postposed-rmb-dedup-after-green.log": "6aa44222499679a9e17ed7c0ddf2606a6a464cff1873611b2e75fed1cc86ae8d",
+    "postposed-rmb-dedup-existing-regressions-green.log": "90a88c37a19357991ae3e5a33293c6e76d57311ced5803672d3eb3b8223a6172",
+    "postposed-rmb-dedup-final-test-fixed-f16-before-red.log": "7b96ae29b7bf3f75a12ef3cb217a178fcccf4c9877ec8a326cb60c8a490f2807",
+    "postposed-rmb-dedup-final-valid-after-green.log": "265e85c9fcd158de2739180991bff92402dcd56f5654e886347ab3e2bee44fbe",
+    "postposed-rmb-dedup-final-valid-fixed-f16-before-red.log": "b6c5a384a31357e269da247dfca4bdafc572cf15c95aac3b5dc1b692e1d0369e",
+    "postposed-rmb-dedup-fixed-f16-before-red.log": "47efe22f3255d0cdcc07d7b45c5e474ad343fbaa723be44864dd41ba8d777553",
+    "postposed-rmb-dedup-scoped-lint.log": "272e4c2b0e16e307699713ad6b529510bfa6a765ef48eba689f6f501a403e27f",
+    "postposed-rmb-dedup-syntax.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "runtime": {
+    "node": "v26.11.0",
+    "platform": "macOS arm64"
+  },
+  "model_requests": 0,
+  "training": false,
+  "deployment": false,
+  "git_mutations": false,
+  "ROOT_or_CODE_modified": false,
+  "old_frozen_objects_modified": false,
+  "not_run": [
+    "full repository checks",
+    "HTTP services",
+    "historical CLI chains",
+    "models",
+    "Node24 author execution",
+    "remote CI"
+  ]
+}
