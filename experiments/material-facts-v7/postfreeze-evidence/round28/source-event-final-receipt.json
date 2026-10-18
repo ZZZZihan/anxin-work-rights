@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "task": "issue42-round28-source-date-name-boundaries",
+  "created_at": "2026-10-18T13:45:13.413120+00:00",
+  "base_commit": "b4974a3938b865147aa5714e659a4b19d4a8c771",
+  "requested_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "execution_environment": {
+    "node": "v26.11.0",
+    "platform": "Darwin arm64"
+  },
+  "evidence_class": "Synthetic actual runtime ingestion, read-time review, six-layer source-event scoring regression, scoped native tests and static lint. No model/HTTP/build/full check/history-chain execution.",
+  "baseline_bindings": [
+    {
+      "path": "lib/material-fact-source-review.ts",
+      "sha256": "6faed96dc8f82b2c82b5049469067ffb57593693a6004f882ec9b6f20c2482d5",
+      "provenance": "exact git blob at b4974a3938b865147aa5714e659a4b19d4a8c771"
+    },
+    {
+      "path": "lib/material-fact-event-review.ts",
+      "sha256": "2f7c3bf697df56d7dbf8937bd0762440cb6f7fd1142a720158258d51dd56f4c0",
+      "provenance": "exact git blob at b4974a3938b865147aa5714e659a4b19d4a8c771"
+    },
+    {
+      "path": "experiments/material-facts-v7/assess.mjs",
+      "sha256": "04d16d173e4ab491d91e0a083f07c734b10591f9814296fa30d1464a9116c0c5",
+      "provenance": "exact git blob at b4974a3938b865147aa5714e659a4b19d4a8c771"
+    }
+  ],
+  "modified_products": [
+    {
+      "path": "lib/material-fact-source-review.ts",
+      "sha256": "fd215d6ace9b9b9ce019fd28b5f9f3a4bc35b1e79162a62ca52abc0e31ee5714"
+    },
+    {
+      "path": "lib/material-fact-event-review.ts",
+      "sha256": "cc35b6a597231967c721ca70bc378e6b8877fc23b10a6e5e634a5bc24f15e010"
+    }
+  ],
+  "new_author_test": {
+    "path": "scripts/material-fact-date-name-boundaries.test.mjs",
+    "sha256": "675727858d6109cdaa66a210130fd7baabd826cea85c7105415cc625e9d6088e",
+    "environment": [
+      "MATERIAL_FACT_TEST_ROOT: complete lib plus experiments/material-facts-v7/assess.mjs",
+      "MATERIAL_FACT_PATCH_ROOT: two owned modules",
+      "MATERIAL_FACT_MONEY_PATCH_ROOT: optional new money/range dependency overlay"
+    ]
+  },
+  "dependency_overlay": [
+    {
+      "path": "lib/material-money-v4.ts",
+      "source_worktree": "anxin-facts-v7-money",
+      "sha256": "9418e8552d8af20b3b3da1b389bca74d2288e30549be1b5974df2b25e5bbaacf"
+    },
+    {
+      "path": "lib/material-fact-range-review.ts",
+      "source_worktree": "anxin-facts-v7-money",
+      "sha256": "4bb5f5fa446a8bf5dec309e7faa04c18ee8f3c132893a2bacbc65c3875154723"
+    }
+  ],
+  "changes": [
+    "Fold 後/從/應/須 only in date-detection copies; validate the full literal date boundary. Raw owner/value/quote and Unicode positions remain unchanged.",
+    "Support finite same-owner wage receipt after the date, explicitly bounded wage-payment deadlines and explicit wage-payment cutoff dates. No generic payer/recipient interchange, cropped-boundary or another-owner inference.",
+    "Exempt a bare monthly/daily/hourly-wage match only when it lies exactly inside the end of the unique literal short owner at the clause heading. No subject-based exemption for actual rate words outside that owner or explicit standards.",
+    "Conjunctions inside finite surname/name shapes no longer imply group by themselves. Complete person-fragment coordination, short surname/placeholder coordination and unknown ambiguous short strings remain unresolved; existing owner/period/role gates still apply.",
+    "After a real intermediate regression, all terminal 等/等人 remain collective and explicit collective pronouns remain unresolved. Embedded 王等明 is not rejected merely for an internal 等 glyph.",
+    "A layout-before numeric monetary-unit tail (元/圆/圓/角/分) directly adjoining a new RMB-cents fragment prevents exact tail extraction. Whitespace/Cf may bridge; punctuation, another owner and ordinary units such as 分钟 do not."
+  ],
+  "checks": [
+    {
+      "log": "date-name-fixed-b497-before-red.txt",
+      "sha256": "23f3d7f97911f074bb7ce2dee5203806271dcbcd849641588db3795ffde27dbd",
+      "native_exit_embedded": null,
+      "counts": {
+        "tests": 105,
+        "pass": 62,
+        "fail": 43,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "date-name-first-patch.txt",
+      "sha256": "f3aa1827b2eee05a8c5eea3d8807db94beb1d258cab1d51cb0021e7279cdc09e",
+      "native_exit_embedded": null,
+      "counts": {
+        "tests": 105,
+        "pass": 105,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "date-name-expanded-fixed-b497-before-red.txt",
+      "sha256": "8a3d609f53cae9f2c7f25d5057ff5e7b1d9ed26b7f713b8378dc5886040a3522",
+      "native_exit_embedded": 1,
+      "counts": {
+        "tests": 115,
+        "pass": 72,
+        "fail": 43,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "date-name-expanded-after-green.txt",
+      "sha256": "65795d55d472ff519f75f6e8b217099acd3804f37db02e353ba4df71ccc2f317",
+      "native_exit_embedded": 0,
+      "counts": {
+        "tests": 115,
+        "pass": 115,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "new-subunit-layout-before-probe.txt",
+      "sha256": "64936ece2f4d5cffd707abfcb43e09cdfe4feb62bae25c06078c91c2b6d58279",
+      "native_exit_embedded": 0,
+      "counts": {}
+    },
+    {
+      "log": "date-name-cents-old-source-new-money-before-red.txt",
+      "sha256": "7e44409e0b50130db65ab8e66490f430bfebd5d531c6f7daab1bb30ce3cc15bf",
+      "native_exit_embedded": 1,
+      "counts": {
+        "tests": 125,
+        "pass": 75,
+        "fail": 50,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "date-name-cents-combined-after-green.txt",
+      "sha256": "e137792dd6136af798ff0b78519d5c5d072c9e854a7d5a8352a1885ce614f7b8",
+      "native_exit_embedded": 0,
+      "counts": {
+        "tests": 125,
+        "pass": 125,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "key-source-event-regressions-green.txt",
+      "sha256": "9779c8649a71e7f9ebaef037f6710223ac66c8cb3e2cabd040509605f3411aee",
+      "native_exit_embedded": 0,
+      "counts": {
+        "tests": 506,
+        "pass": 506,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "scoped-eslint-final.txt",
+      "sha256": "33260493e768b191caad0a33582801bf815c58b5fb284ed26eabfa33cc9f9a56",
+      "native_exit_embedded": 0,
+      "counts": {}
+    },
+    {
+      "log": "author-syntax-final.txt",
+      "sha256": "4aface1326f8e99fa4b727ef1d1b3e9384e47b7d819334b2526c96115bccb9f3",
+      "native_exit_embedded": 0,
+      "counts": {}
+    },
+    {
+      "log": "collective-closure-fixed-b497-probe.txt",
+      "sha256": "59a385d3525c9297267ea944cdf381284cadfab20381fd57e624cedabbc44afb",
+      "native_exit_embedded": 1,
+      "counts": {
+        "tests": 26,
+        "pass": 12,
+        "fail": 14,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "collective-closure-intermediate125-before-red.txt",
+      "sha256": "0fe4d36b06b4f4144188e88a59eab0806e684719f54835191af3e1ccd87927d8",
+      "native_exit_embedded": 1,
+      "counts": {
+        "tests": 26,
+        "pass": 0,
+        "fail": 26,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "date-name-collective-final151-green.txt",
+      "sha256": "7ba4e7c77277d274703d5e986202e83f8eb58fa218fb5d5e67da23286e616e73",
+      "native_exit_embedded": 0,
+      "counts": {
+        "tests": 151,
+        "pass": 151,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "collective-final-key-regressions-green.txt",
+      "sha256": "e1330449dbec31a0ae1e1d0db5761064fe7408bfdf4f90b7f2b45e0aa36f2a2c",
+      "native_exit_embedded": 0,
+      "counts": {
+        "tests": 506,
+        "pass": 506,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "log": "collective-final-scoped-eslint.txt",
+      "sha256": "4aface1326f8e99fa4b727ef1d1b3e9384e47b7d819334b2526c96115bccb9f3",
+      "native_exit_embedded": 0,
+      "counts": {}
+    },
+    {
+      "log": "collective-final-author-syntax.txt",
+      "sha256": "4aface1326f8e99fa4b727ef1d1b3e9384e47b7d819334b2526c96115bccb9f3",
+      "native_exit_embedded": 0,
+      "counts": {}
+    }
+  ],
+  "stage_results": {
+    "original105_fixed_b497": {
+      "pass": 62,
+      "fail": 43
+    },
+    "first_patch105": {
+      "pass": 105,
+      "fail": 0
+    },
+    "expanded115_fixed_b497": {
+      "pass": 72,
+      "fail": 43
+    },
+    "patched115": {
+      "pass": 115,
+      "fail": 0
+    },
+    "cents125_old_source_event_new_money": {
+      "pass": 75,
+      "fail": 50
+    },
+    "intermediate125": {
+      "pass": 125,
+      "fail": 0
+    },
+    "new_collective26_fixed_b497": {
+      "pass": 12,
+      "fail": 14
+    },
+    "new_collective26_intermediate_event114041": {
+      "pass": 0,
+      "fail": 26
+    },
+    "final151": {
+      "pass": 151,
+      "fail": 0
+    },
+    "final_existing_regressions": {
+      "pass": 506,
+      "fail": 0
+    },
+    "final_syntax_exit": 0,
+    "final_eslint_exit": 0
+  },
+  "failure_classification": {
+    "postposed_receipt_control": "王甲于2026年1月15日收到工资 already passed b497; retained as green control, never reported as a newly fixed failure.",
+    "collective_suffix": "王等/甲等/王等人 12 money/date full/cropped tests passed b497, failed the intermediate event114041, and pass final. This was a real patch-introduced regression.",
+    "collective_pronouns": "他们/她们/我们/你们/大家/各位/诸位 14 money/date tests failed both original b497 and the intermediate patch. This was an existing gap, not introduced by the name patch.",
+    "new_cents_capability": "The new money dependency plus old source review leaked exact0.02 for blocks 5角 / 2分RMB in both fresh and forced historical exact paths. Same-block money guard was already null. The new source boundary closes only the cross-layout gap.",
+    "score_boundary": "The cropped tail cannot borrow another equal-amount source event: TP0/FP1/FN1 in every one of six layers; production amount null. No formal label, scoring semantics or model result was changed."
+  },
+  "limitations": [
+    "Finite name grammar does not verify a real identity; complex and ambiguous layouts retain review warnings.",
+    "Author tests and teammate technical review are not human/legal business acceptance.",
+    "Stages use expanded fixtures. Original105/115/125 logs and intermediate125 source/test bytes are preserved separately; final151 is not retroactively claimed for older code.",
+    "No ROOT/CODE product edit, frozen artifact/label/output edit, model request, HTTP/build/full check/history-chain run or commit/push was performed."
+  ],
+  "patch": {
+    "path": "source-event-collective-final.patch",
+    "sha256": "5573c6eafa677cf6136f9036366a88758e606df6f3596580daf3ed45e23ff17d"
+  },
+  "intermediate125_files": [
+    {
+      "path": "intermediate-125/lib/material-fact-event-review.ts",
+      "sha256": "114041f777f516baed78df4ec1086d2b8c06e4d0a9e957f28e1c32e57e1a6c82"
+    },
+    {
+      "path": "intermediate-125/lib/material-fact-source-review.ts",
+      "sha256": "fd215d6ace9b9b9ce019fd28b5f9f3a4bc35b1e79162a62ca52abc0e31ee5714"
+    },
+    {
+      "path": "intermediate-125/scripts/material-fact-date-name-boundaries.test.mjs",
+      "sha256": "8af425e3a95d28f86c03682f6db0c9f9395aade0bfdbff3cf384016b1ecf4d16"
+    }
+  ],
+  "review_status": "Author complete; teammates have separate non-implementer static/targeted review evidence; parent owns integrated verification."
+}

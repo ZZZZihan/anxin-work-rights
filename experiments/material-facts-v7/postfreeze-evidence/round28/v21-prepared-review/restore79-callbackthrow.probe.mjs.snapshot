@@ -1,0 +1,35 @@
+// Nonimplementer lightweight probe. No history CLI or model execution.
+import assert from 'node:assert/strict';
+import { readFile, access } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const root = process.cwd(), E = 'experiments/material-facts-v7';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const { withCorrectionV20Code } = await import(pathToFileURL(resolve(root, E, 'verify-correction-v20.mjs')));
+const protectedPaths = [`${E}/freeze.json`, `${E}/result-manifest.json`, `${E}/corrections/manifest.json`,
+  ...Array.from({ length: 19 }, (_, index) => `${E}/corrections-v${index + 2}/manifest.json`),
+  `${E}/correction-code-v20/manifest.json`, `${E}/historical-execution-policy-v1.mjs`,
+  `${E}/historical-execution-v1.mjs`, `${E}/historical-v19-execution.mjs`];
+const before = Object.fromEntries(await Promise.all(protectedPaths.map(async path => [path, hash(await readFile(resolve(root, path)))])));
+const archived = JSON.parse(await readFile(resolve(root, E, 'corrections-v20/manifest.json')));
+const code = JSON.parse(await readFile(resolve(root, E, 'correction-code-v20/manifest.json')));
+assert.equal(Object.keys(archived.code_sha256).length, 79);
+assert.deepEqual(code.files, archived.code_sha256);
+let owned, restored = 0;
+const marker = new Error('Synthetic nonimplementer callback failure');
+await assert.rejects(withCorrectionV20Code(async temporary => {
+  owned = temporary;
+  for (const [path, sha] of Object.entries(archived.code_sha256)) {
+    assert.equal(hash(await readFile(resolve(temporary, path))), sha, path);
+    restored++;
+  }
+  throw marker;
+}, root), error => error === marker);
+assert(owned);
+await assert.rejects(access(owned), { code: 'ENOENT' });
+for (const [path, sha] of Object.entries(before)) assert.equal(hash(await readFile(resolve(root, path))), sha, path);
+console.log(JSON.stringify({ status: 'PASS', restored,
+  scope: '79 archived bytes restored, callback error identity retained, owned temp removed, protected ROOT bytes unchanged',
+  corrections_v20_manifest_sha256: before[`${E}/corrections-v20/manifest.json`], protected_before_after: before,
+  model_requests: 0, history_CLI_executed: false, current_v21_assessment_executed: false }, null, 2));

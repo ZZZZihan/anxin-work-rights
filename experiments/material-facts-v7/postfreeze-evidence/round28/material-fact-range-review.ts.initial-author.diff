@@ -1,0 +1,20 @@
+--- b497/lib/material-fact-range-review.ts
++++ authors-initial/lib/material-fact-range-review.ts
+@@ -7,7 +7,7 @@
+ const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;
+ // Explicit ordinary continuations keep their word boundary; other unknown prose
+ // remains conservative. Do not exempt genuine lower bounds such as 起价.
+-export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|以上|以下|以内|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
++export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|以上(?!\\s*(?:海|述|文|表|班))|以下(?!\\s*(?:列|述|文|表))|以内(?!\\s*(?:部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵))|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
+ 
+ /** Fold a detection copy only; never use this text for source positions. */
+ export function moneyQualifierDetectionView(text: string): string {
+@@ -26,7 +26,7 @@
+ // duration, so the shorthand branch below is only reached after explicit RMB.
+ const SUBUNIT_WORD_END = '(?!钟|鐘|米|秒|期|段|类|類|析|工|配|组|組|角|度)';
+ const SUBUNITS = `(?:${NUMBER}${SPACE}角(?:${SPACE}${NUMBER}${SPACE}分)?|${NUMBER}${SPACE}分)(?:整|正)?${SUBUNIT_WORD_END}`;
+-const EXPLICIT_SUBUNIT = `(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}${CURRENCY}${SPACE}(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}${SUBUNITS}${SUFFIX}`;
++const EXPLICIT_SUBUNIT = `(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}(?:${CURRENCY}${SPACE}(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}${SUBUNITS}|${SUBUNITS}${SPACE}${CURRENCY})${SUFFIX}`;
+ const AMOUNT = `(?:${EXPLICIT_SUBUNIT}|${PREFIX}${VALUE}(?:${UNIT})?(?:${SPACE}${CURRENCY}){0,2}${SUFFIX})`;
+ // The second endpoint needs its own unit or the existing context-bound 万/亿
+ // shorthand. A year, duration, person or arbitrary prose is never an endpoint.

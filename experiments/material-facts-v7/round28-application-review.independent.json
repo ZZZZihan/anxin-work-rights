@@ -1,0 +1,186 @@
+{
+  "schema": "material-facts-v7-round28-application-independent-review/1",
+  "created_at": "2026-10-18T13:53:00.729663+00:00",
+  "status": "SCOPED_APPLICATION_TECHNICAL_REVIEW_PASS",
+  "reviewer_role": "non-implementer of all four ROUND28 product changes; independent tests, dynamic reproduction and technical review",
+  "requested_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "baseline_commit": "b4974a3938b865147aa5714e659a4b19d4a8c771",
+  "application_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "9418e8552d8af20b3b3da1b389bca74d2288e30549be1b5974df2b25e5bbaacf",
+    "lib/material-fact-range-review.ts": "4bb5f5fa446a8bf5dec309e7faa04c18ee8f3c132893a2bacbc65c3875154723",
+    "lib/material-fact-source-review.ts": "fd215d6ace9b9b9ce019fd28b5f9f3a4bc35b1e79162a62ca52abc0e31ee5714",
+    "lib/material-fact-event-review.ts": "cc35b6a597231967c721ca70bc378e6b8877fc23b10a6e5e634a5bc24f15e010"
+  },
+  "associated_unchanged_sha256": {
+    "lib/material-fact-currency-review.ts": "be4f151b5e588dc6cf1c35d30948d836a380a24ab6bb6497cc860abf7b68fde5",
+    "lib/material-fact-runtime-ingest.ts": "cbf7c724c30568ed1c5640410d6027baaed47503a4a09b7e39ed4e2ff0bd2bbc",
+    "experiments/material-facts-v7/assess.mjs": "04d16d173e4ab491d91e0a083f07c734b10591f9814296fa30d1464a9116c0c5"
+  },
+  "scripts": {
+    "scripts/material-facts-v7-round28-independent.test.mjs": "e8eb40194d0c42210492171f62230fc7ac48f0693503a56b6940fe9d4307a025",
+    "scripts/material-facts-v7-round28-name-cross-independent.test.mjs": "ce877a9a06f059a43210135dd3fb2f0769459147dd4bc325cc7600700a3a41cf"
+  },
+  "review_scope": [
+    {
+      "finding": "4307145471",
+      "behavior": "Explicit single postposed named RMB pure subunits normalize exactly; bare subunits are not promoted."
+    },
+    {
+      "finding": "4307145475",
+      "behavior": "Complete traditional 為 percentage labels are nonmoney and rejected while raw remains; actual money-plus-percentage formula is retained unavailable."
+    },
+    {
+      "finding": "4307145477",
+      "behavior": "Finite traditional date boundary words keep their original literal semantics and source/quote code-point positions."
+    },
+    {
+      "finding": "4307145478",
+      "behavior": "Calendar payment deadline layout is supported; ordinary 于...收到工资 is a baseline-positive control, not claimed as a new defect."
+    },
+    {
+      "finding": "4307145482/4307145483",
+      "behavior": "Precisely bounded complete worker names ending 月/日/时 do not masquerade as a rate; an untrusted expanded model subject cannot swallow a true 每月 rate."
+    },
+    {
+      "finding": "4307145486",
+      "behavior": "Finite single-name conjunctions can resolve, while coordinated subjects and explicit collectives retain individual relation review."
+    },
+    {
+      "finding": "4307145489",
+      "behavior": "Finite ordinary 以下列/以上海/以内部 continuations do not become monetary bounds; actual bound expressions remain unavailable."
+    },
+    {
+      "cross": "new postposed-RMB cents tail",
+      "behavior": "Same-clause/adjacent-block numeric monetary-unit prefix blocks 2分RMB from being exposed as 0.02 when it is the tail of 5角2分; punctuation, other owner or 5分钟 stops the bridge."
+    },
+    {
+      "cross": "intermediate collective regression",
+      "behavior": "王等 and 甲等 are collective, 王等明 is an embedded-name positive; author26 read-only checks distinguish 12 introduced regressions from 14 existing collective-pronoun omissions."
+    }
+  ],
+  "independent_dynamic_evidence": {
+    "baseline_core_30": {
+      "node24": "11 pass / 19 fail / exit1",
+      "node26": "11 pass / 19 fail / exit1",
+      "logs": "postfreeze-evidence/round28/baseline-valid-node*.execution.json"
+    },
+    "baseline_collective_cross_3": {
+      "node24": "2 pass / 1 fail / exit1",
+      "node26": "2 pass / 1 fail / exit1"
+    },
+    "intermediate_event114_cross_3": {
+      "node24": "1 pass / 2 fail / exit1",
+      "node26": "1 pass / 2 fail / exit1",
+      "event_sha256": "114041f777f516baed78df4ec1086d2b8c06e4d0a9e957f28e1c32e57e1a6c82",
+      "meaning": "Actual introduced terminal-collective regression, retained independently from original baseline bugs."
+    },
+    "final_actual_code_combined_33": [
+      {
+        "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+        "scripts_sha256": {
+          "scripts/material-facts-v7-round28-independent.test.mjs": "e8eb40194d0c42210492171f62230fc7ac48f0693503a56b6940fe9d4307a025",
+          "scripts/material-facts-v7-round28-name-cross-independent.test.mjs": "ce877a9a06f059a43210135dd3fb2f0769459147dd4bc325cc7600700a3a41cf"
+        },
+        "node": "/Users/xuzihan/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "version": "v24.19.0",
+        "started_at": "2026-10-18T13:47:57.737011+00:00",
+        "elapsed_seconds": 0.2940780409844592,
+        "exit_code": 0,
+        "counts": {
+          "tests": 33,
+          "pass": 33,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        },
+        "stdout_sha256": "8f822837c0611096950185edc6a9c9c89fc2482e677c8a1e8cff0a1e3001578e",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model_calls": 0,
+        "http_calls": 0,
+        "historical_chain_calls": 0
+      },
+      {
+        "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+        "scripts_sha256": {
+          "scripts/material-facts-v7-round28-independent.test.mjs": "e8eb40194d0c42210492171f62230fc7ac48f0693503a56b6940fe9d4307a025",
+          "scripts/material-facts-v7-round28-name-cross-independent.test.mjs": "ce877a9a06f059a43210135dd3fb2f0769459147dd4bc325cc7600700a3a41cf"
+        },
+        "node": "/opt/homebrew/bin/node",
+        "version": "v26.11.0",
+        "started_at": "2026-10-18T13:47:57.737307+00:00",
+        "elapsed_seconds": 0.5327919159899466,
+        "exit_code": 0,
+        "counts": {
+          "tests": 33,
+          "pass": 33,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        },
+        "stdout_sha256": "f46e5a2b574823dbcb0b827e011bd173f1c6ebcffd301c113b887950074abb89",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "model_calls": 0,
+        "http_calls": 0,
+        "historical_chain_calls": 0
+      }
+    ],
+    "counting": "33 synthetic test cases, executed once per runtime; not 66 independent materials and not a model-accuracy estimate. Baseline30 and cross3 were separate processes, so any 13P20F total is only their arithmetic sum.",
+    "scope_guards": [
+      "Original raw JSON and rejected candidate retention.",
+      "Exact original value/quote and Unicode code-point offsets.",
+      "Fresh ingest and forced historical-exact display downgrade where required.",
+      "Historical unsupported/null records do not upgrade automatically.",
+      "Two monetary event positions do not lend six-layer basic/relational/strict raw/accepted credit.",
+      "No fact confirmation or calculation authorization is created.",
+      "Complete single amounts and real supported rates, calendar payments, real bounds and independent payment events are positive controls."
+    ]
+  },
+  "static_review": {
+    "blocking_findings": [],
+    "decisions": [
+      "Pure-subunit parser requires exactly one named RMB prefix XOR postfix; repeated edge markers cannot silently yield a fragment. Numeric monetary-unit before a cropped tail is guarded in both unique quote normalization and full layout source review.",
+      "The new qualifier exceptions are finite ordinary continuation boundaries, not global deletion of bound words. Shared range endpoint detection follows the same RMB subunit syntax.",
+      "Name-ending-unit exception requires unique literal heading and constrained complete short-name shape. Explicit rate standards and real unit text after the owner retain existing guards.",
+      "Shared collectiveSubject is applied before individual date/amount attribution, terminal 等/等人 and finite whole collective pronouns are rejected before any conjunction-name relaxation.",
+      "Date-only glyph folding and complete calendar payment-layout bridge operate on detection copies after raw anchors are located. Original source/subject/value/positions are not rewritten."
+    ],
+    "collective26_readonly_evidence": "postfreeze-evidence/round28/collective-26-readonly-review.independent.json",
+    "lint": "Two locked independent scripts passed CODE scoped ESLint, exit0, empty output."
+  },
+  "preservation": {
+    "checked_paths": 7,
+    "all_unchanged_before_after": true,
+    "evidence": "postfreeze-evidence/round28/final-code-33-protected.json",
+    "baseline_80_files_unchanged": "postfreeze-evidence/round28/baseline-valid-protected.json",
+    "frozen_results_or_labels_modified": false,
+    "product_edited_by_reviewer": false,
+    "model_calls": 0,
+    "http_calls": 0,
+    "deep_historical_chain_calls": 0
+  },
+  "failure_record_policy": {
+    "initial_percentage_fixture": "Initial source lacked named subject and compared an internal code with a human-readable rejection reason. Initial logs/snapshot retained but those three fixture failures are not product evidence; corrected fixed-baseline logs are the valid red proof.",
+    "authors_initial_overlay_filename": "The authors-initial overlay already contained final event cc35; filename does not designate the bad event114 intermediate. Its explicit recorded hashes govern interpretation.",
+    "prior_full_check": "The v20 full integration exit1/1137.956s/6811P50F1skip remains failed evidence. Solo5 diagnostic PASS did not erase it; this limited review does not declare the later concurrency=2 full check successful."
+  },
+  "v21_tooling_light_review": {
+    "evidence": "postfreeze-evidence/round28/v21-light-tooling-review.independent.json",
+    "native_execution": "7 actual synthetic native subprocess tests PASS, no deep historical chain",
+    "archive_count": 79,
+    "future_current_count": 82,
+    "formal_v21_artifact_checked": false,
+    "deep_gates_executed": false
+  },
+  "boundaries": [
+    "No HTTP, CI, full check, formal v21 scoring artifact, model inference or human business/legal acceptance was performed for ROUND28 by this reviewer. Parent full check and final HTTP were still pending at handoff.",
+    "The DATA26 author logs were independently read against the guard, not rerun as this reviewer's 26 tests. Own three-case cross test was actually run.",
+    "Finite name/conjunction/payment/ordinary-word rules are technical acceptance envelopes, not proof of identity or a general Chinese parser. Ambiguous source contexts can still require manual review.",
+    "An accepted candidate, an exact derived amount, an individually supported fact and calculation authorization are distinct; no legal factual accuracy or computation readiness is asserted.",
+    "No unbounded new vocabulary scan was undertaken. No product/old receipt/frozen artifact was changed and no commit/push/merge/deploy occurred."
+  ]
+}

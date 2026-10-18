@@ -1,0 +1,24 @@
+from pathlib import Path
+import subprocess,os,time,json,datetime,hashlib,concurrent.futures,re,sys
+own=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+ev=own/'postfreeze-evidence/round28'
+root=Path(sys.argv[1]); label=sys.argv[2]
+script=own/'scripts/material-facts-v7-round28-independent.test.mjs'
+def digest(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def protected():return {str(p.relative_to(root)):digest(p) for p in sorted(root.rglob('*')) if p.is_file()} if '.scratch/round28-' in str(root) else {p:digest(root/p) for p in ['lib/material-money-v4.ts','lib/material-fact-range-review.ts','lib/material-fact-source-review.ts','lib/material-fact-event-review.ts','lib/material-fact-currency-review.ts','lib/material-fact-runtime-ingest.ts','experiments/material-facts-v7/assess.mjs']}
+before=protected()
+def run(tag,node):
+ stem=ev/(label+'-'+tag); env={**os.environ,'V7_REVIEW_ROOT':str(root)}
+ at=datetime.datetime.now(datetime.timezone.utc).isoformat(); started=time.monotonic()
+ with stem.with_suffix('.stdout.txt').open('xb') as out,stem.with_suffix('.stderr.txt').open('xb') as err:
+  r=subprocess.run([node,'--test','--test-reporter=tap',str(script)],env=env,stdout=out,stderr=err)
+ stdout=stem.with_suffix('.stdout.txt').read_text()
+ counts={name:int(re.findall(r'^# '+name+r' (\d+)$',stdout,re.M)[-1]) for name in ['tests','pass','fail','cancelled','skipped']}
+ receipt={'root':str(root),'script':str(script),'script_sha256':digest(script),'node':node,'version':subprocess.check_output([node,'--version'],text=True).strip(),'started_at':at,'elapsed_seconds':time.monotonic()-started,'exit_code':r.returncode,'counts':counts,'stdout_sha256':digest(stem.with_suffix('.stdout.txt')),'stderr_sha256':digest(stem.with_suffix('.stderr.txt')),'model_calls':0,'http_calls':0}
+ stem.with_suffix('.execution.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n')
+ return receipt
+with concurrent.futures.ThreadPoolExecutor(2) as pool:
+ for result in pool.map(lambda pair:run(*pair),[('node24','/Users/xuzihan/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node'),('node26','/opt/homebrew/bin/node')]):print(json.dumps(result,ensure_ascii=False))
+after=protected()
+(ev/(label+'-protected.json')).write_text(json.dumps({'before':before,'after':after,'unchanged':before==after},indent=2)+'\n')
+assert before==after

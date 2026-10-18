@@ -1,0 +1,82 @@
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -45,7 +45,7 @@
+ const YUAN_TAIL = `[元圆圓](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`;
+ // New alternatives require an explicit named RMB currency. A bare 5角/2分
+ // remains unsupported; no time/measure unit is inferred to be money.
+-const TOKEN = new RegExp(`(?:${RMB_NAME}\\s*${SUBUNITS}(?:整|正)?|${LITERAL_NUMBER}\\s*(?:${YUAN_TAIL}\\s*)?${RMB_NAME}|(?:人民[币幣]\\s*)?[¥￥]?\\s*${LITERAL_NUMBER}\\s*${YUAN_TAIL})`, 'giu');
++const TOKEN = new RegExp(`(?:${RMB_NAME}\\s*${SUBUNITS}(?:整|正)?|${SUBUNITS}(?:整|正)?\\s*${RMB_NAME}|${LITERAL_NUMBER}\\s*(?:${YUAN_TAIL}\\s*)?${RMB_NAME}|(?:人民[币幣]\\s*)?[¥￥]?\\s*${LITERAL_NUMBER}\\s*${YUAN_TAIL})`, 'giu');
+ 
+ function result(rawValue: string, status: CandidateNormalization['status'], reason: string, match?: { text: string; index: number; amount: string }): CandidateNormalization {
+   return { rawValue, status, amount: match?.amount ?? null, matchedText: match?.text ?? null,
+@@ -170,7 +170,13 @@
+ }
+ 
+ function parseExplicitRmbSubunits(text: string): string | null {
+-  const match = text.match(new RegExp(`^${RMB_NAME}\\s*(?:([0-9${SINGLE_DIGIT}])角(?:([0-9${SINGLE_DIGIT}])分)?|([0-9${SINGLE_DIGIT}])分)(?:整|正)?$`, 'iu'));
++  const prefix = text.match(new RegExp(`^${RMB_NAME}\\s*`, 'iu'));
++  const postfix = text.match(new RegExp(`\\s*${RMB_NAME}$`, 'iu'));
++  // Exactly one explicit currency edge belongs to this complete subunit token.
++  // Only the parsing copy is sliced; returned spans still include its marker.
++  if (!!prefix === !!postfix) return null;
++  const literal = prefix ? text.slice(prefix[0].length) : text.slice(0, postfix!.index).trimEnd();
++  const match = literal.match(new RegExp(`^(?:([0-9${SINGLE_DIGIT}])角(?:([0-9${SINGLE_DIGIT}])分)?|([0-9${SINGLE_DIGIT}])分)(?:整|正)?$`, 'u'));
+   return match ? amountWithSubunits(0n, match[1], undefined, match[2] ?? match[3]) : null;
+ }
+ 
+@@ -179,6 +185,9 @@
+   const rest = (rawValue.slice(0, index) + '\u0000' + rawValue.slice(index + text.length)).normalize('NFKC');
+   const count = `[${NUMERALS}]+`;
+   return rest.replace(/\d{4}[-/.]\d{1,2}(?:[-/.]\d{1,2})?/gu, '')
++    // 陆 is also a financial numeral; the complete ordinary 内陆 word does
++    // not introduce a second number after an already anchored amount.
++    .replace(/内[陆陸]/gu, '')
+     .replace(new RegExp(`${count}\\s*年(?:\\s*${count}\\s*月(?:\\s*${count}\\s*日)?)?`, 'gu'), '')
+     .replace(new RegExp(`${count}(?:\\.\\d+)?\\s*(?:个?月|天|日|小时|分钟|秒|件|(?:个|名|位)(?:工人|员工|劳动者)|名|人|倍|年)`, 'gu'), '');
+ }
+@@ -223,6 +232,8 @@
+     // token is anchored. Returned evidence and code-point spans use text/rawValue.
+     let parseText = text.replace(/^人民幣/u, '人民币').replace(/圓/gu, '圆').replace(/萬/gu, '万').replace(/億/gu, '亿').replace(/兩/gu, '两').replace(/[貳參陸]/gu, glyph => ({ 貳: '贰', 參: '叁', 陸: '陆' })[glyph]!);
+     const subunitAmount = parseExplicitRmbSubunits(parseText);
++    if (subunitAmount !== null && (new RegExp(`${RMB_NAME}\\s*$`, 'iu').test(before) || new RegExp(`^\\s*${RMB_NAME}`, 'iu').test(after)))
++      return result(rawValue, 'unsupported', '纯角分金额重复附着币种标记，未截取其中一个完整片段。');
+     // A postfix currency label is replaced only in this parse copy, after the
+     // complete original token has been anchored. Never change returned spans.
+     const postfix = parseText.match(new RegExp(`\\s*${RMB_NAME}$`, 'iu'));
+@@ -365,6 +376,7 @@
+         || new RegExp(`^\\s*(?:或|或者)\\s*(?:${RMB_NAME}\\s*)?[${NUMERALS}]`, 'iu').test(after)) normalized = result(candidate.value, 'uncertain', '当前金额在原文中有直接附着的不确定或备选表述。');
+       else if (bareValue && !attachedCurrency) normalized = result(candidate.value, 'unsupported', 'value 和当前原文锚点均无明确人民币单位，未猜测这是金额。');
+       else if (new RegExp(`[${NUMERALS},.，]$`, 'u').test(beforeBoundary)
++        || new RegExp(`[${NUMERALS}]+\\s*[元圆圓角分]$`, 'u').test(beforeBoundary)
+         || new RegExp(`[${NUMERALS}][元圆圓]?\\s*(?:点|又|分之|加上|另加|加|减|乘|除)\\s*$`, 'u').test(beforeBoundary)
+         || /^[,.，]\d/u.test(afterBoundary)
+         || (!attachedYuan && !attachedWholeTerminator && new RegExp(`^[${NUMERALS}元圆圓角分整正]`, 'u').test(afterBoundary))) normalized = result(candidate.value, 'unsupported', 'value 截去了直接相邻的金额数字或角分，未升级为精确金额。');
+@@ -395,7 +407,7 @@
+   // 四万元的50% and unknown ratio prose cannot match and remain reviewable.
+   const ratioNumber = `[+−负負-]?[${NUMERALS}]+(?:[.点][${NUMERALS}]+)?`;
+   const ratioDescription = new RegExp(`^(?:(?:出勤率|出勤比例|支付比例|计发比例|折算比例|比例|百分比)(?:为|是|:)?)?(?:${ratioNumber}%|百分之${ratioNumber})$`, 'u');
+-  if (ratioDescription.test(detection)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为比例或百分比，未表述金额。') };
++  if (ratioDescription.test(detection.replace(/為/gu, '为'))) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为比例或百分比，未表述金额。') };
+   const proportionDescription = new RegExp(`^(?:打)?(?:${ratioNumber}(?:成(?:[0-9零〇一二三四五六七八九半])?|折)|半[成折]|[对對]折)$`, 'u');
+   if (proportionDescription.test(detection)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为成数或折扣，未表述金额。') };
+   const explicit = /人民[币幣]|[¥￥]/u.test(value) || monetaryExpressionHasUnsupportedCurrency(value)
+--- a/lib/material-fact-range-review.ts
++++ b/lib/material-fact-range-review.ts
+@@ -7,7 +7,7 @@
+ const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;
+ // Explicit ordinary continuations keep their word boundary; other unknown prose
+ // remains conservative. Do not exempt genuine lower bounds such as 起价.
+-export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|以上|以下|以内|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
++export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|以上(?!\\s*(?:海|述|文|表|班))|以下(?!\\s*(?:列|述|文|表))|以内(?!\\s*(?:部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵))|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
+ 
+ /** Fold a detection copy only; never use this text for source positions. */
+ export function moneyQualifierDetectionView(text: string): string {
+@@ -26,7 +26,7 @@
+ // duration, so the shorthand branch below is only reached after explicit RMB.
+ const SUBUNIT_WORD_END = '(?!钟|鐘|米|秒|期|段|类|類|析|工|配|组|組|角|度)';
+ const SUBUNITS = `(?:${NUMBER}${SPACE}角(?:${SPACE}${NUMBER}${SPACE}分)?|${NUMBER}${SPACE}分)(?:整|正)?${SUBUNIT_WORD_END}`;
+-const EXPLICIT_SUBUNIT = `(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}${CURRENCY}${SPACE}(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}${SUBUNITS}${SUFFIX}`;
++const EXPLICIT_SUBUNIT = `(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}(?:${CURRENCY}${SPACE}(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}${SUBUNITS}|${SUBUNITS}${SPACE}${CURRENCY})${SUFFIX}`;
+ const AMOUNT = `(?:${EXPLICIT_SUBUNIT}|${PREFIX}${VALUE}(?:${UNIT})?(?:${SPACE}${CURRENCY}){0,2}${SUFFIX})`;
+ // The second endpoint needs its own unit or the existing context-bound 万/亿
+ // shorthand. A year, duration, person or arbitrary prose is never an endpoint.
