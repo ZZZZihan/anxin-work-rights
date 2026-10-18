@@ -27,10 +27,14 @@ const recurringPaymentDate = /^每月(?:[1-9]|[12][0-9]|3[01]|[一二三四五�
 // subject/period offsets are located. No source text or candidate is rewritten.
 const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总', 額: '额', 計: '计', 實: '实', 幣: '币', 圓: '圆', 稅: '税', 間: '间', 補: '补', 貼: '贴', 預: '预', 賠: '赔', 償: '偿', 決: '决', 給: '给', 單: '单', 標: '标', 準: '准', 費: '费', 時: '时', 領: '领', 為: '为' };
 const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
+// Date-only cue/bridge aliases, after literal owner/value positions are found.
+// Folding never changes the subject, date literal, quote or source offsets.
+const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结' };
+const dateRole = (text: string) => compact(text).replace(/[於職資歸屬間簽訂勞動關終開廠離約發計領實該時為調傷並與結]/gu, glyph => dateGlyphs[glyph]);
 const collectiveSubject = /[、和与與及等]|班[组組]|公司|[单單]位|集[团團]|工人|[员員]工|[劳勞][动動]者|群[体體]|集[体體]|[众眾]人/u;
 
 function dateSide(text: string): { meanings: DateMeaning[]; joins: number } | null {
-  let remaining = compact(text), needsCue = false, joins = 0;
+  let remaining = dateRole(text), needsCue = false, joins = 0;
   const meanings: DateMeaning[] = [];
   while (remaining) {
     const cue = dateCues.map(([meaning, pattern]) => ({ meaning, text: remaining.match(pattern)?.[0] })).find(item => item.text);
@@ -124,11 +128,11 @@ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: stri
     const periodStart = role.indexOf(raw.period);
     if (periodStart < 0 || role.indexOf(raw.period, periodStart + 1) >= 0) return false;
     const bridge = role.slice(0, periodStart).trim();
-    if (!/^(?:(?:一人|本人|个人|的|于|自|从|在)|(?:在[\p{L}\p{N}（）()·]{1,60}(?:公司|单位|工厂|工地|项目部|厂|店))|\s)*$/u.test(bridge)) return false;
+    if (!/^(?:(?:一人|本人|个人|的|于|自|从|在)|(?:在[\p{L}\p{N}（）()·]{1,60}(?:公司|单位|工厂|工地|项目部|厂|店))|\s)*$/u.test(raw.kind === 'date' ? dateRole(bridge) : bridge)) return false;
     role = role.slice(periodStart + raw.period.length);
   }
-  role = raw.kind === 'date' ? compact(role) : moneyRole(role);
-  const attributionText = raw.kind === 'date' ? `${role}${after}` : role;
+  role = raw.kind === 'date' ? dateRole(role) : moneyRole(role);
+  const attributionText = raw.kind === 'date' ? `${role}${dateRole(after)}` : role;
   const receipt = /收到|领取/u.test(attributionText);
   // A payment verb establishes a payer, not the wage beneficiary requested by
   // the extraction contract. Preserve the label but warn if receipt is unsupported.
