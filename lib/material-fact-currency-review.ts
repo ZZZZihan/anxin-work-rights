@@ -31,6 +31,27 @@ const RMB_LABEL = '(?:人民币|人民幣|CNY|RMB|¥|[元圆圓](?:整|正)?)';
 const CURRENCY_BRIDGE = `${BRIDGE}(?:${RMB_LABEL}${BRIDGE})*`;
 const PREFIX = new RegExp(`${FOREIGN_MARKER}${CURRENCY_BRIDGE}$`, 'iu');
 const SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}${FOREIGN_MARKER}`, 'iu');
+const RMB_PREFIX = new RegExp(`(?:人民币|人民幣|(?<![A-Z])(?:CNY|RMB)(?![A-Z])|¥)${BRIDGE}$`, 'iu');
+// A cropped 元 in 元旦 (or 圆 in 圆满) is part of a word, not a unit.
+const RMB_UNIT = '(?:元(?!旦|宵|年|月|素|件|音)|[圆圓](?!满|滿|形|圈|周))';
+const RMB_SUFFIX = new RegExp(`^${BRIDGE}(?:人民币|人民幣|(?:CNY|RMB)(?![A-Z])|¥|${RMB_UNIT})`, 'iu');
+const TOKEN_UNIT = new RegExp(`^${RMB_UNIT}`, 'u');
+
+function anchoredMoneyEdges(source: AnchoredMoneySource, normalized: CandidateNormalization) {
+  if (!normalized.span) return null;
+  const characters = Array.from(normalized.rawValue);
+  const start = source.valueStart + characters.slice(0, normalized.span.start).join('').length;
+  const end = source.valueStart + characters.slice(0, normalized.span.end).join('').length;
+  // Invisible format controls may split a visible currency name or symbol.
+  // Remove them only in the detection copy; source offsets and line boundaries
+  // remain unchanged, and raw/model text is never rewritten.
+  const currencyText = (text: string) => text.normalize('NFKC').replace(/\p{Cf}/gu, '');
+  return {
+    before: currencyText(source.blockText.slice(0, start)),
+    token: currencyText(source.blockText.slice(start, end)),
+    after: currencyText(source.blockText.slice(end)),
+  };
+}
 
 /**
  * Refuse a foreign currency marker directly attached to the anchored monetary
@@ -39,11 +60,23 @@ const SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}${FOREIGN_MARKER}`, 'iu');
  * ¥/￥, 人民币, CNY and RMB retain the existing RMB compatibility policy.
  */
 export function sourceMoneyHasUnsupportedCurrency(source: AnchoredMoneySource, normalized: CandidateNormalization): boolean {
-  if (!normalized.span) return false;
-  const characters = Array.from(normalized.rawValue);
-  const start = source.valueStart + characters.slice(0, normalized.span.start).join('').length;
-  const end = source.valueStart + characters.slice(0, normalized.span.end).join('').length;
-  const before = source.blockText.slice(0, start).normalize('NFKC');
-  const after = source.blockText.slice(end).normalize('NFKC');
-  return PREFIX.test(before) || SUFFIX.test(after);
+  const edges = anchoredMoneyEdges(source, normalized);
+  if (!edges) return false;
+  // A model can retain the yen sign inside value while cropping its JP prefix.
+  // Include the token's leading currency characters when checking that edge.
+  const leadingMarker = edges.token.match(/^(?:人民币|人民幣)?[^\S\r\n\u2028\u2029]*¥/u)?.[0] ?? '';
+  return PREFIX.test(edges.before) || PREFIX.test(edges.before + leadingMarker) || SUFFIX.test(edges.after);
+}
+
+/** A bare number is never evidence of RMB. Only this anchored token or its
+ * immediately attached edges can supply the currency; headers, another event,
+ * and another line must not lend their unit to an otherwise unitless number. */
+export function sourceMoneyHasExplicitRmbCurrency(source: AnchoredMoneySource, normalized: CandidateNormalization): boolean {
+  const edges = anchoredMoneyEdges(source, normalized);
+  if (!edges) return false;
+  const unitInToken = [...edges.token.matchAll(/[元圆圓]/gu)]
+    .some(match => TOKEN_UNIT.test(edges.token.slice(match.index) + edges.after));
+  const inToken = !/[\r\n\u2028\u2029]/u.test(edges.token)
+    && (/(?:人民币|人民幣|¥)/u.test(edges.token) || unitInToken);
+  return inToken || RMB_PREFIX.test(edges.before) || RMB_SUFFIX.test(edges.after);
 }

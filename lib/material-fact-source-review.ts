@@ -2,7 +2,7 @@ import type { FactCandidate, FactSource, FactState } from './material-fact-types
 import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 } from './material-fact-types-v3';
 import { getCandidateRepresentation, isV2Candidate, isV3Candidate, normalizeCandidateValue } from './material-facts-v3.ts';
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
-import { sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
+import { sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { reviewMaterialCoverage } from './material-fact-coverage-review.ts';
 
 /** Runtime source review is deliberately separate from the frozen extraction/evaluation contract. */
@@ -170,6 +170,9 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization))) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着费率单位，与当前总额角色或已声明费率单位冲突，未生成精确金额。', 'rate_unit_mismatch'),
       };
+      else if (!sourceMoneyHasExplicitRmbCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文当前金额没有直接附着人民币币种或金额单位，不能将裸数字推定为人民币金额，请人工核对。', 'unsupported'),
+      };
     }
     if (sourceNormalized.normalization.status === 'rate_unit_mismatch') appendIssue(reviewed, {
       code: 'rate_unit_mismatch', message: '候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。',
@@ -179,7 +182,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       if (isV3Candidate(candidate)) reviewed.normalization = sourceNormalized.amount === null ? {
         ...sourceNormalized.normalization, reason: `源文上下文约束：${sourceNormalized.normalization.reason}`,
       } : unavailableNormalization(candidate, '源文金额规范结果与候选派生金额不一致，未提供金额提示。');
-      appendIssue(reviewed, { code: 'source_amount_context_mismatch', message: '源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对概数、界限、符号或费率单位。' });
+      appendIssue(reviewed, { code: 'source_amount_context_mismatch', message: '源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。' });
     }
   }
   return reviewed;

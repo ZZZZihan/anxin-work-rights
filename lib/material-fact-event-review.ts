@@ -1,4 +1,63 @@
-import type { CandidateNormalization, RawCandidateV3 } from './material-fact-types-v3';
+import type { CandidateNormalization, DateMeaning, RawCandidateV3 } from './material-fact-types-v3';
+
+// Date roles are events, not interchangeable labels for any nearby calendar text.
+// This finite envelope deliberately leaves unsupported prose for human review.
+const dateCues: [DateMeaning, RegExp][] = [
+  ['employment_period', /^(?:解除劳动关系|终止劳动关系|劳动关系解除|劳动关系终止|解除劳动合同|终止劳动合同|劳动合同解除|劳动合同终止|开始工作|参加工作|入职|离职|任职|工作|到岗|上岗|入厂|离岗|离厂|辞职)(?:日(?!期))?/u],
+  ['wage_period', /^(?:(?:工资|薪酬|薪资)(?:(?:所属|归属|覆盖|计发|计薪|对应)(?:期间|月份|期|月)?|支付覆盖(?:期间|期)?|期间)|停工留薪期)/u],
+  ['contract_signing', /^(?:(?:签订|签署|订立|签字|签章)(?:劳动)?合同|(?:劳动)?合同(?:签订|签署|订立|签字|签章)|签约)(?:日(?!期))?/u],
+  ['contract_performance', /^(?:劳动)?合同(?:约定)?(?:履行(?:期间|期)?|有效(?:期间|期)?|期限|生效)(?:日(?!期))?/u],
+  ['payment_date', /^(?:(?:实际)?(?:收到|领取)(?:本期|该期|该笔)?(?:工资|薪酬|薪资)(?:截止日期|截止时间|截止日|日(?!期))?|(?:工资|薪酬|薪资)(?:收到|领取)(?:截止日期|截止时间|截止日|日(?!期))?)/u],
+  ['other_date', /^(?:发生工伤|工伤发生|工伤日期|受伤|调薪生效|工资调整生效|调整工资生效|调薪)(?:日(?!期))?/u],
+];
+const dateNumber = '[0-9〇零一二三四五六七八九十百千两]';
+const calendarDate = `(?:${dateNumber}{2,4}年(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?)?|[0-9]{4}[-/.][0-9]{1,2}(?:[-/.][0-9]{1,2})?)`;
+const shortDate = `(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?|${dateNumber}{1,3}日)`;
+const intervalEnd = `(?:${calendarDate}|${shortDate}|今)`;
+const dateInterval = (start: string) => `(?:自|从|截至|截止至|截止到|截止|到|至)?${start}(?:(?:起)?(?:至|到|—|–|-|~|～)${intervalEnd})?(?:以前|以后|之前|之后|为止|起|止|前|后)?`;
+const completeDate = new RegExp(`^${dateInterval(calendarDate)}$`, 'u');
+// The protocol permits parallel wage periods as one continuous source literal;
+// retain the complete list instead of accepting a cropped first month/range.
+const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及和]${dateInterval(`(?:${calendarDate}|${shortDate})`)})+$`, 'u');
+const compact = (text: string) => text.normalize('NFKC').replace(/\s+/gu, '');
+
+function dateSide(text: string): { meanings: DateMeaning[]; joins: number } | null {
+  let remaining = compact(text), needsCue = false, joins = 0;
+  const meanings: DateMeaning[] = [];
+  while (remaining) {
+    const cue = dateCues.map(([meaning, pattern]) => ({ meaning, text: remaining.match(pattern)?.[0] })).find(item => item.text);
+    if (cue) {
+      meanings.push(cue.meaning); remaining = remaining.slice(cue.text!.length); needsCue = false;
+      continue;
+    }
+    // No boundary words (起/止/前/后/至) here: they must remain in raw.value,
+    // otherwise the model has cropped the date or its interval semantics.
+    const neutral = remaining.match(/^(?:日期|时间|期间|开始|结束|的|于|在|为|是|[:：])/u)?.[0];
+    if (neutral) { remaining = remaining.slice(neutral.length); continue; }
+    const join = remaining.match(/^(?:并且|同时|也是|和|及|与|且|并|亦)/u)?.[0];
+    if (join && meanings.length && !needsCue) {
+      joins++; needsCue = true; remaining = remaining.slice(join.length); continue;
+    }
+    return null;
+  }
+  return needsCue ? null : { meanings, joins };
+}
+
+function hasSupportedDateMeaning(raw: RawCandidateV3, before: string, after: string): boolean {
+  // A cropped year/month/day, a second date outside the candidate, or event prose
+  // hidden inside value must not acquire a role merely because a verb matches.
+  const value = compact(raw.value);
+  if (!completeDate.test(value) && !(raw.meaning === 'wage_period' && completeWageDates.test(value))) return false;
+  const left = dateSide(before), right = dateSide(after);
+  if (!left || !right) return false;
+  const cues = [...left.meanings, ...right.meanings];
+  if (cues.length === 1) return cues[0] === raw.meaning;
+  // The extraction contract explicitly permits two roles for the same calendar
+  // span only when actual employment and wage coverage are both stated together.
+  return cues.length === 2 && left.joins + right.joins === 1
+    && cues.includes('employment_period') && cues.includes('wage_period')
+    && cues.some(meaning => meaning === raw.meaning);
+}
 
 /** Runtime-only acceptance envelope. This is intentionally not a general Chinese parser.
  * A literal occurrence is insufficient evidence of ownership. Unsupported layouts keep
@@ -65,12 +124,11 @@ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: stri
   // A payment verb establishes a payer, not the wage beneficiary requested by
   // the extraction contract. Preserve the label but warn if receipt is unsupported.
   if ((raw.meaning === 'payment' || raw.meaning === 'payment_date' || raw.scope === 'organization'
-    || /支付|付款|给付/u.test(attributionText)) && !receipt) return false;
+    || (raw.kind !== 'date' && /支付|付款|给付/u.test(attributionText))) && !receipt) return false;
   if (raw.kind === 'date') {
-    // A date may itself be the declared period. Do not borrow a separate period
-    // or silently accept a suffix that extends this date into another interval.
-    return /^(?:(?:的|于|自|从|在|为|是|日期|时间|期间|工资|归属|所属|任职|工作|入职|离职|签约|签订|签署|合同|履行|支付|收到|领取)|[:：])*$/u.test(role)
-      && /^(?:(?:入职|离职|任职|工作|签约|签订|签署|合同|履行|支付|收到|领取|工资|所属|发生|工伤|日期|时间|期间|开始|结束|起|止)|\s)*$/u.test(after);
+    // Date-specific cues reject a payer's 支付工资 while allowing the distinct
+    // explicit wage-coverage label 工资支付覆盖期间 without claiming receipt.
+    return hasSupportedDateMeaning(raw, role, after);
   }
   // Finite non-total vocabulary cannot absorb another name, date or amount.
   // This validates attribution only; the stricter complete-total gate is separate.

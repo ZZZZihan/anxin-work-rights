@@ -1,0 +1,13 @@
+# PR40 currency and date source guards: independent review
+
+The final reviewed helpers have no remaining blocking finding within the requested currency/date behavior. Currency SHA-256: `73f8aea84dee183f1b8ee02b21fb7babb1b973d8ac02533470d57f89088c52fb`; final event SHA-256: `6266aa769459619181aeba3cda262efdf8912f8a94a0edc3bccea2254fe4a181`.
+
+During review, an attached foreign-currency bypass was reproduced with `USD\u200B¥8000` / `JP\u200B¥8000`, while the model retained only `¥8000`. The first helper left exact `8000.00` yuan precision displayed even though relationship review withheld total suggestions. Root repaired the detection copy by removing Unicode `Cf` after NFKC; original offsets and line boundaries remain intact. Four independent hard assertions now pass for ZWSP/ZWJ/WORD JOINER prefix and suffix cases. All return null precision with unsupported status and preserve raw/representation. See `/tmp/anxin-pr40-currency-zero-width-regression.json` and its `.mts` runner.
+
+The final root-tree focused selection passed 338/338 across six files: RMB units, foreign-currency crop controls, date events, independent currency/date guards, D1 API recovery/manual confirmation and currency/dedup boundaries. Log: `/tmp/anxin-pr40-currency-date-audit-final.log`. A separate temporary reviewer script passed 38 runtime edge assertions, including final date coverage/parallel-period positives, cropped periods/payer-date negatives and the added lexical-unit controls: `/tmp/anxin-pr40-currency-date-review.json` and `.mts`.
+
+The date role guard binds a complete date value to its own supported event. Mixed roles, different local dates, clipped intervals and bare calendar text receive review issues. Explicit actual employment, wage coverage, signing, performance, receipt and other-date cases remain usable. State/raw/representation remain intact; the executed D1 tests retain manual due=9000 and paid=0 confirmation/calculation, and date tests preserve pre-existing confirmations/audit/explicit zero without schema upgrades.
+
+The initially observed lexical display boundary in `...合计8000元旦发放。` was also corrected by root. Independent retests for 元旦/元宵 with both `8000` and `8000元` crops now return null precision, while the independent ¥ positive controls keep 8000.00. Root's 16 added lexical-unit tests pass as part of the 338-case selection. The guard remains a conservative finite vocabulary, not complete natural-language monetary parsing; unknown complex prose can continue to require human review.
+
+The reviewer changed no production files, frozen builder/types, workflow or Git history. No browser or production service was used; final full-project check remains root-owned. JSON report: `/tmp/anxin-pr40-currency-date-technical-review.json`.
