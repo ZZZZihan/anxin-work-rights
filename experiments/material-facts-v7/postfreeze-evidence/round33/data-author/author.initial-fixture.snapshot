@@ -1,0 +1,108 @@
+// ROUND33: synthetic real-ingest/read-review checks only. No model, HTTP,
+// historical CLI, scorer, build, or frozen material is executed/read.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+const OWN = fileURLToPath(new URL('../', import.meta.url));
+const BASE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
+const PATCH = resolve(process.env.MATERIAL_FACT_PATCH_ROOT || OWN);
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-round33-group-layout-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+await cp(resolve(BASE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+for (const file of ['material-facts-v3.ts', 'material-fact-source-review.ts']) await cp(resolve(PATCH, 'lib', file), resolve(temporary, 'lib', file));
+const load = path => import(pathToFileURL(resolve(temporary, 'lib', path)));
+const { ingestRuntimeCandidates: ingest } = await load('material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates: legacy, buildFactView } = await load('material-facts-v3.ts');
+const { normalizeMoneyValueV4: money } = await load('material-money-v4.ts');
+const { reviewCandidateAgainstSource: review } = await load('material-fact-source-review.ts');
+console.log(JSON.stringify({ node: process.version, implementation: Object.fromEntries(await Promise.all(
+  ['material-facts-v3.ts', 'material-fact-source-review.ts'].map(async name => [name, createHash('sha256').update(await readFile(resolve(temporary, 'lib', name))).digest('hex')]))) }));
+const cpLength = s => Array.from(s).length;
+function check({ texts, value = '4000元', amount = '4000.00', pages, bboxes, blockIndex = 0,
+  full = false, subject = '王甲', group, complete = false, sourceMismatch, unresolvedBoundary }) {
+  const source = { id: 'round33-synthetic', name: '合成币种人数与块边界', sha256: 'a'.repeat(64), analysisRevision: 33, ready: true,
+    blocks: texts.map((text, i) => ({ id: `b${i + 1}`, page: pages?.[i] || 1, text, bbox: bboxes?.[i] || null, confidence: null })) };
+  const quote = full ? texts[blockIndex] : value;
+  const row = { kind: 'money', value, quote, blockId: `b${blockIndex + 1}`, subject, scope: 'individual', meaning: complete ? 'due_total' : 'other_money',
+    completeness: complete ? 'complete' : 'not_applicable', period: complete ? '2026年1月' : null, rateUnit: null, assertion: 'narrated' };
+  const raw = JSON.stringify({ schemaVersion: 3, candidates: [row] });
+  const sourceBefore = structuredClone(source);
+  const state = ingest(emptyFactState(33), source, { raw }, 'synthetic', 'author', '2026-10-19T00:00:00.000Z');
+  assert.equal(state.materials[0].candidates.length, 1, 'Fixture reaches the actual candidate store');
+  assert.equal(state.materials[0].rejected.length, 0);
+  const old = legacy(emptyFactState(33), source, { raw }, 'synthetic', 'author', '2026-10-19T00:00:00.000Z');
+  const candidate = old.materials[0].candidates[0]; assert(candidate);
+  const normalized = money(value); assert.notEqual(normalized.amount, null, 'Standalone literal is a supported amount before source constraints');
+  Object.assign(candidate, { amount: normalized.amount, normalization: normalized });
+  const storedBefore = structuredClone(old);
+  const observed = { fresh: state.materials[0].candidates[0], storedExact: review(candidate, source) };
+  console.log(JSON.stringify({ evidence: 'round33_observation', texts, pages, bboxes, row, observed }));
+  for (const [path, item] of Object.entries(observed)) {
+    assert.equal(item.amount, amount, `${path}: ${JSON.stringify(texts)}`);
+    if (group !== undefined) assert.equal(item.reviewIssues.some(issue => issue.code === 'scope_text_mismatch'), group, `${path}: group warning`);
+    if (sourceMismatch !== undefined) assert.equal(item.reviewIssues.some(issue => issue.code === 'source_amount_context_mismatch'), sourceMismatch);
+    if (unresolvedBoundary) assert.match(item.normalization.reason, /连续|边界/u);
+    assert.deepEqual(item.representation, row); assert.equal(item.quote, quote); assert.equal(item.value, value);
+    const text = texts[blockIndex], start = cpLength(text.slice(0, text.indexOf(quote)));
+    assert.equal(item.start, start); assert.equal(item.end, start + cpLength(quote));
+    assert.equal(Array.from(text).slice(item.start, item.end).join(''), quote);
+    assert.equal(item.sourceSha256, source.sha256);
+  }
+  assert.deepEqual(old, storedBefore, 'Read-time review does not rewrite stored raw/state/history');
+  assert.deepEqual(source, sourceBefore); assert.equal(state.materials[0].raw, raw);
+  assert.deepEqual(state.confirmations, { due: null, paid: null }); assert.equal(state.calculation, null);
+  assert.equal(buildFactView(state, [source]).canCalculate, false);
+  candidate.amount = null; candidate.normalization = { ...normalized, status: 'unsupported', amount: null };
+  const nullBefore = structuredClone(old); assert.equal(review(candidate, source).amount, null); assert.deepEqual(old, nullBefore);
+  return observed;
+}
+for (const value of ['4000人民币', '4000人民幣', '2人民币', '四千人民币', '4000元人民币', '4000RMB', '4000CNY'])
+  for (const full of [false, true]) test(`postposed RMB is not a count ${value} full=${full}`, () => check({
+    texts: [`😀王甲2026年1月全部应付工资合计${value}。`], value, amount: value.startsWith('2') ? '2.00' : '4000.00', full, complete: true, group: false }));
+for (const people of ['2人', '4000人', '两人', '四千人', '2名工人', '三位员工', '全体工人', '王甲班组共2人'])
+  for (const full of [false, true]) test(`a real collective remains a warning ${people} full=${full}`, () => check({
+    texts: [`😀王甲2026年1月${people}全部应付工资合计4000元。`], full, complete: true, group: true }));
+for (const [texts, value, amount, pages] of [
+  [['😀王甲收到4000元', '旦日李乙收到2000元。'], '4000元', '4000.00', [1, 2]],
+  [['😀王甲收到人民币2分', '钟某收到2000元。'], '人民币2分', '0.02', [1, 1]],
+  [['😀王甲收到人民币2分', '钟某2026年1月全部应付工资2000元。'], '人民币2分', '0.02', [1, 1]],
+  [['😀王甲收到人民币2分', '钟某'], '人民币2分', '0.02', [1, 1]],
+  [['😀王甲收到人民币2分', '钟某收到2000元。'], '人民币2分', '0.02', [1, 2]],
+]) for (const full of [false, true]) test(`an independent page or owner cannot finish a compound ${JSON.stringify(texts)} full=${full}`,
+  () => check({ texts, pages, value, amount, full, sourceMismatch: false }));
+for (const [texts, value] of [
+  [['😀王甲收到人民币五角', '星'], '人民币五角'],
+  [['😀王甲收到人民币五角', '星。'], '人民币五角'],
+  [['😀王甲收到人民币2分', '钟'], '人民币2分'],
+  [['😀王甲收到1000元5分', '钟后离开'], '1000元5分'],
+  [['😀王甲收到4000元', '旦'], '4000元'],
+  [['😀王甲收到4000元', '素'], '4000元'],
+  [['😀王甲收到人民币五角\u200b ', '\t 星。'], '人民币五角'],
+]) for (const full of [false, true]) test(`a directly adjacent explicit OCR fragment remains unavailable ${JSON.stringify(texts)} full=${full}`,
+  () => check({ texts, value, full, amount: null }));
+for (const [texts, value] of [
+  [['😀王甲收到人民币五角。', '星。'], '人民币五角'],
+  [['😀王甲收到人民币2分。', '钟某收到2000元。'], '人民币2分'],
+  [['😀王甲收到4000元', '备注：另一劳动者的金额待核。', '旦'], '4000元'],
+]) test(`punctuation or intervening blocks never disappear ${JSON.stringify(texts)}`, () => check({ texts, value, amount: value.includes('五角') ? '0.50' : value.includes('2分') ? '0.02' : '4000.00', sourceMismatch: false }));
+for (const [texts, value] of [
+  [['😀王甲收到4000元', '年终这段尚待辨认'], '4000元'],
+  [['😀王甲收到人民币2分', '钟后仍有其他文字待辨认'], '人民币2分'],
+]) test(`unknown continuity remains unavailable without asserting a compound ${JSON.stringify(texts)}`,
+  () => check({ texts, value, amount: null, unresolvedBoundary: true }));
+for (const [texts, value] of [
+  [['😀王甲收到人民币2分', '钟后离开'], '人民币2分'],
+  [['😀王甲收到人民币五角', '星图待核'], '人民币五角'],
+]) test(`same-row OCR boxes verify an immediate continuation ${JSON.stringify(texts)}`, () => check({ texts, value, amount: null,
+  bboxes: [[0.1, 0.2, 0.3, 0.04], [0.405, 0.2, 0.2, 0.04]] }));
+for (const [texts, value] of [
+  [['😀王甲收到4000元', '5角'], '4000元'],
+  [['😀王甲收到5角', '2分RMB。'], '2分RMB'],
+  [['😀王甲工资4000元乘以', '出勤系数'], '4000元'],
+  [['😀王甲工资4000元至', '5000元'], '4000元'],
+  [['😀王甲工资4000元', '每月15日以外的时间待核'], '4000元'],
+]) test(`other unsafe layout guards are not relaxed ${JSON.stringify(texts)}`, () => check({ texts, value, blockIndex: texts[0].includes(value) ? 0 : 1, amount: null }));

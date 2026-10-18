@@ -1,0 +1,29 @@
+from pathlib import Path
+import os, json, subprocess, time, hashlib
+OWN=Path(__file__).resolve().parents[2]
+# This script lives in OWN/postfreeze-evidence/round33, not in the experiment tree.
+SCRIPT=OWN/'scripts/material-facts-http-round33-identity-independent.test.mjs'
+BASE=Path('/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin-round33-fixed8ac-xsva0nm_')
+CODE=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+NODE=Path('/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node')
+EVIDENCE=Path(__file__).resolve().parent
+sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+for label,root in [('fixed8ac-node24-identity-before',BASE),('candidate-b7ab-node24-identity-after',CODE)]:
+    prefix=EVIDENCE/label
+    assert not prefix.with_suffix('.receipt.json').exists()
+    protected={str(p):sha(p) for p in [SCRIPT,root/'scripts/owned-http-process-group.mjs']}
+    env=os.environ.copy();env['V7_REVIEW_ROOT']=str(root)
+    started=time.time()
+    out=prefix.with_suffix('.stdout.tap');err=prefix.with_suffix('.stderr.log')
+    with out.open('xb') as o,err.open('xb') as e:
+        proc=subprocess.run([str(NODE),'--test',str(SCRIPT)],env=env,stdout=o,stderr=e,timeout=30)
+    same={p:sha(Path(p)) for p in protected}==protected
+    receipt={'schema':'round33-controlled-process-api-independent/1','entrypoint':[str(NODE),'--test',str(SCRIPT)],
+      'node_version':subprocess.check_output([str(NODE),'--version'],text=True).strip(),
+      'root':str(root),'exit_code':proc.returncode,'seconds':round(time.time()-started,6),
+      'protected_before':protected,'protected_unchanged':same,
+      'no_native_processes_or_signals':True,'not_a_kernel_pid_reuse_or_http_test':True,
+      'stdout_sha256':sha(out),'stderr_sha256':sha(err)}
+    prefix.with_suffix('.receipt.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n')
+    print(json.dumps(receipt,ensure_ascii=False))
+    print(out.read_text()[-11000:])

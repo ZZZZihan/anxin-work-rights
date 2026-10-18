@@ -1,0 +1,135 @@
+✖ completed cleanup never inspects or signals a subsequently reused PGID (2.450416ms)
+✖ closed launcher rejects an unrelated reused PGID on linux (0.584708ms)
+✖ closed launcher rejects an unrelated reused PGID on darwin (0.453417ms)
+✔ an inherited owner nonce permits orphan cleanup on linux (0.575416ms)
+✔ an inherited owner nonce permits orphan cleanup on darwin (0.815542ms)
+✖ an exited launcher with inherited open pipes already needs identity verification (0.38525ms)
+✖ forced termination rechecks identity and never falls back to a stale PGID (30.919583ms)
+✖ identity inspection errors do not expose captured environment or send a signal (0.547541ms)
+✖ fresh launch inherits the default environment and adds its own marker (0.508375ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 2
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 84.848667
+
+✖ failing tests:
+
+test at scripts/material-facts-http-round33-identity.test.mjs:42:1
+✖ completed cleanup never inspects or signals a subsequently reused PGID (2.450416ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   [
+  +     -43210,
+  +     'SIGTERM'
+  +   ],
+  +   [
+  +     -43210,
+  +     'SIGKILL'
+  +   ]
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-http-round33-identity.test.mjs:50:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ [ -43210, 'SIGTERM' ], [ -43210, 'SIGKILL' ] ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round33-identity.test.mjs:53:45
+✖ closed launcher rejects an unrelated reused PGID on linux (0.584708ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-http-round33-identity.test.mjs:55:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /identity|termination both failed/u,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round33-identity.test.mjs:53:45
+✖ closed launcher rejects an unrelated reused PGID on darwin (0.453417ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-http-round33-identity.test.mjs:55:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /identity|termination both failed/u,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round33-identity.test.mjs:65:1
+✖ an exited launcher with inherited open pipes already needs identity verification (0.38525ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-http-round33-identity.test.mjs:67:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'ERR_OWNED_HTTP_IDENTITY_UNVERIFIED' },
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round33-identity.test.mjs:70:1
+✖ forced termination rechecks identity and never falls back to a stale PGID (30.919583ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-http-round33-identity.test.mjs:74:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /identity|termination both failed/u,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round33-identity.test.mjs:77:1
+✖ identity inspection errors do not expose captured environment or send a signal (0.547541ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-http-round33-identity.test.mjs:79:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round33-identity.test.mjs:86:1
+✖ fresh launch inherits the default environment and adds its own marker (0.508375ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'ONLY_TEST')
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/scripts/material-facts-http-round33-identity.test.mjs:88:40)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

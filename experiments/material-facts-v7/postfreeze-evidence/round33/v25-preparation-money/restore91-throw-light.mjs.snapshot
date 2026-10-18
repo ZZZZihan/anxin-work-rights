@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const root='/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards';
+const E='experiments/material-facts-v7';
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const {withCorrectionV24Code}=await import(pathToFileURL(resolve(root,E,'verify-correction-v24.mjs')));
+const bytes=await readFile(resolve(root,E,'corrections-v24/manifest.json'));
+const correction=JSON.parse(bytes);
+const archive=JSON.parse(await readFile(resolve(root,E,'correction-code-v24/manifest.json')));
+assert.equal(sha(bytes),'86560d13902cba7458cae1d5c1b9175c01442c404a4d47bd17305950206e795e');
+assert.equal(Object.keys(correction.code_sha256).length,91);
+assert.deepEqual(Object.keys(archive.files).sort(),Object.keys(correction.code_sha256).sort());
+const fixture=await mkdtemp(resolve(tmpdir(),'v25-restore91-light-fixture-'));
+const started=Date.now(); let owned,verified=0;
+const sentinel=new Error('Independent owned callback throw; no historical CLI');
+try {
+  for(const path of ['lib','scripts','docs'])await mkdir(resolve(fixture,path),{recursive:true});
+  await writeFile(resolve(fixture,'package.json'),'{}\n');
+  await mkdir(resolve(fixture,E,'corrections-v24'),{recursive:true});
+  await writeFile(resolve(fixture,E,'corrections-v24/manifest.json'),bytes);
+  await cp(resolve(root,E,'correction-code-v24'),resolve(fixture,E,'correction-code-v24'),{recursive:true});
+  await assert.rejects(withCorrectionV24Code(async temporary=>{
+    owned=temporary;
+    for(const [path,digest]of Object.entries(correction.code_sha256)){
+      assert.equal(sha(await readFile(resolve(temporary,path))),digest,path);verified++;
+    }
+    throw sentinel;
+  },fixture),error=>error===sentinel);
+  assert.equal(verified,91);
+  await assert.rejects(stat(owned),{code:'ENOENT'});
+  assert.equal(sha(await readFile(resolve(root,E,'corrections-v24/manifest.json'))),sha(bytes));
+  for(const[path,digest]of Object.entries(correction.code_sha256))assert.equal(sha(await readFile(resolve(root,E,'correction-code-v24',`${path}.snapshot`))),digest,path);
+  console.log(JSON.stringify({status:'PASS',kind:'independent_light_wrapper_restore_throw',node:process.version,restored_and_verified_files:verified,callback_exception_identity_preserved:true,owned_restore_deleted:true,protected_root_archive_unchanged:true,elapsed_ms:Date.now()-started,historical_cli_executed:false,scorer_executed:false,native_chain_executed:false,model_requests:0}));
+}finally{await rm(fixture,{recursive:true,force:true});}
