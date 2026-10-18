@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { request as httpRequest } from 'node:http';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 import { spawn } from 'node:child_process';
@@ -305,4 +307,165 @@ test('real loopback fact HTTP requires token, blocks browser and arbitrary model
     assert.equal((await fetch(`${service.url}/fact-jobs/${jobId}`, { method: 'DELETE', headers })).status, 200);
     assert.equal((await fetch(`${service.url}/fact-jobs/${jobId}`, { headers })).status, 404);
   } finally { await service.close(); }
+});
+
+
+// Submission IDs are generated and persisted by the caller before HTTP starts.
+// Queue tests control only inference/clock boundaries; HTTP checks use real rules.
+const replayWindow = 31 * 60_000;
+const assertStatus = status => error => error.status === status;
+function deferredFactJobs() {
+  const executions = [];
+  const jobs = createFactJobs(deepseek, (submitted, _, signal) => new Promise(resolve => {
+    executions.push({ source: submitted, signal, finish: () => resolve({ raw: 'original controlled raw', backend: 'deepseek', model: 'fixture', finish_reason: 'stop' }) });
+    signal.addEventListener('abort', () => resolve({ raw: 'discarded after cancel', backend: 'deepseek', model: 'fixture', finish_reason: 'stop' }), { once: true });
+  }));
+  return { jobs, executions };
+}
+
+test('caller job ID: same source retries share queued, running and ready work', async () => {
+  const { jobs, executions } = deferredFactJobs();
+  try {
+    const first = randomUUID(), second = randomUUID(), third = randomUUID();
+    assert.deepEqual(jobs.submit({ source, jobId: first }), { jobId: first });
+    assert.deepEqual(jobs.submit({ source: structuredClone(source), jobId: first }), { jobId: first });
+    jobs.submit({ source, jobId: second }); jobs.submit({ source, jobId: third });
+    assert.equal(jobs.submit({ source, jobId: second }).jobId, second);
+    assert.equal(jobs.submit({ source, jobId: first }).jobId, first);
+    assert.equal(executions.length, 1);
+    assert.throws(() => jobs.submit({ source, jobId: randomUUID() }), assertStatus(429));
+    executions[0].finish(); await flush();
+    assert.equal(jobs.get(first).result.raw, 'original controlled raw');
+    assert.equal(jobs.submit({ source, jobId: first }).jobId, first);
+    assert.equal(executions.length, 2);
+    assert.equal(executions[1].source.id, source.id);
+  } finally { await jobs.close(); }
+});
+
+test('caller job ID: binds all source contents and ignores JSON object key order', async () => {
+  const jobs = createFactJobs(), jobId = randomUUID();
+  try {
+    jobs.submit({ source, jobId });
+    const reordered = Object.fromEntries(Object.entries(source).reverse());
+    reordered.blocks = source.blocks.map(block => Object.fromEntries(Object.entries(block).reverse()));
+    assert.equal(jobs.submit({ source: reordered, jobId }).jobId, jobId);
+    for (const different of [{ ...source, id: 'another-source' }, { ...source, name: 'different metadata' }, { ...source, analysisRevision: 2 }, { ...source, blocks: [{ ...source.blocks[0], text: '应发工资9000元。' }] }]) {
+      assert.throws(() => jobs.submit({ source: different, jobId }), assertStatus(409));
+    }
+    assert.equal(jobs.get(jobId).status, 'ready');
+    await jobs.cancel(jobId);
+    assert.throws(() => jobs.submit({ source: { ...source, id: 'another-source' }, jobId }), assertStatus(409));
+  } finally { await jobs.close(); }
+});
+
+test('caller job ID: unknown and known cancellation block delayed submissions', async () => {
+  const jobs = createFactJobs(), missing = randomUUID(), existing = randomUUID();
+  try {
+    await jobs.cancel(missing);
+    assert.equal(jobs.get(missing), null);
+    assert.throws(() => jobs.submit({ source, jobId: missing }), assertStatus(410));
+    jobs.submit({ source, jobId: existing });
+    await jobs.cancel(existing); await jobs.cancel(existing);
+    assert.equal(jobs.get(existing), null);
+    assert.throws(() => jobs.submit({ source, jobId: existing }), assertStatus(410));
+  } finally { await jobs.close(); }
+});
+
+test('caller job ID: finished-result expiry leaves a full replay-window tombstone', async () => {
+  let time = 0;
+  const jobs = createFactJobs({}, undefined, { now: () => time }), jobId = randomUUID();
+  try {
+    jobs.submit({ source, jobId });
+    time = 5 * 60_000 + 1;
+    assert.equal(jobs.get(jobId), null);
+    assert.throws(() => jobs.submit({ source, jobId }), assertStatus(410));
+    time += replayWindow - 1;
+    assert.throws(() => jobs.submit({ source, jobId }), assertStatus(410));
+    // New IDs remain usable after the bounded retention period.
+    time += 2;
+    assert.equal(jobs.submit({ source, jobId: randomUUID() }).jobId.length, 36);
+  } finally { await jobs.close(); }
+});
+
+test('caller job ID: bounded tombstones reserve cancellation for admitted work', async () => {
+  let time = 0;
+  const jobs = createFactJobs({}, undefined, { now: () => time });
+  const cancelled = Array.from({ length: 1023 }, randomUUID), active = randomUUID(), excess = randomUUID();
+  try {
+    for (const id of cancelled) await jobs.cancel(id);
+    jobs.submit({ source, jobId: active });
+    await assert.rejects(jobs.cancel(excess), assertStatus(429));
+    assert.throws(() => jobs.submit({ source, jobId: randomUUID() }), assertStatus(429));
+    // Capacity pressure must not silently evict an unexpired cancellation.
+    assert.throws(() => jobs.submit({ source, jobId: cancelled[0] }), assertStatus(410));
+    await jobs.cancel(active);
+    assert.equal(jobs.get(active), null);
+    assert.throws(() => jobs.submit({ source, jobId: active }), assertStatus(410));
+    time += replayWindow + 1;
+    await jobs.cancel(excess);
+    assert.equal(jobs.submit({ source, jobId: randomUUID() }).jobId.length, 36);
+  } finally { await jobs.close(); }
+});
+
+test('caller job ID: malformed IDs and unsupported fields do not admit work', async () => {
+  const jobs = createFactJobs();
+  try {
+    for (const jobId of [null, 42, '', 'not-a-uuid', '------------------invalid----------']) {
+      assert.throws(() => jobs.submit({ source, jobId }), assertStatus(400));
+      await assert.rejects(jobs.cancel(jobId), assertStatus(400));
+    }
+    assert.throws(() => jobs.submit({ source, jobId: randomUUID(), backend: 'rules' }), assertStatus(400));
+    const oldCaller = jobs.submit({ source });
+    assert.equal(oldCaller.jobId.length, 36);
+    assert.equal(jobs.get(oldCaller.jobId).status, 'ready');
+  } finally { await jobs.close(); }
+});
+
+test('caller job ID: discarded HTTP submit response is safely retried and bound to source', async () => {
+  const token = 'synthetic-idempotent-service-token'.repeat(2), service = await createMaterialService({ token });
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const post = payload => fetch(`${service.url}/fact-jobs`, { method: 'POST', headers, body: JSON.stringify(payload) });
+  try {
+    const jobId = randomUUID();
+    const discarded = await post({ source, jobId });
+    assert.equal(discarded.status, 202);
+    await discarded.body.cancel();
+    const retried = await post({ source, jobId });
+    assert.equal(retried.status, 202);
+    assert.deepEqual(await retried.json(), { jobId });
+    const result = await (await fetch(`${service.url}/fact-jobs/${jobId}`, { headers })).json();
+    assert.equal(result.status, 'ready'); assert.equal(typeof result.result.raw, 'string');
+    assert.equal((await post({ source: { ...source, id: 'different-source' }, jobId })).status, 409);
+    assert.equal((await fetch(`${service.url}/fact-jobs/${jobId}`, { method: 'DELETE', headers })).status, 200);
+    assert.equal((await fetch(`${service.url}/fact-jobs/${jobId}`, { headers })).status, 404);
+    assert.equal((await post({ source, jobId })).status, 410);
+    assert.equal((await post({ source })).status, 202);
+  } finally { await service.close(); }
+});
+
+test('caller job ID: HTTP cancellation before the complete POST body prevents late creation', async () => {
+  const token = 'synthetic-late-post-token'.repeat(2), service = await createMaterialService({ token });
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const jobId = randomUUID(), body = Buffer.from(JSON.stringify({ source, jobId }));
+  let pending;
+  try {
+    const response = new Promise((resolve, reject) => {
+      pending = httpRequest(`${service.url}/fact-jobs`, { method: 'POST', headers: { ...headers, 'Content-Length': body.length } }, res => {
+        res.resume(); res.once('end', () => resolve(res.statusCode)); res.once('error', reject);
+      });
+      pending.once('error', reject);
+    });
+    pending.write(body.subarray(0, 10));
+    assert.equal((await fetch(`${service.url}/fact-jobs/${jobId}`, { method: 'DELETE', headers })).status, 200);
+    pending.end(body.subarray(10));
+    assert.equal(await response, 410);
+    assert.equal((await fetch(`${service.url}/fact-jobs/${jobId}`, { headers })).status, 404);
+    // Rejected authentication/browser requests must not plant tombstones.
+    const untouched = randomUUID();
+    assert.equal((await fetch(`${service.url}/fact-jobs/${untouched}`, { method: 'DELETE' })).status, 401);
+    assert.equal((await fetch(`${service.url}/fact-jobs/${untouched}`, { method: 'DELETE', headers: { ...headers, Origin: 'https://synthetic.invalid' } })).status, 403);
+    const submitted = await fetch(`${service.url}/fact-jobs`, { method: 'POST', headers, body: JSON.stringify({ source, jobId: untouched }) });
+    assert.equal(submitted.status, 202);
+    assert.equal((await submitted.json()).jobId, untouched);
+  } finally { pending?.destroy(); await service.close(); }
 });

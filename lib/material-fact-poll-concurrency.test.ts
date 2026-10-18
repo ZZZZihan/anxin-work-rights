@@ -50,7 +50,7 @@ function holdPolls(reply: unknown, expected = 2) {
   bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
     if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
     if (init?.method === 'DELETE') return { ok: true };
-    if (path === '/fact-jobs') return { jobId: 'replacement-job' };
+    if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
     const index = releases.length;
     await new Promise<void>(resolve => {
       releases.push(resolve);
@@ -69,7 +69,7 @@ describe('material fact read-side job consumption concurrency', () => {
     bindings.service.mockReset().mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
       if (init?.method === 'DELETE') return { ok: true };
-      if (path === '/fact-jobs') return { jobId: 'fact-job' };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
       return { status: 'ready', result: { raw, backend: 'controlled-test-fixture', model: null } };
     });
     mf = new Miniflare(convertV4MiniflareOptions({ modules: true, script: 'export default { fetch() { return new Response("disposable fact test"); } };', compatibilityDate: '2026-09-11', d1Databases: ['DB'] }));
@@ -116,7 +116,7 @@ describe('material fact read-side job consumption concurrency', () => {
     const states = await Promise.all(responses.map(response => response.json() as Promise<MaterialFactsResponse>));
     expect(states[0]).toEqual(states[1]);
     expect(states[0].revision).toBe(started.revision + 1);
-    expect(states[0].state.job).toMatchObject({ id: 'fact-job', status: 'failed', error: 'synthetic extraction failure' });
+    expect(states[0].state.job).toMatchObject({ id: started.state.job!.id, status: 'failed', error: 'synthetic extraction failure' });
     expect(states[0].state.materials).toEqual([]);
     expect(bindings.service.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(1);
     expect((await act(states[0], { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);

@@ -3,7 +3,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { convertV4MiniflareOptions, Miniflare } from 'miniflare';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MaterialFactsResponse } from './material-fact-types';
+import type { RuntimeMaterialFactsResponse as MaterialFactsResponse } from './material-fact-runtime-types';
 
 const bindings = vi.hoisted(() => ({ DB: undefined as unknown as D1Database, service: vi.fn() }));
 vi.mock('cloudflare:workers', () => ({ env: bindings }));
@@ -64,7 +64,7 @@ describe('material facts API and transactional persistence', () => {
     bindings.service.mockReset().mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
       if (init?.method === 'DELETE') return { ok: true };
-      if (path === '/fact-jobs') return { jobId: 'fact-job' };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
       return { status: 'ready', result: { raw, backend: 'controlled-test-fixture', model: null } };
     });
     mf = new Miniflare(convertV4MiniflareOptions({ modules: true, script: 'export default { fetch() { return new Response("disposable fact test"); } };', compatibilityDate: '2026-09-11', d1Databases: ['DB'] }));
@@ -92,7 +92,7 @@ describe('material facts API and transactional persistence', () => {
   });
 
   it('persists empty extraction diagnostics without authorizing totals', async () => {
-    bindings.service.mockImplementation(async (path: string) => path === '/health' ? { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } } : path === '/fact-jobs' ? { jobId: 'empty-job' } : { status:'ready',result:{raw:JSON.stringify({schemaVersion:3,candidates:[]}),backend:'controlled-test-fixture',model:null} });
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => path === '/health' ? { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } } : path === '/fact-jobs' ? { jobId: JSON.parse(String(init?.body)).jobId } : { status:'ready',result:{raw:JSON.stringify({schemaVersion:3,candidates:[]}),backend:'controlled-test-fixture',model:null} });
     const before=await read();
     expect((await act(before,{action:'extract',evidenceId:'source-1'})).status).toBe(202);
     const current=await read();
@@ -133,7 +133,7 @@ describe('material facts API and transactional persistence', () => {
       { ...template, quote: clauses[0] }, { ...template, quote: '原文不存在' }, { ...template, quote: clauses[1] },
     ] });
     bindings.service.mockImplementation(async (path: string, init?: RequestInit) => path === '/health' ? { capabilities: { factConfigured: true } }
-      : init?.method === 'DELETE' ? { ok: true } : path === '/fact-jobs' ? { jobId: 'modifier-job' }
+      : init?.method === 'DELETE' ? { ok: true } : path === '/fact-jobs' ? { jobId: JSON.parse(String(init?.body)).jobId }
         : { status: 'ready', result: { raw: answer, backend: 'controlled-test-fixture', model: null } });
     const before = await read();
     expect((await act(before, { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
@@ -197,7 +197,7 @@ describe('material facts API and transactional persistence', () => {
     ];
     const answer = JSON.stringify(modelOutput);
     bindings.service.mockImplementation(async (path: string, init?: RequestInit) => path === '/health' ? { capabilities: { factConfigured: true } }
-      : init?.method === 'DELETE' ? { ok: true } : path === '/fact-jobs' ? { jobId: 'roles-job' }
+      : init?.method === 'DELETE' ? { ok: true } : path === '/fact-jobs' ? { jobId: JSON.parse(String(init?.body)).jobId }
         : { status: 'ready', result: { raw: answer, backend: 'controlled-test-fixture', model: null } });
     const current = await extracted();
     for (const candidate of current.candidates) expect(candidate).toMatchObject({ reviewIssues: expect.arrayContaining([expect.objectContaining({ code: 'source_relation_unresolved' })]) });
@@ -208,7 +208,7 @@ describe('material facts API and transactional persistence', () => {
 
   it('persists the original amount span and exact normalization separately', async () => {
     const parsed=JSON.parse(raw);parsed.candidates[0].value='本期完整应付工资1000元';
-    bindings.service.mockImplementation(async (path: string) => path === '/health' ? { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } } : path === '/fact-jobs' ? { jobId: 'amount-job' } : {status:'ready',result:{raw:JSON.stringify(parsed),backend:'controlled-test-fixture',model:null}});
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => path === '/health' ? { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } } : path === '/fact-jobs' ? { jobId: JSON.parse(String(init?.body)).jobId } : {status:'ready',result:{raw:JSON.stringify(parsed),backend:'controlled-test-fixture',model:null}});
     const current=await extracted();
     expect(current.candidates[0]).toMatchObject({value:'本期完整应付工资1000元',amount:'1000.00',normalization:{rawValue:'本期完整应付工资1000元',matchedText:'1000元',status:'exact',amount:'1000.00'}});
     expect((await read()).candidates[0]).toEqual(current.candidates[0]);
@@ -239,7 +239,7 @@ describe('material facts API and transactional persistence', () => {
     bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
       if (init?.method === 'DELETE') return { ok: true };
-      if (path === '/fact-jobs') return { jobId: 'approximate-job' };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
       return { status: 'ready', result: { raw: rawAnswer, backend: 'controlled-test-fixture', model: null } };
     });
     let current = await extracted();
@@ -265,7 +265,7 @@ describe('material facts API and transactional persistence', () => {
     bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
       if (init?.method === 'DELETE') return { ok: true };
-      if (path === '/fact-jobs') return { jobId: 'pr40-unsafe-job' };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
       return { status: 'ready', result: { raw: rawAnswer, backend: 'controlled-test-fixture', model: null } };
     });
     expect((await act(await read(), { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
@@ -297,7 +297,7 @@ describe('material facts API and transactional persistence', () => {
     bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
       if (init?.method === 'DELETE') return { ok: true };
-      if (path === '/fact-jobs') return { jobId: 'cropped-money-job' };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
       return { status: 'ready', result: { raw: JSON.stringify(modelOutput), backend: 'controlled-test-fixture', model: null } };
     });
     let current = await extracted();
@@ -313,14 +313,15 @@ describe('material facts API and transactional persistence', () => {
     bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
       if (init?.method === 'DELETE') { if (offline) throw new Error('synthetic cleanup timeout'); return { ok: true }; }
-      if (path === '/fact-jobs') return { jobId: 'cleanup-job' };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
       return { status: 'ready', result: { raw, backend: 'controlled-test-fixture', model: null } };
     });
     const current = await extracted();
     expect(current.state.job).toBeNull();
     expect(current.state.materials[0].raw).toBe(raw);
     // Follow actual owned requests: retry must not need the old fact-state ID.
-    const attempts = () => bindings.service.mock.calls.filter(([path, init]) => path === '/fact-jobs/cleanup-job' && init?.method === 'DELETE').length;
+    const actualJobId = JSON.parse(String(bindings.service.mock.calls.find(([path]) => path === '/fact-jobs')![1]!.body)).jobId;
+    const attempts = () => bindings.service.mock.calls.filter(([path, init]) => path === `/fact-jobs/${actualJobId}` && init?.method === 'DELETE').length;
     expect(attempts()).toBe(1);
     offline = false;
     expect((await read()).candidates).toEqual(current.candidates);
@@ -419,24 +420,27 @@ describe('material facts API and transactional persistence', () => {
     bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
       if (init?.method === 'DELETE') return { ok: true };
-      if (path === '/fact-jobs') return { jobId: 'fact-job' };
+      if (path === '/fact-jobs') return { jobId: JSON.parse(String(init?.body)).jobId };
       return { status: 'running' };
     });
     let current = await read();
+    let currentJobId: string;
     expect((await act(current, { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
     const patch = (body: object) => patchCase(new Request('http://127.0.0.1/api/cases', { method: 'PATCH', headers: headers(), body: JSON.stringify({ id: 'fact-case', ...body }) }));
+    currentJobId = JSON.parse(String(bindings.service.mock.calls.find(([path]) => path === '/fact-jobs')![1]!.body)).jobId;
     bindings.service.mockClear();
     expect((await patch({ company: '合成测试单位' })).status).toBe(200);
-    expect(bindings.service.mock.calls.some(([path, init]) => path === '/fact-jobs/fact-job' && init?.method === 'DELETE')).toBe(false);
+    expect(bindings.service.mock.calls.some(([path, init]) => path === `/fact-jobs/${currentJobId}` && init?.method === 'DELETE')).toBe(false);
     expect((await patch({ status: 'archived' })).status).toBe(200);
-    expect(bindings.service).toHaveBeenCalledWith('/fact-jobs/fact-job', { method: 'DELETE' });
+    expect(bindings.service).toHaveBeenCalledWith(`/fact-jobs/${currentJobId}`, { method: 'DELETE' });
     expect(await bindings.DB.prepare('SELECT state_json FROM case_material_facts').first()).toBeNull();
     expect((await patch({ status: 'collecting' })).status).toBe(200);
     current = await read();
     expect((await act(current, { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
+    currentJobId = JSON.parse(String(bindings.service.mock.calls.find(([path]) => path === '/fact-jobs')![1]!.body)).jobId;
     bindings.service.mockClear();
     expect((await patch({ company: '新合成测试单位' })).status).toBe(200);
-    expect(bindings.service).toHaveBeenCalledWith('/fact-jobs/fact-job', { method: 'DELETE' });
+    expect(bindings.service).toHaveBeenCalledWith(`/fact-jobs/${currentJobId}`, { method: 'DELETE' });
   });
 
   it('rejects stale concurrent revisions without a second write', async () => {
@@ -457,9 +461,10 @@ describe('material facts API and transactional persistence', () => {
     const pending = act(current, { action: 'extract', evidenceId: 'source-1' });
     await called;
     await addSource('racing-upload', false);
-    release({ jobId: 'late-fact-job' });
+    const submittedId = JSON.parse(String(bindings.service.mock.calls.find(([path]) => path === '/fact-jobs')![1]!.body)).jobId;
+    release({ jobId: submittedId });
     expect((await pending).status).toBe(409);
-    expect(bindings.service).toHaveBeenCalledWith('/fact-jobs/late-fact-job', { method: 'DELETE' });
+    expect(bindings.service).toHaveBeenCalledWith(`/fact-jobs/${submittedId}`, { method: 'DELETE' });
     expect((await read()).state.job).toBeNull();
   });
 
@@ -477,9 +482,10 @@ describe('material facts API and transactional persistence', () => {
     const pending = act(current, { action: 'extract', evidenceId: 'source-1' });
     await called;
     await addSource('late-id-racing-upload', false);
-    release({ jobId: 'late-unattached-job' });
+    const submittedId = JSON.parse(String(bindings.service.mock.calls.find(([path]) => path === '/fact-jobs')![1]!.body)).jobId;
+    release({ jobId: submittedId });
     expect((await pending).status).toBe(409);
-    const attempts = () => bindings.service.mock.calls.filter(([path, init]) => path === '/fact-jobs/late-unattached-job' && init?.method === 'DELETE').length;
+    const attempts = () => bindings.service.mock.calls.filter(([path, init]) => path === `/fact-jobs/${submittedId}` && init?.method === 'DELETE').length;
     expect(attempts()).toBe(1);
     offline = false;
     const latest = await read();
@@ -505,17 +511,18 @@ describe('material facts API and transactional persistence', () => {
     await called;
     expect((await act(current, { action: 'calculate' })).status).toBe(409);
     const claimed = await read();
-    expect(claimed.state.job!.id).toMatch(/^starting_/);
+    expect(claimed.state.job!.id).toMatch(/^[0-9a-f-]{36}$/);
+    expect(claimed.state.job!.submissionPending).toBe(true);
     expect(claimed.state.job!.status).toBe('running');
     expect(claimed.state.scope).toBeNull();
     expect(claimed.state.confirmations).toEqual({ due: null, paid: null });
     expect(claimed.canCalculate).toBe(false);
     expect((await act(claimed, { action: 'calculate' })).status).toBe(400);
     expect(bindings.service.mock.calls.some(([path]) => String(path).startsWith('/fact-jobs/starting_'))).toBe(false);
-    release({ jobId: 'claimed-fact-job' });
+    release({ jobId: claimed.state.job!.id });
     const finished = await pending;
     expect(finished.status).toBe(202);
-    expect((await finished.json() as MaterialFactsResponse).state.job!.id).toBe('claimed-fact-job');
+    expect((await finished.json() as MaterialFactsResponse).state.job!.id).toBe(claimed.state.job!.id);
   });
 
   it('expires an interrupted starting claim without querying a fabricated remote job', async () => {
@@ -528,7 +535,7 @@ describe('material facts API and transactional persistence', () => {
     expect(bindings.service.mock.calls.some(([path]) => String(path).startsWith('/fact-jobs/starting_'))).toBe(false);
   });
 
-  it('retains a failed job as retryable state without fabricating candidates', async () => {
+  it('retains a temporarily unreachable job for polling recovery without fabricating candidates', async () => {
     const current = await read();
     expect((await act(current, { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
     bindings.service.mockImplementation(async (path: string) => {
@@ -536,21 +543,21 @@ describe('material facts API and transactional persistence', () => {
       throw new Error('synthetic offline extraction');
     });
     const latest = await read();
-    expect(latest.state.job).toMatchObject({ status: 'failed', error: 'synthetic offline extraction' });
+    expect(latest.state.job).toMatchObject({ status: 'running', error: expect.stringContaining('正在重试') });
     expect(latest.candidates).toEqual([]);
     expect(latest.state.confirmations).toEqual({ due: null, paid: null });
   });
 
-  it('invalidates earlier confirmations even when a re-extraction cannot start', async () => {
+  it('invalidates earlier confirmations while an ambiguous submission is being reconciled', async () => {
     const current = await confirmed();
     bindings.service.mockImplementation(async (path: string) => {
       if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
       throw new Error('synthetic submission unavailable');
     });
     const response = await act(current, { action: 'extract', evidenceId: 'source-1' });
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(202);
     const latest = await response.json() as MaterialFactsResponse;
-    expect(latest.state.job).toMatchObject({ status: 'failed', error: 'synthetic submission unavailable' });
+    expect(latest.state.job).toMatchObject({ status: 'running', error: expect.stringContaining('提交回执暂未收到') });
     expect(latest.state.scope).toBeNull();
     expect(latest.state.confirmations).toEqual({ due: null, paid: null });
     expect(latest.state.materials).toEqual([]);

@@ -1,0 +1,280 @@
+{
+  "status": "FAIL",
+  "mode": "fact-network-recovery",
+  "boundary": "production Worker HTTP + disposable persistent D1/R2 + real rules service + controlled authenticated loopback fault proxy",
+  "actualModelInference": false,
+  "syntheticInputs": true,
+  "recordedAt": "2026-10-18T01:54:03.954Z",
+  "observations": [
+    {
+      "name": "recover_accepted_POST_503_after_accept",
+      "status": "FAIL",
+      "startHttpStatus": 200,
+      "startJob": {
+        "id": "starting_1792288443634_5700a065-8b5b-472a-91dc-d4a708368b87",
+        "evidenceId": "50602fa1-0635-48f9-8d33-353dd3192084",
+        "generation": 6,
+        "status": "failed",
+        "error": "识别服务暂时不可用，请确认服务状态后重试。"
+      },
+      "acceptedJobId": "94a82ba3-e1db-4271-bee2-a3524038bea3",
+      "requestedJobId": null,
+      "finalHttpStatus": 200,
+      "finalJob": {
+        "id": "starting_1792288443634_5700a065-8b5b-472a-91dc-d4a708368b87",
+        "evidenceId": "50602fa1-0635-48f9-8d33-353dd3192084",
+        "generation": 6,
+        "status": "failed",
+        "error": "识别服务暂时不可用，请确认服务状态后重试。"
+      },
+      "materialCount": 0,
+      "extractionAuditCount": 0,
+      "servicePostCount": 1,
+      "failure": {
+        "name": "AssertionError",
+        "message": "Worker must persist the caller UUID before dispatch."
+      }
+    },
+    {
+      "name": "recover_accepted_POST_drop_after_accept",
+      "status": "FAIL",
+      "startHttpStatus": 200,
+      "startJob": {
+        "id": "starting_1792288443681_5d6819c5-1fd3-40f7-8ce5-d9564c97bc77",
+        "evidenceId": "e6f72e8e-1f22-4a97-8c09-e58baebfbc7a",
+        "generation": 6,
+        "status": "failed",
+        "error": "Network connection lost."
+      },
+      "acceptedJobId": "f135fb8d-81f7-4902-b4f5-191a1ab29d88",
+      "requestedJobId": null,
+      "finalHttpStatus": 200,
+      "finalJob": {
+        "id": "starting_1792288443681_5d6819c5-1fd3-40f7-8ce5-d9564c97bc77",
+        "evidenceId": "e6f72e8e-1f22-4a97-8c09-e58baebfbc7a",
+        "generation": 6,
+        "status": "failed",
+        "error": "Network connection lost."
+      },
+      "materialCount": 0,
+      "extractionAuditCount": 0,
+      "servicePostCount": 1,
+      "failure": {
+        "name": "AssertionError",
+        "message": "Worker must persist the caller UUID before dispatch."
+      }
+    },
+    {
+      "name": "transient_GET_503_once_does_not_cancel_healthy_job",
+      "status": "FAIL",
+      "firstHttpStatus": 200,
+      "persistedJobAfterError": {
+        "id": "ae0eec64-d24a-48c1-88a7-5bc6222ea3b5",
+        "evidenceId": "eefb10ed-ac60-40b9-adb5-d68ec3156aac",
+        "generation": 6,
+        "status": "failed",
+        "error": "识别服务暂时不可用，请确认服务状态后重试。"
+      },
+      "serviceStatusAfterError": 404,
+      "serviceDeletesBeforeRecovery": 1,
+      "finalJob": {
+        "id": "ae0eec64-d24a-48c1-88a7-5bc6222ea3b5",
+        "evidenceId": "eefb10ed-ac60-40b9-adb5-d68ec3156aac",
+        "generation": 6,
+        "status": "failed",
+        "error": "识别服务暂时不可用，请确认服务状态后重试。"
+      },
+      "materialCount": 0,
+      "extractionAuditCount": 0,
+      "failure": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'failed'\n- 'running'\n"
+      }
+    },
+    {
+      "name": "transient_GET_invalid_json_once_does_not_cancel_healthy_job",
+      "status": "FAIL",
+      "firstHttpStatus": 200,
+      "persistedJobAfterError": {
+        "id": "d252771d-0c6b-4428-8a34-0c43fc639451",
+        "evidenceId": "1075e3e6-424d-4198-ae00-03cecca2bd52",
+        "generation": 6,
+        "status": "failed",
+        "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+      },
+      "serviceStatusAfterError": 404,
+      "serviceDeletesBeforeRecovery": 1,
+      "finalJob": {
+        "id": "d252771d-0c6b-4428-8a34-0c43fc639451",
+        "evidenceId": "1075e3e6-424d-4198-ae00-03cecca2bd52",
+        "generation": 6,
+        "status": "failed",
+        "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+      },
+      "materialCount": 0,
+      "extractionAuditCount": 0,
+      "failure": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'failed'\n- 'running'\n"
+      }
+    },
+    {
+      "name": "DELETE_unknown_UUID_prevents_delayed_POST_resurrection",
+      "status": "FAIL",
+      "deleteStatus": 200,
+      "delayedPostStatus": 400,
+      "lookupStatus": 404,
+      "failure": {
+        "name": "AssertionError",
+        "message": "A valid delayed submission must be rejected by a cancellation tombstone, not generic payload validation.\n\n400 !== 410\n"
+      }
+    },
+    {
+      "name": "same_UUID_is_idempotent_but_cannot_be_rebound_to_another_source",
+      "status": "FAIL",
+      "firstStatus": 400,
+      "retryStatus": 400,
+      "reboundStatus": 400,
+      "firstJobId": null,
+      "retryJobId": null,
+      "lookupStatus": 404,
+      "failure": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\n400 !== 202\n"
+      }
+    },
+    {
+      "name": "source_change_while_POST_is_in_flight_cannot_restore_old_job",
+      "status": "FAIL",
+      "claimedJobId": "starting_1792288443827_99f8dc1d-002d-4a11-9dce-f82677b202a0",
+      "newGeneration": 8,
+      "latePostHttpStatus": 409,
+      "currentGeneration": 8,
+      "currentJob": null,
+      "currentMaterials": 0,
+      "extractionAuditCount": 0,
+      "oldRemoteStatus": null,
+      "failure": {
+        "name": "AssertionError",
+        "message": "The input did not match the regular expression /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/. Input:\n\n'starting_1792288443827_99f8dc1d-002d-4a11-9dce-f82677b202a0'\n"
+      }
+    },
+    {
+      "name": "old_ready_GET_cannot_restore_results_after_source_change",
+      "status": "PASS",
+      "lateReadHttpStatus": 409,
+      "newGeneration": 8,
+      "currentJob": null,
+      "materialCount": 0,
+      "extractionAuditCount": 0
+    },
+    {
+      "name": "owner_and_unauthenticated_boundaries_remain_enforced",
+      "status": "PASS",
+      "foreignStatus": 404,
+      "anonymousStatus": 401
+    }
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "failures": []
+  },
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": null,
+      "upstreamStatus": 202,
+      "acceptedJobId": "94a82ba3-e1db-4271-bee2-a3524038bea3",
+      "fault": "503_after_accept"
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": null,
+      "upstreamStatus": 202,
+      "acceptedJobId": "f135fb8d-81f7-4902-b4f5-191a1ab29d88",
+      "fault": "drop_after_accept"
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": null,
+      "upstreamStatus": 202,
+      "acceptedJobId": "ae0eec64-d24a-48c1-88a7-5bc6222ea3b5"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/ae0eec64-d24a-48c1-88a7-5bc6222ea3b5",
+      "authenticated": true,
+      "upstreamStatus": 200,
+      "fault": "503_once"
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/ae0eec64-d24a-48c1-88a7-5bc6222ea3b5",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": null,
+      "upstreamStatus": 202,
+      "acceptedJobId": "d252771d-0c6b-4428-8a34-0c43fc639451"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/d252771d-0c6b-4428-8a34-0c43fc639451",
+      "authenticated": true,
+      "upstreamStatus": 200,
+      "fault": "invalid_json_once"
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/d252771d-0c6b-4428-8a34-0c43fc639451",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": null,
+      "upstreamStatus": 202,
+      "acceptedJobId": "b6b86b25-6e5d-4cf4-9957-c6e8d9dc4180"
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/b6b86b25-6e5d-4cf4-9957-c6e8d9dc4180",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": null,
+      "upstreamStatus": 202,
+      "acceptedJobId": "5ecad609-7223-4f9d-9e3b-78a34f6ec13b"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/5ecad609-7223-4f9d-9e3b-78a34f6ec13b",
+      "authenticated": true,
+      "upstreamStatus": 200,
+      "fault": "hold_ready"
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/5ecad609-7223-4f9d-9e3b-78a34f6ec13b",
+      "authenticated": true,
+      "upstreamStatus": 200
+    }
+  ],
+  "limitation": "Service caller-ID idempotency and cancellation tombstones are process-local and bounded by their configured TTL/capacity; this runner does not claim persistence across service restart or actual model inference."
+}

@@ -6,7 +6,8 @@ import { reviewFactsAgainstSources } from './material-fact-source-review';
 import { validateMaterialResult } from './material-validation';
 import { applyFactAction, buildFactView, emptyFactState, prepareCalculation, synchronizeFacts, validateFactSource } from './material-facts-v3';
 import { ingestRuntimeCandidates } from './material-fact-runtime-ingest';
-import type { FactAction, FactSource, FactState, MaterialFactsResponse } from './material-fact-types';
+import type { FactAction, FactSource } from './material-fact-types';
+import type { RuntimeFactState as FactState, RuntimeMaterialFactsResponse as MaterialFactsResponse } from './material-fact-runtime-types';
 
 type SessionRow = { case_id: string; user_id: string; revision: number; state_json: string };
 type SourceRow = { id: string; name: string; content_hash: string | null; mime_type: string; status: string; object_key: string | null; analysis_hash: string | null; analysis_status: string | null; revision: number | null; result_json: string | null };
@@ -116,56 +117,96 @@ async function cancelJob(user: RequestUser, caseId: string, jobId: string) {
   await retryMaterialFactCleanup(user.userId, caseId);
 }
 
-async function poll(user: RequestUser, id: string, current: Snapshot): Promise<Snapshot> {
-  const active = current.state.job;
-  if (!active || active.status !== 'running' || active.generation !== current.generation) return current;
-  let state: FactState;
-  const failedOutput: { raw?: string; backend?: string; model?: string | null } = {};
-  try {
-    if (active.id.startsWith('starting_')) {
-      const beganAt = Number(active.id.split('_')[1]);
-      if (Number.isSafeInteger(beganAt) && Date.now() - beganAt < 60_000) return current;
-      throw new Error('候选提取任务未能完成提交，请重新提取。');
-    }
-    const job = await callMaterialService(`/fact-jobs/${encodeURIComponent(active.id)}`);
-    if (job.status === 'running') return current;
-    if (job.status === 'failed') {
-      const failure = job.error as { message?: unknown } | undefined;
-      throw new Error(typeof failure?.message === 'string' ? failure.message.slice(0, 500) : '候选提取失败，请重试。');
-    }
-    if (job.status !== 'ready') throw new Error('候选提取服务返回了无法确认的任务状态。');
-    const result = job.result as Record<string, unknown> | undefined;
-    if (typeof result?.raw === 'string') failedOutput.raw = result.raw;
-    if (typeof result?.backend === 'string') failedOutput.backend = result.backend.slice(0, 160);
-    if (typeof result?.model === 'string' || result?.model === null) failedOutput.model = result.model;
-    if (typeof result?.raw !== 'string' || typeof result.backend !== 'string' || !result.backend || result.backend.length > 160 || (result.model !== null && typeof result.model !== 'string')) throw new Error('候选提取服务返回内容格式不正确。');
-    if (result.finish_reason !== undefined && result.finish_reason !== 'stop') throw new Error(`模型回答未完整结束（${String(result.finish_reason).slice(0, 80)}），本次原回答仅供复查，请重新提取。`);
-    const source = current.sources.find((item) => item.id === active.evidenceId && item.ready);
-    if (!source) throw conflict();
-    state = ingestRuntimeCandidates(current.state, source, { raw: result.raw }, result.backend, user.userId, now(), result.model as string | null);
-    state = reviewFactsAgainstSources({ ...state, job: null }, current.sources);
-  } catch (error) {
-    state = { ...current.state, job: { ...active, ...failedOutput, status: 'failed', error: error instanceof Error ? error.message.slice(0, 500) : '候选提取服务暂不可用，请重试。' } };
-  }
-  // Matching revision + generation also binds the same job; a late completion
-  // cannot overwrite a retry, another user action, or a changed material list.
-  if (!await save(user, id, current, state)) {
+// Three serial slots can each use the inference's ten-minute deadline. A
+// temporary transport outage has its own shorter, consecutive recovery window.
+const jobLifetimeMs = 31 * 60_000;
+const pollRecoveryMs = 60_000;
+function timestamp(value: string | undefined): number | null {
+  const parsed = value ? Date.parse(value) : NaN;
+  return Number.isFinite(parsed) && parsed <= Date.now() ? parsed : null;
+}
+
+async function persistPoll(user: RequestUser, id: string, current: Snapshot, state: FactState): Promise<Snapshot> {
+  const active = current.state.job!;
+  const changed = JSON.stringify(state) !== JSON.stringify(current.state);
+  if (!changed || !await save(user, id, current, state)) {
     const latest = await snapshot(user, id);
+    if (latest.generation !== current.generation || latest.state.generation !== current.generation) throw conflict();
+    if (!changed && latest.revision === current.revision) return latest;
     const audit = latest.state.history.at(-1);
-    // Another reader may have consumed this same job, including deleting it
-    // remotely before this reader fetched it. Only that single terminal write
-    // can converge; a retry, source change or user action remains a conflict.
     const completed = !latest.state.job && audit?.type === 'candidates_extracted'
       && audit.id === (current.state.history.at(-1)?.id ?? 0) + 1
       && audit.actor === user.userId && audit.evidenceId === active.evidenceId;
     const failed = latest.state.job?.id === active.id && latest.state.job.status === 'failed'
       && latest.state.job.generation === active.generation;
-    if (latest.revision === current.revision + 1 && latest.generation === current.generation
-      && latest.state.generation === current.generation && (completed || failed)) return latest;
+    // Two readers may also race to record/clear the same transport warning.
+    // Compare the entire state except those two poll-only metadata fields;
+    // this must never swallow a user action or replacement extraction.
+    const withoutWarning = (value: FactState) => JSON.stringify({ ...value,
+      job: value.job ? { ...value.job, error: null, pollFailureSince: null } : null });
+    const recovering = latest.state.job?.status === 'running'
+      && (withoutWarning(latest.state) === withoutWarning(current.state)
+        || (state.job?.status === 'running' && withoutWarning(latest.state) === withoutWarning(state)));
+    if (latest.revision === current.revision + 1 && (completed || failed || recovering)) return latest;
     throw conflict();
   }
-  await cancelJob(user, id, active.id);
+  if (!state.job || state.job.status === 'failed') await cancelJob(user, id, active.id);
   return { ...current, state, revision: current.revision + 1 };
+}
+
+async function poll(user: RequestUser, id: string, current: Snapshot): Promise<Snapshot> {
+  const active = current.state.job;
+  if (!active || active.status !== 'running' || active.generation !== current.generation) return current;
+  const failedOutput: { raw?: string; backend?: string; model?: string | null } = {};
+  const failed = (message: string): FactState => ({ ...current.state, job: { ...active, ...failedOutput, status: 'failed', error: message.slice(0, 500) } });
+  const beganAt = timestamp(active.startedAt);
+  if (beganAt !== null && Date.now() - beganAt >= jobLifetimeMs) {
+    return persistPoll(user, id, current, failed('候选提取超过最长等待时间，请重新提取。'));
+  }
+  // Keep compatibility with previously persisted claims. New claims use a real
+  // caller-generated UUID, so a lost POST response cannot hide the remote job.
+  if (active.id.startsWith('starting_')) {
+    const legacyStart = Number(active.id.split('_')[1]);
+    if (Number.isSafeInteger(legacyStart) && Date.now() - legacyStart < pollRecoveryMs) return current;
+    return persistPoll(user, id, current, failed('候选提取任务未能完成提交，请重新提取。'));
+  }
+  if (active.submissionPending && beganAt !== null && Date.now() - beganAt < pollRecoveryMs) return current;
+  let job: Record<string, unknown>;
+  try {
+    job = await callMaterialService(`/fact-jobs/${encodeURIComponent(active.id)}`);
+    if (!job || typeof job !== 'object' || Array.isArray(job) || typeof job.status !== 'string' || !['running', 'failed', 'ready'].includes(job.status)) throw new Error('无法确认任务状态');
+    if (job.status === 'ready') {
+      const result = job.result as Record<string, unknown> | undefined;
+      if (typeof result?.raw === 'string') failedOutput.raw = result.raw;
+      if (typeof result?.backend === 'string') failedOutput.backend = result.backend.slice(0, 160);
+      if (typeof result?.model === 'string' || result?.model === null) failedOutput.model = result.model;
+      if (typeof result?.raw !== 'string' || typeof result.backend !== 'string' || !result.backend || result.backend.length > 160 || (result.model !== null && typeof result.model !== 'string')) throw new Error('无法确认任务结果');
+    }
+  } catch {
+    const since = timestamp(active.pollFailureSince) ?? Date.now();
+    if (Date.now() - since >= pollRecoveryMs) return persistPoll(user, id, current, failed('连续一分钟未能读取候选任务，已停止本次等待，请重新提取。'));
+    return persistPoll(user, id, current, { ...current.state, job: { ...active, ...failedOutput, pollFailureSince: new Date(since).toISOString(), error: '候选任务状态暂时无法读取，正在重试；请勿重复提取。' } });
+  }
+  if (job.status === 'running') {
+    const resumed = { ...active, error: null };
+    delete resumed.pollFailureSince;
+    return persistPoll(user, id, current, { ...current.state, job: resumed });
+  }
+  if (job.status === 'failed') {
+    const failure = job.error as { message?: unknown } | undefined;
+    return persistPoll(user, id, current, failed(typeof failure?.message === 'string' ? failure.message : '候选提取失败，请重试。'));
+  }
+  let state: FactState;
+  try {
+    const result = job.result as { raw: string; backend: string; model: string | null; finish_reason?: unknown };
+    failedOutput.raw = result.raw; failedOutput.backend = result.backend; failedOutput.model = result.model;
+    if (result.finish_reason !== undefined && result.finish_reason !== 'stop') throw new Error(`模型回答未完整结束（${String(result.finish_reason).slice(0, 80)}），本次原回答仅供复查，请重新提取。`);
+    const source = current.sources.find((item) => item.id === active.evidenceId && item.ready);
+    if (!source) throw conflict();
+    state = ingestRuntimeCandidates(current.state, source, { raw: result.raw }, result.backend, user.userId, now(), result.model);
+    state = reviewFactsAgainstSources({ ...state, job: null }, current.sources);
+  } catch (error) { state = failed(error instanceof Error ? error.message : '候选提取结果无法解析，请重新提取。'); }
+  return persistPoll(user, id, current, state);
 }
 
 export async function readMaterialFacts(user: RequestUser, id: string): Promise<MaterialFactsResponse> {
@@ -191,23 +232,24 @@ export async function actOnMaterialFacts(user: RequestUser, id: string, revision
     catch (error) { throw new FactStoreError(error instanceof Error ? error.message : '请拆分材料后再提取。', 400); }
     // Claim the extraction intent before any external request. A simultaneous
     // calculation must already see all previous authorizations invalidated.
-    state = { ...state, job: { id: `starting_${Date.now()}_${crypto.randomUUID()}`, evidenceId: source.id, generation, status: 'running', error: null } };
+    const jobId = crypto.randomUUID();
+    state = { ...state, job: { id: jobId, evidenceId: source.id, generation, status: 'running', error: null, startedAt: at, submissionPending: true } };
     if (!await save(user, id, current, state)) throw conflict();
     const claimed: Snapshot = { ...current, state, revision: current.revision + 1 };
     if (current.state.job) await cancelJob(user, id, current.state.job.id);
-    let jobId: string;
     try {
-      const job = await callMaterialService('/fact-jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source }) });
-      if (typeof job.jobId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(job.jobId)) throw new Error('候选提取服务未返回有效任务编号。');
-      jobId = job.jobId;
-    } catch (error) {
-      // Requesting a new extraction invalidates previous authorizations even
-      // when the network fails before a remote job can be attached.
-      state = { ...state, job: { ...state.job!, status: 'failed', error: error instanceof Error ? error.message.slice(0, 500) : '候选提取暂未开始，请重试。' } };
-      if (!await save(user, id, claimed, state)) throw conflict();
-      return response({ ...claimed, state, revision: claimed.revision + 1 });
+      const job = await callMaterialService('/fact-jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source, jobId }) });
+      if (job.jobId !== jobId) {
+        // A mismatched/old sidecar must not silently defeat recoverability.
+        if (typeof job.jobId === 'string' && /^[a-zA-Z0-9_-]{1,100}$/.test(job.jobId)) await cancelJob(user, id, job.jobId);
+        throw new Error('候选提取服务未确认本次任务编号。');
+      }
+      state = { ...state, job: { ...state.job!, submissionPending: false } };
+    } catch {
+      // The service may already have accepted this exact UUID. Keep it and
+      // reconcile with GET; never resubmit automatically or invent a result.
+      state = { ...state, job: { ...state.job!, submissionPending: false, pollFailureSince: now(), error: '提交回执暂未收到，正在核对已提交任务；请勿重复提取。' } };
     }
-    state = { ...state, job: { id: jobId, evidenceId: source.id, generation, status: 'running', error: null } };
     if (!await save(user, id, claimed, state)) { await cancelJob(user, id, jobId); throw conflict(); }
     return response({ ...claimed, state, revision: claimed.revision + 1 });
   } else if (action.action === 'calculate') {
