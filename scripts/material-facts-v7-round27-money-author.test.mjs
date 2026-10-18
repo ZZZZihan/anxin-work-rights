@@ -1,0 +1,121 @@
+// Fixed synthetic author regressions. No HTTP, model calls or frozen writes.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const OWN = fileURLToPath(new URL('../', import.meta.url));
+const BASE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
+const PATCH = resolve(process.env.MATERIAL_FACT_PATCH_ROOT || OWN);
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-round27-money-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+await cp(resolve(BASE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+for (const file of ['material-money-v4.ts', 'material-fact-range-review.ts']) await cp(resolve(PATCH, 'lib', file), resolve(temporary, 'lib', file));
+for (const [key, file] of [['MATERIAL_FACT_SOURCE_FILE', 'material-fact-source-review.ts'], ['MATERIAL_FACT_EVENT_FILE', 'material-fact-event-review.ts'], ['MATERIAL_FACT_ARITHMETIC_FILE', 'material-fact-arithmetic-review.ts']])
+  if (process.env[key]) await cp(process.env[key], resolve(temporary, 'lib', file));
+const load = file => import(pathToFileURL(resolve(temporary, 'lib', file)).href);
+const { normalizeMoneyValueV4: parse, normalizeCandidateValueV4: normalize, canonicalMonetaryExpression: canonical } = await load('material-money-v4.ts');
+const { attachedMoneyQualifierStatus: qualifier } = await load('material-fact-range-review.ts');
+const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates } = await load('material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
+const AT = '2026-10-18T00:00:00.000Z';
+const cpLength = value => Array.from(value).length;
+
+function fixture(expression, { value = '4000元', fullQuote = false, meaning = 'arrears', rateUnit = null, nextBlock = null } = {}) {
+  const source = { id: 'round27-author', name: '合成金额解析边界', sha256: 'a'.repeat(64), analysisRevision: 1, ready: true,
+    blocks: [{ id: 'b1', page: 1, text: '😀王甲工资' + expression + (nextBlock === null ? '。' : ''), bbox: null, confidence: null }] };
+  if (nextBlock !== null) source.blocks.push({ id: 'b2', page: 1, text: nextBlock + '。', bbox: null, confidence: null });
+  const candidate = { kind: 'money', value, quote: fullQuote ? source.blocks[0].text : value, blockId: 'b1', subject: '王甲', scope: 'individual',
+    meaning, completeness: ['due_total', 'paid_total'].includes(meaning) ? 'unknown' : 'not_applicable', period: null, rateUnit, assertion: 'narrated' };
+  return { source, candidate, raw: JSON.stringify({ schemaVersion: 3, candidates: [candidate] }) };
+}
+
+function pipeline(f, amount) {
+  const before = structuredClone(f);
+  const fresh = ingestRuntimeCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'round27-author', AT);
+  const check = fact => {
+    assert(fact, 'candidate retained'); assert.equal(fact.amount, amount);
+    assert.deepEqual(fact.representation, f.candidate); assert.equal(fact.value, f.candidate.value); assert.equal(fact.quote, f.candidate.quote);
+    const text = f.source.blocks[0].text, start = cpLength(text.slice(0, text.indexOf(f.candidate.quote)));
+    assert.equal(fact.start, start); assert.equal(fact.end, start + cpLength(f.candidate.quote));
+    assert.equal(Array.from(text).slice(fact.start, fact.end).join(''), f.candidate.quote);
+  };
+  assert.equal(fresh.materials[0].raw, f.raw); check(fresh.materials[0].candidates[0]);
+  assert.deepEqual(fresh.confirmations, { due: null, paid: null }); assert.equal(fresh.calculation, null);
+  const history = ingestCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'round27-author', AT);
+  const fact = history.materials[0].candidates[0]; assert(fact);
+  const match = f.candidate.value.match(/4000元/u), start = match ? cpLength(f.candidate.value.slice(0, match.index)) : 0;
+  fact.amount = amount ?? '4000.00'; fact.normalization = { rawValue: fact.value, amount: fact.amount, status: 'exact', matchedText: match?.[0] ?? fact.value,
+    span: { start, end: match ? start + cpLength(match[0]) : cpLength(fact.value) }, reason: 'Synthetic historical exact.' };
+  const stored = structuredClone(history), reviewed = reviewFactsAgainstSources(history, [f.source]);
+  check(reviewed.materials[0].candidates[0]); assert.deepEqual(history, stored); assert.deepEqual(reviewed.history, history.history);
+  assert.equal(reviewed.materials[0].raw, f.raw);
+  fact.amount = null; fact.normalization = { rawValue: fact.value, amount: null, status: 'unsupported', matchedText: null, span: null, reason: 'Synthetic historical unsupported.' };
+  const unavailable = structuredClone(history);
+  assert.equal(reviewFactsAgainstSources(history, [f.source]).materials[0].candidates[0].amount, null, 'historical unsupported never upgrades');
+  assert.deepEqual(history, unavailable); assert.deepEqual(f, before);
+}
+
+const financial = [
+  ['人民幣貳萬圓', '20000.00'], ['人民幣參萬圓', '30000.00'], ['人民幣陸萬圓', '60000.00'],
+  ['貳萬元', '20000.00'], ['參佰元', '300.00'], ['陸拾元', '60.00'], ['人民幣貳元參角陸分', '2.36'],
+  ['5元貳角陸分', '5.26'], ['五元參角陸分', '5.36'], ['人民幣陸角', '0.60'], ['人民幣零陸分', null],
+  ['貳元5角', '2.50'], ['參元零陸分', '3.06'], ['陸萬元5角2分', '60000.52'],
+];
+for (const [literal, amount] of financial) test('complete traditional financial token: ' + literal, () => {
+  const parsed = parse('😀' + literal); assert.equal(parsed.amount, amount); assert.equal(parsed.rawValue, '😀' + literal);
+  if (amount !== null) {
+    assert.equal(parsed.matchedText, literal); assert.deepEqual(parsed.span, { start: 1, end: 1 + cpLength(literal) });
+    assert.equal(canonical(literal), 'exact:' + amount);
+  }
+});
+for (const [literal, amount] of financial.filter(([, amount]) => amount !== null)) for (const fullQuote of [false, true])
+  test('traditional financial fresh and historical evidence: ' + JSON.stringify({ literal, fullQuote }), () => pipeline(fixture(literal, { value: literal, fullQuote }), amount));
+for (const expression of ['貳貳萬元', '貳拾參肆元', '負貳萬元', '數參萬元', '約陸萬元', '貳萬元至參萬元', '貳萬元乘以2', '美元貳萬元', '貳元12角', '貳元陸角參角', '貳元5角2分3', '貳萬元未知'])
+  test('traditional financial malformed or qualified is not exact: ' + expression, () => assert.equal(parse(expression).amount, null));
+for (const [literal, cropped] of [['貳萬參仟元', '參仟元'], ['陸元貳角', '陸元'], ['陸萬元', '萬元']])
+  test('cropping a traditional financial token stays unavailable: ' + literal, () => assert.equal(normalize(fixture(literal, { value: cropped, fullQuote: true }).candidate).amount, null));
+
+const unrelated = [
+  '工作至少3个月，工资4000元', '工资4000元，工龄至少3个月', '最高人民法院判工资4000元',
+  '工作不足三个月，工资4000元', '工龄不低于3年工资共4000元', '工作至多两个月的工资共4000元',
+  '最低人民生活保障另行核对，工资4000元', '工资4000元，工作至多3个月',
+];
+for (const value of unrelated) test('bound applies to a different phrase: ' + value, () => {
+  assert.equal(parse(value).amount, '4000.00', 'whole parser');
+  const f = fixture(value, { value, fullQuote: true }); assert.equal(normalize(f.candidate).amount, '4000.00', 'whole candidate'); pipeline(f, '4000.00');
+});
+for (const expression of ['至少4000元', '工资至少为4000元', '人民币不少于4000元', '最高工资4000元', '四千余元', '四千多元', '4000元左右', '4000元以上', '近4000元', '≤4000元', '数四千元', '4000元至5000元', '4000元未知'])
+  test('true attached bounds and unknowns remain unavailable: ' + expression, () => assert.equal(parse(expression).amount, null));
+for (const prefix of ['至少', '最高工资', '不低于人民币', '約', '≤', '数\n', '負\n'])
+  test('full quote retains a cropped true modifier: ' + JSON.stringify(prefix), () => {
+    assert.notEqual(qualifier(prefix, ''), null); pipeline(fixture(prefix + '4000元', { fullQuote: true }), null);
+  });
+
+const unsupportedUnits = ['周', '週', '星期', '季度', '季', '年', '年度', '次', '分钟', '分鐘', '秒', '公里', '人', '班', '包', '批次', 'hour', 'hr', '月度', '年薪'];
+for (const unit of unsupportedUnits) for (const terminal of ['', '整', '正']) test('unsupported postposed unit: ' + unit + terminal, () => {
+  const expression = '4000元' + terminal + '按' + unit + '计';
+  assert.equal(parse(expression).amount, null, 'whole expression cannot be a total');
+  for (const fullQuote of [false, true]) {
+    const f = fixture(expression, { fullQuote, meaning: 'due_total' }); pipeline(f, null);
+    assert.equal(normalize({ ...f.candidate, quote: f.source.blocks[0].text, meaning: 'rate', rateUnit: 'unknown', completeness: 'not_applicable' }).amount, null);
+  }
+});
+for (const tail of ['按周', '按年', '按季度', '按‍季度計價', '按包计算', '按hr计薪'])
+  test('unsupported denominator has finite layout and pricing boundary: ' + tail, () => pipeline(fixture('4000元' + tail, { fullQuote: true }), null));
+for (const [unit, rateUnit] of [['月', 'month'], ['日', 'day'], ['天', 'day'], ['小时', 'hour'], ['时', 'hour'], ['件', 'piece']])
+  test('supported explicit rate remains exact only as rate: ' + unit, () => {
+    const f = fixture('4000元按' + unit + '计', { fullQuote: true, meaning: 'rate', rateUnit });
+    assert.equal(normalize(f.candidate).amount, '4000.00'); assert.equal(normalize({ ...f.candidate, meaning: 'due_total', completeness: 'unknown', rateUnit: null }).amount, null);
+  });
+for (const tail of ['按时支付', '按时', '按时间顺序', '按月15日发放', '按月计划', '按件计数', '按照约定支付', '。王乙按周计', '，王乙按季度计', '按年度计划支付'])
+  test('schedule and independent prose is not a denominator: ' + tail, () => pipeline(fixture('4000元' + tail, { fullQuote: true }), '4000.00'));
+
+if (process.env.MATERIAL_FACT_COMBINED) {
+  test('explicit unsupported rate across quote layout', () => pipeline(fixture('4000元按\n周\n计', { fullQuote: true }), null));
+  for (const nextBlock of ['按周计', '按季度计', '按年计']) test('source-only next-block unsupported denominator: ' + nextBlock, () => pipeline(fixture('4000元', { nextBlock }), null));
+  for (const nextBlock of ['貳角', '參分', '陸角']) test('source-only next-block financial cents cannot be cropped: ' + nextBlock, () => pipeline(fixture('4000元', { nextBlock }), null));
+}
