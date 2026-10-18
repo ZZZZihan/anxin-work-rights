@@ -2,6 +2,7 @@ import type { CandidateNormalization, NormalizedCandidateValue, RawCandidateV3 }
 import { getCandidateLocalEvent, normalizeCandidateValue, normalizeMoneyValue } from './material-facts-v3.ts';
 import { parseAmount } from './material-facts.ts';
 import { isRmbCurrencyUnitAt, monetaryExpressionHasUnsupportedCurrency, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
+import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
 
 export type MonetaryExpressionClassification = {
   kind: 'monetary' | 'not_monetary' | 'undetermined';
@@ -145,12 +146,19 @@ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization 
   if (rawValue.length > MAX_INPUT) return result(rawValue, 'unsupported', '金额原文超过4000字符上限，未尝试解析或截断。');
   if (monetaryExpressionHasUnsupportedCurrency(rawValue) || /±/u.test(rawValue)) return result(rawValue, 'unsupported', '仅支持明确人民币金额，外币、币种冲突和正负范围符号未转换。');
   if (/[％%]|百分之/u.test(rawValue)) return result(rawValue, 'percentage', '比例不能作为精确金额。');
+  const isRange = RANGE.test(monetaryDetectionView(rawValue));
+  const matches = [...rawValue.matchAll(new RegExp(TOKEN.source, 'gu'))];
+  // An explicit operation is distinct from a redaction: ×/x/* must not hide
+  // the fact that the matched amount is only an operand. Keep raw indices.
+  if (!isRange && matches.length === 1) {
+    const match = matches[0];
+    if (hasAttachedMoneyArithmetic(rawValue.slice(0, match.index), rawValue.slice(match.index + match[0].length))) return result(rawValue, 'unsupported', '金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。');
+  }
   if (MASKED.test(rawValue)) return result(rawValue, 'masked', '金额未知、未明确或被遮盖；保留原文且不转换为零。');
   if (UNCERTAIN.test(rawValue)) return result(rawValue, 'uncertain', '金额有不确定或待核表述。');
-  if (RANGE.test(monetaryDetectionView(rawValue))) return result(rawValue, 'range', '金额属于区间，未选取单个端点。');
+  if (isRange) return result(rawValue, 'range', '金额属于区间，未选取单个端点。');
   if (APPROXIMATE.test(rawValue)) return result(rawValue, 'approximate', '金额是概数或界限，未转成精确金额。');
 
-  const matches = [...rawValue.matchAll(new RegExp(TOKEN.source, 'gu'))];
   if (matches.length > 1) return result(rawValue, 'multiple_amounts', '原文含多笔金额，无法唯一选取。');
   if (matches.length === 1) {
     const match = matches[0], text = match[0].trimStart(), index = match.index + match[0].length - text.length;
@@ -187,6 +195,11 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
     if (local.text === null) normalized = result(candidate.value, 'uncertain', '金额原文在引用中缺失或重复，无法唯一定位当前事件。');
     else {
       const offset = local.text.indexOf(candidate.value), before = local.text.slice(0, offset), after = local.text.slice(offset + candidate.value.length);
+      // The unique quote anchor is already verified above. An explicit
+      // arithmetic continuation can cross a layout newline outside local.text;
+      // only this guard uses the complete quote, through the shared grammar.
+      const quoteOffset = candidate.quote.indexOf(candidate.value);
+      const arithmeticBefore = candidate.quote.slice(0, quoteOffset), arithmeticAfter = candidate.quote.slice(quoteOffset + candidate.value.length);
       const beforeBoundary = before.trimEnd(), afterBoundary = after.trimStart();
       const bareValue = !/人民币|[元圆¥￥]/u.test(candidate.value);
       const attachedYuan = new RegExp(`^\\s*[元圆](?:整|正)?(?=$|[^${NUMERALS}元圆角分整正])`, 'u').test(after);
@@ -198,6 +211,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
       if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
       else if (suffixRate && (candidate.meaning !== 'rate' || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== rateUnits[suffixRate[1]]))) normalized = result(candidate.value, 'rate_unit_mismatch', '原文紧贴的费率单位与金额角色或候选费率单位冲突。');
       else if (RANGE_BEFORE.test(monetaryDetectionView(before)) || RANGE_AFTER.test(monetaryDetectionView(after))) normalized = result(candidate.value, 'range', '当前金额在原文中直接属于区间端点。');
+      else if (hasAttachedMoneyArithmetic(arithmeticBefore, arithmeticAfter)) normalized = result(candidate.value, 'unsupported', '当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。');
       else if (qualifierStatus) normalized = result(candidate.value, qualifierStatus, '当前金额在原文中直接附着数量不定、概数界限或正负限定，未截取为精确正数。');
       else if (/(?:可能|或许|大概|估计|待核|暂计|暂定)(?:为|工资|金额|人民币|\s)*$/u.test(before) || /(?:或|或者)\s*$/u.test(before)
         || new RegExp(`^\\s*(?:或|或者)\\s*[${NUMERALS}]`, 'u').test(after)) normalized = result(candidate.value, 'uncertain', '当前金额在原文中有直接附着的不确定或备选表述。');

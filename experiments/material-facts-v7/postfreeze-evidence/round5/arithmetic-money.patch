@@ -1,0 +1,109 @@
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -2,6 +2,7 @@
+ import { getCandidateLocalEvent, normalizeCandidateValue, normalizeMoneyValue } from './material-facts-v3.ts';
+ import { parseAmount } from './material-facts.ts';
+ import { isRmbCurrencyUnitAt, monetaryExpressionHasUnsupportedCurrency, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
++import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
+ 
+ export type MonetaryExpressionClassification = {
+   kind: 'monetary' | 'not_monetary' | 'undetermined';
+@@ -145,12 +146,19 @@
+   if (rawValue.length > MAX_INPUT) return result(rawValue, 'unsupported', '金额原文超过4000字符上限，未尝试解析或截断。');
+   if (monetaryExpressionHasUnsupportedCurrency(rawValue) || /±/u.test(rawValue)) return result(rawValue, 'unsupported', '仅支持明确人民币金额，外币、币种冲突和正负范围符号未转换。');
+   if (/[％%]|百分之/u.test(rawValue)) return result(rawValue, 'percentage', '比例不能作为精确金额。');
++  const isRange = RANGE.test(monetaryDetectionView(rawValue));
++  const matches = [...rawValue.matchAll(new RegExp(TOKEN.source, 'gu'))];
++  // An explicit operation is distinct from a redaction: ×/x/* must not hide
++  // the fact that the matched amount is only an operand. Keep raw indices.
++  if (!isRange && matches.length === 1) {
++    const match = matches[0];
++    if (hasAttachedMoneyArithmetic(rawValue.slice(0, match.index), rawValue.slice(match.index + match[0].length))) return result(rawValue, 'unsupported', '金额直接参与倍数或乘除表达，未把其中的金额操作数当作计算结果。');
++  }
+   if (MASKED.test(rawValue)) return result(rawValue, 'masked', '金额未知、未明确或被遮盖；保留原文且不转换为零。');
+   if (UNCERTAIN.test(rawValue)) return result(rawValue, 'uncertain', '金额有不确定或待核表述。');
+-  if (RANGE.test(monetaryDetectionView(rawValue))) return result(rawValue, 'range', '金额属于区间，未选取单个端点。');
++  if (isRange) return result(rawValue, 'range', '金额属于区间，未选取单个端点。');
+   if (APPROXIMATE.test(rawValue)) return result(rawValue, 'approximate', '金额是概数或界限，未转成精确金额。');
+ 
+-  const matches = [...rawValue.matchAll(new RegExp(TOKEN.source, 'gu'))];
+   if (matches.length > 1) return result(rawValue, 'multiple_amounts', '原文含多笔金额，无法唯一选取。');
+   if (matches.length === 1) {
+     const match = matches[0], text = match[0].trimStart(), index = match.index + match[0].length - text.length;
+@@ -198,6 +206,7 @@
+       if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
+       else if (suffixRate && (candidate.meaning !== 'rate' || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== rateUnits[suffixRate[1]]))) normalized = result(candidate.value, 'rate_unit_mismatch', '原文紧贴的费率单位与金额角色或候选费率单位冲突。');
+       else if (RANGE_BEFORE.test(monetaryDetectionView(before)) || RANGE_AFTER.test(monetaryDetectionView(after))) normalized = result(candidate.value, 'range', '当前金额在原文中直接属于区间端点。');
++      else if (hasAttachedMoneyArithmetic(before, after)) normalized = result(candidate.value, 'unsupported', '当前金额在原文中直接参与倍数或乘除表达，未把裁剪后的金额操作数当作计算结果。');
+       else if (qualifierStatus) normalized = result(candidate.value, qualifierStatus, '当前金额在原文中直接附着数量不定、概数界限或正负限定，未截取为精确正数。');
+       else if (/(?:可能|或许|大概|估计|待核|暂计|暂定)(?:为|工资|金额|人民币|\s)*$/u.test(before) || /(?:或|或者)\s*$/u.test(before)
+         || new RegExp(`^\\s*(?:或|或者)\\s*[${NUMERALS}]`, 'u').test(after)) normalized = result(candidate.value, 'uncertain', '当前金额在原文中有直接附着的不确定或备选表述。');
+--- a/lib/material-money-v4.test.ts
++++ b/lib/material-money-v4.test.ts
+@@ -3,6 +3,66 @@
+ import { canonicalMonetaryExpression, classifyMonetaryExpression, normalizeCandidateValueV4, normalizeMoneyValueV4 } from './material-money-v4.ts';
+ 
+ const money = (overrides: Partial<RawCandidateV3> = {}): RawCandidateV3 => ({ kind: 'money', value: '四万元', quote: '王甲工资四万元', blockId: 'b1', subject: '王甲', scope: 'individual', meaning: 'due_total', completeness: 'complete', period: null, rateUnit: null, assertion: 'narrated', ...overrides });
++
++describe('attached arithmetic minimum regression', () => {
++  it('does not treat an amount operand as the result of its attached multiplier', () => {
++    expect(normalizeMoneyValueV4('四万元的2倍')).toMatchObject({ rawValue: '四万元的2倍', status: 'unsupported', amount: null, matchedText: null, span: null });
++  });
++  it('retains a clipped monetary operand as unavailable in its source multiplier', () => {
++    expect(normalizeCandidateValueV4(money({ quote: '王甲工资四万元的2倍' }))).toMatchObject({ value: '四万元', amount: null, normalization: { status: 'unsupported', rawValue: '四万元' } });
++  });
++});
++
++describe('monetary operands retain attached multiplication and division', () => {
++  const expressions = [
++    '四万元的二倍', '四万元的两倍', '四万元的2.5倍', '四万元的２．５倍', '四万元2倍',
++    '四万元 的 2 倍', '四万元\u200d的\u200d两\u200d倍', '四万元　的　２　倍',
++    '2倍四万元', '两倍的四万元', '２．５倍 的 四万元', '二\u200d倍的四万元',
++    '2乘以四万元', '二乘四万元', '2×四万元', '２ｘ四万元', '2*四万元', '２＊四万元', '2除以四万元', '二÷四万元',
++    '四万元乘以二', '四万元 乘 2', '四万元×2', '四万元x二', '四万元＊2', '四万元*２．５',
++    '四万元÷2', '四万元/2', '四万元／２', '四万元除以二', '四万元 除以 两',
++    '四万元\u200d×\u200d2', '四万元\u200d／\u200d２', '2\u200d×\u200d四万元',
++  ];
++  it.each(expressions)('does not interpret the operand in %s as a computed amount', value => {
++    expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: value, status: 'unsupported', amount: null, matchedText: null, span: null });
++    expect(canonicalMonetaryExpression(value)).toBeNull();
++  });
++  it.each(expressions)('also guards the clipped monetary operand in source %s', expression => {
++    const candidate = money({ quote: `王甲工资为${expression}。` });
++    expect(normalizeCandidateValueV4(candidate)).toMatchObject({ value: '四万元', amount: null, normalization: { rawValue: '四万元', status: 'unsupported', matchedText: null, span: null } });
++    expect(candidate.quote).toBe(`王甲工资为${expression}。`);
++  });
++  it.each([
++    ['40000', '工资40000元的2倍'], ['40000', '工资40000人民币的2倍'],
++    ['40000', '工资2倍的人民币40000元'], ['四万元', '工资2倍的人民币四万元'],
++    ['四万元', '工资四万元人民币的两倍'], ['四万元', '工资四万元整的2倍'],
++  ])('preserves the operation when clipped %s omits currency or a terminal unit in %s', (value, quote) => {
++    expect(normalizeCandidateValueV4(money({ value, quote }))).toMatchObject({ value, amount: null, normalization: { status: 'unsupported', rawValue: value } });
++  });
++  it.each([
++    '三人工资共四万元', '两名工人工资共四万元', '二十四人三个月工资共四万元',
++    '工资起算后两倍工资四万元', '两倍工资共四万元',
++    '四万元。王乙加班工资按2倍发放', '四万元；王乙奖金按两倍计',
++    '四万元\n王乙加班工资按二倍计', '四万元。另有三人',
++  ])('does not borrow an unrelated count or multiplier in %s', value => {
++    const normalized = normalizeMoneyValueV4(value);
++    expect(normalized).toMatchObject({ rawValue: value, status: 'exact', amount: '40000.00' });
++    expect(Array.from(value).slice(normalized.span!.start, normalized.span!.end).join('')).toBe(normalized.matchedText);
++    expect(normalizeCandidateValueV4(money({ quote: `王甲工资${value}` })).amount).toBe('40000.00');
++  });
++  it.each(['四万元/月', '四万元/天', '四万元/小时', '四万元/件'])('keeps a real rate denominator separate from arithmetic in %s', value => {
++    expect(normalizeMoneyValueV4(value)).toMatchObject({ status: 'exact', amount: '40000.00' });
++  });
++  it('preserves a compatible source-bound monthly rate and a total/rate mismatch', () => {
++    const quote = '王甲月工资四万元/月';
++    expect(normalizeCandidateValueV4(money({ quote, meaning: 'rate', rateUnit: 'month', completeness: 'not_applicable' })).amount).toBe('40000.00');
++    expect(normalizeCandidateValueV4(money({ quote })).normalization.status).toBe('rate_unit_mismatch');
++  });
++  it.each(['工资未知', '四万X元', '工资未明确', '四万至五万元'])('keeps unresolved evidence unavailable in %s', value => {
++    expect(normalizeMoneyValueV4(value).amount).toBeNull();
++    expect(classifyMonetaryExpression(value).kind).toBe('monetary');
++  });
++});
+ 
+ describe('v4 minimum Chinese-money regression', () => {
+   it.each(['人民币四万元', '四万元', '四万零三元五角零分'])('parses strict lowercase amount %s', value => {

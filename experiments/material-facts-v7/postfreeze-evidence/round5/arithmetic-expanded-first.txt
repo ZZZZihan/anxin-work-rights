@@ -1,0 +1,67 @@
+扩展作者回归首次实际结果；仅测试，无模型。
+命令：npx vitest run lib/material-money-v4.test.ts --reporter=dot
+exit_code: 1
+
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money
+
+········································································x·······x·············································································································································································································································································································································································
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 444 passed (446)
+   Start at  13:12:39
+   Duration  507ms (transform 66ms, setup 0ms, collect 76ms, tests 48ms, environment 0ms, prepare 42ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/material-money-v4.test.ts > monetary operands retain attached multiplication and division > does not borrow an unrelated count or multiplier in 三个人工资共四万元
+AssertionError: expected { rawValue: '三个人工资共四万元', …(5) } to match object { rawValue: '三个人工资共四万元', …(2) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": "40000.00",
++   "amount": null,
+    "rawValue": "三个人工资共四万元",
+-   "status": "exact",
++   "status": "multiple_amounts",
+  }
+
+ ❯ lib/material-money-v4.test.ts:49:24
+     47|   ])('does not borrow an unrelated count or multiplier in %s', value =…
+     48|     const normalized = normalizeMoneyValueV4(value);
+     49|     expect(normalized).toMatchObject({ rawValue: value, status: 'exact…
+       |                        ^
+     50|     expect(Array.from(value).slice(normalized.span!.start, normalized.…
+     51|     expect(normalizeCandidateValueV4(money({ quote: `王甲工资${value}` }))…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/material-money-v4.test.ts > monetary operands retain attached multiplication and division > does not borrow an unrelated count or multiplier in 四万元，另有三个人
+AssertionError: expected { rawValue: '四万元，另有三个人', …(5) } to match object { rawValue: '四万元，另有三个人', …(2) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": "40000.00",
++   "amount": null,
+    "rawValue": "四万元，另有三个人",
+-   "status": "exact",
++   "status": "unsupported",
+  }
+
+ ❯ lib/material-money-v4.test.ts:49:24
+     47|   ])('does not borrow an unrelated count or multiplier in %s', value =…
+     48|     const normalized = normalizeMoneyValueV4(value);
+     49|     expect(normalized).toMatchObject({ rawValue: value, status: 'exact…
+       |                        ^
+     50|     expect(Array.from(value).slice(normalized.span!.start, normalized.…
+     51|     expect(normalizeCandidateValueV4(money({ quote: `王甲工资${value}` }))…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
