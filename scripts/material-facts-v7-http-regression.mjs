@@ -28,7 +28,7 @@ const wrangler = resolve(root, 'node_modules/wrangler/bin/wrangler.js');
 // The service is explicitly rules-only. Ambient backend/model settings must not
 // turn this regression into actual local or remote model inference.
 const workerEnv = { ...process.env, WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false' };
-let temp, worker, migrationChild, service, proxy, db, configPath, base, phase = 'setup', failure;
+let temp, worker, migrationChild, service, proxy, db, configPath, base, phase = 'setup', failure, interruption;
 const sanitize = value => String(value).replaceAll(token, '[redacted]');
 const errorRecord = error => ({ name: sanitize(error?.name || 'Error'), message: sanitize(error?.message || String(error)) });
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -182,14 +182,20 @@ async function startWorker() {
   throw new Error('Isolated Worker readiness timed out.');
 }
 async function cleanup(name, operation) { try { await operation(); } catch (error) { cleanupFailures.push({ operation: name, ...errorRecord(error) }); } }
-const interrupt = () => {
-  shutdown.abort(new Error('Synthetic HTTP regression interrupted.'));
+// Keep these CLI handlers through report publication and exit. A repeated
+// signal cannot restore default termination or signal the owned group twice.
+const interrupt = signal => {
+  if (shutdown.signal.aborted) return;
+  const error = new Error(`Synthetic HTTP regression interrupted by ${signal}.`);
+  interruption = { phase, signal, ...errorRecord(error) };
+  process.exitCode = 1;
+  shutdown.abort(error);
   for (const child of [worker, migrationChild]) {
     try { signalOwnedChild(child, 'SIGTERM'); }
     catch (error) { cleanupFailures.push({ operation: 'interrupt_owned_processes', ...errorRecord(error) }); }
   }
 };
-process.once('SIGINT', interrupt); process.once('SIGTERM', interrupt);
+process.on('SIGINT', () => interrupt('SIGINT')); process.on('SIGTERM', () => interrupt('SIGTERM'));
 
 try {
   const originalPath = resolve(root, 'dist/server/wrangler.json');
@@ -854,6 +860,33 @@ try {
     return { amount: spec.amount, rawAndStoredHistoryUnchanged: true };
   });
   // End ROUND22 additions.
+  // ROUND23: retain cropped bounds, reject amount-free labels, parse explicit RMB.
+  for (const spec of [
+    ...['最多四万元', '最少四万元', '四万元内', '四万元之内'].map(expression => ({ name: `compact-bound-${expression}`, text: `测试王甲工资${expression}。`, value: '四万元', amount: null, status: 'approximate', oldAmount: '40000.00' })),
+    ...['八折', '拖欠工資'].map(value => ({ name: `amount-free-${value}`, text: `测试王甲材料记载${value}。`, value, rejected: true })),
+    ...[['40000人民幣', '40000.00'], ['40000RMB', '40000.00'], ['人民幣5角', '0.50'], ['人民币5角2分', '0.52']].map(([value, amount]) => ({ name: `explicit-rmb-${value}`, text: `测试王甲收到${value}。`, value, amount, status: 'exact' })),
+  ]) await scenario(`round23_${spec.name}`, async () => {
+    const [item] = await fixture(`round23-${spec.name}`, [{ text: spec.text, candidates: [money(spec.value, spec.value, { period: null })] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, spec.rejected ? 0 : 1); assert.equal(material.rejected.length, spec.rejected ? 1 : 0);
+    if (!spec.rejected) {
+      assert.equal(material.candidates[0].amount, spec.amount); assert.equal(material.candidates[0].normalization.status, spec.status);
+      if (spec.amount === null) {
+        const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
+        old.amount = spec.oldAmount;
+        old.normalization = { rawValue: spec.value, amount: spec.oldAmount, status: 'exact', matchedText: spec.value, span: { start: 0, end: Array.from(spec.value).length }, reason: 'Synthetic pre-fix round23 exact amount' };
+        db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+      }
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body);
+    assert.equal(checked.candidates.length, spec.rejected ? 0 : 1);
+    if (!spec.rejected) { assert.equal(checked.candidates[0].amount, spec.amount); assert.equal(checked.candidates[0].normalization.status, spec.status); }
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round23-${spec.name}`, item, state: before });
+    return { amount: spec.amount ?? null, rejected: !!spec.rejected, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: !spec.rejected && spec.amount === null };
+  });
+  // End ROUND23 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
@@ -918,17 +951,27 @@ finally {
     }
     if (temp) await rm(temp, { recursive: true, force: true });
   });
-  process.removeListener('SIGINT', interrupt); process.removeListener('SIGTERM', interrupt);
   if (observations.some(item => item.status !== 'PASS')) failure ??= { phase: 'acceptance', message: 'One or more synthetic HTTP scenarios failed; original observations and raw outputs are retained.' };
   if (cleanupFailures.length) failure ??= { phase: 'cleanup', message: 'Temporary regression resources did not fully clean up.' };
-  const report = Buffer.from(JSON.stringify({ status: failure ? 'FAIL' : 'PASS', mode: 'material-facts-v7-http', runId,
+  const report = () => Buffer.from(JSON.stringify({ status: failure || interruption ? 'FAIL' : 'PASS', mode: 'material-facts-v7-http', runId,
     boundary: 'production Worker HTTP + disposable on-disk D1/R2 + real TXT material service and rules queue + explicitly injected synthetic fact outputs; no real-model or business acceptance',
     actualModelInference: false, syntheticInputs: true, holdoutRead: false, historicalReportsOverwritten: false, buildRoot: root, recordedAt: new Date().toISOString(),
-    observations, failure: failure || null, syntheticOutputs: outputs, serviceCalls: calls, retiredServiceJobs,
+    observations, failure: failure ?? interruption ?? null, interruption: interruption ?? null, syntheticOutputs: outputs, serviceCalls: calls, retiredServiceJobs,
     cleanup: { status: cleanupFailures.length ? 'FAIL' : 'PASS', failures: cleanupFailures },
   }, null, 2) + '\n');
-  try { await reportFile.writeFile(report); }
+  try {
+    const interruptedBeforeWrite = shutdown.signal.aborted;
+    await reportFile.writeFile(report());
+    if (!interruptedBeforeWrite && shutdown.signal.aborted) {
+      const updated = report();
+      for (let offset = 0; offset < updated.length;) {
+        const { bytesWritten } = await reportFile.write(updated, offset, updated.length - offset, offset);
+        assert(bytesWritten > 0, 'Interrupted report publication made no progress.'); offset += bytesWritten;
+      }
+      await reportFile.truncate(updated.length);
+    }
+  }
   finally { await reportFile.close(); }
 }
-console.log(JSON.stringify({ status: failure ? 'FAIL' : 'PASS', mode: 'material-facts-v7-http', checks: observations.length, output }));
-if (failure) process.exitCode = 1;
+console.log(JSON.stringify({ status: failure || interruption ? 'FAIL' : 'PASS', mode: 'material-facts-v7-http', checks: observations.length, output }));
+if (failure || interruption) process.exitCode = 1;

@@ -1,17 +1,17 @@
 // Only detection copies are folded. The source and its code-point positions
 // remain untouched, including when layout divides an explicit range.
-export const MONEY_BOUND_PREFIX = '(?:不得少于|不得低于|不得超过|不得高于|不超过|不少于|不低于|不高于|不多于|不大于|不小于|不满|未满|低于|高于|多达|少于|多于|大于|小于|未达|大约|约(?!定|束)|将近|接近|逾|不到|不止|超过|不足|至少|至多|上限|下限|最高|最低)';
+export const MONEY_BOUND_PREFIX = '(?:不得少于|不得低于|不得超过|不得高于|不超过|不少于|不低于|不高于|不多于|不大于|不小于|不满|未满|低于|高于|多达|少于|多于|大于|小于|未达|大约|约(?!定|束)|将近|接近|逾|不到|不止|超过|不足|至少|至多|上限|下限|最高|最低|最多|最少)';
 // A following explicit duration or occurrence count belongs to its own number,
 // e.g. 四万元不到三天付清. Do not treat that temporal bound as a money bound.
 const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;
 // Explicit ordinary continuations keep their word boundary; other unknown prose
 // remains conservative. Do not exempt genuine lower bounds such as 起价.
-export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|以上|以下|以内|以外|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
+export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|以上|以下|以内|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
 
 /** Fold a detection copy only; never use this text for source positions. */
 export function moneyQualifierDetectionView(text: string): string {
-  return text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[約餘滿於達內頂頭許萬開]/gu,
-    character => ({ 約: '约', 餘: '余', 滿: '满', 於: '于', 達: '达', 內: '内', 頂: '顶', 頭: '头', 許: '许', 萬: '万', 開: '开' })[character]!);
+  return text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[約餘滿於達內頂頭許萬開兩億]/gu,
+    character => ({ 約: '约', 餘: '余', 滿: '满', 於: '于', 達: '达', 內: '内', 頂: '顶', 頭: '头', 許: '许', 萬: '万', 開: '开', 兩: '两', 億: '亿' })[character]!);
 }
 const view = (text: string) => moneyQualifierDetectionView(text).replace(/\s+/gu, ' ');
 const SPACE = String.raw`\s*`;
@@ -21,14 +21,19 @@ const UNIT = `(?:(?:元(?!旦|宵|年|月|素|件|音)|[圆圓](?!满|形|圈|�
 const PREFIX = `(?:(?:${CURRENCY}|${MONEY_BOUND_PREFIX}|(?<!最)近)${SPACE}){0,3}`;
 const SUFFIX = `(?:${SPACE}${MONEY_BOUND_SUFFIX})?`;
 const VALUE = `${NUMBER}${SPACE}(?:(?:多|余)${SPACE})?`;
-const AMOUNT = `${PREFIX}${VALUE}(?:${UNIT})?(?:${SPACE}${CURRENCY}){0,2}${SUFFIX}`;
+// Subunit-only amounts require an explicit RMB marker. A bare 分 may be a
+// duration, so the shorthand branch below is only reached after explicit RMB.
+const SUBUNIT_WORD_END = '(?!钟|鐘|米|秒|期|段|类|類|析|工|配|组|組|角|度)';
+const SUBUNITS = `(?:${NUMBER}${SPACE}角(?:${SPACE}${NUMBER}${SPACE}分)?|${NUMBER}${SPACE}分)(?:整|正)?${SUBUNIT_WORD_END}`;
+const EXPLICIT_SUBUNIT = `(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}${CURRENCY}${SPACE}(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}${SUBUNITS}${SUFFIX}`;
+const AMOUNT = `(?:${EXPLICIT_SUBUNIT}|${PREFIX}${VALUE}(?:${UNIT})?(?:${SPACE}${CURRENCY}){0,2}${SUFFIX})`;
 // The second endpoint needs its own unit or the existing context-bound 万/亿
 // shorthand. A year, duration, person or arbitrary prose is never an endpoint.
 const ENDPOINT_END = `(?=$|[\\s，,。；;！!？?]|${MONEY_BOUND_SUFFIX})`;
 const EXPLICIT_PREFIX = `(?:${MONEY_BOUND_PREFIX}${SPACE}){0,2}${CURRENCY}${SPACE}${PREFIX}`;
-const MONEY_ENDPOINT = `(?:${PREFIX}(?:${VALUE}(?:${UNIT}|${CURRENCY})(?:${SPACE}${CURRENCY}){0,2}|${NUMBER}[万亿]${ENDPOINT_END})|${EXPLICIT_PREFIX}${VALUE}${ENDPOINT_END})${SUFFIX}`;
+const MONEY_ENDPOINT = `(?:${EXPLICIT_SUBUNIT}|${PREFIX}(?:${VALUE}(?:${UNIT}|${CURRENCY})(?:${SPACE}${CURRENCY}){0,2}|${NUMBER}[万亿]${ENDPOINT_END})|${EXPLICIT_PREFIX}${VALUE}${ENDPOINT_END})${SUFFIX}`;
 const LINK = '(?:至|到|[~～—–-])';
-const CONNECTED_RANGE = new RegExp(`${AMOUNT}${SPACE}${LINK}${SPACE}${MONEY_ENDPOINT}`, 'giu');
+const CONNECTED_RANGE = new RegExp(`(?:${AMOUNT}${SPACE}${LINK}${SPACE}${MONEY_ENDPOINT}|${EXPLICIT_SUBUNIT}${SPACE}${LINK}${SPACE}(?:${CURRENCY}${SPACE})?${SUBUNITS}${SUFFIX})`, 'giu');
 const PAIR = `${AMOUNT}${SPACE}(?:和|与|與|及)${SPACE}${AMOUNT}`;
 // A conjunction alone also describes independent payments. Require either the
 // closed “between” phrase or the explicit “lies between” prefix. No prose,
