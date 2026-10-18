@@ -1,0 +1,76 @@
+// Four additional synthetic controls by a nonimplementer; no HTTP or scorer CLI.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const ROOT = resolve(process.env.MATERIAL_FACT_TEST_ROOT || fileURLToPath(new URL('../', import.meta.url)));
+const ARITHMETIC = resolve(process.env.MATERIAL_FACT_ARITHMETIC_FILE || resolve(ROOT, 'lib/material-fact-arithmetic-review.ts'));
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-r39-halving-independent-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+await cp(resolve(ROOT, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+await cp(ARITHMETIC, resolve(temporary, 'lib/material-fact-arithmetic-review.ts'));
+const load = file => import(pathToFileURL(resolve(temporary, 'lib', file)).href);
+const { emptyFactState, ingestCandidates, buildFactView } = await load('material-facts-v3.ts');
+const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest.ts');
+const { reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
+const AT = '2026-10-19T04:00:00.000Z';
+
+function fixture(expression, subject = '王甲') {
+  const text = `😀王甲2026年1月全部应付工资合计${expression}。`;
+  const source = { id: 'r39-independent', name: 'synthetic.txt', sha256: '9'.repeat(64),
+    analysisRevision: 39, ready: true, blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }] };
+  const item = { kind: 'money', value: '4000元', quote: '4000元', blockId: 'b1', subject,
+    scope: 'individual', meaning: 'due_total', completeness: 'complete', period: '2026年1月', rateUnit: null, assertion: 'narrated' };
+  return { source, item, raw: JSON.stringify({ schemaVersion: 3, candidates: [item] }) };
+}
+function check(f, amount) {
+  const before = structuredClone(f);
+  const state = ingestRuntimeCandidates(emptyFactState(39), f.source, { raw: f.raw }, 'synthetic', 'independent', AT);
+  assert.equal(state.materials[0].candidates.length, 1);
+  const candidate = state.materials[0].candidates[0];
+  assert.equal(candidate.amount, amount);
+  assert.deepEqual(candidate.representation, f.item);
+  assert.equal(state.materials[0].raw, f.raw);
+  assert.equal(Array.from(f.source.blocks[0].text).slice(candidate.start, candidate.end).join(''), f.item.quote);
+  state.scope = { worker: f.item.subject, employer: '甲公司', start: '2026-01-01', end: '2026-01-31' };
+  state.scopeReview = { note: 'Synthetic scope review, not amount confirmation.', actor: 'fixture', at: AT };
+  const view = buildFactView(state, [f.source]);
+  assert.equal(view.canCalculate, false);
+  assert.equal(state.calculation, null);
+  assert.deepEqual(state.confirmations, { due: null, paid: null });
+  if (amount === null) assert.deepEqual(view.fields.due.values, []);
+  const stored = ingestCandidates(emptyFactState(39), f.source, { raw: f.raw }, 'synthetic', 'independent', AT);
+  stored.materials[0].candidates[0].amount = null;
+  stored.materials[0].candidates[0].normalization = { rawValue: f.item.value, status: 'unsupported', amount: null,
+    matchedText: null, span: null, reason: 'Synthetic unavailable historical record.' };
+  const old = structuredClone(stored), reviewed = reviewFactsAgainstSources(stored, [f.source]);
+  assert.equal(reviewed.materials[0].candidates[0].amount, null);
+  assert.deepEqual(stored, old);
+  assert.deepEqual(reviewed.history, stored.history);
+  assert.deepEqual(f, before);
+}
+
+test('a complete personal-total label cannot make a halved base available after scope review', () => {
+  for (const operation of ['减半', '減半', '折半']) check(fixture('4000元' + operation), null);
+});
+test('a model-supplied different subject cannot exempt the original anchored operation', () => {
+  const f = fixture('4000元折半', '李乙');
+  const before = structuredClone(f);
+  const state = ingestRuntimeCandidates(emptyFactState(39), f.source, { raw: f.raw }, 'synthetic', 'independent', AT);
+  assert.equal(state.materials[0].candidates.length, 0, 'A nonliteral subject is rejected before money review.');
+  assert.equal(state.materials[0].rejected.length, 1);
+  assert.equal(state.materials[0].raw, f.raw);
+  assert.deepEqual(buildFactView(state, [f.source]).fields.due.values, []);
+  assert.equal(buildFactView(state, [f.source]).canCalculate, false);
+  assert.deepEqual(f, before);
+});
+test('explicit halving survives Unicode line separators and compatibility detection only', () => {
+  for (const tail of ['減\u2028半', '折\u2029半', '減\u200d半']) check(fixture('4000元' + tail), null);
+});
+test('another worker statement and an expressly stated result do not attach a halving operation', () => {
+  check(fixture('4000元。李乙2026年2月工资另行折半'), '4000.00');
+  check(fixture('减半后明确为4000元'), '4000.00');
+});

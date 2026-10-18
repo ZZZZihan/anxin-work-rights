@@ -29,16 +29,20 @@ const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总',
 const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
 // Date-only cue/bridge aliases, after literal owner/value positions are found.
 // Folding never changes the subject, date literal, quote or source offsets.
-const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 辭: '辞', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须', 給: '给', 畢: '毕' };
-const dateRole = (text: string) => compact(text).replace(/[於職辭資歸屬間簽訂勞動關終開廠離約發計領實際係該時為調傷並與結後從應須給畢]/gu, glyph => dateGlyphs[glyph]);
+const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 辭: '辞', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须', 給: '给', 畢: '毕', 帳: '账', 賬: '账' };
+const dateRole = (text: string) => compact(text).replace(/[於職辭資歸屬間簽訂勞動關終開廠離約發計領實際係該時為調傷並與結後從應須給畢帳賬]/gu, glyph => dateGlyphs[glyph]);
 const groupLabel = /[、，,]|班[组組]|公司|[单單]位|集[团團]|工人|[员員]工|[劳勞][动動]者|群[体體]|集[体體]|[众眾]人/u;
+// Explicit plural kinship/party labels cannot identify one wage beneficiary.
+// Keep their literal amounts for review; an individual model label is no proof
+// that a family/party total belongs to one person.
+const pluralOwnerLabel = /兄弟|姐妹|夫妻|夫[妇婦]|父[子女]|母[子女]|祖[孙孫]|[双雙]方|各方|多方/u;
 // The existing terminal-name exception below has no second person fragment.
 // Surname shapes never prove that two nonempty coordinated parts are one worker.
 const commonSurname = '王李张張刘劉陈陳杨楊黄黃赵趙吴吳周徐孙孫马馬朱胡郭何高林罗羅郑鄭梁谢謝宋唐许許韩韓冯馮邓鄧曹彭曾肖萧蕭田董袁潘于蒋蔣蔡余杜叶葉程苏蘇魏吕呂丁任沈姚卢盧姜崔钟鍾谭譚陆陸汪范金石廖贾賈夏韦韋方白邹鄒孟熊秦邱侯江尹薛阎閻段雷龙龍黎史陶贺賀顾顧毛郝龚龔邵万萬钱錢严嚴武戴莫孔向汤湯';
 const surname = new RegExp(`^[${commonSurname}]$`, 'u');
 function collectiveSubject(subject: string): boolean {
   const text = compact(subject);
-  if (groupLabel.test(text) || /等(?:人)?$/u.test(text)
+  if (groupLabel.test(text) || pluralOwnerLabel.test(text) || /等(?:人)?$/u.test(text)
     || /^(?:[他她我你][们們]|大家|各位|[诸諸]位)$/u.test(text)) return true;
   const parts = text.split(/[和与與及跟暨或同&/]/u);
   if (parts.length === 1) return false;
@@ -106,7 +110,7 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
   // The wage belongs to the already located owner. No new person, calendar
   // fragment, negation or procedural command can be absorbed by these layouts.
   if (point.test(value) && new RegExp(`^(?:的)?${wage}(?:于|在)?$`, 'u').test(left)
-    && /^(?:实际)?(?:收到|领取)$/u.test(right)) return true;
+    && /^(?:实际)?(?:收到|领取|到账|入账)$/u.test(right)) return true;
   // An explicit wage payment date is supported without inferring that payment
   // happened. The date role, located beneficiary and whole verb envelope stay
   // separate from money receipt and complete paid-total authorization.
@@ -180,7 +184,7 @@ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: stri
   }
   role = raw.kind === 'date' ? dateRole(role) : moneyRole(role);
   const attributionText = raw.kind === 'date' ? `${role}${dateRole(after)}` : role;
-  const receipt = /收到|领取/u.test(attributionText);
+  const receipt = raw.kind === 'date' ? /收到|领取|到账|入账/u.test(attributionText) : /收到|领取/u.test(attributionText);
   const paymentLayout = hasSupportedWagePaymentLayout(raw, role, after);
   // A payment verb establishes a payer, not the wage beneficiary requested by
   // the extraction contract. Preserve the label but warn if receipt is unsupported.
