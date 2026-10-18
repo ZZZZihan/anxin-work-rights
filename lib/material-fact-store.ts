@@ -149,7 +149,21 @@ async function poll(user: RequestUser, id: string, current: Snapshot): Promise<S
   }
   // Matching revision + generation also binds the same job; a late completion
   // cannot overwrite a retry, another user action, or a changed material list.
-  if (!await save(user, id, current, state)) throw conflict();
+  if (!await save(user, id, current, state)) {
+    const latest = await snapshot(user, id);
+    const audit = latest.state.history.at(-1);
+    // Another reader may have consumed this same job, including deleting it
+    // remotely before this reader fetched it. Only that single terminal write
+    // can converge; a retry, source change or user action remains a conflict.
+    const completed = !latest.state.job && audit?.type === 'candidates_extracted'
+      && audit.id === (current.state.history.at(-1)?.id ?? 0) + 1
+      && audit.actor === user.userId && audit.evidenceId === active.evidenceId;
+    const failed = latest.state.job?.id === active.id && latest.state.job.status === 'failed'
+      && latest.state.job.generation === active.generation;
+    if (latest.revision === current.revision + 1 && latest.generation === current.generation
+      && latest.state.generation === current.generation && (completed || failed)) return latest;
+    throw conflict();
+  }
   await cancelJob(user, id, active.id);
   return { ...current, state, revision: current.revision + 1 };
 }

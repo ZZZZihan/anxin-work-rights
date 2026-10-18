@@ -62,6 +62,32 @@ test('service selects the bounded runtime and only forwards an explicit loopback
   }
 });
 
+test('production inference forwards text blocks without private filename or source metadata', async () => {
+  const runner = controlledRunner();
+  const privateSource = { ...source, name: '合成私密姓名_案件编号_工资.pdf' };
+  const pending = runner.inference(privateSource, deepseek, new AbortController().signal);
+  await flush();
+  const child = runner.children[0];
+  const envelope = JSON.parse(child.stdin.read().toString());
+  // The local worker correlates by id; only messages enter the remote API.
+  assert.equal(envelope.id, source.id);
+  const content = JSON.parse(envelope.messages.find(message => message.role === 'user').content);
+  assert.deepEqual(content, { blocks: source.blocks.map(({ id, page, text }) => ({ id, page, text })) });
+  for (const privateValue of [privateSource.name, source.id, source.sha256]) assert(!JSON.stringify(envelope.messages).includes(privateValue));
+  child.result(); child.close();
+  assert.equal((await pending).finish_reason, 'stop');
+});
+
+test('oversized fact input reports a split-material client error before queueing inference', async () => {
+  let calls = 0;
+  const jobs = createFactJobs(deepseek, async () => { calls++; return { raw: '{}', backend: 'deepseek', model: null }; });
+  try {
+    assert.throws(() => jobs.submit({ source: { ...source, blocks: [{ ...source.blocks[0], text: '字'.repeat(24001) }] } }),
+      error => error.status === 400 && /24000/.test(error.message) && /分份/.test(error.message));
+    assert.equal(calls, 0);
+  } finally { await jobs.close(); }
+});
+
 test('Qwen preflight requires normal measurable memory before spawning', async t => {
   for (const sample of [{ level: 2, swapUsed: 0 }, { level: 4, swapUsed: 0 }, { level: 1, swapUsed: NaN }, { level: 0, swapUsed: 0 }, null]) await t.test(String(sample?.level), async () => {
     const runner = controlledRunner(async () => sample);

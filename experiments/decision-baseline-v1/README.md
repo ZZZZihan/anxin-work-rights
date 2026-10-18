@@ -15,13 +15,15 @@
 在仓库根目录执行：
 
 ```bash
+python3 -B experiments/decision-baseline-v1/verification/verify.py --tracked-only
 python3 experiments/decision-baseline-v1/data/validate_dataset.py
 python3 experiments/decision-baseline-v1/prepare.py
 python3 -m unittest discover -s experiments/decision-baseline-v1 -p 'test_*.py'
-python3 experiments/decision-baseline-v1/summarize.py
+python3 -B -m unittest discover -s experiments/decision-baseline-v1/verification -p 'test_*.py'
+python3 -B experiments/decision-baseline-v1/verification/verify.py
 ```
 
-`prepare.py`发现已有freeze.json时只核对哈希，不改写冻结内容。`summarize.py`只读取存档并复算整合读数；CI还确认生成的comparison.json与提交内容一致。这些检查不调用DeepSeek、不加载Qwen、不训练。
+检查首先要求 v1/v2/v3 的冻结清单和比较表都已被 Git 跟踪且仍存在，避免生成器把误删的存档重建成未跟踪文件后漏过检查。`prepare.py`发现已有freeze.json时只核对哈希，不改写冻结内容。新增的 `verification/verify.py` 从原始结果和金标重算每项 assessment 和 diagnostic，并逐条核对匿名审查包与映射目标的输入、金标、原始输出、解析输出和传输状态；随后在临时副本中运行冻结的 `summarize.py`，要求比较表与存档逐字节一致。验证器只读存档，不改已封存的评分源码、指标和历史结果。这些检查不调用DeepSeek、不加载Qwen、不训练。
 
 ## 复现基线
 

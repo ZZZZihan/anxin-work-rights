@@ -104,6 +104,27 @@ describe('material facts API and transactional persistence', () => {
     expect((await read()).state.materials[0]).toEqual(current.state.materials[0]);
   });
 
+  it('returns an actionable 400 for ready OCR over the extraction limit without claiming a job or clearing scope', async () => {
+    const blocks = Array.from({ length: 9 }, (_, index) => ({ id: `long-${index}`, page: 1,
+      text: '字'.repeat(index === 8 ? 1 : 3000), bbox: null, confidence: null }));
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks',json(?)) WHERE evidence_id='source-1'`)
+      .bind(JSON.stringify(blocks)).run();
+    let current = await read();
+    expect(current.sources[0].ready).toBe(true);
+    current = await (await act(current, { action: 'confirm_scope', scope, note, verified: true })).json() as MaterialFactsResponse;
+    bindings.service.mockClear();
+    const rejected = await act(current, { action: 'extract', evidenceId: 'source-1' });
+    expect(rejected.status).toBe(400);
+    const rejectionBody = await rejected.json() as { error: string };
+    expect(rejectionBody.error).toMatch(/24000.*分份/);
+    expect(bindings.service.mock.calls.some(([path]) => path === '/fact-jobs')).toBe(false);
+    const after = await read();
+    expect(after.revision).toBe(current.revision);
+    expect(after.state).toEqual(current.state);
+    expect(after.state.scope).toEqual(scope);
+    expect(after.state.job).toBeNull();
+  });
+
   it('keeps an exact observation after an approximate duplicate through the real polling store without rewriting historical results', async () => {
     const clauses = ['张三2026年1月完整应付工资约1000元', '张三2026年1月完整应付工资1000元'];
     await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`).bind(clauses.join('。') + '。').run();

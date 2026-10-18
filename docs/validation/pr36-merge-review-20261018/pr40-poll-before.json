@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "mode": "fact-poll-concurrency",
+  "boundary": "production Worker HTTP + disposable on-disk D1 SQLite + real material service rules jobs + loopback timeout/503 injection",
+  "actualModelInference": false,
+  "syntheticInputs": true,
+  "recordedAt": "2026-10-18T01:34:18.466Z",
+  "observations": [
+    {
+      "name": "two_real_http_polls_for_same_ready_job",
+      "status": "FAIL",
+      "responseStatuses": [
+        200,
+        409
+      ],
+      "responseRevisions": [
+        4,
+        null
+      ],
+      "errors": [
+        {
+          "error": "材料或确认版本已变化，当前草稿未保存。请重新加载后再核对。"
+        }
+      ],
+      "storedRevision": 4,
+      "extractionAuditCount": 1,
+      "materials": 1,
+      "generation": 6
+    },
+    {
+      "name": "old_poll_does_not_overwrite_new_extraction",
+      "status": "PASS",
+      "responseStatus": 409,
+      "newestJobPreserved": true
+    },
+    {
+      "name": "material_generation_change_keeps_conflict",
+      "status": "PASS",
+      "responseStatus": 409
+    },
+    {
+      "name": "foreign_and_unauthenticated_reads_remain_rejected",
+      "status": "PASS",
+      "foreign": 404,
+      "unauthenticated": 401
+    }
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "failures": []
+  },
+  "calls": [
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/f16512a3-2c94-42f8-aa42-f6a87c25da9a",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/38a2c17d-1ca5-47fc-88e8-5dfc57601820",
+      "mode": "normal",
+      "authenticated": true
+    }
+  ]
+}

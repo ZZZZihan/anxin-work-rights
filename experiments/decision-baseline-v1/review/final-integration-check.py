@@ -9,8 +9,9 @@ import json
 from pathlib import Path
 import statistics
 import sys
+import tempfile
 
-ROOT = Path('/Users/xuzihan/Documents/Projects/国创/anxin-decision-baselines/experiments/decision-baseline-v1')
+ROOT = Path(__file__).resolve().parents[1]
 DEST = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 import common
@@ -167,7 +168,8 @@ assert usage['total_tokens'] == 55464
 peak = (Decimal(usage['prompt_cache_miss_tokens']) * Decimal('1.32') + Decimal(usage['prompt_cache_hit_tokens']) * Decimal('.044') + Decimal(usage['completion_tokens']) * Decimal('3.96')) / Decimal(1000000)
 api_checks = {'attempts_by_run': dict(attempts), 'successes_by_run': dict(successes), 'attempts_total': sum(attempts.values()), 'successes_total': sum(successes.values()), 'usage': dict(usage), 'peak_usd_decimal': str(peak), 'off_peak_usd_decimal': str(peak / 2), 'billing_verified': False, 'timeout_billing_unknown': True}
 
-generated = DEST / 'regenerated-comparison.json'
+generated_directory = tempfile.TemporaryDirectory(prefix='anxin-v1-integration-')
+generated = Path(generated_directory.name) / 'comparison.json'
 summarize.save = lambda path, obj: common.save(generated, obj)
 stdout = io.StringIO()
 with redirect_stdout(stdout):
@@ -231,4 +233,5 @@ assert outcome['completed'] is True and outcome['stop_reason'] is None
 assert snapshot() == before
 checks = {'status': 'passed', 'python': sys.version, 'frozen_hashes_verified': len(freeze['sha256']), 'source_snapshot_files_unchanged': len(before), 'expected_actions': dict(expected_actions), 'blind_packet_counts': packet_counts, 'mapping_counts': dict(mapping_counts), 'mapping_packets_match_all_raw_results': True, 'primary_and_diagnostics_recomputed_cases': 216, 'backend_checks': backend_checks, 'api_checks': api_checks, 'resource_checks': resource_checks, 'regenerated_comparison_sha256': common.sha(generated), 'regenerated_comparison_byte_identical': True, 'missing_review_and_denominator_probes': probes, 'summarize_stdout': stdout.getvalue(), 'models_loaded': False, 'api_called': False}
 common.save(DEST / 'final-integration-checks.json', checks)
+generated_directory.cleanup()
 print(json.dumps({k: v for k, v in checks.items() if k not in ('summarize_stdout', 'backend_checks')}, ensure_ascii=False, indent=2))

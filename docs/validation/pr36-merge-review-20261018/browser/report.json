@@ -1,0 +1,114 @@
+{
+  "scope": "PR36 independent technical/browser review before final merge; local production build of 9a99a1d plus root-owned Panel monotonic response patch",
+  "head": "9a99a1d0fe657cd6d1781473f00bc086073cfd23",
+  "panelSha256": "630006bfc6a9fdbf5a654c1097e80c5a327454ac9c2a96bc663731bdb04c8529",
+  "build": {
+    "status": "PASS",
+    "log": "/tmp/anxin-pr36-independent-browser-build.log"
+  },
+  "environment": {
+    "browser": "headed Chromium via Playwright CLI",
+    "actualWorker": true,
+    "isolatedD1": true,
+    "isolatedR2": true,
+    "actualRulesService": true,
+    "syntheticOwner": "independent-browser-owner",
+    "actualMLXInference": false,
+    "actualDeepSeekInference": false,
+    "productionAccess": false
+  },
+  "observations": [
+    {
+      "name": "late_completed_calculation_response",
+      "status": "PASS",
+      "setup": "Real upload/analyze/rules extraction; confirmed scope; due=8000, paid=0 via real API; calculate sent by browser UI",
+      "interception": "Page fetch wrapper awaited real server response, held it before returning to component; requests and server calculation were real",
+      "held": {
+        "generation": 6,
+        "revision": 8
+      },
+      "newGet": {
+        "generation": 10,
+        "revision": 10
+      },
+      "trigger": "Actual UI uploads of synthetic new files; two uploads occurred while handling file chooser, so generation advanced twice",
+      "afterRelease": {
+        "displayedGeneration": 10,
+        "displayedRevision": 10,
+        "old8000CalculationVisible": false,
+        "receiptVisible": false,
+        "error": null,
+        "calculationDisabledDueToInvalidatedFacts": true
+      },
+      "artifact": "late-calculation-ignored.png"
+    },
+    {
+      "name": "current_500_preserves_editable_scope_draft",
+      "status": "PASS",
+      "interception": "Next facts POST replaced at page fetch boundary by synthetic HTTP 500; no server mutation claimed",
+      "after": {
+        "worker": "浏览器未保存劳动者草稿",
+        "note": "合成浏览器错误恢复核实草稿",
+        "workerDisabled": false,
+        "error": "合成边界500：保存失败，请稍后重试。"
+      },
+      "artifact": "current-500-draft.png"
+    },
+    {
+      "name": "current_real_409_preserves_scope_draft_and_locks_edit",
+      "status": "PASS",
+      "interception": "None. Separate real API scope mutation advanced server revision, then browser submitted its older revision",
+      "after": {
+        "displayedGeneration": 10,
+        "displayedRevision": 11,
+        "worker": "浏览器409未保存劳动者草稿",
+        "note": "合成浏览器409核实草稿",
+        "workerDisabled": true,
+        "conflictVisible": true
+      },
+      "artifacts": [
+        "current-409-draft.png",
+        "current-409-protection.png"
+      ]
+    },
+    {
+      "name": "late_real_409_ignored_after_new_material_get",
+      "status": "PASS",
+      "interception": "Page fetch wrapper held a genuine server 409 response caused by concurrent real API scope mutation",
+      "oldPost": {
+        "generation": 10,
+        "revision": 12,
+        "httpStatus": 409
+      },
+      "trigger": "Actual UI upload added a synthetic material and triggered evidenceVersion GET",
+      "afterRelease": {
+        "displayedGeneration": 12,
+        "displayedRevision": 14,
+        "error": null,
+        "worker": "浏览器409未保存劳动者草稿",
+        "note": "合成浏览器409核实草稿",
+        "workerDisabled": false
+      },
+      "artifact": "old-409-ignored.png"
+    }
+  ],
+  "failedTestStepsNotProductFailures": [
+    "Initial real409 attempt checked scope before manual reload completed; reload correctly cleared check, so disabled save never sent a POST; action timed out. Reloaded whole page and waited for scope controls, retried successfully.",
+    "An old snapshot ref after full reload was stale; refreshed snapshot before subsequent file chooser action.",
+    "First combined run-code file chooser action left a modal; explicit CLI upload also added a second synthetic file. Both records remained in isolated disposable DB; result is described as two uploads, not one."
+  ],
+  "console": "Only two expected genuine HTTP409 resource messages; no uncaught client exception observed.",
+  "limits": [
+    "This browser build precedes PR31 merge synchronization and is not final PR40 merged SHA evidence. Parent will provide final SHA for repeat.",
+    "PR36 lacks downstream PR40 clean-scope refresh by design; no claim this path passed here.",
+    "All-role source association, runtime dedup, and coverage reviewed previously; not re-scored in this browser task.",
+    "Full MLX/DeepSeek live inference, remote host or production deployment not exercised.",
+    "Controlled component16 includes delayed500 and oldGET failure permutations beyond these four browser scenarios."
+  ],
+  "cleanup": {
+    "browserClosed": true,
+    "isolatedWorkerAndRulesStopped": true,
+    "isolatedPrivateConfigurationAndD1R2DirectoryRemovedByRunnerFinally": true
+  },
+  "configuration": "Requested child model gpt-6.1-sol / ultra; available evidence only shows configuration requests, not backend runtime attestation."
+}
