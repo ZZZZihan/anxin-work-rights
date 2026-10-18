@@ -747,6 +747,44 @@ try {
     return { amount: spec.amount, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: spec.amount === null };
   });
   // End ROUND18 additions.
+  // ROUND19: rate roles, time separators and no-money ratios share the real HTTP boundary.
+  for (const spec of [
+    ...['按月', '按日计', '按小时', '按件'].map(label => ({ name: `postposed-${label}`, text: `测试王甲工资${label}40000元。`, value: '40000元', amount: null, status: 'rate_unit_mismatch', attributes: { period: null }, oldAmount: '40000.00' })),
+    ...['-', '－'].map(separator => ({ name: `date-${separator}`, text: `测试王甲欠薪4000元${separator}2024年5月仍未支付。`, value: '4000元', amount: '4000.00', status: 'exact', attributes: { meaning: 'arrears', completeness: 'not_applicable', period: null } })),
+    ...['-200元', '-2000'].map(tail => ({ name: `arithmetic-${tail}`, text: `测试王甲工资4000元${tail}。`, value: '4000元', amount: null, status: tail.endsWith('元') ? 'range' : 'uncertain', oldAmount: '4000.00', attributes: { period: null } })),
+    { name: 'money-percentage-formula', text: '测试王甲工资四万元的50%。', value: '四万元', amount: null, status: 'unsupported', oldAmount: '40000.00', attributes: { period: null } },
+    { name: 'correct-postposed-rate', text: '测试王甲工資按小時計40000元。', value: '40000元', amount: '40000.00', status: 'exact', attributes: { meaning: 'rate', completeness: 'not_applicable', period: null, rateUnit: 'hour' } },
+  ]) await scenario(`round19_${spec.name}`, async () => {
+    const [item] = await fixture(`round19-${spec.name}`, [{ text: spec.text, candidates: [money(spec.value, spec.value, spec.attributes)] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    assert.equal(material.candidates[0].amount, spec.amount); assert.equal(material.candidates[0].normalization.status, spec.status);
+    if (spec.amount === null) {
+      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
+      old.amount = spec.oldAmount;
+      old.normalization = { rawValue: spec.value, amount: spec.oldAmount, status: 'exact', matchedText: spec.value, span: { start: 0, end: Array.from(spec.value).length }, reason: 'Synthetic pre-fix round19 exact amount' };
+      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body).candidates[0];
+    assert.equal(checked.amount, spec.amount); assert.equal(checked.normalization.status, spec.status);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round19-${spec.name}`, item, state: before });
+    return { amount: spec.amount, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: spec.amount === null };
+  });
+  for (const value of ['50%', '百分之五十', '出勤率50%']) await scenario(`round19_pure_ratio_${value}`, async () => {
+    const [item] = await fixture(`round19-ratio-${value}`, [{ text: `测试王甲材料记载${value}。`, candidates: [money(value, value, { period: null })] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 0); assert.equal(material.rejected.length, 1);
+    assert.match(JSON.stringify(material.rejected), /not_monetary|货币|金额/u);
+    assert.equal(JSON.parse(material.raw).candidates[0].value, value);
+    const before = stored(item.caseId), read = await request(item.path); unconfirmed(read.body);
+    assert.deepEqual(rawAndLocations(item, read.body).rejected, material.rejected);
+    assert.deepEqual(stored(item.caseId), before);
+    durableSnapshots.push({ name: `round19-ratio-${value}`, item, state: before });
+    return { accepted: 0, rejected: 1, rawAndStoredHistoryUnchanged: true };
+  });
+  // End ROUND19 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

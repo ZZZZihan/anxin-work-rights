@@ -38,6 +38,18 @@ const PREFIX_UNKNOWN_OPERAND = new RegExp(`(?:${UNKNOWN_OPERAND})${CONTINUATION_
 const SUFFIX_MULTIPLIER = new RegExp(`^${OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
 const SUFFIX_FRACTION = new RegExp(`^(?:${OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
 const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
+// A presentation hyphen can introduce a payment date or duration. Require a
+// complete time unit: a bare -2000, -200元 or -50% remains subtraction. This
+// exception does not apply to an explicit 减/减去 or the mathematical minus −.
+// The final boundary prevents a partial year from hiding -2024年5元/年5.
+const TIME_INTEGER = `[${NUMERALS}]+`;
+// A punctuation-only date needs all three components. A bare -2000.05 is
+// also a decimal subtraction, so year/month without named units is ambiguous.
+const HYPHEN_TIME = new RegExp(`^-${LINE}*(?:[0-9]{4}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12][0-9]|3[01])|${TIME_INTEGER}年(?:${LINE}*${TIME_INTEGER}月(?:${LINE}*${TIME_INTEGER}日)?)?|${NUMBER}(?:个?月|日|天|小时|分钟|秒))(?![${NUMERALS}点.元圆圓角分%/×*xX÷+−-])`, 'u');
+
+function suffixIsOperation(suffix: string): boolean {
+  return SUFFIX_OPERATOR.test(suffix) && !HYPHEN_TIME.test(suffix);
+}
 const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
 // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
 const LEADING_FACTOR_WRAPPERS = new RegExp(`^(?:${WRAPPER_ATOM}|${LINE})*`, 'u');
@@ -82,7 +94,7 @@ export function hasAttachedMoneyArithmetic(before: string, after: string): boole
   if (noun) {
     suffix = suffix.slice(noun[0].length);
     if (!suffix.startsWith('的')) {
-      if (SUFFIX_OPERATOR.test(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
+      if (suffixIsOperation(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
       const multiplier = suffix.match(SUFFIX_MULTIPLIER) ?? suffix.match(SUFFIX_PROPORTION);
       return multiplier !== null && !/[\r\n\u2028\u2029]/u.test(bridge + noun[0] + multiplier[0]);
     }
@@ -91,6 +103,6 @@ export function hasAttachedMoneyArithmetic(before: string, after: string): boole
     suffix = suffix.slice(1).replace(LEADING_FACTOR_WRAPPERS, '');
     return SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix) || SUFFIX_PROPORTION.test(suffix);
   }
-  if (SUFFIX_OPERATOR.test(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
+  if (suffixIsOperation(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
   return !/[\r\n\u2028\u2029]/u.test(bridge) && (SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_PROPORTION.test(suffix));
 }
