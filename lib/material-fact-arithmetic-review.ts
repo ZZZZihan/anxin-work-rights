@@ -46,6 +46,10 @@ const PREFIX_FACTOR = new RegExp(`${FACTOR}${CONTINUATION_BRIDGE}$`, 'u');
 const PREFIX_UNKNOWN_OPERAND = new RegExp(`(?:${UNKNOWN_OPERAND}|${COEFFICIENT_OPERAND})${CONTINUATION_BRIDGE}$`, 'u');
 const SUFFIX_MULTIPLIER = new RegExp(`^${OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
 const SUFFIX_EXPLICIT_MULTIPLIER = new RegExp(`^${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
+// 双倍 is an explicit twofold multiplier. Keep it on the existing 的/noun
+// and same-line multiplier paths; it never supplies a computed amount.
+const DOUBLE_MULTIPLIER = `[双雙]${LINE}*倍`;
+const SUFFIX_DOUBLE_MULTIPLIER = new RegExp(`^${DOUBLE_MULTIPLIER}`, 'u');
 const SUFFIX_FRACTION = new RegExp(`^(?:${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${EXPLICIT_OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
 const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
 // Half proportions have no leading numeric factor. They are operands only
@@ -100,7 +104,7 @@ const LEADING_FACTOR_WRAPPERS = new RegExp(`^(?:${WRAPPER_ATOM}|${LINE})*`, 'u')
 const AMOUNT_NOUN = ['工资', '基本工资', '月工资', '工资款', '工资总额', '应发工资', '应付工资', '实发工资', '欠付工资', '拖欠工资',
   '薪资', '薪酬', '奖金', '津贴', '补贴', '劳务费', '劳动报酬', '加班费', '经济补偿金', '赔偿金']
   .map(noun => Array.from(noun).join(`${LINE}*`)).join('|');
-const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${DOUBLING}|${HALVING}|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${PROPORTION})`, 'u');
+const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${DOUBLING}|${HALVING}|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${DOUBLE_MULTIPLIER}|${PROPORTION})`, 'u');
 
 function detectionView(value: string): string {
   const glyphs: Record<string, string> = { 貳: '贰', 參: '叁', 陸: '陆', 獎: '奖', 終: '终', 費: '费', 資: '资', 績: '绩', 貼: '贴', 補: '补', 勞: '劳', 務: '务', 動: '动', 報: '报', 經: '经', 濟: '济', 償: '偿', 賠: '赔', 減: '减', 當: '当', 實: '实', 應: '应', 約: '约', 適: '适', 計: '计', 發: '发', 齡: '龄', 數: '数', 係: '系' };
@@ -140,14 +144,14 @@ export function hasAttachedMoneyArithmetic(before: string, after: string): boole
     suffix = suffix.slice(noun[0].length);
     if (!suffix.startsWith('的')) {
       if (suffixIsOperation(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
-      const multiplier = suffix.match(SUFFIX_MULTIPLIER) ?? suffix.match(SUFFIX_PROPORTION);
+      const multiplier = suffix.match(SUFFIX_MULTIPLIER) ?? suffix.match(SUFFIX_DOUBLE_MULTIPLIER) ?? suffix.match(SUFFIX_PROPORTION);
       return multiplier !== null && !/[\r\n\u2028\u2029]/u.test(bridge + noun[0] + multiplier[0]);
     }
   }
   if (suffix.startsWith('的')) {
     suffix = suffix.slice(1).replace(LEADING_FACTOR_WRAPPERS, '');
-    return SUFFIX_EXPLICIT_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix) || SUFFIX_PROPORTION.test(suffix);
+    return SUFFIX_EXPLICIT_MULTIPLIER.test(suffix) || SUFFIX_DOUBLE_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix) || SUFFIX_PROPORTION.test(suffix);
   }
   if (suffixIsOperation(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
-  return !/[\r\n\u2028\u2029]/u.test(bridge) && (SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_PROPORTION.test(suffix));
+  return !/[\r\n\u2028\u2029]/u.test(bridge) && (SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_DOUBLE_MULTIPLIER.test(suffix) || SUFFIX_PROPORTION.test(suffix));
 }
