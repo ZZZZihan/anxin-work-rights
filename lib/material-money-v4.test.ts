@@ -95,7 +95,7 @@ describe('v4 minimum Chinese-money regression', () => {
 
 describe('strict exact RMB spellings and original evidence', () => {
   it.each([
-    ['人民币四万元', '40000.00'], ['四万元', '40000.00'], ['40000元', '40000.00'],
+    ['人民币四万元', '40000.00'], ['四万元', '40000.00'], ['40000元', '40000.00'], ['40000元五角', '40000.50'],
     ['工资四万元', '40000.00'], ['工资人民币四万元', '40000.00'], ['￥四万元', '40000.00'],
     ['一元', '1.00'], ['十元', '10.00'], ['一十元', '10.00'], ['十二元', '12.00'], ['一十二元', '12.00'],
     ['二十元', '20.00'], ['一百零一元', '101.00'], ['一千零一元', '1001.00'], ['一千零一十元', '1010.00'],
@@ -137,7 +137,7 @@ describe('unsupported, non-exact and adjacent spellings never become zero', () =
     ['−四万元', 'unsupported'], ['人民币-四万元', 'unsupported'], ['美元四万元', 'unsupported'],
     ['USD40000元', 'unsupported'], ['四万日元', 'unsupported'], ['±四万元', 'unsupported'],
     ['四万元和五万元', 'multiple_amounts'], ['四万元及四万元', 'multiple_amounts'],
-    ['四万元另付五千', 'multiple_amounts'], ['四万元另有五千', 'multiple_amounts'], ['四万元 五千', 'multiple_amounts'], ['五千和四万元', 'multiple_amounts'], ['四万元和500', 'multiple_amounts'], ['40000元五角', 'unsupported'],
+    ['四万元另付五千', 'multiple_amounts'], ['四万元另有五千', 'multiple_amounts'], ['四万元 五千', 'multiple_amounts'], ['五千和四万元', 'multiple_amounts'], ['四万元和500', 'multiple_amounts'],
     ['四万至五万元', 'range'], ['四万元到五万元', 'range'], ['四万—五万元', 'range'], ['40000元-五万元', 'range'],
     ['工资约四万余元', 'approximate'], ['四万元左右', 'approximate'], ['四万余元', 'approximate'],
     ['四万多元', 'approximate'], ['近四万元', 'approximate'], ['不低于四万元', 'approximate'], ['四万元起', 'approximate'],

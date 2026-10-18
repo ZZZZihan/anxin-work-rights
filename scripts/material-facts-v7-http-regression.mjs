@@ -531,6 +531,106 @@ try {
     durableSnapshots.push({ name: 'historical-clock-cents', item, state: before });
     return { clockAsCentsDowngraded: true, storedRawAndHistoryUnchanged: true };
   });
+  // ROUND13 additions: keep the original 64 scenarios and their assertions unchanged.
+  for (const spec of [
+    { name: 'mixed-jiao', value: '5元五角', amount: '5.50' },
+    { name: 'mixed-zero-fen', value: '5元零五分', amount: '5.05' },
+  ]) await scenario(`round13_${spec.name}_retains_raw_and_derives_exact_money`, async () => {
+    const [item] = await fixture(spec.name, [{ text: `测试王甲2026年1月完整应付工资${spec.value}。`, candidates: [money(spec.value, spec.value)] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    const candidate = material.candidates[0];
+    assert.equal(candidate.amount, spec.amount); assert.equal(candidate.normalization.amount, spec.amount);
+    assert.equal(candidate.normalization.status, 'exact'); assert.equal(candidate.value, spec.value); assert.equal(candidate.quote, spec.value);
+    assert.equal(Array.from(candidate.value).slice(candidate.normalization.span.start, candidate.normalization.span.end).join(''), candidate.normalization.matchedText);
+    assert.equal(JSON.parse(material.raw).candidates[0].value, spec.value);
+    durableSnapshots.push({ name: spec.name, item, state: stored(item.caseId) });
+    return { amount: spec.amount, rawValue: spec.value, rawAndCodepointsPreserved: true, automaticCalculation: false };
+  });
+  for (const value of ['5元五角', '5元零五分']) await scenario(`round13_cropped_${value}_never_becomes_exact_five_yuan`, async () => {
+    const name = `cropped-mixed-${value}`;
+    const [item] = await fixture(name, [{ text: `测试王甲2026年1月完整应付工资${value}。`, candidates: [money('5元', '5元')] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    assert.equal(material.candidates[0].amount, null); assert.equal(material.candidates[0].normalization.amount, null);
+    assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    assert.equal(JSON.parse(material.raw).candidates[0].value, '5元');
+    durableSnapshots.push({ name, item, state: stored(item.caseId) });
+    return { croppedValue: '5元', sourceValue: value, amount: null, rawRetained: true, automaticCalculation: false };
+  });
+  for (const value of ['5分鐘', '5分米', '5角度']) await scenario(`round13_isolated_${value}_is_rejected_and_raw_history_remain`, async () => {
+    const name = `isolated-unit-${value}`;
+    const attributes = { meaning: 'other_money', completeness: 'not_applicable', period: null };
+    const [item] = await fixture(name, [{ text: `测试王甲记录${value}。`, candidates: [money(value, value, attributes)] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 0); assert.equal(material.rejected.length, 1);
+    assert.equal(material.rejected[0].index, 0); assert.match(material.rejected[0].reason, /没有金额表达/u);
+    assert.equal(material.coverage.acceptedCount, 0); assert.equal(material.coverage.rejectedCount, 1);
+    assert.equal(JSON.parse(material.raw).candidates[0].value, value);
+    const before = stored(item.caseId), read = await request(item.path);
+    assert.equal(read.status, 200); unconfirmed(read.body);
+    const reread = rawAndLocations(item, read.body);
+    assert.deepEqual(reread.candidates, []); assert.deepEqual(reread.rejected, material.rejected);
+    assert.deepEqual(read.body.state.history, before.state.history); assert.deepEqual(stored(item.caseId), before);
+    durableSnapshots.push({ name, item, state: before });
+    return { accepted: 0, rejected: 1, rawValue: value, rawAndStoredHistoryUnchanged: true };
+  });
+  await scenario('round13_equal_mixed_payment_amounts_at_two_events_are_both_retained', async () => {
+    const first = '2026年2月1日单位向测试王甲支付2026年1月工资5元五角';
+    const second = '2026年2月2日单位向测试王甲支付2026年1月工资5元五角';
+    const attributes = { meaning: 'payment', completeness: 'partial' };
+    const [item] = await fixture('two-mixed-payments', [{ text: `${first}。${second}。`, candidates: [money('5元五角', first, attributes), money('5元五角', second, attributes)] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 2); assert.equal(material.rejected.length, 0);
+    assert.deepEqual(material.candidates.map(candidate => candidate.amount), ['5.50', '5.50']);
+    assert(material.candidates.every(candidate => candidate.normalization.status === 'exact'));
+    const attributesOnly = entry => { const { quote, blockId, ...rest } = entry.representation; void quote; void blockId; return rest; };
+    assert.deepEqual(attributesOnly(material.candidates[0]), attributesOnly(material.candidates[1]));
+    assert.notEqual(material.candidates[0].id, material.candidates[1].id);
+    assert.notEqual(material.candidates[0].start, material.candidates[1].start);
+    assert.equal(JSON.parse(material.raw).candidates.length, 2);
+    durableSnapshots.push({ name: 'two-mixed-payments', item, state: stored(item.caseId) });
+    return { acceptedPayments: 2, distinctSourcePositions: true, rawRetained: true, automaticSummation: false };
+  });
+  await scenario('round13_historical_unsupported_mixed_money_is_not_upgraded_or_rewritten', async () => {
+    const values = ['5元五角', '5元零五分'];
+    const items = await fixture('historical-mixed-unsupported', values.map(value => ({ text: `测试王甲2026年1月完整应付工资${value}。`, candidates: [money(value, value)] })));
+    for (const item of items) await extract(item);
+    // Emulate an older unsupported derived result in this run's disposable D1.
+    // Keep original model output, source, positions, revision and audit untouched.
+    const legacy = stored(items[0].caseId);
+    for (const [index, item] of items.entries()) {
+      const material = legacy.state.materials.find(material => material.evidenceId === item.evidenceId);
+      assert.equal(material.candidates.length, 1);
+      const candidate = material.candidates[0]; candidate.amount = null;
+      candidate.normalization = { rawValue: values[index], amount: null, status: 'unsupported', matchedText: null, span: null, reason: 'Synthetic pre-fix unsupported mixed-unit amount' };
+    }
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), items[0].caseId, owner);
+    const before = stored(items[0].caseId), read = await request(items[0].path);
+    assert.equal(read.status, 200); unconfirmed(read.body);
+    for (const [index, item] of items.entries()) {
+      const material = rawAndLocations(item, read.body); assert.equal(material.candidates.length, 1);
+      const candidate = material.candidates[0];
+      assert.equal(candidate.amount, null); assert.equal(candidate.normalization.amount, null); assert.equal(candidate.normalization.status, 'unsupported');
+      assert.equal(candidate.value, values[index]); assert.equal(JSON.parse(material.raw).candidates[0].value, values[index]);
+    }
+    assert.deepEqual(stored(items[0].caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: 'historical-mixed-unsupported', item: items[0], state: before });
+    return { historicalUnsupportedAmounts: 2, amount: null, rawAndStoredHistoryUnchanged: true, automaticUpgrade: false };
+  });
+  await scenario('round13_financial_word_fenhong_is_retained_as_unknown_money_for_review', async () => {
+    const value = '三万分红';
+    const attributes = { meaning: 'other_money', completeness: 'not_applicable', period: null };
+    const [item] = await fixture('financial-word-fenhong', [{ text: `测试王甲记录${value}。`, candidates: [money(value, value, attributes)] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    assert.equal(material.candidates[0].amount, null); assert.equal(material.candidates[0].normalization.amount, null);
+    assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    assert.equal(material.candidates[0].value, value); assert.equal(JSON.parse(material.raw).candidates[0].value, value);
+    durableSnapshots.push({ name: 'financial-word-fenhong', item, state: stored(item.caseId) });
+    return { acceptedUnknownForReview: 1, amount: null, rawRetained: true, automaticCalculation: false };
+  });
+  // End ROUND13 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
