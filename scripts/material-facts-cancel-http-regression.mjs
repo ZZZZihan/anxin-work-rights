@@ -10,6 +10,7 @@ import { mkdtemp, mkdir, readFile, writeFile, readdir, rm } from 'node:fs/promis
 import { join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { DatabaseSync } from 'node:sqlite';
+import { setTimeout as delay } from 'node:timers/promises';
 import { createMaterialService } from './material-service.mjs';
 
 if (process.argv.length > 3) throw new Error('Usage: node scripts/material-facts-cancel-http-regression.mjs [OUTPUT.json]');
@@ -27,7 +28,7 @@ const workerRuns = [];
 const workerEnv = { ...process.env, WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false' };
 const wrangler = resolve(root, 'node_modules/wrangler/bin/wrangler.js');
 let temp, worker, workerError, migrationChild, service, proxy, db, configPath, base;
-let failure, phase = 'setup', mode = 'normal';
+let failure, interruption, phase = 'setup', mode = 'normal';
 let holdGetJob, pollEntered, releaseHeldPoll, pendingPoll;
 
 const sanitize = value => {
@@ -56,14 +57,19 @@ const safeLog = log => {
   }
   return { text, truncated: log.truncated };
 };
-const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
-const bounded = async (promise, milliseconds, message) => {
-  let timer;
+const shutdown = new AbortController();
+const wait = milliseconds => delay(milliseconds, undefined, { signal: shutdown.signal });
+const bounded = async (promise, milliseconds, message, signal) => {
+  signal?.throwIfAborted();
+  let timer, onAbort;
   try {
     return await Promise.race([promise, new Promise((_, reject) => {
       timer = setTimeout(() => reject(new Error(message)), milliseconds);
-    })]);
-  } finally { clearTimeout(timer); }
+    }), ...(signal ? [new Promise((_, reject) => {
+      onAbort = () => reject(signal.reason);
+      signal.addEventListener('abort', onAbort, { once: true });
+    })] : [])]);
+  } finally { clearTimeout(timer); if (onAbort) signal.removeEventListener('abort', onAbort); }
 };
 const listen = server => new Promise((resolve, reject) => {
   server.once('error', reject);
@@ -75,7 +81,7 @@ const listen = server => new Promise((resolve, reject) => {
 const observe = (name, detail = {}) => observations.push({ name, status: 'PASS', ...detail });
 const headers = (user = owner) => ({ 'oai-authenticated-user-id': user, 'oai-authenticated-user-email': `${user}@synthetic.test` });
 const jsonRequest = async (url, init = {}) => {
-  const response = await fetch(url, { ...init, signal: AbortSignal.timeout(30_000) });
+  const response = await fetch(url, { ...init, signal: AbortSignal.any([shutdown.signal, AbortSignal.timeout(30_000)]) });
   return { status: response.status, body: await response.json() };
 };
 const request = (path, body, user) => jsonRequest(`${base}${path}`, {
@@ -133,13 +139,14 @@ async function createJob() {
 
 async function remoteStatus(id) {
   const response = await fetch(`${service.url}/fact-jobs/${id}`, {
-    headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(5000),
+    headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.any([shutdown.signal, AbortSignal.timeout(5000)]),
   });
   await response.arrayBuffer();
   return response.status;
 }
 
 async function applyMigrations() {
+  shutdown.signal.throwIfAborted();
   const child = migrationChild = spawnOwnedChild(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], {
     cwd: root, stdio: 'ignore', env: workerEnv,
   });
@@ -148,7 +155,7 @@ async function applyMigrations() {
     await bounded(new Promise((resolve, reject) => {
       child.once('error', reject);
       child.once('exit', code => code === 0 ? resolve() : reject(new Error(`Isolated D1 migration failed (${code}).`)));
-    }), 60_000, 'Isolated D1 migrations timed out.');
+    }), 60_000, 'Isolated D1 migrations timed out.', shutdown.signal);
   } catch (error) { migrationFailure = error; throw error; }
   finally {
     try { await stopChild(child, 'Isolated migration'); migrationChild = undefined; }
@@ -157,10 +164,12 @@ async function applyMigrations() {
 }
 
 async function startWorker() {
+  shutdown.signal.throwIfAborted();
   const probe = createServer();
   const free = await listen(probe);
   const port = Number(new URL(free).port);
   await new Promise(resolve => probe.close(resolve));
+  shutdown.signal.throwIfAborted();
   workerError = undefined;
   const run = { index: workerRuns.length + 1, httpPort: port, inspectorPort: 0, startedAt: new Date().toISOString(), ready: false, exitCode: null, signal: null, stdout: capturedLog(), stderr: capturedLog() };
   workerRuns.push(run);
@@ -179,10 +188,11 @@ async function startWorker() {
   worker.once('error', error => { workerError = error; });
   base = free;
   for (let attempt = 0; attempt < 90; attempt++) {
+    shutdown.signal.throwIfAborted();
     if (workerError) throw workerError;
     if (worker.exitCode !== null || worker.signalCode !== null) throw new Error(`Isolated Worker exited before readiness (attempt ${run.index}, exit ${worker.exitCode}, signal ${worker.signalCode}). See workerRuns diagnostics.`);
     try {
-      const response = await fetch(`${base}/api/bootstrap`, { signal: AbortSignal.timeout(1000) });
+      const response = await fetch(`${base}/api/bootstrap`, { signal: AbortSignal.any([shutdown.signal, AbortSignal.timeout(1000)]) });
       await response.arrayBuffer();
       if (response.status === 401) { run.ready = true; return; }
     } catch { /* bounded startup; this URL was allocated by the runner */ }
@@ -202,7 +212,23 @@ async function cleanup(name, operation) {
   catch (error) { cleanupFailures.push({ operation: name, ...errorRecord(error) }); }
 }
 
+// These are CLI entry points. Keep idempotent handlers installed through report
+// publication and process exit: a second signal must not bypass group cleanup.
+const interrupt = signal => {
+  if (shutdown.signal.aborted) return;
+  const error = new Error(`Regression interrupted by ${signal}.`);
+  interruption = { phase, ...errorRecord(error) };
+  process.exitCode = 1;
+  shutdown.abort(error);
+  releaseHeldPoll?.();
+  // Abort wakes pending waits/requests; their finally owns group termination.
+  // Sending TERM here as well would race a second TERM against an exited group.
+};
+process.on('SIGINT', () => interrupt('SIGINT'));
+process.on('SIGTERM', () => interrupt('SIGTERM'));
+
 try {
+  shutdown.signal.throwIfAborted();
   // Read only the local build and replace its service binding with this run's
   // private service. The temporary config is mode 0600 inside mkdtemp's 0700 dir.
   const originalPath = resolve(root, 'dist/server/wrangler.json');
@@ -224,10 +250,11 @@ try {
       const chunks = [];
       for await (const chunk of req) chunks.push(chunk);
       const response = await fetch(new URL(req.url, service.url), {
-        method: req.method, headers: req.headers, signal: AbortSignal.timeout(20_000),
+        method: req.method, headers: req.headers, signal: AbortSignal.any([shutdown.signal, AbortSignal.timeout(20_000)]),
         ...(chunks.length ? { body: Buffer.concat(chunks) } : {}),
       });
       const body = Buffer.from(await response.arrayBuffer());
+      shutdown.signal.throwIfAborted();
       if (req.method === 'GET' && req.url === `/fact-jobs/${holdGetJob}`) {
         const held = new Promise(resolve => { releaseHeldPoll = resolve; });
         pollEntered();
@@ -378,7 +405,7 @@ try {
   // Capture rejection immediately so a failure before releasing the held poll
   // cannot become an unhandled rejection while the runner cleans up resources.
   pendingPoll = request(factPath).then(response => ({ response }), error => ({ error }));
-  await bounded(pollStarted, 10_000, 'Old fact poll did not reach the loopback proxy.');
+  await bounded(pollStarted, 10_000, 'Old fact poll did not reach the loopback proxy.', shutdown.signal);
   const secondExtract = await extract(firstExtract);
   assert.notEqual(secondExtract.state.job.id, firstExtract.state.job.id);
   assert.equal(JSON.parse(row(racingCase).state_json).job.id, secondExtract.state.job.id);
@@ -506,7 +533,7 @@ try {
   assert.equal(JSON.parse(row(rollbackCase).state_json).job.id, rollbackJob);
   assert.deepEqual(caseQueue(rollbackCase), []);
   assert.equal(await remoteStatus(rollbackJob), 200);
-  const preservedDownload = await fetch(`${base}/api/evidence/${rollbackEvidence}/download`, { headers: headers() });
+  const preservedDownload = await fetch(`${base}/api/evidence/${rollbackEvidence}/download`, { headers: headers(), signal: AbortSignal.any([shutdown.signal, AbortSignal.timeout(30_000)]) });
   assert.equal(preservedDownload.status, 200);
   assert((await preservedDownload.text()).includes('合成删除回归材料'));
   db.exec('DROP TRIGGER synthetic_abort_evidence_status');
@@ -533,19 +560,24 @@ try {
   assert(calls.length >= 6);
   assert(calls.every(call => call.authenticated));
   observe('all_real_http_deletes_used_private_service_authentication', { deleteCalls: calls.length, noSecretsRecorded: true });
-} catch (error) { failure = { phase, ...errorRecord(error) }; }
+} catch (error) {
+  // Preserve a real operation failure even if a signal arrives while its
+  // finally is stopping children. Abort-only failures use the first signal.
+  failure ??= shutdown.signal.aborted && (error === shutdown.signal.reason || error?.name === 'AbortError')
+    ? interruption : { phase, ...errorRecord(error) };
+}
 finally {
   releaseHeldPoll?.();
   await cleanup('stop_worker', stopWorker);
   await cleanup('stop_migration', async () => { await stopChild(migrationChild, 'Isolated migration'); migrationChild = undefined; });
-  await cleanup('settle_pending_poll', async () => { if (pendingPoll) await pendingPoll; });
+  await cleanup('settle_pending_poll', async () => { if (pendingPoll) await bounded(pendingPoll, 5000, 'Interrupted poll did not settle.'); });
   await cleanup('close_database', () => db?.close());
   await cleanup('close_proxy', async () => {
     if (!proxy) return;
     proxy.closeAllConnections();
     await bounded(new Promise(resolve => proxy.close(resolve)), 5000, 'Loopback fault proxy did not stop.');
   });
-  await cleanup('close_material_service', async () => { await service?.close(); });
+  await cleanup('close_material_service', async () => { if (service) await bounded(service.close(), 5000, 'Loopback material service did not stop.'); });
   await cleanup('remove_temporary_resources', async () => {
     if (temp && cleanupFailures.some(item => ['stop_worker', 'stop_migration'].includes(item.operation))) {
       cleanupFailures.push({ operation: 'retain_temporary_resources', name: 'CleanupIncomplete', message: 'Private temporary resources retained because owned process cleanup failed.', path: temp });
@@ -554,16 +586,19 @@ finally {
     if (temp) await rm(temp, { recursive: true, force: true });
   });
   if (cleanupFailures.length) failure ??= { phase: 'cleanup', message: 'Temporary regression resources did not fully clean up.' };
-  await writeFile(output, JSON.stringify({
-    status: failure ? 'FAIL' : 'PASS', mode: 'fact-cancellation',
+  const report = () => JSON.stringify({
+    status: failure || interruption ? 'FAIL' : 'PASS', mode: 'fact-cancellation',
     boundary: 'production Worker HTTP + disposable on-disk D1 SQLite + real material service rules jobs + loopback timeout/503 injection',
     actualModelInference: false, syntheticInputs: true, recordedAt: new Date().toISOString(),
-    observations, failure, cleanup: { status: cleanupFailures.length ? 'FAIL' : 'PASS', failures: cleanupFailures }, calls,
+    observations, failure: failure ?? interruption, interruption, cleanup: { status: cleanupFailures.length ? 'FAIL' : 'PASS', failures: cleanupFailures }, calls,
     workerRuns: workerRuns.map(run => ({ ...run, stdout: safeLog(run.stdout), stderr: safeLog(run.stderr) })),
-  }, null, 2) + '\n');
+  }, null, 2) + '\n';
+  const interruptedBeforeWrite = shutdown.signal.aborted;
+  await writeFile(output, report());
+  if (!interruptedBeforeWrite && shutdown.signal.aborted) await writeFile(output, report());
 }
 
-if (failure) {
-  console.error(JSON.stringify({ status: 'FAIL', mode: 'fact-cancellation', phase: failure.phase, output }));
+if (failure || interruption) {
+  console.error(JSON.stringify({ status: 'FAIL', mode: 'fact-cancellation', phase: (failure ?? interruption).phase, output }));
   process.exitCode = 1;
 } else console.log(JSON.stringify({ status: 'PASS', mode: 'fact-cancellation', checks: observations.length, output }));

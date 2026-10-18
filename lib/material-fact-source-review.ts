@@ -136,7 +136,9 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   if (!edges) return null;
   // Fold only the detection view. In particular LS/PS remain line boundaries;
   // horizontal OCR spacing cannot hide a directly attached wage standard.
-  const detectionText = (text: string) => text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[^\S\r\n\u2028\u2029]/gu, '');
+  const traditional: Record<string, string> = { 資: '资', 標: '标', 準: '准', 時: '时', 約: '约', 為: '为', 計: '计', 額: '额', 幣: '币', 單: '单', 價: '价', 後: '后', 當: '当', 該: '该', 這: '这', 個: '个' };
+  const detectionText = (text: string) => text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[^\S\r\n\u2028\u2029]/gu, '')
+    .replace(/[資標準時約為計額幣單價後當該這個]/gu, character => traditional[character]);
   const before = detectionText(edges.before.split(/[，,。！？!?；;\n\r\u2028\u2029]/u).at(-1)!);
   const after = detectionText(edges.after.split(/[，,。！？!?；;\n\r\u2028\u2029]/u)[0]);
   const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };

@@ -717,6 +717,36 @@ try {
     return { acceptedOccurrence: 1, rawPredictions: 2, order: reverse ? 'short-first' : 'long-first' };
   });
   // End ROUND17 additions.
+  // ROUND18 additions: traditional wages, mixed subunits and unsupported suffix rates.
+  for (const spec of [
+    { name: 'traditional-foreign-prefix', text: '测试王甲2026年1月港幣工資40000圓。', value: '40000圓', status: 'unsupported', amount: null, oldAmount: '40000.00' },
+    { name: 'traditional-foreign-suffix', text: '测试王甲2026年1月工資40000圓薪資為港幣。', value: '40000圓', status: 'unsupported', amount: null, oldAmount: '40000.00' },
+    ...['月工資', '日薪標準', '小時工資'].map(label => ({ name: `traditional-rate-${label}`, text: `测试王甲${label}40000圓。`, value: '40000圓', status: 'rate_unit_mismatch', amount: null, oldAmount: '40000.00', attributes: { period: null } })),
+    { name: 'traditional-correct-monthly-rate', text: '测试王甲每月工資40000圓。', value: '40000圓', status: 'exact', amount: '40000.00', attributes: { period: null, meaning: 'rate', completeness: 'not_applicable', rateUnit: 'month' } },
+    { name: 'traditional-real-period', text: '测试王甲2026年1月工資40000圓。', value: '40000圓', status: 'exact', amount: '40000.00' },
+    ...[['五元5角', '5.50'], ['五元5角2分', '5.52'], ['五元五角2分', '5.52']].map(([value, amount]) => ({ name: `mixed-subunits-${value}`, text: `测试王甲2026年1月完整应付工资${value}。`, value, status: 'exact', amount })),
+    ...['年', '周', '季度', '次', 'hr'].map(unit => ({ name: `unsupported-rate-${unit}`, text: `测试王甲2026年1月工资40000元/${unit}。`, value: '40000元', status: 'unsupported', amount: null, oldAmount: '40000.00' })),
+    { name: 'supported-suffix-monthly-rate', text: '测试王甲工资40000元/月。', value: '40000元', status: 'exact', amount: '40000.00', attributes: { period: null, meaning: 'rate', completeness: 'not_applicable', rateUnit: 'month' } },
+  ]) await scenario(`round18_${spec.name}_read_boundary`, async () => {
+    const [item] = await fixture(`round18-${spec.name}`, [{ text: spec.text, candidates: [money(spec.value, spec.value, spec.attributes)] }]);
+    if (spec.blocks) assert.equal(item.analysis.result.blocks.length, spec.blocks);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    assert.equal(material.candidates[0].amount, spec.amount); assert.equal(material.candidates[0].normalization.status, spec.status);
+    if (spec.amount === null) {
+      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
+      old.amount = spec.oldAmount;
+      old.normalization = { rawValue: spec.value, amount: spec.oldAmount, status: 'exact', matchedText: spec.value, span: { start: 0, end: Array.from(spec.value).length }, reason: 'Synthetic pre-fix round18 exact amount' };
+      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body).candidates[0];
+    assert.equal(checked.amount, spec.amount); assert.equal(checked.normalization.status, spec.status);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round18-${spec.name}`, item, state: before });
+    return { amount: spec.amount, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: spec.amount === null };
+  });
+  // End ROUND18 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

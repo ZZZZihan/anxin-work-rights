@@ -76,11 +76,11 @@ let result;
 try{const leaf=await readRecord(record),other=await readRecord(siblingRecord);await writeFile(resolve(dir,'known-leaves.json'),JSON.stringify([leaf,other]));
 const before=await alive(leaf.port);let stopError=null,repeatError=null;const started=Date.now();
 try{await api.stop(child,'Independent synthetic Worker');}catch(error){stopError={name:error.name,message:error.message};}
-const stopMs=Date.now()-started,leafState=await state(leaf.pid);let killZero=false;try{process.kill(-child.pid,0);killZero=true;}catch(error){if(error.code!=='ESRCH')throw error;}
+const stopMs=Date.now()-started,leafState=await state(leaf.pid);let killZero=false,killZeroError=null;try{process.kill(-child.pid,0);killZero=true;}catch(error){killZeroError={code:error.code,message:error.message};if(!['ESRCH','EPERM'].includes(error.code))throw error;}
 const socketOpen=await alive(leaf.port),siblingOpen=await alive(other.port);let rebound=false;
 if(!socketOpen){const server=createServer();try{await new Promise((done,reject)=>{server.once('error',reject);server.listen(leaf.port,'127.0.0.1',done);});rebound=true;}finally{await new Promise(done=>server.close(done));}}
 try{await api.stop(child,'Repeated independent cleanup');}catch(error){repeatError={name:error.name,message:error.message};}
-result={before,stopError,repeatError,stopMs,leafState,killZero,socketOpen,siblingOpen,rebound,leaf,other};
+result={before,stopError,repeatError,stopMs,leafState,killZero,killZeroError,socketOpen,siblingOpen,rebound,leaf,other};
 }catch(error){result={fixtureError:{name:error.name,message:error.message}};}
 finally{for(const owned of[child,sibling]){if(owned.exitCode===null&&owned.signalCode===null){const closed=new Promise(done=>owned.once('close',done));owned.kill('SIGKILL');await closed;}}}
 await writeFile(resolve(dir,'result.json'),JSON.stringify(result));\n`;

@@ -35,7 +35,7 @@ const SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}${FOREIGN_MARKER}`, 'iu');
 // These words can attribute the same anchored wage/payment to its currency even
 // when the model crops the marker out of both value and quote. No arbitrary text,
 // person name, numeral, clause delimiter or newline can join this finite bridge.
-const WAGE_CURRENCY_WORD = '(?:基本工资|工资|薪酬|薪资|薪金|劳动报酬|报酬|计价|计付|计发|计薪|计酬|计算|計算|折算|折合|计|計|支付|发放|结算|标准|约定|共计|合计|金额|为|是|共|的)';
+const WAGE_CURRENCY_WORD = '(?:(?:基本)?工[资資]|薪酬|薪[资資]|薪金|[劳勞][动動][报報]酬|[报報]酬|[计計][价價付发發薪酬算]|折算|折合|[计計]|支付|[发發]放|[结結]算|[标標][准準]|[约約]定|共[计計]|合[计計]|金[额額]|[为為]|是|共|的)';
 const WAGE_CURRENCY_PREFIX = new RegExp(`${FOREIGN_MARKER}${CURRENCY_BRIDGE}(?:${WAGE_CURRENCY_WORD}${CURRENCY_BRIDGE})+$`, 'iu');
 const WAGE_CURRENCY_SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}(?:(?:${WAGE_CURRENCY_WORD}|币种|幣種|以|按)${CURRENCY_BRIDGE})+${FOREIGN_MARKER}`, 'iu');
 const RMB_PREFIX = new RegExp(`(?:人民币|人民幣|(?<![A-Z])(?:CNY|RMB)(?![A-Z])|¥)${BRIDGE}$`, 'iu');
@@ -104,7 +104,8 @@ export function sourceMoneyHasUnsupportedCurrency(source: AnchoredMoneySource, n
   // Include the token's leading currency characters when checking that edge.
   const leadingMarker = edges.token.match(/^(?:人民币|人民幣)?[^\S\r\n\u2028\u2029]*¥/u)?.[0] ?? '';
   return PREFIX.test(edges.before) || PREFIX.test(edges.before + leadingMarker)
-    || WAGE_CURRENCY_PREFIX.test(edges.before) || SUFFIX.test(edges.after) || WAGE_CURRENCY_SUFFIX.test(edges.after);
+    || WAGE_CURRENCY_PREFIX.test(edges.before.replace(/[^\S\r\n\u2028\u2029]/gu, '')) || SUFFIX.test(edges.after)
+    || WAGE_CURRENCY_SUFFIX.test(edges.after.replace(/[^\S\r\n\u2028\u2029]/gu, ''));
 }
 
 /** A bare number is never evidence of RMB. Only this anchored token or its
