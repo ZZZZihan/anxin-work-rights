@@ -1,6 +1,7 @@
 import type { RequestUser } from './auth';
 import { getDatabase } from './server';
 import { callMaterialService, materialServiceConfigured } from './material-service-client';
+import { MaterialServiceHttpError } from './material-service-errors';
 import { enqueueMaterialFactCleanup, retryMaterialFactCleanup } from './material-fact-cleanup';
 import { reviewFactsAgainstSources } from './material-fact-source-review';
 import { validateMaterialResult } from './material-validation';
@@ -245,10 +246,17 @@ export async function actOnMaterialFacts(user: RequestUser, id: string, revision
         throw new Error('候选提取服务未确认本次任务编号。');
       }
       state = { ...state, job: { ...state.job!, submissionPending: false } };
-    } catch {
-      // The service may already have accepted this exact UUID. Keep it and
-      // reconcile with GET; never resubmit automatically or invent a result.
-      state = { ...state, job: { ...state.job!, submissionPending: false, pollFailureSince: now(), error: '提交回执暂未收到，正在核对已提交任务；请勿重复提取。' } };
+    } catch (error) {
+      if (error instanceof MaterialServiceHttpError && error.status >= 400 && error.status < 500) {
+        // A definitive rejection did not create this task. Persist the failed
+        // extraction intent, including its revoked confirmations, and stop
+        // polling a UUID the service never accepted.
+        state = { ...state, job: { ...state.job!, status: 'failed', submissionPending: false, error: error.message } };
+      } else {
+        // A timeout, damaged acknowledgement or 5xx can follow acceptance of
+        // this UUID. Reconcile with GET; never resubmit or invent a result.
+        state = { ...state, job: { ...state.job!, submissionPending: false, pollFailureSince: now(), error: '提交回执暂未收到，正在核对已提交任务；请勿重复提取。' } };
+      }
     }
     if (!await save(user, id, claimed, state)) { await cancelJob(user, id, jobId); throw conflict(); }
     return response({ ...claimed, state, revision: claimed.revision + 1 });
