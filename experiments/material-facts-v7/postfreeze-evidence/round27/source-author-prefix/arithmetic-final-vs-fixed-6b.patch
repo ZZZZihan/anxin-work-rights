@@ -1,0 +1,53 @@
+--- a/lib/material-fact-arithmetic-review.ts
++++ b/lib/material-fact-arithmetic-review.ts
+@@ -49,6 +49,18 @@
+ const SUFFIX_FRACTION = new RegExp(`^(?:${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${EXPLICIT_OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
+ const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
+ const SUFFIX_COEFFICIENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${COEFFICIENT_OPERAND}`, 'u');
++// A named wage component is an unknown operand only on an explicit operation.
++// Bound a complete Han component name to 16 code points and require one of the
++// finite payroll noun endings. Thus 销售提成/工龄津贴 share the guard without
++// accepting arbitrary prose. Ordinary 加班费, 奖金发放 or a separate worker's
++// payment narrative cannot be cut into an operation.
++const PAY_COMPONENT = ['基本工资', '岗位工资', '绩效工资', '计件工资', '工资', '薪资', '薪酬', '奖金', '年终奖', '绩效奖金', '绩效奖',
++  '加班费', '提成', '佣金', '津贴', '交通补贴', '补贴', '餐补', '房补', '补助金', '补助', '劳务费', '劳动报酬', '经济补偿金', '赔偿金']
++  .map(noun => `(?:[\\p{Script=Han}]${LINE}*){0,${16 - Array.from(noun).length}}${Array.from(noun).join(`${LINE}*`)}`).join('|');
++const PAY_COMPONENT_OPERAND = `(?:(?:${OPERAND_MODIFIER})${LINE}*(?:的${LINE}*)?){0,2}(?:${PAY_COMPONENT})(?!\\p{L}|\\p{N})`;
++const SUFFIX_PAY_COMPONENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${PAY_COMPONENT_OPERAND}`, 'u');
++const PREFIX_PAY_COMPONENT_OPERATOR = new RegExp(`${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}$`, 'u');
++const PREFIX_PAY_COMPONENT = new RegExp(`(?<!\\p{L}|\\p{N})${PAY_COMPONENT_OPERAND}${CONTINUATION_BRIDGE}$`, 'u');
+ // A presentation hyphen can introduce a payment date or duration. Require a
+ // complete time unit: a bare -2000, -200元 or -50% remains subtraction. This
+ // exception does not apply to an explicit 减/减去 or the mathematical minus −.
+@@ -59,7 +71,7 @@
+ const HYPHEN_TIME = new RegExp(`^-${LINE}*(?:[0-9]{4}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12][0-9]|3[01])|${TIME_INTEGER}年(?:${LINE}*${TIME_INTEGER}月(?:${LINE}*${TIME_INTEGER}日)?)?|${NUMBER}(?:个?月|日|天|小时|分钟|秒))(?![${NUMERALS}点.元圆圓角分%/×*xX÷+−-])`, 'u');
+ 
+ function suffixIsOperation(suffix: string): boolean {
+-  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
++  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
+ }
+ const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
+ // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
+@@ -75,8 +87,10 @@
+ const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${PROPORTION})`, 'u');
+ 
+ function detectionView(value: string): string {
++  const glyphs: Record<string, string> = { 貳: '贰', 參: '叁', 陸: '陆', 獎: '奖', 終: '终', 費: '费', 資: '资', 績: '绩', 貼: '贴', 補: '补', 勞: '劳', 務: '务', 動: '动', 報: '报', 經: '经', 濟: '济', 償: '偿', 賠: '赔', 減: '减', 當: '当', 實: '实', 應: '应', 約: '约', 適: '适', 計: '计', 發: '发', 齡: '龄', 數: '数' };
+   return value.normalize('NFKC').replace(/\p{Cf}/gu, '')
+-    .replace(/[^\S\r\n\u2028\u2029]/gu, '');
++    .replace(/[^\S\r\n\u2028\u2029]/gu, '')
++    .replace(/[貳參陸獎終費資績貼補勞務動報經濟償賠減當實應約適計發齡數]/gu, glyph => glyphs[glyph]);
+ }
+ 
+ /** Inspect raw text immediately before and after one already anchored money span.
+@@ -94,6 +108,10 @@
+   // operator must not repeatedly retry the complete numeric grammar.
+   const operator = left.match(PREFIX_OPERATOR);
+   if (operator && PREFIX_FACTOR.test(left.slice(0, operator.index))) return true;
++  // The amount can be the right operand as well. Require the same bounded
++  // complete payroll name and an explicit operator, never a bare adjacent noun.
++  const payOperator = left.match(PREFIX_PAY_COMPONENT_OPERATOR);
++  if (payOperator && PREFIX_PAY_COMPONENT.test(left.slice(0, payOperator.index))) return true;
+   // A named coefficient or variable is meaningful only with the adjacent
+   // operator or explicit 倍 construction, never as a bare name elsewhere.
+   if (operator && PREFIX_UNKNOWN_OPERAND.test(left.slice(0, operator.index))) return true;

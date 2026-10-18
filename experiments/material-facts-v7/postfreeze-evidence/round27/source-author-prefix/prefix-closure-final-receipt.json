@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "status": "SCOPED_PREFIX_CLOSURE_PASS_PARENT_INTEGRATION_PENDING",
+  "created_at": "2026-10-18T12:57:48.285764+00:00",
+  "base_revision": "6b24536b9d0c6b536d7132d9d8deab1dce005e11",
+  "prior_arithmetic_sha256": "9dc69126c49ad58350047834ae441b70217255305d952f4f2fc18884adc5d0f8",
+  "prior_author_162_sha256": "682777fbf779ed1038d458050678b96bb085f697393a90572d53069e1bc9024e",
+  "final_files": [
+    {
+      "path": "lib/material-fact-source-review.ts",
+      "sha256": "6faed96dc8f82b2c82b5049469067ffb57593693a6004f882ec9b6f20c2482d5"
+    },
+    {
+      "path": "lib/material-fact-event-review.ts",
+      "sha256": "2f7c3bf697df56d7dbf8937bd0762440cb6f7fd1142a720158258d51dd56f4c0"
+    },
+    {
+      "path": "lib/material-fact-arithmetic-review.ts",
+      "sha256": "4776ca01ec6af568330fb3714c379065134fdf61fbc7aab4435a68b1419127b5"
+    },
+    {
+      "path": "scripts/material-fact-source-date-pay-operand.test.mjs",
+      "sha256": "7ae8fb061262e7fd0b10978b911b0d4ff0fde35b8fab065eaa28dcb8e6ffcb07"
+    }
+  ],
+  "source_and_event_unchanged": true,
+  "actual_scope_clarification": {
+    "helper_only_gap": "hasAttachedMoneyArithmetic(\"奖金+\", \"\") was false in 9dc, but full/minquote and forced-history runtime paths were already unavailable through the numeric-prefix guard. This is a safety control, not a reproduced business failure.",
+    "actual_runtime_gaps": "奖金乘以/加班费加上/销售提成减去/工资组件除以 before 4000元 kept exact 4000 in the source pipeline, including tested source layouts. Those are the reproduced missing operand guards.",
+    "fix": "Reuse the bounded complete payroll component grammar only immediately before an explicit operator attached to the amount. The existing suffix, raw positions and evidence stay unchanged."
+  },
+  "checks": [
+    {
+      "name": "same_final_193_intermediate_9dc",
+      "tests": 193,
+      "passed": 173,
+      "failed": 20,
+      "exit_code": 1,
+      "log": "prefix-9dc-before-red.txt",
+      "note": "These are assertion counts, not 20 distinct business defects. Original 162 cases all passed."
+    },
+    {
+      "name": "same_final_193_final_arithmetic",
+      "tests": 193,
+      "passed": 193,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "prefix-final-193-green.txt"
+    },
+    {
+      "name": "final_193_money_overlay",
+      "tests": 193,
+      "passed": 193,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "prefix-final-combined-193-green.txt"
+    },
+    {
+      "name": "related_existing_regressions",
+      "tests": 668,
+      "passed": 668,
+      "failed": 0,
+      "exit_code": 0,
+      "log": "prefix-final-related-668-green.txt"
+    },
+    {
+      "name": "scoped_eslint",
+      "exit_code": 0,
+      "log": "prefix-final-scoped-eslint.txt"
+    }
+  ],
+  "coverage": [
+    "complete/cropped quotes",
+    "complete formula value",
+    "same-block linebreak and neighboring source blocks",
+    "fresh runtime and forced historical exact review",
+    "old unavailable value never upgraded",
+    "raw/model fields/Unicode CP unchanged",
+    "ordinary independent payment and another person remain outside the formula",
+    "no automatic confirmation or calculation"
+  ],
+  "preservation": "Original 9dc, locked162 evidence, 668 evidence and original index/receipt are unchanged. This closure is additional evidence only.",
+  "excluded_actions": [
+    "HTTP",
+    "build",
+    "full check",
+    "historical chain",
+    "model calls",
+    "ROOT/CODE edits",
+    "frozen/gold/result mutation",
+    "commit/push"
+  ]
+}

@@ -1,0 +1,22 @@
+--- a/lib/material-fact-arithmetic-review.ts
++++ b/lib/material-fact-arithmetic-review.ts
+@@ -59,6 +59,8 @@
+   .map(noun => `(?:[\\p{Script=Han}]${LINE}*){0,${16 - Array.from(noun).length}}${Array.from(noun).join(`${LINE}*`)}`).join('|');
+ const PAY_COMPONENT_OPERAND = `(?:(?:${OPERAND_MODIFIER})${LINE}*(?:的${LINE}*)?){0,2}(?:${PAY_COMPONENT})(?!\\p{L}|\\p{N})`;
+ const SUFFIX_PAY_COMPONENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${PAY_COMPONENT_OPERAND}`, 'u');
++const PREFIX_PAY_COMPONENT_OPERATOR = new RegExp(`${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}$`, 'u');
++const PREFIX_PAY_COMPONENT = new RegExp(`(?<!\\p{L}|\\p{N})${PAY_COMPONENT_OPERAND}${CONTINUATION_BRIDGE}$`, 'u');
+ // A presentation hyphen can introduce a payment date or duration. Require a
+ // complete time unit: a bare -2000, -200元 or -50% remains subtraction. This
+ // exception does not apply to an explicit 减/减去 or the mathematical minus −.
+@@ -106,6 +108,10 @@
+   // operator must not repeatedly retry the complete numeric grammar.
+   const operator = left.match(PREFIX_OPERATOR);
+   if (operator && PREFIX_FACTOR.test(left.slice(0, operator.index))) return true;
++  // The amount can be the right operand as well. Require the same bounded
++  // complete payroll name and an explicit operator, never a bare adjacent noun.
++  const payOperator = left.match(PREFIX_PAY_COMPONENT_OPERATOR);
++  if (payOperator && PREFIX_PAY_COMPONENT.test(left.slice(0, payOperator.index))) return true;
+   // A named coefficient or variable is meaningful only with the adjacent
+   // operator or explicit 倍 construction, never as a bare name elsewhere.
+   if (operator && PREFIX_UNKNOWN_OPERAND.test(left.slice(0, operator.index))) return true;
