@@ -1,6 +1,7 @@
 // Only detection copies are folded. The source and its code-point positions
 // remain untouched, including when layout divides an explicit range.
-export const MONEY_BOUND_PREFIX = '(?:不得少于|不得低于|不得超过|不得高于|不超过|不少于|不低于|不高于|不多于|不大于|不小于|不满|未满|低于|高于|多达|少于|多于|大于|小于|未达|大约|约(?!定|束)|将近|接近|逾|不到|不止|超过|不足|至少|至多|上限|下限|最高|最低|最多|最少)';
+const COMPARISON_BOUND = '(?:<=|>=|[<>≤≥≦≧])';
+export const MONEY_BOUND_PREFIX = `(?:不得少于|不得低于|不得超过|不得高于|不超过|不少于|不低于|不高于|不多于|不大于|不小于|不满|未满|低于|高于|多达|少于|多于|大于|小于|未达|大约|约(?!定|束)|将近|接近|逾|不到|不止|超过|不足|至少|至多|上限|下限|最高|最低|最多|最少|${COMPARISON_BOUND})`;
 // A following explicit duration or occurrence count belongs to its own number,
 // e.g. 四万元不到三天付清. Do not treat that temporal bound as a money bound.
 const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;
@@ -51,6 +52,9 @@ const SIGNED_BRIDGE = `(?:${CURRENCY_BRIDGE_PART}|的|为|為|是|金额|金額|
 const ATTACHED_SIGNED = new RegExp(`(?:负数|負數|负值|負值|正数|正數|正值|[负負+＋\\-－−﹣±])${SIGNED_BRIDGE}$`, 'iu');
 const ATTACHED_INDEFINITE = new RegExp(`(?:数|數|几|幾)${CURRENCY_BRIDGE}$`, 'iu');
 const ATTACHED_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[/／]${SPACE}(?:小时|月|日|天|时|件)${SPACE})?${MONEY_BOUND_SUFFIX}`, 'iu');
+// A comparison's left operand is no more an exact total than its right one.
+// The same finite unit/currency wrappers may intervene; punctuation cannot.
+const ATTACHED_COMPARISON_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}${COMPARISON_BOUND}`, 'iu');
 
 /** A clipped value and source review share the same finite qualifier grammar.
  * Explicit modifiers may bridge layout; subjects, numbers and sentences may not.
@@ -58,7 +62,8 @@ const ATTACHED_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE})
 export function attachedMoneyQualifierStatus(before: string, after: string): 'unsupported' | 'approximate' | null {
   const prefix = view(before), suffix = view(after);
   if (ATTACHED_SIGNED.test(prefix)) return 'unsupported';
-  return ATTACHED_INDEFINITE.test(prefix) || ATTACHED_PREFIX.test(prefix) || ATTACHED_SUFFIX.test(suffix) ? 'approximate' : null;
+  return ATTACHED_INDEFINITE.test(prefix) || ATTACHED_PREFIX.test(prefix) || ATTACHED_SUFFIX.test(suffix)
+    || ATTACHED_COMPARISON_SUFFIX.test(suffix) ? 'approximate' : null;
 }
 
 export function hasAttachedMoneyQualifier(before: string, after: string): boolean {

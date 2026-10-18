@@ -141,6 +141,11 @@ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: stri
   }
   // Finite non-total vocabulary cannot absorb another name, date or amount.
   // This validates attribution only; the stricter complete-total gate is separate.
+  const suffix = moneyRole(after);
+  const supportedSuffix = /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*(?:(?:[/／]|每)(?:月|日|天|小时|时|件))?$/iu.test(suffix)
+    // This branch recognizes an explicitly declared rate in the same event;
+    // it does not make that rate a complete total or accept arbitrary 按 prose.
+    || (raw.meaning === 'rate' && /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*按(?:(?:小时|月|日|天|件)(?:计算|计酬|计[价價]|计薪|计)?|时(?:计算|计酬|计[价價]|计薪|计))[）)】\]]*$/iu.test(suffix.replace(/\p{Cf}/gu, '')));
   return /^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|应得|补贴|交通补贴|人民币|RMB|CNY|[¥￥]|完整|全部|部分|总额|总计|合计|共计|累计|应付|已支付|已付|实付|支付|付款|收到|领取|拖欠|欠付|尚欠|欠薪|欠款|裁决|判决|判付|裁判|赔偿|补偿|给付|月薪|日薪|时薪|每月|每日|每天|每小时|每件|单价|标准|费率|本次|此次|该笔|单笔|一笔|先付|预付|预支|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)
-    && /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*(?:(?:[/／]|每)(?:月|日|天|小时|时|件))?$/iu.test(moneyRole(after));
+    && supportedSuffix;
 }
