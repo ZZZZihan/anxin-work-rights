@@ -144,16 +144,59 @@ async function scenario(name, operation) {
   try { const detail = await operation(); observations.push({ name, status: 'PASS', ...detail }); }
   catch (error) { observations.push({ name, status: 'FAIL', failure: errorRecord(error) }); }
 }
-async function stopChild(child, name) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return;
-  const exited = new Promise(resolve => child.once('exit', resolve)); child.kill('SIGTERM');
-  try { await bounded(exited, 5000, `${name} did not stop after SIGTERM.`); }
-  catch { child.kill('SIGKILL'); await bounded(exited, 5000, `${name} did not stop after SIGKILL.`); }
+// BEGIN OWNED HTTP CHILD LIFECYCLE
+const ownedChildren = new WeakMap();
+function spawnOwnedChild(command, args, options) {
+  const child = spawn(command, args, { ...options, detached: process.platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'] });
+  const state = { closed: false };
+  state.closedPromise = new Promise(resolve => child.once('close', () => { state.closed = true; resolve(); }));
+  ownedChildren.set(child, state);
+  // Drain rather than capture Wrangler output: descendants can inherit these
+  // pipes, so close also waits for them, without logging private bindings.
+  child.stdout?.resume(); child.stderr?.resume();
+  child.once('error', () => {}); // Callers retain their own startup error check.
+  return child;
 }
+function signalOwnedChild(child, signal) {
+  if (!child) return;
+  assert(ownedChildren.has(child), 'Only runner-owned detached children may be signalled.');
+  if (!child.pid) return;
+  try {
+    if (process.platform === 'win32') child.kill(signal);
+    else process.kill(-child.pid, signal);
+  } catch (error) { if (error.code !== 'ESRCH') throw error; }
+}
+function ownedGroupAlive(child) {
+  if (!child.pid) return false;
+  if (process.platform === 'win32') return child.exitCode === null && child.signalCode === null;
+  try { process.kill(-child.pid, 0); return true; }
+  catch (error) { if (error.code === 'ESRCH') return false; throw error; }
+}
+async function stopChild(child, name) {
+  if (!child) return;
+  const state = ownedChildren.get(child);
+  assert(state, 'Only runner-owned children may be stopped.');
+  if (state.closed && !ownedGroupAlive(child)) return;
+  // Parent exit is not tree completion: Wrangler may leave workerd alive.
+  signalOwnedChild(child, 'SIGTERM');
+  try { await bounded(state.closedPromise, 5000, `${name} did not close after SIGTERM.`); }
+  catch { signalOwnedChild(child, 'SIGKILL'); await bounded(state.closedPromise, 5000, `${name} did not close after SIGKILL.`); }
+  // A descendant may have redirected its pipes. Terminate any remaining owned
+  // group before another Worker starts or the disposable state is removed.
+  if (ownedGroupAlive(child)) {
+    signalOwnedChild(child, 'SIGKILL');
+    const deadline = Date.now() + 5000;
+    while (ownedGroupAlive(child)) {
+      if (Date.now() >= deadline) throw new Error(`${name} process group did not stop.`);
+      await wait(20);
+    }
+  }
+}
+// END OWNED HTTP CHILD LIFECYCLE
 async function startWorker() {
   shutdown.signal.throwIfAborted(); const probe = createServer(); base = await listen(probe);
   const port = new URL(base).port; await new Promise(resolve => probe.close(resolve)); loopback(base);
-  worker = spawn(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', port], { cwd: root, env: workerEnv, stdio: 'ignore' });
+  worker = spawnOwnedChild(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', port, '--inspector-port', '0'], { cwd: root, env: workerEnv });
   let startError; worker.once('error', error => { startError = error; });
   for (let attempt = 0; attempt < 100; attempt++) {
     shutdown.signal.throwIfAborted(); if (startError) throw startError;
@@ -164,7 +207,13 @@ async function startWorker() {
   throw new Error('Isolated Worker readiness timed out.');
 }
 async function cleanup(name, operation) { try { await operation(); } catch (error) { cleanupFailures.push({ operation: name, ...errorRecord(error) }); } }
-const interrupt = () => { shutdown.abort(new Error('Synthetic HTTP regression interrupted.')); worker?.kill('SIGTERM'); migrationChild?.kill('SIGTERM'); };
+const interrupt = () => {
+  shutdown.abort(new Error('Synthetic HTTP regression interrupted.'));
+  for (const child of [worker, migrationChild]) {
+    try { signalOwnedChild(child, 'SIGTERM'); }
+    catch (error) { cleanupFailures.push({ operation: 'interrupt_owned_processes', ...errorRecord(error) }); }
+  }
+};
 process.once('SIGINT', interrupt); process.once('SIGTERM', interrupt);
 
 try {
@@ -213,7 +262,7 @@ try {
   for (const item of config.d1_databases ?? []) item.migrations_dir = resolve(root, 'drizzle');
   config.vars = { ...config.vars, ANXIN_MATERIAL_SERVICE_URL: proxyUrl, ANXIN_MATERIAL_SERVICE_TOKEN: token };
   configPath = join(temp, 'wrangler.json'); await writeFile(configPath, JSON.stringify(config), { mode: 0o600 });
-  migrationChild = spawn(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], { cwd: root, env: workerEnv, stdio: 'ignore' });
+  migrationChild = spawnOwnedChild(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], { cwd: root, env: workerEnv });
   try { await bounded(new Promise((resolve, reject) => { migrationChild.once('error', reject); migrationChild.once('exit', code => code === 0 ? resolve() : reject(new Error(`Isolated D1 migrations exited ${code}.`))); }), 60_000, 'Isolated migrations timed out.'); }
   finally { await stopChild(migrationChild, 'Migration'); migrationChild = undefined; }
   for (const path of (await readdir(join(temp, 'state'), { recursive: true })).filter(path => path.endsWith('.sqlite'))) {
@@ -307,6 +356,14 @@ try {
     { name: 'internal-token-crop', text: '测试王甲2026年1月完整应付工资十四万元。', value: '四万元', quote: '四万元', status: 'unsupported' },
     { name: 'cropped-approximation', text: '测试王甲2026年1月完整应付工资约四万元。', value: '四万元', quote: '四万元', status: 'approximate' },
     { name: 'rate-as-total', text: '测试王甲2026年1月工资四万元/月。', value: '四万元', quote: '四万元', status: 'rate_unit_mismatch' },
+    { name: 'currency-wage-attribution', text: '测试王甲2026年1月工资以港币支付四万元。', value: '四万元', quote: '四万元', status: 'unsupported' },
+    { name: 'currency-wage-postposed-attribution', text: '测试王甲2026年1月应付工资四万元以港币支付。', value: '四万元', quote: '四万元', status: 'unsupported' },
+    { name: 'wage-noun-multiplier', text: '测试王甲2026年1月应付四万元基本工资的2倍。', value: '四万元', quote: '四万元', status: 'unsupported' },
+    { name: 'wage-noun-operator', text: '测试王甲2026年1月应付四万元工资×2。', value: '四万元', quote: '四万元', status: 'unsupported' },
+    { name: 'wage-noun-bare-multiplier', text: '测试王甲2026年1月应付四万元工资2倍。', value: '四万元', quote: '四万元', status: 'unsupported' },
+    { name: 'calendar-wage-standard-as-total', text: '测试王甲2026年1月工资标准为四万元。', value: '四万元', quote: '四万元', status: 'rate_unit_mismatch' },
+    { name: 'monthly-base-wage-as-total', text: '测试王甲2026年1月约定每月基本工资四万元。', value: '四万元', quote: '四万元', status: 'rate_unit_mismatch' },
+    { name: 'monthly-standard-colon-as-total', text: '测试王甲2026年1月约定月薪标准：四万元。', value: '四万元', quote: '四万元', status: 'rate_unit_mismatch' },
     { name: 'full-multiplier', text: '测试王甲2026年1月应付工资四万元的2倍。', value: '四万元的2倍', status: 'unsupported' },
     { name: 'cropped-unicode-multiplier', text: '测试王甲2026年1月应付工资四万元的２\u200b倍。', value: '四万元', quote: '四万元', status: 'unsupported' },
     { name: 'cropped-arithmetic-division', text: '测试王甲2026年1月应付工资40000元/2。', value: '40000元', quote: '40000元', status: 'unsupported' },

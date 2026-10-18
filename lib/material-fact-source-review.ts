@@ -122,22 +122,27 @@ function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: Candidate
 }
 
 function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null): RateUnit | null {
-  const edges = monetaryEdges(context, normalized);
+  const edges = monetaryEdges(context, normalized, true);
   if (!edges) return null;
-  const before = edges.before.split(/[，,。！？!?；;\n\r]/u).at(-1)!, after = edges.after.split(/[，,。！？!?；;\n\r]/u)[0];
+  // Fold only the detection view. In particular LS/PS remain line boundaries;
+  // horizontal OCR spacing cannot hide a directly attached wage standard.
+  const detectionText = (text: string) => text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[^\S\r\n\u2028\u2029]/gu, '');
+  const before = detectionText(edges.before.split(/[，,。！？!?；;\n\r\u2028\u2029]/u).at(-1)!);
+  const after = detectionText(edges.after.split(/[，,。！？!?；;\n\r\u2028\u2029]/u)[0]);
   const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
   const suffix = after.match(/^(?:[元圆]\s*)?(?:[/／]\s*|每\s*)(小时|月|日|天|时|件)/u);
   if (suffix) return units[suffix[1]];
-  const prefix = before.match(/(?:每\s*(小时|月|日|天|时|件)|(月|日|时)(?:薪|工资)|小时工资|计件(?:单价|工资)?)(?:为|是|计|共|合计|工资|薪酬|薪资|金额|人民币|[¥￥]|\s)*$/u);
+  const prefix = before.match(/(?:每(小时|月|日|天|时|件)|(月|日|时)(?:薪|(?:基本)?工资)|小时工资|计件(?:单价|工资)?)(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|[¥￥:=])*$/u);
   if (!prefix) return null;
   // “2026年1月工资1000元” and “上月工资1000元” name wage periods,
-  // not monthly rates. Explicit 每月 or /月 still takes precedence.
+  // not monthly rates. Explicit 标准, 每月 or /月 still takes precedence.
   // Only the naked 月/日/时工资 alternative can collide with a calendar token.
-  const calendarPrefix = before.slice(0, prefix.index).replace(/[^\S\r\n]+$/u, '');
-  if (prefix[2] && /[0-9０-９零〇一二三四五六七八九十百千万两正腊臘]$/u.test(calendarPrefix)) return null;
-  if (prefix[2] === '月' && prefix[0].startsWith('月工资')
+  const calendarPrefix = before.slice(0, prefix.index);
+  const explicitStandard = prefix[0].includes('标准');
+  if (!explicitStandard && prefix[2] && /[0-9零〇一二三四五六七八九十百千万两正腊臘]$/u.test(calendarPrefix)) return null;
+  if (!explicitStandard && prefix[2] === '月' && /^月(?:基本)?工资/u.test(prefix[0])
     && /(?:上(?:一?个)?|下(?:一?个)?|本|当|该|这(?:个)?)$/u.test(calendarPrefix)
-    && !(subject && calendarPrefix.endsWith(subject))) return null;
+    && !(subject && calendarPrefix.endsWith(detectionText(subject)))) return null;
   return prefix[1] ? units[prefix[1]] : prefix[2] ? units[prefix[2]] : prefix[0].startsWith('小时') ? 'hour' : 'piece';
 }
 
