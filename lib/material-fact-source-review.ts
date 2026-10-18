@@ -144,7 +144,7 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
   const suffix = after.match(/^(?:[元圆圓]\s*)?(?:[/／]\s*|每\s*)(小时|月|日|天|时|件)/u);
   if (suffix) return units[suffix[1]];
-  const prefix = before.match(/(?:每(小时|月|日|天|时|件)|(月|日|时)(?:薪|(?:基本)?工资)|小时工资|计件(?:单价|工资)?)(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|[¥￥:=])*$/u);
+  const prefix = before.match(/(?:(?:每|按)(小时|月|日|天|时|件)|(月|日|时)(?:薪|(?:基本)?工资)|小时工资|计件(?:单价|工资)?)(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|[¥￥:=])*$/u);
   if (!prefix) return null;
   // “2026年1月工资1000元” and “上月工资1000元” name wage periods,
   // not monthly rates. Explicit 标准, 每月 or /月 still takes precedence.

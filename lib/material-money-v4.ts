@@ -168,7 +168,7 @@ function remainingNumbers(rawValue: string, index: number, text: string): string
   const count = `[${NUMERALS}]+`;
   return rest.replace(/\d{4}[-/.]\d{1,2}(?:[-/.]\d{1,2})?/gu, '')
     .replace(new RegExp(`${count}\\s*年(?:\\s*${count}\\s*月(?:\\s*${count}\\s*日)?)?`, 'gu'), '')
-    .replace(new RegExp(`${count}(?:\\.\\d+)?\\s*(?:个?月|天|日|小时|分钟|件|(?:个|名|位)(?:工人|员工|劳动者)|名|人|倍|年)`, 'gu'), '');
+    .replace(new RegExp(`${count}(?:\\.\\d+)?\\s*(?:个?月|天|日|小时|分钟|秒|件|(?:个|名|位)(?:工人|员工|劳动者)|名|人|倍|年)`, 'gu'), '');
 }
 
 /** Parse one complete RMB literal with exact cents, preserving the unmodified evidence. */
@@ -284,6 +284,13 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
 export function classifyMonetaryExpression(value: string): MonetaryExpressionClassification {
   const normalization = normalizeMoneyValueV4(value);
   const detection = monetaryDetectionView(value).replace(/\s/gu, '');
+  // Only a complete percentage (optionally named by a finite ratio label) is
+  // definite non-money. This whole-value grammar contains no currency unit;
+  // in particular 百分比 must not be cropped into 百分 as a fen amount.
+  // 四万元的50% and unknown ratio prose cannot match and remain reviewable.
+  const ratioNumber = `[+−负負-]?[${NUMERALS}]+(?:[.点][${NUMERALS}]+)?`;
+  const ratioDescription = new RegExp(`^(?:(?:出勤率|出勤比例|支付比例|计发比例|折算比例|比例|百分比)(?:为|是|:)?)?(?:${ratioNumber}%|百分之${ratioNumber})$`, 'u');
+  if (ratioDescription.test(detection)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为比例或百分比，未表述金额。') };
   const explicit = /人民[币幣]|[¥￥]/u.test(value) || monetaryExpressionHasUnsupportedCurrency(value)
     || [...value.matchAll(/[元圆圓]/gu)].some(match => isRmbCurrencyUnitAt(value, match.index))
     || [...detection.matchAll(new RegExp(`[${NUMERALS}]+[角分]`, 'gu'))]

@@ -1,0 +1,227 @@
+--- historical-v13-execution.mjs
++++ historical-v14-execution.mjs
+@@ -1,4 +1,4 @@
+-// A narrow execution-only bridge for the archived v13 check. The immutable v1
++// A narrow execution-only bridge for the archived v14 check. The immutable v1
+ // preload and older versioned bridges handle older children; neither is expanded here.
+ import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync, writeSync } from 'node:fs';
+ import { tmpdir } from 'node:os';
+@@ -7,17 +7,17 @@
+ import { CLEANUP_RESERVE_MS, POLICY_ID, POLICY_SHA256, POLICY_URL, ROOT_BUDGET_MS, STATE_ENV,
+   nativeExecFileSync, readExecutionState, recordExecutionEvent, rootBudgetStartedMs } from './historical-execution-policy-v1.mjs';
+ 
+-export function historicalV13Target(script, args) {
++export function historicalV14Target(script, args) {
+   if (typeof script !== 'string' || !Array.isArray(args) || args.length !== 1 || args[0] !== '--check') return null;
+   const path = resolve(script);
+-  return basename(path) === 'corrective-assessment-v13.mjs'
++  return basename(path) === 'corrective-assessment-v14.mjs'
+     && dirname(path).endsWith(`${sep}experiments${sep}material-facts-v7`)
+-    ? 'experiments/material-facts-v7/corrective-assessment-v13.mjs' : null;
++    ? 'experiments/material-facts-v7/corrective-assessment-v14.mjs' : null;
+ }
+ 
+-export function prepareHistoricalV13Options(script, args, options, state) {
+-  const target = historicalV13Target(script, args);
+-  if (!target) throw new Error('Historical v13 execution only accepts the exact read-only v13 assessment check');
++export function prepareHistoricalV14Options(script, args, options, state) {
++  const target = historicalV14Target(script, args);
++  if (!target) throw new Error('Historical v14 execution only accepts the exact read-only v14 assessment check');
+   // Validate inherited state with the unchanged v1 contract before deriving a
+   // child. No state or environment mutation occurs in this process.
+   if (!readExecutionState({ [STATE_ENV]: JSON.stringify(state) })) throw new Error('Invalid historical execution policy state');
+@@ -36,17 +36,17 @@
+   recordExecutionEvent(state, { event: 'child_budget', target, args, depth: next.depth,
+     requested_timeout_ms: options.timeout ?? null, effective_timeout_ms: remaining,
+     parent_deadline_ms: state.deadline_ms, child_deadline_ms: deadline,
+-    cleanup_reserve_ms: CLEANUP_RESERVE_MS, execution_adapter: 'historical-v13-execution/1' });
++    cleanup_reserve_ms: CLEANUP_RESERVE_MS, execution_adapter: 'historical-v14-execution/1' });
+   return { ...options, env, timeout: remaining };
+ }
+ 
+-export function runHistoricalV13CheckSync(scriptPath, args = ['--check'], options = {}) {
++export function runHistoricalV14CheckSync(scriptPath, args = ['--check'], options = {}) {
+   const script = resolve(options.cwd ?? process.cwd(), scriptPath);
+-  if (!historicalV13Target(script, args)) throw new Error('Expected the exact read-only historical v13 assessment check');
++  if (!historicalV14Target(script, args)) throw new Error('Expected the exact read-only historical v14 assessment check');
+   let state = readExecutionState(), directory;
+   if (!state) {
+     const localStartedMs = rootBudgetStartedMs();
+-    directory = mkdtempSync(join(tmpdir(), 'anxin-v7-history-v13-policy-'));
++    directory = mkdtempSync(join(tmpdir(), 'anxin-v7-history-v14-policy-'));
+     const receiptPath = join(directory, 'execution.jsonl');
+     writeFileSync(receiptPath, '', { flag: 'wx', mode: 0o600 });
+     state = { policy: POLICY_ID, policy_sha256: POLICY_SHA256, started_ms: localStartedMs,
+@@ -55,7 +55,7 @@
+   }
+   let failure;
+   try {
+-    return nativeExecFileSync(process.execPath, [script, ...args], prepareHistoricalV13Options(script, args, options, state));
++    return nativeExecFileSync(process.execPath, [script, ...args], prepareHistoricalV14Options(script, args, options, state));
+   } catch (error) {
+     failure = error;
+     throw error;
+@@ -64,9 +64,9 @@
+       try {
+         const events = readFileSync(state.receipt_path, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line));
+         writeSync(2, JSON.stringify({ execution_policy: POLICY_ID, policy_sha256: POLICY_SHA256,
+-          execution_adapter: 'historical-v13-execution/1', budget_mode: 'shared_absolute_deadline',
++          execution_adapter: 'historical-v14-execution/1', budget_mode: 'shared_absolute_deadline',
+           maximum_root_budget_ms: ROOT_BUDGET_MS, cleanup_reserve_per_level_ms: CLEANUP_RESERVE_MS,
+-          target: historicalV13Target(script, args), status: failure ? 'FAIL' : 'PASS',
++          target: historicalV14Target(script, args), status: failure ? 'FAIL' : 'PASS',
+           scoring_semantics_changed: false, archived_source_bytes_changed: false, events }) + '\n');
+       } catch (error) {
+         if (failure) failure.executionPolicyReceiptError = error;
+@@ -81,7 +81,7 @@
+ 
+ if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   const [script, ...args] = process.argv.slice(2);
+-  if (!script) throw new Error('Expected the read-only historical v13 assessment path');
+-  const output = runHistoricalV13CheckSync(script, args, { cwd: process.cwd(), encoding: 'utf8', maxBuffer: 16 * 1024 ** 2 });
++  if (!script) throw new Error('Expected the read-only historical v14 assessment path');
++  const output = runHistoricalV14CheckSync(script, args, { cwd: process.cwd(), encoding: 'utf8', maxBuffer: 16 * 1024 ** 2 });
+   process.stdout.write(output);
+ }
+--- verify-correction-v13.mjs
++++ verify-correction-v14.mjs
+@@ -1,7 +1,7 @@
+-// Preserve the thirteenth post-freeze correction when later runtime fixes change
++// Preserve the fourteenth post-freeze correction when later runtime fixes change
+ // acceptance. Its results and code are restored only in an owned temp tree.
+ import assert from 'node:assert/strict';
+-import { runHistoricalV13CheckSync } from './historical-v13-execution.mjs';
++import { runHistoricalV14CheckSync } from './historical-v14-execution.mjs';
+ import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+ import { tmpdir } from 'node:os';
+ import { dirname, join, resolve } from 'node:path';
+@@ -11,13 +11,13 @@
+ const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+ const EXPERIMENT = 'experiments/material-facts-v7';
+ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+-export async function withCorrectionV13Code(action, root = ROOT) {
+-  const base = resolve(root, EXPERIMENT), snapshot = resolve(base, 'correction-code-v13');
+-  const correctionBytes = await readFile(resolve(base, 'corrections-v13/manifest.json'));
++export async function withCorrectionV14Code(action, root = ROOT) {
++  const base = resolve(root, EXPERIMENT), snapshot = resolve(base, 'correction-code-v14');
++  const correctionBytes = await readFile(resolve(base, 'corrections-v14/manifest.json'));
+   const correction = JSON.parse(correctionBytes);
+   const manifest = JSON.parse(await readFile(resolve(snapshot, 'manifest.json'), 'utf8'));
+-  assert.equal(manifest.schema, 'material-facts-v7-correction-code/13');
+-  assert.equal(manifest.correction_directory, 'corrections-v13');
++  assert.equal(manifest.schema, 'material-facts-v7-correction-code/14');
++  assert.equal(manifest.correction_directory, 'corrections-v14');
+   assert.equal(manifest.storage_suffix, '.snapshot');
+   assert.equal(manifest.correction_manifest_sha256, hash(correctionBytes));
+   const expected = Object.keys(correction.code_sha256).sort();
+@@ -30,7 +30,7 @@
+     assert.equal(manifest.files[path], correction.code_sha256[path]);
+     archived.push([path, bytes]);
+   }
+-  const temporary = await realpath(await mkdtemp(join(tmpdir(), 'anxin-v7-correction-v13-')));
++  const temporary = await realpath(await mkdtemp(join(tmpdir(), 'anxin-v7-correction-v14-')));
+   try {
+     for (const path of ['lib', 'scripts', 'experiments', 'docs', 'package.json']) await cp(resolve(root, path), resolve(temporary, path), { recursive: true });
+     for (const [path, bytes] of archived) {
+@@ -44,13 +44,13 @@
+ 
+ if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   assert.equal(process.argv.length, 2, 'Historical correction verification is read-only');
+-  const receipt = await withCorrectionV13Code(async temporary => {
+-    const output = runHistoricalV13CheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v13.mjs'), ['--check'], {
++  const receipt = await withCorrectionV14Code(async temporary => {
++    const output = runHistoricalV14CheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v14.mjs'), ['--check'], {
+       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 180000,
+     });
+     const result = JSON.parse(output); assert.equal(result.status, 'PASS');
+-    return { status: 'PASS', execution: 'archived_correction_v13_code', current_code_claim: false,
+-      correction_manifest_sha256: hash(await readFile(resolve(temporary, EXPERIMENT, 'corrections-v13/manifest.json'))), model_requests: 0 };
++    return { status: 'PASS', execution: 'archived_correction_v14_code', current_code_claim: false,
++      correction_manifest_sha256: hash(await readFile(resolve(temporary, EXPERIMENT, 'corrections-v14/manifest.json'))), model_requests: 0 };
+   });
+   console.log(JSON.stringify(receipt));
+ }
+--- corrective-assessment-v14.mjs
++++ corrective-assessment-v15.mjs
+@@ -1,36 +1,36 @@
+-// A fourteenth, explicitly post-freeze assessment of the SAME original outputs.
+-// Restore v13 before checking it with a narrow adapter. The immutable v1 policy
++// A fifteenth, explicitly post-freeze assessment of the SAME original outputs.
++// Restore v14 before checking it with a narrow adapter. The immutable v1 policy
+ // and older versioned bridges keep all children inside the same absolute deadline.
+ import assert from 'node:assert/strict';
+ import { publishArtifacts } from './publish-artifacts.mjs';
+-import { runHistoricalV13CheckSync } from './historical-v13-execution.mjs';
+-import { withCorrectionV13Code } from './verify-correction-v13.mjs';
++import { runHistoricalV14CheckSync } from './historical-v14-execution.mjs';
++import { withCorrectionV14Code } from './verify-correction-v14.mjs';
+ import { readFile, readdir } from 'node:fs/promises';
+ import { resolve } from 'node:path';
+ import { computeCorrection } from './corrective-assessment.mjs';
+ import { EXPERIMENT, ROOT, isMainModule, sha, same } from './freeze.mjs';
+ 
+-export async function computeCorrectionV14(root = ROOT) {
++export async function computeCorrectionV15(root = ROOT) {
+   const base = resolve(root, EXPERIMENT);
+-  const previous = await withCorrectionV13Code(async temporary => {
+-    const result = JSON.parse(runHistoricalV13CheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v13.mjs'), ['--check'], {
++  const previous = await withCorrectionV14Code(async temporary => {
++    const result = JSON.parse(runHistoricalV14CheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v14.mjs'), ['--check'], {
+       cwd: temporary, encoding: 'utf8', timeout: 180000, maxBuffer: 16 * 1024 ** 2,
+     }));
+     assert.equal(result.status, 'PASS');
+-    return { status: 'PASS', correction_manifest_sha256: sha(await readFile(resolve(temporary, EXPERIMENT, 'corrections-v13/manifest.json'))) };
++    return { status: 'PASS', correction_manifest_sha256: sha(await readFile(resolve(temporary, EXPERIMENT, 'corrections-v14/manifest.json'))) };
+   }, root);
+   const { artifacts, manifest } = await computeCorrection(root);
+-  artifacts['comparison.json'] = { ...artifacts['comparison.json'], schema: 'material-facts-v7-postfreeze-correction/14',
++  artifacts['comparison.json'] = { ...artifacts['comparison.json'], schema: 'material-facts-v7-postfreeze-correction/15',
+     previous_correction_manifest_sha256: previous.correction_manifest_sha256,
+-    change_reason: 'Review explicit foreign-currency conversion and traditional wage attribution, monetary word boundaries, no-amount descriptors, subject-name and traditional rate boundaries, mixed Chinese-yuan subunits, unsupported suffix rates and evidence-aware deduplication, while preserving original raw evidence and all earlier correction artifacts.' };
+-  // The archived v13 check verifies the complete previous chain. Compute the
++    change_reason: 'Review finite source rate attribution with 按月/按日计/按小时/按件 and corresponding traditional forms, distinguish an attached minus followed by a complete calendar date or duration from genuine subtraction, and reject standalone percentages without a monetary expression while retaining money-bearing proportions for manual review without calculation; preserve original raw evidence and every earlier correction artifact.' };
++  // The archived v14 check verifies the complete previous chain. Compute the
+   // current acceptance assessment once, without re-inference or score rewriting.
+-  const previousBytes = await readFile(resolve(base, 'corrections-v13/manifest.json'));
++  const previousBytes = await readFile(resolve(base, 'corrections-v14/manifest.json'));
+   assert.equal(sha(previousBytes), previous.correction_manifest_sha256);
+   const code = [...Object.keys(JSON.parse(previousBytes).code_sha256),
+-    `${EXPERIMENT}/verify-correction-v13.mjs`, `${EXPERIMENT}/corrective-assessment-v14.mjs`,
+-    `${EXPERIMENT}/historical-v13-execution.mjs`];
+-  const next = { ...manifest, schema: 'material-facts-v7-postfreeze-correction-manifest/14',
++    `${EXPERIMENT}/verify-correction-v14.mjs`, `${EXPERIMENT}/corrective-assessment-v15.mjs`,
++    `${EXPERIMENT}/historical-v14-execution.mjs`];
++  const next = { ...manifest, schema: 'material-facts-v7-postfreeze-correction-manifest/15',
+     previous_correction_manifest_sha256: previous.correction_manifest_sha256,
+     code_sha256: { ...manifest.code_sha256, ...Object.fromEntries(await Promise.all(code.map(async path => [path, sha(await readFile(resolve(root, path)))]))) },
+     files: Object.fromEntries(Object.entries(artifacts).map(([path, value]) => [path, sha(JSON.stringify(value, null, 2) + '\n')])) };
+@@ -40,21 +40,21 @@
+ if (await isMainModule(import.meta.url)) {
+   const args = process.argv.slice(2);
+   assert(args.length === 1 && ['--write', '--check'].includes(args[0]), 'Expected --write or --check');
+-  const { artifacts, manifest } = await computeCorrectionV14();
+-  const directory = resolve(ROOT, EXPERIMENT, 'corrections-v14');
++  const { artifacts, manifest } = await computeCorrectionV15();
++  const directory = resolve(ROOT, EXPERIMENT, 'corrections-v15');
+   if (args[0] === '--write') {
+     await publishArtifacts(directory, { ...artifacts, 'manifest.json': manifest });
+   } else {
+-    same((await readdir(directory)).sort(), [...Object.keys(artifacts), 'manifest.json'].sort(), 'Correction v14 file set changed');
++    same((await readdir(directory)).sort(), [...Object.keys(artifacts), 'manifest.json'].sort(), 'Correction v15 file set changed');
+     const manifestBytes = await readFile(resolve(directory, 'manifest.json'));
+-    same(JSON.parse(manifestBytes), manifest, 'Correction v14 manifest changed');
+-    assert.equal(sha(manifestBytes), sha(JSON.stringify(manifest, null, 2) + '\n'), 'Correction v14 manifest bytes changed');
++    same(JSON.parse(manifestBytes), manifest, 'Correction v15 manifest changed');
++    assert.equal(sha(manifestBytes), sha(JSON.stringify(manifest, null, 2) + '\n'), 'Correction v15 manifest bytes changed');
+     for (const [path, value] of Object.entries(artifacts)) {
+-      assert.equal(sha(await readFile(resolve(directory, path))), manifest.files[path], `Correction v14 bytes changed: ${path}`);
+-      same(JSON.parse(await readFile(resolve(directory, path), 'utf8')), value, `Correction v14 recomputation differs: ${path}`);
++      assert.equal(sha(await readFile(resolve(directory, path))), manifest.files[path], `Correction v15 bytes changed: ${path}`);
++      same(JSON.parse(await readFile(resolve(directory, path), 'utf8')), value, `Correction v15 recomputation differs: ${path}`);
+     }
+   }
+-  console.log(JSON.stringify({ status: 'PASS', operation: args[0], first_run_and_corrections_v1_v2_v3_v4_v5_v6_v7_v8_v9_v10_v11_v12_v13_preserved: true,
++  console.log(JSON.stringify({ status: 'PASS', operation: args[0], first_run_and_corrections_v1_v2_v3_v4_v5_v6_v7_v8_v9_v10_v11_v12_v13_v14_preserved: true,
+     model_requests: 0, new_holdout_run: false, original_manifest_sha256: manifest.first_result_manifest_sha256,
+     previous_correction_manifest_sha256: manifest.previous_correction_manifest_sha256,
+     corrected_models: artifacts['comparison.json'].models }));
