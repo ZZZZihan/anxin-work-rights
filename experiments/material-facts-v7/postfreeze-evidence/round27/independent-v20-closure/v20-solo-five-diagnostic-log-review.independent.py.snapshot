@@ -1,0 +1,46 @@
+"""Review only the separately authorized post-failure diagnostic capture."""
+from pathlib import Path
+import hashlib
+import json
+import re
+
+D = Path(__file__).resolve().parent
+sha = lambda b: hashlib.sha256(b).hexdigest()
+execution = json.loads((D / 'v20-solo-five-diagnostic.execution.json').read_bytes())
+out = (D / 'v20-solo-five-diagnostic.stdout.txt').read_bytes()
+err = (D / 'v20-solo-five-diagnostic.stderr.txt').read_bytes()
+assert sha(out) == execution['stdout_sha256']
+assert sha(err) == execution['stderr_sha256']
+lines = out.decode().splitlines()
+names = [
+    'the current v20 manifest binds 79 exact dependencies in the v7 experiment family',
+    'the v19 wrapper restores all 76 historical dependencies and cleans up when the callback throws',
+    'the actual v20 CLI refuses JSON-equivalent current manifest whitespace',
+    'the actual v20 CLI refuses comment-only whole-amount guard drift after archived v19 verification',
+]
+results = []
+for name in names:
+    found = [(i + 1, line) for i, line in enumerate(lines)
+        if re.match(r'\s*[✔✖] ' + re.escape(name) + r' \([0-9.]+ms\)$', line)]
+    assert len(found) == 1
+    number, line = found[0]
+    row = {'name': name, 'stdout_line': number, 'result': 'PASS' if '✔' in line else 'FAIL',
+        'elapsed_ms': float(re.search(r'\(([0-9.]+)ms\)$', line).group(1))}
+    if 'actual v20 CLI' in name and row['result'] == 'PASS':
+        row['passing_executed_source_assertions'] = {'failure.status': 1, 'expected_stderr_diagnostic_matched': True,
+            'source_evidence_boundary': 'The existing gate invokes a real child and checks status1 plus the intended diagnostic. The reporter prints assertions/outcomes rather than a separate raw child-status record. Timeout alone cannot satisfy these assertions.'}
+    results.append(row)
+summary = re.search(r'(?m)^ℹ tests (\d+)\nℹ suites (\d+)\nℹ pass (\d+)\nℹ fail (\d+)\nℹ cancelled (\d+)\nℹ skipped (\d+)\nℹ todo (\d+)\nℹ duration_ms ([0-9.]+)', out.decode())
+assert summary
+counts = dict(zip(('tests', 'suites', 'pass', 'fail', 'cancelled', 'skipped', 'todo', 'duration_ms'),
+    [int(x) for x in summary.groups()[:-1]] + [float(summary.group(8))]))
+gate = D / 'v20-actual-executed-gate.test.mjs.snapshot'
+assert sha(gate.read_bytes()) == execution['source_gate_sha256'] == '2d2c40b2fe9f2a22261ba79ec07d9f964fa16f759c9e0e2e7db81bcbb9b503a6'
+assert "assert.equal(failure.status, 1, 'Refusal must be a verifier result, not fixture timeout.')" in gate.read_text()
+passed = execution['exit_code'] == 0 and counts['tests'] == counts['pass'] == 5 and counts['fail'] == counts['skipped'] == 0
+print(json.dumps({'schema': 'material-facts-v7-v20-post-failure-isolated-five-gates-diagnostic/1',
+    'status': 'PASS_ISOLATED_DIAGNOSTIC' if passed else 'FAIL_ISOLATED_DIAGNOSTIC',
+    'execution': execution, 'counts_including_outer': counts, 'subtests': results,
+    'complete_integration_check_exit_code': 1, 'complete_integration_failure_superseded': False,
+    'inference': 'The same v20 gate behavior under isolated scheduling can be compared to the preserved parallel complete-run failure. This does not independently establish that a future bounded-concurrency complete check will pass, nor remove new application review findings.',
+    'model_requests': 0}, ensure_ascii=False, indent=2))

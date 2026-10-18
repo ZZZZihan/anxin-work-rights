@@ -1,0 +1,77 @@
+"""Review the captured authorized integration run only; never launches tests or a scorer."""
+from pathlib import Path
+import hashlib
+import json
+import re
+
+D = Path(__file__).resolve().parent
+ROOT = Path("/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards")
+sha = lambda value: hashlib.sha256(value).hexdigest()
+read = lambda path: json.loads(path.read_bytes())
+execution = read(D / "v20-root-full-check-independent.execution.json")
+assert execution["exit_code"] == 0
+assert execution["protected_before_after_identical"]
+assert execution["changed_protected_files"] == []
+assert execution["node"]["version"].startswith("v24.")
+assert execution["command"] == ["npm", "exec", "--yes", "--package=node@24", "--", "npm", "run", "check"]
+stdout_path = D / "v20-root-full-check-independent.stdout.txt"
+stderr_path = D / "v20-root-full-check-independent.stderr.txt"
+assert sha(stdout_path.read_bytes()) == execution["stdout_sha256"]
+assert sha(stderr_path.read_bytes()) == execution["stderr_sha256"]
+stdout = stdout_path.read_text()
+stderr = stderr_path.read_text()
+lines = stdout.splitlines()
+assert re.search(r"Test Files\s+46 passed \(46\)", stdout)
+assert re.search(r"Tests\s+1789 passed \(1789\)", stdout)
+# Node emits one materials summary and one combined fact-runtime summary.
+node_summaries = []
+for match in re.finditer(r"(?m)^[ℹ#] tests (\d+)\n[ℹ#] suites (\d+)\n[ℹ#] pass (\d+)\n[ℹ#] fail (\d+)\n[ℹ#] cancelled (\d+)\n[ℹ#] skipped (\d+)\n[ℹ#] todo (\d+)\n[ℹ#] duration_ms ([0-9.]+)", stdout):
+    fields = ("tests", "suites", "pass", "fail", "cancelled", "skipped", "todo", "duration_ms")
+    row = {key: (float(value) if key == "duration_ms" else int(value)) for key, value in zip(fields, match.groups())}
+    row["line"] = stdout[:match.start()].count("\n") + 1
+    assert row["fail"] == row["cancelled"] == row["todo"] == 0
+    node_summaries.append(row)
+assert len(node_summaries) == 2, node_summaries
+assert node_summaries[0]["pass"] == 67 and node_summaries[0]["skipped"] == 1
+assert node_summaries[1]["pass"] > 6400
+names = [
+    "the current v20 manifest binds 79 exact dependencies in the v7 experiment family",
+    "the v19 wrapper restores all 76 historical dependencies and cleans up when the callback throws",
+    "the actual v20 CLI refuses JSON-equivalent current manifest whitespace",
+    "the actual v20 CLI refuses comment-only whole-amount guard drift after archived v19 verification",
+]
+subtests = []
+for name in names:
+    matches = [(number, line) for number, line in enumerate(lines, 1) if re.match(r"\s*✔ " + re.escape(name) + r" \([0-9.]+ms\)$", line)]
+    assert len(matches) == 1, (name, matches)
+    number, line = matches[0]
+    milliseconds = float(re.search(r"\(([0-9.]+)ms\)$", line).group(1))
+    row = {"test": name, "stdout_line": number, "elapsed_ms": milliseconds, "result": "PASS"}
+    if "actual v20 CLI" in name:
+        row.update({"exit_status_asserted_by_executed_gate": 1, "timeout_accepted_as_pass": False,
+                    "evidence_boundary": "The real subprocess is invoked by the existing gate. Its passing assertions require failure.status === 1 and the expected stderr diagnostic. The captured full log prints the test result and duration, not a separate raw child status dump."})
+    subtests.append(row)
+outer = [(number, line) for number, line in enumerate(lines, 1) if re.match(r"✔ v20 preserves v19 and binds .* \([0-9.]+ms\)$", line)]
+assert len(outer) == 1, outer
+number, line = outer[0]
+gate = ROOT / "scripts/material-facts-v7-correction-v20-gates-independent.test.mjs"
+gate_bytes = gate.read_bytes()
+assert sha(gate_bytes) == "2d2c40b2fe9f2a22261ba79ec07d9f964fa16f759c9e0e2e7db81bcbb9b503a6"
+gate_text = gate_bytes.decode()
+assert "assert.equal(failure.status, 1, 'Refusal must be a verifier result, not fixture timeout.')" in gate_text
+assert "timeout: 960000" in gate_text
+assert "refused(/Correction v20 manifest bytes changed/u)" in gate_text
+assert "refused(/Correction v20 manifest changed/u)" in gate_text
+source_assertions = [{"line": i, "text": line.strip()} for i, line in enumerate(gate_text.splitlines(), 1) if any(value in line for value in ("execFileSync(process.execPath", "timeout: 960000", "failure.status", "assert.match(String(failure.stderr)", "refused(/Correction v20"))]
+python_suites = [int(value) for value in re.findall(r"Ran (\d+) tests? in", stderr)]
+assert python_suites == [9, 11, 16], python_suites
+print(json.dumps({"schema": "material-facts-v7-v20-independent-full-check-log-review/1", "status": "PASS", "execution_exit_code": 0,
+    "command": execution["command"], "node": execution["node"], "full_check_elapsed_seconds": execution["elapsed_seconds"],
+    "vitest": {"files": 46, "pass": 1789}, "node_summaries": node_summaries, "python_suite_counts": python_suites,
+    "v20_gate_count_including_outer": 5, "v20_gate_subtests": subtests,
+    "v20_gate_outer": {"stdout_line": number, "text": line, "elapsed_ms": float(re.search(r"\(([0-9.]+)ms\)$", line).group(1))},
+    "gate_source_sha256": sha(gate_bytes), "gate_source_assertions": source_assertions,
+    "protected_files": execution["protected_files"], "protected_before_after_identical": True,
+    "source_stdout_sha256": execution["stdout_sha256"], "source_stderr_sha256": execution["stderr_sha256"],
+    "separate_actual_gate_run": False, "new_model_requests_by_reviewer": 0,
+    "scope": "This independent full ROOT integration run executes existing tests. Synthetic service/process tests and build checks are separate from parent-run 222-case HTTP, remote CI, legal or human acceptance."}, ensure_ascii=False, indent=2))

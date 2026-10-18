@@ -1,0 +1,143 @@
+{
+  "schema": "material-facts-v7-independent-application-review/1",
+  "round": 27,
+  "created_utc": "2026-10-18T12:55:12.297741+00:00",
+  "status": "PASS_LIMITED_APPLICATION_SCOPE",
+  "reviewer_role": "Non-implementer of all five reviewed production files. Author of this independent synthetic test only.",
+  "baseline_commit": "6b24536b9d0c6b536d7132d9d8deab1dce005e11",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "actual_backend_independently_verified": false,
+  "code_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "f719eae65701665acefe95b3ea49d887721bd6f8904b9bfd9a0e4f17e51c5d91",
+    "lib/material-fact-range-review.ts": "6aa516c8f7304fa6dcef3b67868fb2d52cb6d94e9e75923ebd1b30e26f7cecad",
+    "lib/material-fact-source-review.ts": "6faed96dc8f82b2c82b5049469067ffb57593693a6004f882ec9b6f20c2482d5",
+    "lib/material-fact-event-review.ts": "2f7c3bf697df56d7dbf8937bd0762440cb6f7fd1142a720158258d51dd56f4c0",
+    "lib/material-fact-arithmetic-review.ts": "9dc69126c49ad58350047834ae441b70217255305d952f4f2fc18884adc5d0f8"
+  },
+  "test": {
+    "path": "scripts/material-facts-v7-round27-independent.test.mjs",
+    "sha256": "5c485a35d81a11d8fee532d85aac567b03b58df50cc6967663af2cb8a45a91a6",
+    "cases": 21,
+    "business_families": [
+      {
+        "comment": 4307050381,
+        "description": "Traditional financial numerals 貳/參/陸 parse from anchored raw tokens using a parse-only spelling view.",
+        "independent_cases": 3,
+        "before_failed": 3,
+        "after_failed": 0,
+        "risk_class": "availability"
+      },
+      {
+        "comment": 4307050387,
+        "description": "Unsupported postposed 按周/季度/年计 cannot expose 4000 as a total or supported enum rate, including source layout and stored exact values.",
+        "independent_cases": 3,
+        "before_failed": 3,
+        "after_failed": 0,
+        "risk_class": "amount-safety"
+      },
+      {
+        "comment": 4307050389,
+        "description": "Date-only cue/bridge spelling view supports the same employment, wage-period and contract-signing roles without rewriting dates.",
+        "independent_cases": 3,
+        "before_failed": 3,
+        "after_failed": 0,
+        "risk_class": "attribution-availability"
+      },
+      {
+        "comment": 4307050393,
+        "description": "Explicit +奖金/加上加班费/乘以提成 leave base operands unavailable across value, quote, source and stored-state paths.",
+        "independent_cases": 3,
+        "before_failed": 3,
+        "after_failed": 0,
+        "risk_class": "amount-safety"
+      },
+      {
+        "comment": 4307050394,
+        "description": "Qualifiers on a duration or unrelated noun no longer suppress the single exact wage token; an actual attached monetary bound still stays unavailable.",
+        "independent_cases": 3,
+        "before_failed": 3,
+        "after_failed": 0,
+        "risk_class": "availability"
+      }
+    ],
+    "positive_controls": 6,
+    "actual_execution": {
+      "before": {
+        "node24": {
+          "passed": 6,
+          "failed": 15,
+          "skipped": 0,
+          "exit_code": 1,
+          "elapsed_seconds": 0.2901102079777047,
+          "execution": "fixed-6b24536-independent-before-red-node24.execution.json"
+        },
+        "node26": {
+          "passed": 6,
+          "failed": 15,
+          "skipped": 0,
+          "exit_code": 1,
+          "elapsed_seconds": 0.5148563340189867,
+          "execution": "fixed-6b24536-independent-before-red-node26.execution.json"
+        }
+      },
+      "after": {
+        "node24": {
+          "passed": 21,
+          "failed": 0,
+          "skipped": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.28139545797603205,
+          "execution": "code-final-independent-node24.execution.json"
+        },
+        "node26": {
+          "passed": 21,
+          "failed": 0,
+          "skipped": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.5140056670061313,
+          "execution": "code-final-independent-node26.execution.json"
+        }
+      }
+    },
+    "scoped_eslint_exit_code": 0,
+    "script_same_before_after": true
+  },
+  "static_review": {
+    "findings": [],
+    "blocking_findings": [],
+    "notes": [
+      "The previous whole-string APPROXIMATE branch is removed in favor of the already shared token-edge qualifier grammar; inner 多/余 retains conservative handling when no exact token matches. A frozen legacy approximate result cannot overwrite a newly exact token.",
+      "Financial glyph aliases occur only after the original token is located. Numeral boundary checks, range detection copy, and arithmetic detection copy recognize the same finite new glyphs; source quotes, candidate representation, raw response and Unicode code-point positions are preserved.",
+      "Unsupported postposed rates are a separate null-unit result. Each supported or unsupported candidate checks its own complete right boundary; a supported prefix cannot consume 月 within an unknown unit. Source review inspects existing layout edges and does not trust model subjects to waive the guard.",
+      "Date-only aliasing is downstream of original literal owner and period/value positions. Signing is not converted to employment, and the collective-subject guard is unchanged.",
+      "Named payroll operands require the existing explicit operator path, a bounded Han component ending and a complete word boundary. Sentence separators and other people remain outside the attachment grammar. No formula is evaluated.",
+      "Source review still only reduces stored availability. These tests exercise explicitly forced old exact values as downgrade inputs and old unsupported values as no-upgrade controls. Accepted review candidates and amount fields never create confirmations or calculation authority."
+    ]
+  },
+  "invariants_actual": [
+    "Raw JSON and all eleven candidate fields preserved.",
+    "Quote start/end use original Unicode code-point positions; same-clause emoji retained.",
+    "Fresh values and forced historical exact values are null for unsupported rates and named-pay operations.",
+    "Historical unsupported values remain null, including newly parseable financial glyphs.",
+    "A correct supported monthly rate retains amount and same-event attribution.",
+    "按时支付 and 按月15日发放 do not become rate denominators.",
+    "Another person or an ordinary separate bonus clause does not attach to the amount.",
+    "Signing tagged as employment remains unresolved.",
+    "An actual monetary 至少 bound stays unavailable.",
+    "A first-event arithmetic operand cannot borrow a second same-valued event: all six layers are 0TP/1FP/1FN.",
+    "All calculation and confirmation fields remain unavailable.",
+    "Five reviewed production-file hashes unchanged across independent runs."
+  ],
+  "limitations": [
+    "This is a finite synthetic and source-diff review of the five supplied findings, not a general Chinese grammar or arbitrary legal interpretation guarantee.",
+    "No fullcheck, build, HTTP service, deep historical CLI, new model call, training, deployment, commit or push was performed by this review.",
+    "No v20 artifacts or scores were produced. v19 and all earlier reports and receipts remain unchanged.",
+    "An accepted candidate or exact amount is not an approved legal fact or calculation authorization. Human/legal acceptance was not performed.",
+    "Full application check, HTTP, remote CI and final publication are separate parent-owned evidence and are not claimed here."
+  ],
+  "human_acceptance": false,
+  "legal_expert_annotation": false,
+  "model_requests": 0
+}
