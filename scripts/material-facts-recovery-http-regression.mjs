@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { spawn } from 'node:child_process';
+import { spawnOwnedChild, signalOwnedChild, stopChild } from './owned-http-process-group.mjs';
 import { mkdtemp, mkdir, readFile, writeFile, readdir, rm } from 'node:fs/promises';
 import { join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -27,7 +27,10 @@ const shutdown = new AbortController();
 const interrupt = signal => {
   shutdown.abort(new Error(`Regression interrupted by ${signal}.`));
   heldPost?.release(); heldGet?.release();
-  worker?.kill('SIGTERM'); migrationChild?.kill('SIGTERM');
+  for (const child of [worker, migrationChild]) {
+    try { signalOwnedChild(child, 'SIGTERM'); }
+    catch (error) { cleanupFailures.push({ operation: 'interrupt_owned_processes', ...errorRecord(error) }); }
+  }
 };
 const onInterrupt = () => interrupt('SIGINT');
 const onTerminate = () => interrupt('SIGTERM');
@@ -98,24 +101,26 @@ async function runScenario(name, operation) {
   finally { nextPostFault = undefined; nextGetFault = undefined; heldPost?.release(); heldGet?.release(); heldPost = undefined; heldGet = undefined; }
 }
 async function cleanup(name, operation) { try { await operation(); } catch (error) { cleanupFailures.push({ operation: name, ...errorRecord(error) }); } }
-async function stopChild(child, name) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return;
-  const exited = new Promise(resolve => child.once('exit', resolve)); child.kill('SIGTERM');
-  try { await bounded(exited, 5000, `${name} did not stop after SIGTERM.`); }
-  catch { child.kill('SIGKILL'); await bounded(exited, 5000, `${name} did not stop after SIGKILL.`); }
-}
 async function migrations() {
   shutdown.signal.throwIfAborted();
-  const child = spawn(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], { cwd: root, env: workerEnv, stdio: 'ignore' });
+  const child = spawnOwnedChild(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], { cwd: root, env: workerEnv, stdio: 'ignore' });
   migrationChild = child;
+  let migrationFailure;
   try { await bounded(new Promise((resolve, reject) => { child.once('error', reject); child.once('exit', code => code === 0 ? resolve() : reject(new Error(`Isolated migrations exited ${code}.`))); }), 60_000, 'Isolated migrations timed out.'); }
-  finally { await stopChild(child, 'Migration'); migrationChild = undefined; }
+  catch (error) { migrationFailure = error; throw error; }
+  finally {
+    try { await stopChild(child, 'Migration'); migrationChild = undefined; }
+    catch (error) {
+      cleanupFailures.push({ operation: 'stop_migration', ...errorRecord(error) });
+      if (!migrationFailure) throw error;
+    }
+  }
 }
 async function startWorker() {
   shutdown.signal.throwIfAborted();
   const probe = createServer(); base = await listen(probe); const port = new URL(base).port; await new Promise(resolve => probe.close(resolve)); loopback(base);
   shutdown.signal.throwIfAborted();
-  worker = spawn(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', port], { cwd: root, env: workerEnv, stdio: 'ignore' });
+  worker = spawnOwnedChild(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', port], { cwd: root, env: workerEnv, stdio: 'ignore' });
   let startError; worker.once('error', error => { startError = error; });
   for (let attempt = 0; attempt < 100; attempt++) {
     shutdown.signal.throwIfAborted();
@@ -279,7 +284,12 @@ finally {
   await cleanup('close_fault_proxy', async () => { if (!proxy) return; proxy.closeAllConnections(); await bounded(new Promise(resolve => proxy.close(resolve)), 5000, 'Fault proxy did not close.'); });
   await cleanup('cancel_owned_service_jobs', async () => { if (service && !shutdown.signal.aborted) for (const id of ownedJobIds) await remote(`/fact-jobs/${id}`, 'DELETE'); });
   await cleanup('close_real_rules_service', async () => { if (service) await bounded(service.close(), 10_000, 'Real rules service did not close.'); });
-  await cleanup('remove_temporary_D1_R2_and_private_configuration', async () => { if (temp) await rm(temp, { recursive: true, force: true }); });
+  await cleanup('remove_temporary_D1_R2_and_private_configuration', async () => {
+    if (temp && cleanupFailures.some(item => ['stop_worker', 'stop_migration'].includes(item.operation))) {
+      throw new Error(`Owned process shutdown was not confirmed; isolated resources retained at ${temp}.`);
+    }
+    if (temp) await rm(temp, { recursive: true, force: true });
+  });
   process.removeListener('SIGINT', onInterrupt); process.removeListener('SIGTERM', onTerminate);
   const failed = !!setupFailure || !!cleanupFailures.length || observations.length !== 10 || observations.some(item => item.status !== 'PASS');
   await writeFile(output, JSON.stringify({ status: failed ? 'FAIL' : 'PASS', mode: 'fact-network-recovery', boundary: 'production Worker HTTP + disposable persistent D1/R2 + real rules service + controlled authenticated loopback fault proxy', actualModelInference: false, syntheticInputs: true, recordedAt: new Date().toISOString(), observations, setupFailure, cleanup: { status: cleanupFailures.length ? 'FAIL' : 'PASS', failures: cleanupFailures }, calls, limitation: 'Service caller-ID idempotency and cancellation tombstones are process-local and bounded by their configured TTL/capacity; this runner does not claim persistence across service restart or actual model inference.' }, null, 2) + '\n');

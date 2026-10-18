@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { spawn } from 'node:child_process';
+import { spawnOwnedChild, stopChild } from './owned-http-process-group.mjs';
 import { mkdtemp, mkdir, readFile, writeFile, readdir, rm } from 'node:fs/promises';
 import { join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -26,8 +26,7 @@ const cleanupFailures = [];
 const workerRuns = [];
 const workerEnv = { ...process.env, WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false' };
 const wrangler = resolve(root, 'node_modules/wrangler/bin/wrangler.js');
-let temp, worker, workerError, service, proxy, db, configPath, base;
-let workerClosed;
+let temp, worker, workerError, migrationChild, service, proxy, db, configPath, base;
 let failure, phase = 'setup', mode = 'normal';
 let holdGetJob, pollEntered, releaseHeldPoll, pendingPoll;
 
@@ -141,20 +140,19 @@ async function remoteStatus(id) {
 }
 
 async function applyMigrations() {
-  const child = spawn(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], {
+  const child = migrationChild = spawnOwnedChild(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], {
     cwd: root, stdio: 'ignore', env: workerEnv,
   });
+  let migrationFailure;
   try {
     await bounded(new Promise((resolve, reject) => {
       child.once('error', reject);
       child.once('exit', code => code === 0 ? resolve() : reject(new Error(`Isolated D1 migration failed (${code}).`)));
     }), 60_000, 'Isolated D1 migrations timed out.');
-  } finally {
-    if (child.exitCode === null && child.signalCode === null) {
-      const exited = new Promise(resolve => child.once('exit', resolve));
-      child.kill('SIGKILL');
-      await bounded(exited, 5000, 'Isolated migration process did not stop.');
-    }
+  } catch (error) { migrationFailure = error; throw error; }
+  finally {
+    try { await stopChild(child, 'Isolated migration'); migrationChild = undefined; }
+    catch (error) { cleanupFailures.push({ operation: 'stop_migration', ...errorRecord(error) }); if (!migrationFailure) throw error; }
   }
 }
 
@@ -168,7 +166,7 @@ async function startWorker() {
   workerRuns.push(run);
   // Wrangler's supported port 0 lets the OS allocate an inspector socket
   // atomically. A restart must not share the default inspector's port probe.
-  worker = spawn(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', String(port), '--inspector-port', '0'], {
+  worker = spawnOwnedChild(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', String(port), '--inspector-port', '0'], {
     cwd: root, stdio: ['ignore', 'pipe', 'pipe'], env: workerEnv, detached: process.platform !== 'win32',
   });
   const child = worker;
@@ -177,7 +175,7 @@ async function startWorker() {
   child.stdout.on('data', chunk => appendLog(run.stdout, chunk));
   child.stderr.on('data', chunk => appendLog(run.stderr, chunk));
   child.once('exit', (code, signal) => { run.exitCode = code; run.signal = signal; });
-  workerClosed = new Promise(resolve => child.once('close', () => { run.closedAt = new Date().toISOString(); resolve(); }));
+  child.once('close', () => { run.closedAt = new Date().toISOString(); });
   worker.once('error', error => { workerError = error; });
   base = free;
   for (let attempt = 0; attempt < 90; attempt++) {
@@ -195,26 +193,8 @@ async function startWorker() {
 
 async function stopWorker() {
   if (!worker) return;
-  const child = worker;
-  const signalOwnedProcesses = signal => {
-    if (!child.pid) return;
-    try {
-      // Only this runner's detached process group is signalled. Wrangler's
-      // launcher, CLI and workerd descendants must all release local sockets.
-      if (process.platform === 'win32') child.kill(signal);
-      else process.kill(-child.pid, signal);
-    } catch (error) { if (error.code !== 'ESRCH') throw error; }
-  };
-  signalOwnedProcesses('SIGTERM');
-  // close also waits for the inherited stdout/stderr pipes. exit alone can
-  // precede descendant termination, causing the next startup to race teardown.
-  try { await bounded(workerClosed, 5000, 'Isolated Worker did not close after SIGTERM.'); }
-  catch {
-    signalOwnedProcesses('SIGKILL');
-    await bounded(workerClosed, 5000, 'Isolated Worker did not close after SIGKILL.');
-  }
+  await stopChild(worker, 'Isolated Worker');
   worker = undefined;
-  workerClosed = undefined;
 }
 
 async function cleanup(name, operation) {
@@ -299,7 +279,8 @@ try {
   observe('real_15s_http_timeout_erases_fact_text_but_retains_job_id', { milliseconds: duration, jobRetained: true, factRowRemoved: true });
 
   phase = 'retry_after_worker_restart';
-  await stopWorker();
+  try { await stopWorker(); }
+  catch (error) { cleanupFailures.push({ operation: 'stop_worker', ...errorRecord(error) }); throw error; }
   await startWorker();
   assert.deepEqual(caseQueue(timeoutCase).map(item => item.job_id), [oldJob]);
   mode = 'normal';
@@ -556,6 +537,7 @@ try {
 finally {
   releaseHeldPoll?.();
   await cleanup('stop_worker', stopWorker);
+  await cleanup('stop_migration', async () => { await stopChild(migrationChild, 'Isolated migration'); migrationChild = undefined; });
   await cleanup('settle_pending_poll', async () => { if (pendingPoll) await pendingPoll; });
   await cleanup('close_database', () => db?.close());
   await cleanup('close_proxy', async () => {
@@ -564,7 +546,13 @@ finally {
     await bounded(new Promise(resolve => proxy.close(resolve)), 5000, 'Loopback fault proxy did not stop.');
   });
   await cleanup('close_material_service', async () => { await service?.close(); });
-  await cleanup('remove_temporary_resources', async () => { if (temp) await rm(temp, { recursive: true, force: true }); });
+  await cleanup('remove_temporary_resources', async () => {
+    if (temp && cleanupFailures.some(item => ['stop_worker', 'stop_migration'].includes(item.operation))) {
+      cleanupFailures.push({ operation: 'retain_temporary_resources', name: 'CleanupIncomplete', message: 'Private temporary resources retained because owned process cleanup failed.', path: temp });
+      return;
+    }
+    if (temp) await rm(temp, { recursive: true, force: true });
+  });
   if (cleanupFailures.length) failure ??= { phase: 'cleanup', message: 'Temporary regression resources did not fully clean up.' };
   await writeFile(output, JSON.stringify({
     status: failure ? 'FAIL' : 'PASS', mode: 'fact-cancellation',

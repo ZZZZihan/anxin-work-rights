@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { spawn } from 'node:child_process';
+import { spawnOwnedChild, signalOwnedChild, stopChild } from './owned-http-process-group.mjs';
 import { mkdtemp, mkdir, open, readFile, writeFile, readdir, rm } from 'node:fs/promises';
 import { join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -168,55 +168,6 @@ async function scenario(name, operation) {
   try { const detail = await operation(); observations.push({ name, status: 'PASS', ...detail }); }
   catch (error) { observations.push({ name, status: 'FAIL', failure: errorRecord(error) }); }
 }
-// BEGIN OWNED HTTP CHILD LIFECYCLE
-const ownedChildren = new WeakMap();
-function spawnOwnedChild(command, args, options) {
-  const child = spawn(command, args, { ...options, detached: process.platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'] });
-  const state = { closed: false };
-  state.closedPromise = new Promise(resolve => child.once('close', () => { state.closed = true; resolve(); }));
-  ownedChildren.set(child, state);
-  // Drain rather than capture Wrangler output: descendants can inherit these
-  // pipes, so close also waits for them, without logging private bindings.
-  child.stdout?.resume(); child.stderr?.resume();
-  child.once('error', () => {}); // Callers retain their own startup error check.
-  return child;
-}
-function signalOwnedChild(child, signal) {
-  if (!child) return;
-  assert(ownedChildren.has(child), 'Only runner-owned detached children may be signalled.');
-  if (!child.pid) return;
-  try {
-    if (process.platform === 'win32') child.kill(signal);
-    else process.kill(-child.pid, signal);
-  } catch (error) { if (error.code !== 'ESRCH') throw error; }
-}
-function ownedGroupAlive(child) {
-  if (!child.pid) return false;
-  if (process.platform === 'win32') return child.exitCode === null && child.signalCode === null;
-  try { process.kill(-child.pid, 0); return true; }
-  catch (error) { if (error.code === 'ESRCH') return false; throw error; }
-}
-async function stopChild(child, name) {
-  if (!child) return;
-  const state = ownedChildren.get(child);
-  assert(state, 'Only runner-owned children may be stopped.');
-  if (state.closed && !ownedGroupAlive(child)) return;
-  // Parent exit is not tree completion: Wrangler may leave workerd alive.
-  signalOwnedChild(child, 'SIGTERM');
-  try { await bounded(state.closedPromise, 5000, `${name} did not close after SIGTERM.`); }
-  catch { signalOwnedChild(child, 'SIGKILL'); await bounded(state.closedPromise, 5000, `${name} did not close after SIGKILL.`); }
-  // A descendant may have redirected its pipes. Terminate any remaining owned
-  // group before another Worker starts or the disposable state is removed.
-  if (ownedGroupAlive(child)) {
-    signalOwnedChild(child, 'SIGKILL');
-    const deadline = Date.now() + 5000;
-    while (ownedGroupAlive(child)) {
-      if (Date.now() >= deadline) throw new Error(`${name} process group did not stop.`);
-      await wait(20);
-    }
-  }
-}
-// END OWNED HTTP CHILD LIFECYCLE
 async function startWorker() {
   shutdown.signal.throwIfAborted(); const probe = createServer(); base = await listen(probe);
   const port = new URL(base).port; await new Promise(resolve => probe.close(resolve)); loopback(base);
@@ -287,8 +238,13 @@ try {
   config.vars = { ...config.vars, ANXIN_MATERIAL_SERVICE_URL: proxyUrl, ANXIN_MATERIAL_SERVICE_TOKEN: token };
   configPath = join(temp, 'wrangler.json'); await writeFile(configPath, JSON.stringify(config), { mode: 0o600 });
   migrationChild = spawnOwnedChild(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], { cwd: root, env: workerEnv });
+  let migrationFailure;
   try { await bounded(new Promise((resolve, reject) => { migrationChild.once('error', reject); migrationChild.once('exit', code => code === 0 ? resolve() : reject(new Error(`Isolated D1 migrations exited ${code}.`))); }), 60_000, 'Isolated migrations timed out.'); }
-  finally { await stopChild(migrationChild, 'Migration'); migrationChild = undefined; }
+  catch (error) { migrationFailure = error; throw error; }
+  finally {
+    try { await stopChild(migrationChild, 'Migration'); migrationChild = undefined; }
+    catch (error) { cleanupFailures.push({ operation: 'stop_migration', ...errorRecord(error) }); if (!migrationFailure) throw error; }
+  }
   for (const path of (await readdir(join(temp, 'state'), { recursive: true })).filter(path => path.endsWith('.sqlite'))) {
     const candidate = new DatabaseSync(join(temp, 'state', path));
     if (candidate.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='cases'").get()) { db = candidate; break; }
@@ -668,7 +624,9 @@ try {
   });
   await scenario('worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots', async () => {
     assert(durableSnapshots.length >= 10, 'Restart must cover the successful, guard, failed and empty cases.');
-    await stopChild(worker, 'Worker'); worker = undefined; await startWorker();
+    try { await stopChild(worker, 'Worker'); }
+    catch (error) { cleanupFailures.push({ operation: 'stop_worker', ...errorRecord(error) }); throw error; }
+    worker = undefined; await startWorker();
     for (const snapshot of durableSnapshots) {
       const response = await request(snapshot.item.path); assert.equal(response.status, 200); unconfirmed(response.body);
       assert.deepEqual(stored(snapshot.item.caseId), snapshot.state, `${snapshot.name} persisted state must not be migrated or rewritten by reread.`);
@@ -686,7 +644,13 @@ finally {
   await cleanup('close_database', () => db?.close());
   await cleanup('close_proxy', async () => { if (proxy) { proxy.closeAllConnections(); await bounded(new Promise(resolve => proxy.close(resolve)), 5000, 'Synthetic result proxy did not close.'); } });
   await cleanup('close_material_service', async () => { await service?.close(); });
-  await cleanup('remove_temporary_resources', async () => { if (temp) await rm(temp, { recursive: true, force: true }); });
+  await cleanup('remove_temporary_resources', async () => {
+    if (temp && cleanupFailures.some(item => ['stop_worker', 'stop_migration'].includes(item.operation))) {
+      cleanupFailures.push({ operation: 'retain_temporary_resources', name: 'CleanupIncomplete', message: 'Private temporary resources retained because owned process cleanup failed.', path: temp });
+      return;
+    }
+    if (temp) await rm(temp, { recursive: true, force: true });
+  });
   process.removeListener('SIGINT', interrupt); process.removeListener('SIGTERM', interrupt);
   if (observations.some(item => item.status !== 'PASS')) failure ??= { phase: 'acceptance', message: 'One or more synthetic HTTP scenarios failed; original observations and raw outputs are retained.' };
   if (cleanupFailures.length) failure ??= { phase: 'cleanup', message: 'Temporary regression resources did not fully clean up.' };

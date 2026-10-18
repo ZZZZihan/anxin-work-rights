@@ -11,16 +11,24 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const SCRIPT = resolve(process.env.V7_HTTP_REGRESSION_MODULE ?? resolve(ROOT, 'scripts/material-facts-v7-http-regression.mjs'));
 const code = await readFile(SCRIPT, 'utf8');
+const sharedLifecycle = code.includes("from './owned-http-process-group.mjs'");
+const sharedUrl = pathToFileURL(resolve(ROOT, 'scripts/owned-http-process-group.mjs')).href;
 const begin = code.indexOf('// BEGIN OWNED HTTP CHILD LIFECYCLE');
 const end = code.indexOf('// END OWNED HTTP CHILD LIFECYCLE');
 let implementation;
-if (begin >= 0 && end > begin) implementation = code.slice(begin, end);
+if (sharedLifecycle) implementation = `import {spawnOwnedChild,stopChild} from ${JSON.stringify(sharedUrl)};`;
+else if (begin >= 0 && end > begin) implementation = code.slice(begin, end);
 else {
   const start = code.indexOf('async function stopChild('), stop = code.indexOf('\nasync function startWorker(', start);
   assert(start >= 0 && stop > start, 'Locate original production shutdown for the real red baseline.');
   implementation = code.slice(start, stop) + '\nconst spawnOwnedChild=(command,args,options={})=>spawn(command,args,{...options,stdio:"ignore"});\n';
 }
 const wait = ms => new Promise(done => setTimeout(done, ms));
+async function liveGroupMembers(pgid) {
+  const { execFileSync } = await import('node:child_process');
+  return execFileSync('/bin/ps', ['-axo', 'pid=,pgid=,stat='], { encoding: 'utf8', timeout: 2000 }).trim().split('\n')
+    .map(line => line.trim().split(/\s+/u)).filter(([, group, state]) => Number(group) === pgid && !/^[ZX]/iu.test(state));
+}
 async function until(action) {
   for (let i = 0; i < 250; i++) { if (await action()) return; await wait(20); }
   assert.fail('Synthetic process did not reach the requested barrier.');
@@ -68,7 +76,7 @@ for (const mode of ['default', 'ignore-term', 'redirected-ignore-term', 'launche
   const f = await fixture(t, mode);
   if (mode === 'launcher-exits') await until(() => f.child.exitCode !== null);
   await f.api.stopChild(f.child, 'Synthetic Worker');
-  assert.throws(() => process.kill(-f.child.pid, 0), {code:'ESRCH'}, 'The owned POSIX group has no remaining live or unreaped process.');
+  assert.deepEqual(await liveGroupMembers(f.child.pid), [], 'The owned POSIX group has no remaining non-zombie member.');
   assert.equal(await portAlive(f.info.port), false, 'A workerd-like descendant must not retain its socket after stopChild returns.');
   const port = f.info.port;
   const server = createServer();
@@ -86,7 +94,7 @@ test('shutdown only signals its own detached process group', { skip: process.pla
   await until(async () => { try { await readFile(record); return true; } catch { return false; } });
   const info = JSON.parse(await readFile(record));
   await f.api.stopChild(f.child, 'Synthetic Worker');
-  assert.throws(() => process.kill(-f.child.pid, 0), {code:'ESRCH'}, 'The owned POSIX group has no remaining live or unreaped process.');
+  assert.deepEqual(await liveGroupMembers(f.child.pid), [], 'The owned POSIX group has no remaining non-zombie member.');
   assert.equal(await portAlive(f.info.port), false);
   assert.equal(await portAlive(info.port), true, 'Stopping the test Worker must preserve an unrelated process/socket.');
 });
