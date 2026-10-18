@@ -82,6 +82,8 @@ jobs:
         run: node scripts/material-http-runner.mjs
       - name: Material candidates and user-confirmed facts over production HTTP
         run: ANXIN_MATERIAL_REPORT=output/materials/http-facts.json node scripts/material-http-runner.mjs --facts
+      - name: Durable fact-job cancellation and late-result isolation over production HTTP
+        run: node scripts/material-facts-cancel-http-regression.mjs
       - name: Chinese image and PDF extraction over production HTTP
         run: ANXIN_MATERIAL_REPORT=output/materials/http-images.json node scripts/material-http-runner.mjs --images --punctuation-equivalence
       - uses: actions/upload-artifact@v4
@@ -92,3 +94,4 @@ jobs:
             output/materials/http-production.json
             output/materials/http-images.json
             output/materials/http-facts.json
+            output/materials/http-fact-cancel.json

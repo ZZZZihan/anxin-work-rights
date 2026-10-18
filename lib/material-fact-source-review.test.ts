@@ -81,7 +81,9 @@ describe('post-freeze runtime source binding, separate from model evaluation', (
     const material = source('王甲在甲公司2024年7月工资约80000元。王甲完整应付工资80000元。');
     const reviewed = reviewFactsAgainstSources(stateFor(material, entry()), [material]);
     expect(item(reviewed).amount).toBe('80000.00');
-    expect(item(reviewed).reviewIssues).toEqual([]);
+    // Precision is known, but the second event does not repeat the wage period.
+    expect(item(reviewed).reviewIssues.map(issue => issue.code)).toEqual(['source_relation_unresolved']);
+    expect(buildFactView(reviewed, [material]).fields.due.values).toEqual([]);
   });
   it.each([
     ['18000元', '8000元'], ['80000元', '0000元'], ['08000元', '8000元'],
@@ -111,7 +113,10 @@ describe('post-freeze runtime source binding, separate from model evaluation', (
     const reviewed = reviewFactsAgainstSources(stateFor(material, entry({ value, quote: value })), [material]);
     expect(item(reviewed).amount).not.toBeNull();
     expect(item(reviewed).normalization.status).toBe('exact');
-    expect(item(reviewed).reviewIssues).toEqual([]);
+    // This fixture intentionally leaves the period in another sentence. Numeric
+    // parsing remains exact; literal occurrence elsewhere cannot authorize a total.
+    expect(item(reviewed).reviewIssues.map(issue => issue.code)).toEqual(['source_relation_unresolved']);
+    expect(buildFactView(reviewed, [material]).fields.due.values).toEqual([]);
   });
   it.each(['本次', '此次', '该笔', '部分', '先付', '预付'])('restores source-local %s payment coverage warnings cropped from quote', cue => {
     const material = source(`王甲2024年7月${cue}支付80000元。`);
@@ -156,12 +161,15 @@ describe('post-freeze runtime source binding, separate from model evaluation', (
       const material = source(`王甲2024年7月${text}。`);
       const reviewed = reviewFactsAgainstSources(stateFor(material, entry({ quote: '80000元' })), [material]);
       expect(item(reviewed).amount).toBe('80000.00');
-      expect(item(reviewed).reviewIssues).toEqual([]);
+      expect(item(reviewed).reviewIssues.map(issue => issue.code)).toEqual(['source_relation_unresolved']);
+      expect(buildFactView(reviewed, [material]).fields.due.values).toEqual([]);
     }
   });
   it('verifies Unicode positions and refuses a forged or mismatched source binding', () => {
     const material = source('😀𠮷王甲在甲公司2024年7月完整应付工资80000元。'), original = item(stateFor(material));
-    expect((reviewCandidateAgainstSource(original, material) as FactCandidateV3).reviewIssues).toEqual([]);
+    // Unicode offsets remain valid; the unexplained name prefix must not be treated
+    // as evidence that the substring 王甲 is the complete worker identity.
+    expect((reviewCandidateAgainstSource(original, material) as FactCandidateV3).reviewIssues.map(issue => issue.code)).toEqual(['source_relation_unresolved']);
     for (const candidate of [{ ...original, start: original.start + 1 }, { ...original, sourceSha256: 'b'.repeat(64) }, { ...original, blockId: 'missing' }]) {
       const reviewed = reviewCandidateAgainstSource(candidate, material) as FactCandidateV3;
       expect(reviewed.amount).toBeNull();

@@ -1,14 +1,16 @@
 import type { FactCandidate, FactSource, FactState } from './material-fact-types';
 import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 } from './material-fact-types-v3';
 import { getCandidateRepresentation, isV2Candidate, isV3Candidate, normalizeCandidateValue } from './material-facts-v3.ts';
+import { hasSupportedTotalRelationship } from './material-fact-event-review.ts';
+import { sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 
 /** Runtime source review is deliberately separate from the frozen extraction/evaluation contract. */
 export type SourceFactReviewIssue = FactReviewIssue | {
-  code: 'source_amount_context_mismatch' | 'source_evidence_unresolved';
+  code: 'source_amount_context_mismatch' | 'source_evidence_unresolved' | 'source_relation_unresolved';
   message: string;
 };
 type ReviewedCandidate = FactCandidate & { reviewIssues: SourceFactReviewIssue[]; normalization?: CandidateNormalization };
-type AnchoredSourceEvent = { text: string; blockText: string; valueStart: number };
+type AnchoredSourceEvent = { text: string; qualifiers: string; blockText: string; valueStart: number };
 type SourceEvent = AnchoredSourceEvent | { error: string; ambiguous?: boolean };
 const codePointOffset = (text: string, offset: number) => Array.from(text.slice(0, offset)).length;
 
@@ -30,12 +32,41 @@ function sourceEvent(candidate: FactCandidate, source: FactSource | undefined): 
   while (end < block.text.length && !/[，,。！？!?；;\n\r]/u.test(block.text[end])) end++;
   const text = block.text.slice(start, end), offset = text.indexOf(candidate.value);
   if (offset < 0 || text.indexOf(candidate.value, offset + 1) >= 0) return { error: '相同候选值在源文局部事件中多次出现，无法唯一核对其修饰词，未提供金额提示。', ambiguous: true };
-  return { text, blockText: block.text, valueStart };
+  // Adjacent clauses can govern or qualify this amount even across a full stop or an
+  // OCR newline. Only a clearly different owner/event is excluded. Unknown prose,
+  // headers and repeated same-worker statements require review, not cue-word guessing.
+  const subject = getCandidateRepresentation(candidate)?.subject;
+  const separateEvent = (clause: string) => {
+    if (!subject || clause.includes(subject)) return false;
+    if (/^另一(?:班组|工人|劳动者|员工)/u.test(clause.trim())) return true;
+    const worker = clause.trim().match(/^([\p{Script=Han}]{2,4})(?:在[\p{L}\p{N}（）()·]{1,60}(?:公司|单位|厂|店))?\s*\d{4}(?:年|[-/.])/u)?.[1];
+    // Date-bearing headings such as "全组2024年7月" are not another worker.
+    // Require an amount-bearing event, and never discard group or metadata labels.
+    return !!worker && !hasGroupText(clause)
+      && !/全|组|工资|金额|总额|合计|汇总|部分|仅|记录|单位|公司|个人|本人|统计|币种|名单|备注|说明|以下|上述/u.test(worker)
+      && /[0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟]+\s*[元圆]/u.test(clause);
+  };
+  const splitClauses = (text: string) => text.split(/[，,。！？!?；;\n\r\u2028\u2029]+/u).map(clause => clause.trim()).filter(Boolean);
+  const qualifiers: string[] = [];
+  // OCR block boundaries are layout, not semantic boundaries: a table header or
+  // footnote can qualify the amount in the next/previous block (even on a new page).
+  const blockIndex = source.blocks.indexOf(block);
+  const preceding = [...source.blocks.slice(0, blockIndex).map(item => item.text), block.text.slice(0, start)].join('\n');
+  const following = [block.text.slice(end), ...source.blocks.slice(blockIndex + 1).map(item => item.text)].join('\n');
+  for (const neighboring of [splitClauses(preceding).reverse(), splitClauses(following)]) {
+    for (const clause of neighboring) {
+      // Do not stop scanning at a different row: an earlier table header may still
+      // govern this row. Extra unresolved context can only reduce availability.
+      if (separateEvent(clause)) continue;
+      qualifiers.push(clause);
+    }
+  }
+  return { text, qualifiers: qualifiers.join('，'), blockText: block.text, valueStart };
 }
 
 function hasGroupText(text: string): boolean {
   if (/(?:班组|全组|全体(?:工人|员工|劳动者|农民工)?|多人|多名(?:工人|员工|劳动者|农民工))/u.test(text)) return true;
-  return [...text.matchAll(/(?<![第0-9一二三四五六七八九十百千万零两])([0-9一二三四五六七八九十百千万零两]+)\s*(?:名|位|人)(?:工人|员工|劳动者|农民工)?/gu)]
+  return [...text.matchAll(/(?<![第0-9一二三四五六七八九十百千万零两])([0-9一二三四五六七八九十百千万零两]+)\s*(?:名|位|人)(?!民[币幣])(?:工人|员工|劳动者|农民工)?/gu)]
     .some(match => /^\d+$/u.test(match[1]) ? BigInt(match[1]) > 1n : !['一', '零'].includes(match[1]));
 }
 function appendIssue(candidate: ReviewedCandidate, issue: SourceFactReviewIssue) {
@@ -99,21 +130,29 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
     }
     return reviewed;
   }
-  if (raw.scope === 'individual' && hasGroupText(context.text)) appendIssue(reviewed, {
+  if (raw.scope === 'individual' && hasGroupText(`${context.text} ${context.qualifiers}`)) appendIssue(reviewed, {
     code: 'scope_text_mismatch', message: '候选绑定的源文局部事件含班组或多人表述，与“个人”标注不一致；模型裁剪引文不能排除该主体线索，请人工核对。',
   });
   if (raw.kind === 'date' && raw.meaning === 'employment_period' && /(?:签订|签署|订立|签约|签字|签章)/u.test(context.text)) appendIssue(reviewed, {
     code: 'contract_signing_as_employment', message: '候选绑定的源文局部日期事件含签约表述，请核对是否确为任职日期；此为词法线索，不自动改变日期角色。',
   });
-  if (raw.kind === 'money' && raw.meaning === 'paid_total' && (raw.completeness === 'partial' || /(?:单笔|本次|此次|一笔|该笔|部分|先付|预付|预支)/u.test(context.text))) appendIssue(reviewed, {
-    code: 'partial_paid_total', message: '候选绑定的源文局部事件含单笔或部分付款表述，不能因裁剪引文就提示为本期完整已付总额，请核对付款范围。',
+  if (raw.kind === 'money' && ['due_total', 'paid_total'].includes(raw.meaning) && (raw.completeness === 'partial'
+    || /(?:单笔|本次|此次|一笔|该笔|部分|先付|预付|预支|首批|第[一二三四五六七八九十0-9]+(?:笔|批|期)|仅含|只含|不含|未含|不包括|未包括)/u.test(`${context.text} ${context.qualifiers}`))) appendIssue(reviewed, {
+    code: raw.meaning === 'due_total' ? 'partial_due_total' : 'partial_paid_total', message: '候选绑定的源文含单笔、部分或排除工资组成的表述，不能因裁剪引文就提示为本期完整总额，请核对金额覆盖范围。',
   });
   if (raw.kind === 'money') {
     // Reuse the frozen normalizer only as a runtime source constraint. Its raw/value/quote
     // and the frozen model result remain intact; only derived availability can decrease.
     let sourceNormalized = normalizeCandidateValue({ ...raw, quote: context.text });
+    if (raw.scope === 'individual' && ['due_total', 'paid_total'].includes(raw.meaning) && raw.completeness === 'complete'
+      && (context.qualifiers.length > 0 || !hasSupportedTotalRelationship(raw, context.text, sourceNormalized.normalization))) appendIssue(reviewed, {
+      code: 'source_relation_unresolved', message: '源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。',
+    });
     if (sourceNormalized.amount !== null) {
-      if (truncatedMoneyToken(context, sourceNormalized.normalization)) sourceNormalized = {
+      if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着外币或不支持的币种标记，当前规范化不进行币种转换。', 'unsupported'),
+      };
+      else if (truncatedMoneyToken(context, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
       };
       else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization))) sourceNormalized = {

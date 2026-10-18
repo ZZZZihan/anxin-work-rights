@@ -149,6 +149,43 @@ describe('material facts API and transactional persistence', () => {
     expect((await read()).candidates[0]).toEqual(current.candidates[0]);
   });
 
+  it.each([
+    ['group header', '张三班组十名工人，2026年1月应付工资合计1000元。', '1000元'],
+    ['other worker', '张三2026年1月工资待核。李四2026年2月完整应付工资1000元。', '1000元'],
+    ['partial due', '张三2026年1月部分应付工资1000元。', '1000元'],
+    ['postposed partial', '张三2026年1月应付工资合计1000元，加班工资另计。', '1000元'],
+    ['foreign currency', '张三2026年1月完整应付工资1000美元。', '1000'],
+  ])('persists and rechecks PR40 %s without exposing an available personal total', async (_name, text, value) => {
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`).bind(text).run();
+    const modelOutput = JSON.parse(raw);
+    modelOutput.candidates = [{ ...modelOutput.candidates[0], value, quote: value }];
+    const rawAnswer = JSON.stringify(modelOutput);
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === '/health') return { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } };
+      if (init?.method === 'DELETE') return { ok: true };
+      if (path === '/fact-jobs') return { jobId: 'pr40-unsafe-job' };
+      return { status: 'ready', result: { raw: rawAnswer, backend: 'controlled-test-fixture', model: null } };
+    });
+    expect((await act(await read(), { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
+    let current = await read();
+    expect(current.candidates).toHaveLength(1);
+    current = await (await act(current, { action: 'confirm_scope', scope, note, verified: true })).json() as MaterialFactsResponse;
+    expect(current.fields.due).toMatchObject({ status: 'unknown', values: [] });
+    expect(current.canCalculate).toBe(false);
+    expect(current.state.materials[0].raw).toBe(rawAnswer);
+    expect(current.candidates[0]).toMatchObject({ value, quote: value, representation: modelOutput.candidates[0] });
+    expect((await read()).candidates).toEqual(current.candidates);
+    // Reload from D1, not the in-memory extraction batch; source review remains enforced.
+    const row = await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>();
+    expect(JSON.parse(row!.state_json).materials[0].raw).toBe(rawAnswer);
+    const confirmation = await act(current, { action: 'confirm_amount', field: 'due', amount: '900', note, complete: true, verified: true, reviewedCandidateIds: current.candidates.map(candidate => candidate.id) });
+    expect(confirmation.status).toBe(200);
+    current = await confirmation.json() as MaterialFactsResponse;
+    expect(current.fields.due.confirmation?.amount).toBe('900.00');
+    expect(current.fields.due.values).toEqual([]);
+    expect(current.state.materials[0].raw).toBe(rawAnswer);
+  });
+
   it.each([['18000元', '8000元'], ['80000元', '0000元'], ['1000元/月', '1000元']])('does not suggest a total from a cropped monetary token: %s as %s', async (sourceAmount, croppedValue) => {
     await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`)
       .bind(`张三在合成测试单位的2026年1月本期完整应付工资${sourceAmount}，本期完整已付工资200元。`).run();
