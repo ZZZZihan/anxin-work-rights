@@ -4,6 +4,7 @@ import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from './mate
 import { normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
 import { sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
+import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
 import { reviewMaterialCoverage } from './material-fact-coverage-review.ts';
 
 /** Runtime source review is deliberately separate from the frozen extraction/evaluation contract. */
@@ -83,12 +84,25 @@ function unavailableNormalization(candidate: FactCandidate, reason: string, stat
   return { rawValue: candidate.value, status, amount: null, matchedText: null, span: null, reason };
 }
 
-function monetaryEdges(context: AnchoredSourceEvent, normalized: CandidateNormalization) {
+function monetaryEdges(context: AnchoredSourceEvent, normalized: CandidateNormalization, preserveWhitespace = false) {
   if (!normalized.span) return null;
   const characters = Array.from(normalized.rawValue);
   const start = context.valueStart + characters.slice(0, normalized.span.start).join('').length;
   const end = context.valueStart + characters.slice(0, normalized.span.end).join('').length;
-  return { before: context.blockText.slice(0, start).replace(/[^\S\r\n]+$/u, ''), after: context.blockText.slice(end).replace(/^[^\S\r\n]+/u, ''), matched: context.blockText.slice(start, end) };
+  const before = context.blockText.slice(0, start), after = context.blockText.slice(end);
+  return { before: preserveWhitespace ? before : before.replace(/[^\S\r\n]+$/u, ''), after: preserveWhitespace ? after : after.replace(/^[^\S\r\n]+/u, ''), matched: context.blockText.slice(start, end) };
+}
+
+/** Layout may split an explicit formula across OCR/TXT blocks. Only the shared
+ * arithmetic grammar sees adjacent blocks; positions and other guards stay bound
+ * to the original block. Intervening prose/punctuation cannot bridge an event. */
+function sourceMoneyHasAttachedArithmetic(context: AnchoredSourceEvent, normalized: CandidateNormalization, source: FactSource, blockId: string): boolean {
+  const edges = monetaryEdges(context, normalized, true);
+  if (!edges) return false;
+  const blockIndex = source.blocks.findIndex(block => block.id === blockId);
+  const before = [...source.blocks.slice(0, blockIndex).map(block => block.text), edges.before].join('\n');
+  const after = [edges.after, ...source.blocks.slice(blockIndex + 1).map(block => block.text)].join('\n');
+  return hasAttachedMoneyArithmetic(before, after);
 }
 
 /** Inspect the original block: a grouping comma may already be outside the local clause. */
@@ -173,6 +187,9 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着外币或不支持的币种标记，当前规范化不进行币种转换。', 'unsupported'),
       };
+      else if (sourceMoneyHasAttachedArithmetic(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。', 'unsupported'),
+      };
       else if (truncatedMoneyToken(context, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
       };
@@ -191,7 +208,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       if (isV3Candidate(candidate)) reviewed.normalization = sourceNormalized.amount === null ? {
         ...sourceNormalized.normalization, reason: `源文上下文约束：${sourceNormalized.normalization.reason}`,
       } : unavailableNormalization(candidate, '源文金额规范结果与候选派生金额不一致，未提供金额提示。');
-      appendIssue(reviewed, { code: 'source_amount_context_mismatch', message: '源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。' });
+      appendIssue(reviewed, { code: 'source_amount_context_mismatch', message: '源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。' });
     }
   }
   return reviewed;

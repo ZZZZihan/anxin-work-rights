@@ -307,6 +307,11 @@ try {
     { name: 'internal-token-crop', text: '测试王甲2026年1月完整应付工资十四万元。', value: '四万元', quote: '四万元', status: 'unsupported' },
     { name: 'cropped-approximation', text: '测试王甲2026年1月完整应付工资约四万元。', value: '四万元', quote: '四万元', status: 'approximate' },
     { name: 'rate-as-total', text: '测试王甲2026年1月工资四万元/月。', value: '四万元', quote: '四万元', status: 'rate_unit_mismatch' },
+    { name: 'full-multiplier', text: '测试王甲2026年1月应付工资四万元的2倍。', value: '四万元的2倍', status: 'unsupported' },
+    { name: 'cropped-unicode-multiplier', text: '测试王甲2026年1月应付工资四万元的２\u200b倍。', value: '四万元', quote: '四万元', status: 'unsupported' },
+    { name: 'cropped-arithmetic-division', text: '测试王甲2026年1月应付工资40000元/2。', value: '40000元', quote: '40000元', status: 'unsupported' },
+    { name: 'cropped-multiline-multiplier', text: '测试王甲2026年1月应付工资四万元的\n2倍。', value: '四万元', quote: '四万元', status: 'unsupported' },
+    { name: 'cropped-arithmetic-addition', text: '测试王甲2026年1月应付工资40000元加上2000元。', value: '40000元', quote: '40000元', status: 'unsupported' },
   ];
   for (const guard of guards) await scenario(`${guard.name}_never_becomes_usable_exact_money`, async () => {
     const [item] = await fixture(guard.name, [{ text: guard.text, candidates: [money(guard.value, guard.quote || guard.text.slice(0, -1))] }]);
@@ -315,6 +320,32 @@ try {
     assert.notEqual(candidate.amount, '0.00');
     durableSnapshots.push({ name: guard.name, item, state: stored(item.caseId) });
     return { acceptedForReview: 1, normalization: candidate.normalization.status, amount: null, rawRetained: true };
+  });
+  await scenario('separate_event_multiplier_does_not_erase_a_literal_wage', async () => {
+    const quote = '测试王甲2026年1月完整应付工资四万元';
+    const [item] = await fixture('unrelated-multiplier', [{ text: `${quote}。测试李乙的奖金为基数的2倍。`, candidates: [money('四万元', quote)] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, '40000.00');
+    durableSnapshots.push({ name: 'unrelated-multiplier', item, state: stored(item.caseId) });
+    return { amount: '40000.00', rawRetained: true, automaticCalculation: false };
+  });
+  await scenario('historical_exact_operand_is_downgraded_on_read_without_rewriting_raw_or_storage', async () => {
+    const [item] = await fixture('historical-arithmetic', [{ text: '测试王甲2026年1月应付工资40000元的2倍。', candidates: [money('40000元', '40000元')] }]);
+    const response = await extract(item); const material = rawAndLocations(item, response);
+    assert.equal(material.candidates[0].amount, null);
+    // Explicitly emulate a pre-fix stored derived value; the original model
+    // output and source are never changed. This is synthetic migration coverage.
+    const legacy = stored(item.caseId);
+    const candidate = legacy.state.materials[0].candidates[0];
+    candidate.amount = '40000.00'; candidate.normalization.amount = '40000.00'; candidate.normalization.status = 'exact';
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId); const read = await request(item.path);
+    assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body).candidates[0];
+    assert.equal(checked.amount, null); assert.equal(checked.normalization.amount, null); assert.equal(checked.normalization.status, 'unsupported');
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: 'historical-arithmetic', item, state: before });
+    return { historicalOperandDowngraded: true, rawAndStoredStateUnchanged: true, automaticCalculation: false };
   });
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
