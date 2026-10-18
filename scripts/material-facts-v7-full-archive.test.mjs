@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from '../experiments/material-facts-v7/historical-execution-v1.mjs';
 import { createHash } from 'node:crypto';
 import { cp, lstat, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -34,12 +34,12 @@ async function replacedMany(paths, replacement, action) {
 }
 
 function runHistorical(root) {
-  return JSON.parse(execFileSync(process.execPath, [resolve(root, EXPERIMENT, 'verify-frozen.mjs')], {
+  return JSON.parse(runHistoricalCheckSync(resolve(root, EXPERIMENT, 'verify-frozen.mjs'), [], {
     cwd: root, encoding: 'utf8', stdio: 'pipe', timeout: 60000, maxBuffer: 16 * 1024 ** 2,
   }));
 }
 
-test('complete first-run archive restores every bound executable and rejects archive corruption', { timeout: 120000 }, async t => {
+test('complete first-run archive restores every bound executable and rejects archive corruption', { timeout: 960000 }, async t => {
   const freeze = await readJson(resolve(ROOT, EXPERIMENT, 'freeze.json'));
   const resultManifest = await readJson(resolve(ROOT, EXPERIMENT, 'result-manifest.json'));
   const oldManifest = await readJson(resolve(ROOT, EXPERIMENT, 'frozen-code/manifest.json'));

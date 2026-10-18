@@ -2,7 +2,7 @@
 // Preserve corrections v1, v2, v3 and v4 and verify their exact archived code before proceeding.
 import assert from 'node:assert/strict';
 import { publishArtifacts } from './publish-artifacts.mjs';
-import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
 import { readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { computeCorrectionV4 } from './corrective-assessment-v4.mjs';
@@ -10,7 +10,7 @@ import { EXPERIMENT, ROOT, isMainModule, sha, same } from './freeze.mjs';
 
 export async function computeCorrectionV5(root = ROOT) {
   const base = resolve(root, EXPERIMENT);
-  const previous = JSON.parse(execFileSync(process.execPath, [resolve(base, 'verify-correction-v4.mjs')], {
+  const previous = JSON.parse(runHistoricalCheckSync(resolve(base, 'verify-correction-v4.mjs'), [], {
     cwd: root, encoding: 'utf8', timeout: 60000, maxBuffer: 16 * 1024 ** 2,
   }));
   assert.equal(previous.status, 'PASS');

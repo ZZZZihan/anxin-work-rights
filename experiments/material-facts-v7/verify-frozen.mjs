@@ -1,7 +1,7 @@
 // Rebuild the exact first-run code in a temporary directory. Never overwrite
 // current source or historical evidence to make a frozen check pass.
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
 import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -53,7 +53,7 @@ export async function withFrozenCode(action, root = ROOT) {
 if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
   assert.equal(process.argv.length, 2, 'Historical verification accepts no write or generation options');
   const receipt = await withFrozenCode(temporary => {
-    const run = script => execFileSync(process.execPath, [resolve(temporary, EXPERIMENT, script), ...(script === 'summarize.mjs' ? ['--check'] : [])], {
+    const run = script => runHistoricalCheckSync(resolve(temporary, EXPERIMENT, script), script === 'summarize.mjs' ? ['--check'] : [], {
       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 60000,
     });
     const original = JSON.parse(run('verify.mjs'));

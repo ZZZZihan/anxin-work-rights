@@ -1,7 +1,7 @@
 // Preserve the third post-freeze correction when later runtime fixes change
 // acceptance. Its results and code are restored only in an owned temp tree.
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
 import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -45,7 +45,7 @@ export async function withCorrectionV3Code(action, root = ROOT) {
 if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
   assert.equal(process.argv.length, 2, 'Historical correction verification is read-only');
   const receipt = await withCorrectionV3Code(async temporary => {
-    const output = execFileSync(process.execPath, [resolve(temporary, EXPERIMENT, 'corrective-assessment-v3.mjs'), '--check'], {
+    const output = runHistoricalCheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v3.mjs'), ['--check'], {
       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 60000,
     });
     const result = JSON.parse(output); assert.equal(result.status, 'PASS');

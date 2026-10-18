@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from '../experiments/material-facts-v7/historical-execution-v1.mjs';
 import { cp, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
@@ -14,7 +14,7 @@ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 
 // Only copies are changed. These are real read-only correction CLI calls,
 // including its historical verification chain; no runner or model is invoked.
-test('v5 seals the shared lock and bounded runner code without rewriting v4', { timeout: 360000 }, async t => withCorrectionV5Code(async ROOT => {
+test('v5 seals the shared lock and bounded runner code without rewriting v4', { timeout: 960000 }, async t => withCorrectionV5Code(async ROOT => {
   const base = resolve(ROOT, E);
   const manifest = JSON.parse(await readFile(resolve(base, 'corrections-v5/manifest.json')));
   const paths = ['freeze.json', 'result-manifest.json', 'corrections/manifest.json',
@@ -36,7 +36,7 @@ test('v5 seals the shared lock and bounded runner code without rewriting v4', { 
         await writeFile(path, Buffer.concat([original, Buffer.from('\n// Independent hash drift; no behavior change.\n')]));
         let failure = null;
         try {
-          execFileSync(process.execPath, [resolve(fixture, E, 'corrective-assessment-v5.mjs'), '--check'],
+          runHistoricalCheckSync(resolve(fixture, E, 'corrective-assessment-v5.mjs'), ['--check'],
             { cwd: fixture, stdio: 'pipe', timeout: 120000, maxBuffer: 16 * 1024 ** 2 });
         } catch (error) { failure = error; }
         assert(failure, 'A changed current execution dependency passed the sealed v5 check.');

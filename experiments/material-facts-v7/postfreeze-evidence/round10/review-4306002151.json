@@ -1,0 +1,10 @@
+{
+  "id": 4306002151,
+  "html_url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4306002151",
+  "path": "experiments/material-facts-v7/corrective-assessment-v5.mjs",
+  "line": 14,
+  "commit_id": "bd1cf39e66459f793b7702fa81c328cbd15034e2",
+  "original_commit_id": "bd1cf39e66459f793b7702fa81c328cbd15034e2",
+  "created_at": "2026-10-18T06:25:22Z",
+  "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Raise the nested v4 verification timeout**\n\nIn the newly added CI verification chain, `verify-correction-v5.mjs` executes this archived v5 script, but this 60-second child deadline is no larger than the valid runtime of the recursively copying and recomputing v4 verifier. On a clean checkout of this commit, `node experiments/material-facts-v7/verify-correction-v5.mjs` failed here with `spawnSync ... ETIMEDOUT`, after the standalone v4 verification had passed, so the required CI/check path can fail on an unmodified tree. Increase or remove this nested deadline, or avoid recursively repeating the historical recomputations.\n\nAGENTS.md reference: [AGENTS.md:L7-L7](https://github.com/ZZZZihan/anxin-work-rights/blob/bd1cf39e66459f793b7702fa81c328cbd15034e2/AGENTS.md#L7-L7)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+}

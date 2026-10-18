@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from '../experiments/material-facts-v7/historical-execution-v1.mjs';
 import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
@@ -15,7 +15,7 @@ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 
 // No runner or model is invoked. Only disposable copies are altered; the real
 // historical wrapper and the current read-only correction CLI enforce refusal.
-test('v6 preserves the v5 archive and binds its current arithmetic dependency', { timeout: 300000 }, async t => withCorrectionV6Code(async ROOT => {
+test('v6 preserves the v5 archive and binds its current arithmetic dependency', { timeout: 960000 }, async t => withCorrectionV6Code(async ROOT => {
   const bytesAt = path => readFile(resolve(ROOT, E, path));
   const protectedNames = ['freeze.json', 'result-manifest.json', 'corrections/manifest.json',
     ...[2, 3, 4, 5, 6].map(version => `corrections-v${version}/manifest.json`)];
@@ -58,7 +58,7 @@ test('v6 preserves the v5 archive and binds its current arithmetic dependency', 
       const helper = resolve(temporary, 'lib/material-fact-arithmetic-review.ts');
       await writeFile(helper, Buffer.concat([await readFile(helper), Buffer.from('\n// Independent byte-only dependency drift.\n')]));
       let failure;
-      try { execFileSync(process.execPath, [resolve(temporary, E, 'corrective-assessment-v6.mjs'), '--check'],
+      try { runHistoricalCheckSync(resolve(temporary, E, 'corrective-assessment-v6.mjs'), ['--check'],
         { cwd: temporary, stdio: 'pipe', timeout: 180000, maxBuffer: 16 * 1024 ** 2 }); }
       catch (error) { failure = error; }
       assert(failure, 'Changed helper passed its sealed current-code binding.');

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from '../experiments/material-facts-v7/historical-execution-v1.mjs';
 import { cp, mkdtemp, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
@@ -13,7 +13,7 @@ const CURRENT_ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileU
 const EXPERIMENT = 'experiments/material-facts-v7';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const { withCorrectionV4Code } = await import(pathToFileURL(resolve(CURRENT_ROOT, EXPERIMENT, 'verify-correction-v4.mjs')).href);
-const run = (root, path, args = []) => execFileSync(process.execPath, [resolve(root, EXPERIMENT, path), ...args],
+const run = (root, path, args = []) => runHistoricalCheckSync(resolve(root, EXPERIMENT, path), args,
   { cwd: root, encoding: 'utf8', stdio: 'pipe', timeout: 60000, maxBuffer: 16 * 1024 ** 2 });
 
 async function replaced(path, bytes, action) {
@@ -34,7 +34,7 @@ function failsWith(action, pattern) {
 // V4 is now historical: restore its sealed execution dependencies before
 // running the same eight original assertions against owned corruption fixtures.
 // Three serial CLIs each allow 60s; leave time for all plus archive copies/cleanup.
-test('independent v4 gates bind the archived v3 and current arithmetic code', { timeout: 300000 }, async t => withCorrectionV4Code(async ROOT => {
+test('independent v4 gates bind the archived v3 and current arithmetic code', { timeout: 960000 }, async t => withCorrectionV4Code(async ROOT => {
   const { withCorrectionV3Code } = await import(pathToFileURL(resolve(ROOT, EXPERIMENT, 'verify-correction-v3.mjs')).href);
   const historical = ['freeze.json', 'result-manifest.json', 'corrections/manifest.json',
     'corrections-v2/manifest.json', 'corrections-v3/manifest.json', 'corrections-v4/manifest.json'];

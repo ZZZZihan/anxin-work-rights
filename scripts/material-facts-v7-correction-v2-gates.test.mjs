@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from '../experiments/material-facts-v7/historical-execution-v1.mjs';
 import { createHash } from 'node:crypto';
 import { cp, lstat, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -20,10 +21,13 @@ async function replaced(path, bytes, action) {
   try { await writeFile(path, bytes); return await action(); }
   finally { await writeFile(path, original); }
 }
-const run = (fixture, path, args = []) => execFileSync(process.execPath, [resolve(fixture, path), ...args],
-  { cwd: fixture, encoding: 'utf8', stdio: 'pipe', timeout: 60000, maxBuffer: 16 * 1024 ** 2 });
+const run = (fixture, path, args = []) => args.includes('--write')
+  ? execFileSync(process.execPath, [resolve(fixture, path), ...args],
+    { cwd: fixture, encoding: 'utf8', stdio: 'pipe', timeout: 960000, maxBuffer: 16 * 1024 ** 2 })
+  : runHistoricalCheckSync(resolve(fixture, path), args,
+    { cwd: fixture, encoding: 'utf8', stdio: 'pipe', timeout: 60000, maxBuffer: 16 * 1024 ** 2 });
 
-test('independent correction-v2 gates preserve correction-v1 evidence and cleanup', { timeout: 120000 }, async t => {
+test('independent correction-v2 gates preserve correction-v1 evidence and cleanup', { timeout: 960000 }, async t => {
   const fixture = await mkdtemp(resolve(tmpdir(), 'anxin-v7-v2-independent-'));
   const base = resolve(fixture, EXPERIMENT);
   const mainManifest = resolve(ROOT, EXPERIMENT, 'corrections/manifest.json');

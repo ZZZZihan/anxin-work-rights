@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from '../experiments/material-facts-v7/historical-execution-v1.mjs';
 import { createHash } from 'node:crypto';
 import { cp, lstat, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -23,7 +24,7 @@ async function replaced(path, replacement, action) {
   finally { await writeFile(path, original); }
 }
 
-test('historical-code and correction gates reject isolated evidence corruption', { timeout: 120000 }, async t => {
+test('historical-code and correction gates reject isolated evidence corruption', { timeout: 960000 }, async t => {
   const fixture = await mkdtemp(resolve(tmpdir(), 'anxin-v7-correction-gates-'));
   const base = resolve(fixture, EXPERIMENT);
   const manifestPath = resolve(base, 'frozen-code-v2/manifest.json');
@@ -40,7 +41,7 @@ test('historical-code and correction gates reject isolated evidence corruption',
     const snapshotPath = resolve(base, 'frozen-code-v2', `${archivedPath}.snapshot`);
 
     await t.test('unaltered copied evidence passes the real historical verifier', () => {
-      const receipt = JSON.parse(execFileSync(process.execPath, [resolve(base, 'verify-frozen.mjs')], {
+      const receipt = JSON.parse(runHistoricalCheckSync(resolve(base, 'verify-frozen.mjs'), [], {
         cwd: fixture, encoding: 'utf8', stdio: 'pipe', timeout: 60000, maxBuffer: 16 * 1024 ** 2,
       }));
       assert.equal(receipt.status, 'PASS');

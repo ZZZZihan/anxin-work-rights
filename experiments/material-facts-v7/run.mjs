@@ -206,14 +206,17 @@ if (backend === 'rules') {
   child.stdin.on('error', () => {});
   child.stdin.end(batch.map(row => JSON.stringify(row)).join('\n') + '\n');
   // External monitor also covers model loading and prefill, before a token is produced.
-  let monitoring = false, warningAt = null, killTimer = null, closed = false, exited = false;
+  let monitoring = false, monitorTask = Promise.resolve(), monitorFailure = null, warningAt = null, killTimer = null, closed = false, exited = false;
   const terminate = () => { if (exited || closed) return; if (backend === 'deepseek' && activeRequestId !== null) interruptedRequestId ??= activeRequestId; child.kill('SIGTERM'); killTimer ??= setTimeout(() => { if (!exited && !closed) child.kill('SIGKILL'); }, 3000); };
   const cancelParent = () => { stopReason ??= 'parent_cancel'; terminate(); };
   process.once('SIGTERM', cancelParent); process.once('SIGINT', cancelParent);
   const hardTimeout = setTimeout(() => { stopReason = 'absolute_worker_timeout'; terminate(); }, backend === 'qwen' ? 600_000 : 2400_000);
-  const monitor = setInterval(async () => {
+  const monitor = setInterval(() => {
     if (monitoring || exited || closed) return;
     monitoring = true;
+    // Retain the whole sample, including its disk write, through worker exit.
+    // Clearing the interval stops new work but cannot settle an async callback.
+    monitorTask = (async () => {
     try {
       if (Date.now() - started > 3600_000 || Date.now() - lastEvent > 620_000) stopReason = 'total_or_stage_timeout';
       if (backend === 'qwen') {
@@ -226,12 +229,17 @@ if (backend === 'rules') {
         if (level >= 4 || (warningAt && Date.now() - warningAt >= 10000) || used - before.used > 4 * 1024 ** 3) stopReason = 'external_memory_guard';
       }
       if (stopReason) terminate();
-    } catch { if (!exited && !closed) { stopReason = 'monitor_error'; terminate(); } }
+    } catch (error) {
+      monitorFailure ??= error instanceof Error ? error : new Error('Worker monitor failed');
+      stopReason ??= 'monitor_error';
+      terminate(); // Its liveness checks prevent signalling an exited worker.
+    }
     finally { monitoring = false; }
+    })();
   }, 2000);
   const result = await new Promise(resolveExit => { child.once('error', () => { stopReason = 'spawn_or_process_error'; terminate(); }); child.once('exit', () => { exited = true; clearInterval(monitor); clearTimeout(hardTimeout); clearTimeout(requestTimer); clearTimeout(killTimer); }); child.once('close', (code, signal) => { closed = true; resolveExit({ code, signal }); }); });
   clearInterval(monitor); clearTimeout(hardTimeout); clearTimeout(requestTimer); clearTimeout(killTimer);
-  try { await writeQueue; }
+  try { await Promise.all([writeQueue, monitorTask]); }
   finally {
     // Clear again after queued events, including any late requesting event.
     clearTimeout(requestTimer); clearTimeout(killTimer);
@@ -247,7 +255,7 @@ if (backend === 'rules') {
     const terminal = failedWorker ? { ...row, original_finish_reason: row.finish_reason, finish_reason: stopReason ?? 'process_error' } : row;
     await appendFile(resolve(out, 'results.jsonl'), JSON.stringify(terminal) + '\n');
   }
-  attempts.push({ ids: batch.map(row => row.id), completed: result.code === 0 && !stopReason && !buffer && batch.every(item => resultRows.some(row => row.id === item.id && row.finish_reason === 'stop')), ...result, stop_reason: stopReason, ...(writeFailure ? { output_error_type: writeFailure.name ?? 'Error' } : {}), seconds: (Date.now() - started) / 1000, incomplete_stdout: !!buffer });
+  attempts.push({ ids: batch.map(row => row.id), completed: result.code === 0 && !stopReason && !buffer && batch.every(item => resultRows.some(row => row.id === item.id && row.finish_reason === 'stop')), ...result, stop_reason: stopReason, ...(writeFailure ? { output_error_type: writeFailure.name ?? 'Error' } : {}), ...(monitorFailure ? { monitor_error_type: monitorFailure.name ?? 'Error' } : {}), seconds: (Date.now() - started) / 1000, incomplete_stdout: !!buffer });
   await save('outcome.json', { completed: attempts.length === batches.length && attempts.every(row => row.completed), isolation: backend === 'qwen' ? 'fresh_process_per_document' : 'sequential_requests', attempts });
   if (backend === 'qwen' && (stopReason || result.code !== 0)) break;
   if (backend === 'qwen' && attempts.length < batches.length) {

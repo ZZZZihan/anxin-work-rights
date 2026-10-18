@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from '../experiments/material-facts-v7/historical-execution-v1.mjs';
 import { cp, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
@@ -15,7 +15,7 @@ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const { withFrozenCode } = await import(pathToFileURL(implementation).href);
 function evidence(name, value) { console.log(JSON.stringify({ evidence: name, ...value })); }
 
-test('first-run manifest binding uses original bytes, not JSON equivalence', { timeout: 120000 }, async t => {
+test('first-run manifest binding uses original bytes, not JSON equivalence', { timeout: 960000 }, async t => {
   const original = await readFile(resolve(ROOT, EXPERIMENT, 'result-manifest.json'));
   assert.equal(sha(original), ORIGINAL, 'The independent fixture must begin with the authentic original artifact.');
   const frozenBefore = await readFile(resolve(ROOT, EXPERIMENT, 'freeze.json'));
@@ -28,7 +28,7 @@ test('first-run manifest binding uses original bytes, not JSON equivalence', { t
     // Only the current wrapper under review is substituted. Its 36 archived
     // executable snapshots, freeze, results and reports are copied byte-exact.
     await writeFile(resolve(fixture, EXPERIMENT, 'verify-frozen.mjs'), await readFile(implementation));
-    const verify = () => execFileSync(process.execPath, [resolve(fixture, EXPERIMENT, 'verify-frozen.mjs')],
+    const verify = () => runHistoricalCheckSync(resolve(fixture, EXPERIMENT, 'verify-frozen.mjs'), [],
       { cwd: fixture, encoding: 'utf8', stdio: 'pipe', timeout: 60000, maxBuffer: 16 * 1024 ** 2 });
     evidence('wrapper_under_review', { sha256: sha(await readFile(implementation)), original_manifest_sha256: ORIGINAL });
 

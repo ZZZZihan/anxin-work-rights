@@ -2,7 +2,7 @@
 // retries or overwrite of the original reports. This is not another holdout run.
 import assert from 'node:assert/strict';
 import { publishArtifacts } from './publish-artifacts.mjs';
-import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
 import { readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { assess, readJsonl } from './assess.mjs';
@@ -13,7 +13,7 @@ const codePaths = [...RUN_HASH_FILES, `${EXPERIMENT}/verify-frozen.mjs`, `${EXPE
 export async function computeCorrection(root = ROOT) {
   const base = resolve(root, EXPERIMENT);
   // Verify the immutable first run using its own code before reading evidence.
-  const original = JSON.parse(execFileSync(process.execPath, [resolve(base, 'verify-frozen.mjs')], {
+  const original = JSON.parse(runHistoricalCheckSync(resolve(base, 'verify-frozen.mjs'), [], {
     cwd: root, encoding: 'utf8', timeout: 60000, maxBuffer: 16 * 1024 ** 2,
   }));
   assert.equal(original.status, 'PASS');

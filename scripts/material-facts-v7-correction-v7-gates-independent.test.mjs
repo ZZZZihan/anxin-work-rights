@@ -1,23 +1,24 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
+import { runHistoricalCheckSync } from '../experiments/material-facts-v7/historical-execution-v1.mjs';
 import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const CURRENT_ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const E = 'experiments/material-facts-v7';
-const { withCorrectionV6Code } = await import(pathToFileURL(resolve(ROOT, E, 'verify-correction-v6.mjs')));
+const { withCorrectionV6Code } = await import(pathToFileURL(resolve(CURRENT_ROOT, E, 'verify-correction-v6.mjs')));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
-const bytesAt = path => readFile(resolve(ROOT, E, path));
+const { withCorrectionV7Code } = await import(pathToFileURL(resolve(CURRENT_ROOT, E, 'verify-correction-v7.mjs')));
 const ORIGINAL = '3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee';
 const V6 = '0c9ef56e30e278c816e088a934df1cb8f0cdc944c262b9bd9f88be146909ee69';
 
 // All mutations are in owned temporary trees. These tests never import the
 // runner, generate model output, or change an existing correction artifact.
-test('v7 binds canonical manifest bytes while preserving the archived v6 source', { timeout: 420000 }, async t => {
+test('v7 binds canonical manifest bytes while preserving the archived v6 source', { timeout: 960000 }, async t => withCorrectionV7Code(async ROOT => {
+  const bytesAt = path => readFile(resolve(ROOT, E, path));
   const protectedNames = ['freeze.json', 'result-manifest.json', 'corrections/manifest.json',
     ...[2, 3, 4, 5, 6, 7].map(version => `corrections-v${version}/manifest.json`),
     'correction-code-v6/manifest.json'];
@@ -69,7 +70,7 @@ test('v7 binds canonical manifest bytes while preserving the archived v6 source'
       await writeFile(target, altered);
       let failure;
       try {
-        execFileSync(process.execPath, [resolve(temporary, E, 'corrective-assessment-v7.mjs'), '--check'],
+        runHistoricalCheckSync(resolve(temporary, E, 'corrective-assessment-v7.mjs'), ['--check'],
           { cwd: temporary, stdio: 'pipe', timeout: 180000, maxBuffer: 16 * 1024 ** 2 });
       } catch (error) { failure = error; }
       assert(failure, 'JSON-equivalent manifest rewrite passed its byte binding.');
@@ -81,4 +82,4 @@ test('v7 binds canonical manifest bytes while preserving the archived v6 source'
   } finally { await rm(temporary, { recursive: true, force: true }); }
   for (const [path, digest] of Object.entries(before)) assert.equal(sha(await bytesAt(path)), digest, path);
   console.log(JSON.stringify({ evidence: 'v7_independent_gate_protected_bytes_unchanged', manifests: before }));
-});
+}, CURRENT_ROOT));

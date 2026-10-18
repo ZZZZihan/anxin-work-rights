@@ -1,0 +1,495 @@
+diff --git a/experiments/material-facts-v7/verify-frozen.mjs b/experiments/material-facts-v7/verify-frozen.mjs
+--- a/experiments/material-facts-v7/verify-frozen.mjs
++++ b/experiments/material-facts-v7/verify-frozen.mjs
+@@ -1,7 +1,7 @@
+ // Rebuild the exact first-run code in a temporary directory. Never overwrite
+ // current source or historical evidence to make a frozen check pass.
+ import assert from 'node:assert/strict';
+-import { execFileSync } from 'node:child_process';
++import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
+ import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+ import { tmpdir } from 'node:os';
+ import { dirname, join, resolve } from 'node:path';
+@@ -53,7 +53,7 @@
+ if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   assert.equal(process.argv.length, 2, 'Historical verification accepts no write or generation options');
+   const receipt = await withFrozenCode(temporary => {
+-    const run = script => execFileSync(process.execPath, [resolve(temporary, EXPERIMENT, script), ...(script === 'summarize.mjs' ? ['--check'] : [])], {
++    const run = script => runHistoricalCheckSync(resolve(temporary, EXPERIMENT, script), script === 'summarize.mjs' ? ['--check'] : [], {
+       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 60000,
+     });
+     const original = JSON.parse(run('verify.mjs'));
+diff --git a/experiments/material-facts-v7/verify-correction-v1.mjs b/experiments/material-facts-v7/verify-correction-v1.mjs
+--- a/experiments/material-facts-v7/verify-correction-v1.mjs
++++ b/experiments/material-facts-v7/verify-correction-v1.mjs
+@@ -1,7 +1,7 @@
+ // Preserve the first post-freeze correction when later runtime fixes change
+ // acceptance. Its results and code are restored only in an owned temp tree.
+ import assert from 'node:assert/strict';
+-import { execFileSync } from 'node:child_process';
++import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
+ import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+ import { tmpdir } from 'node:os';
+ import { dirname, join, resolve } from 'node:path';
+@@ -45,7 +45,7 @@
+ if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   assert.equal(process.argv.length, 2, 'Historical correction verification is read-only');
+   const receipt = await withCorrectionV1Code(async temporary => {
+-    const output = execFileSync(process.execPath, [resolve(temporary, EXPERIMENT, 'corrective-assessment.mjs'), '--check'], {
++    const output = runHistoricalCheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment.mjs'), ['--check'], {
+       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 60000,
+     });
+     const result = JSON.parse(output); assert.equal(result.status, 'PASS');
+diff --git a/experiments/material-facts-v7/verify-correction-v2.mjs b/experiments/material-facts-v7/verify-correction-v2.mjs
+--- a/experiments/material-facts-v7/verify-correction-v2.mjs
++++ b/experiments/material-facts-v7/verify-correction-v2.mjs
+@@ -1,7 +1,7 @@
+ // Preserve the second post-freeze correction when later runtime fixes change
+ // acceptance. Its results and code are restored only in an owned temp tree.
+ import assert from 'node:assert/strict';
+-import { execFileSync } from 'node:child_process';
++import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
+ import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+ import { tmpdir } from 'node:os';
+ import { dirname, join, resolve } from 'node:path';
+@@ -45,7 +45,7 @@
+ if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   assert.equal(process.argv.length, 2, 'Historical correction verification is read-only');
+   const receipt = await withCorrectionV2Code(async temporary => {
+-    const output = execFileSync(process.execPath, [resolve(temporary, EXPERIMENT, 'corrective-assessment-v2.mjs'), '--check'], {
++    const output = runHistoricalCheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v2.mjs'), ['--check'], {
+       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 60000,
+     });
+     const result = JSON.parse(output); assert.equal(result.status, 'PASS');
+diff --git a/experiments/material-facts-v7/verify-correction-v3.mjs b/experiments/material-facts-v7/verify-correction-v3.mjs
+--- a/experiments/material-facts-v7/verify-correction-v3.mjs
++++ b/experiments/material-facts-v7/verify-correction-v3.mjs
+@@ -1,7 +1,7 @@
+ // Preserve the third post-freeze correction when later runtime fixes change
+ // acceptance. Its results and code are restored only in an owned temp tree.
+ import assert from 'node:assert/strict';
+-import { execFileSync } from 'node:child_process';
++import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
+ import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+ import { tmpdir } from 'node:os';
+ import { dirname, join, resolve } from 'node:path';
+@@ -45,7 +45,7 @@
+ if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   assert.equal(process.argv.length, 2, 'Historical correction verification is read-only');
+   const receipt = await withCorrectionV3Code(async temporary => {
+-    const output = execFileSync(process.execPath, [resolve(temporary, EXPERIMENT, 'corrective-assessment-v3.mjs'), '--check'], {
++    const output = runHistoricalCheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v3.mjs'), ['--check'], {
+       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 60000,
+     });
+     const result = JSON.parse(output); assert.equal(result.status, 'PASS');
+diff --git a/experiments/material-facts-v7/verify-correction-v4.mjs b/experiments/material-facts-v7/verify-correction-v4.mjs
+--- a/experiments/material-facts-v7/verify-correction-v4.mjs
++++ b/experiments/material-facts-v7/verify-correction-v4.mjs
+@@ -1,7 +1,7 @@
+ // Preserve the fourth post-freeze correction when later runtime fixes change
+ // acceptance. Its results and code are restored only in an owned temp tree.
+ import assert from 'node:assert/strict';
+-import { execFileSync } from 'node:child_process';
++import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
+ import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+ import { tmpdir } from 'node:os';
+ import { dirname, join, resolve } from 'node:path';
+@@ -45,7 +45,7 @@
+ if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   assert.equal(process.argv.length, 2, 'Historical correction verification is read-only');
+   const receipt = await withCorrectionV4Code(async temporary => {
+-    const output = execFileSync(process.execPath, [resolve(temporary, EXPERIMENT, 'corrective-assessment-v4.mjs'), '--check'], {
++    const output = runHistoricalCheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v4.mjs'), ['--check'], {
+       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 60000,
+     });
+     const result = JSON.parse(output); assert.equal(result.status, 'PASS');
+diff --git a/experiments/material-facts-v7/verify-correction-v5.mjs b/experiments/material-facts-v7/verify-correction-v5.mjs
+--- a/experiments/material-facts-v7/verify-correction-v5.mjs
++++ b/experiments/material-facts-v7/verify-correction-v5.mjs
+@@ -1,7 +1,7 @@
+ // Preserve the fifth post-freeze correction when later runtime fixes change
+ // acceptance. Its results and code are restored only in an owned temp tree.
+ import assert from 'node:assert/strict';
+-import { execFileSync } from 'node:child_process';
++import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
+ import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+ import { tmpdir } from 'node:os';
+ import { dirname, join, resolve } from 'node:path';
+@@ -45,7 +45,7 @@
+ if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   assert.equal(process.argv.length, 2, 'Historical correction verification is read-only');
+   const receipt = await withCorrectionV5Code(async temporary => {
+-    const output = execFileSync(process.execPath, [resolve(temporary, EXPERIMENT, 'corrective-assessment-v5.mjs'), '--check'], {
++    const output = runHistoricalCheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v5.mjs'), ['--check'], {
+       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 180000,
+     });
+     const result = JSON.parse(output); assert.equal(result.status, 'PASS');
+diff --git a/experiments/material-facts-v7/verify-correction-v6.mjs b/experiments/material-facts-v7/verify-correction-v6.mjs
+--- a/experiments/material-facts-v7/verify-correction-v6.mjs
++++ b/experiments/material-facts-v7/verify-correction-v6.mjs
+@@ -1,7 +1,7 @@
+ // Preserve the sixth post-freeze correction when later runtime fixes change
+ // acceptance. Its results and code are restored only in an owned temp tree.
+ import assert from 'node:assert/strict';
+-import { execFileSync } from 'node:child_process';
++import { runHistoricalCheckSync } from './historical-execution-v1.mjs';
+ import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+ import { tmpdir } from 'node:os';
+ import { dirname, join, resolve } from 'node:path';
+@@ -45,7 +45,7 @@
+ if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   assert.equal(process.argv.length, 2, 'Historical correction verification is read-only');
+   const receipt = await withCorrectionV6Code(async temporary => {
+-    const output = execFileSync(process.execPath, [resolve(temporary, EXPERIMENT, 'corrective-assessment-v6.mjs'), '--check'], {
++    const output = runHistoricalCheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v6.mjs'), ['--check'], {
+       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 180000,
+     });
+     const result = JSON.parse(output); assert.equal(result.status, 'PASS');
+diff --git a/experiments/material-facts-v7/historical-execution-policy-v1.mjs b/experiments/material-facts-v7/historical-execution-policy-v1.mjs
+new file mode 100644
+--- /dev/null
++++ b/experiments/material-facts-v7/historical-execution-policy-v1.mjs
+@@ -0,0 +1,95 @@
++// Explicit execution-only policy for archived, read-only checks. Archived source
++// bytes and scoring stay unchanged. This module does nothing without its state.
++import childProcess from 'node:child_process';
++import { syncBuiltinESMExports } from 'node:module';
++import { appendFileSync, readFileSync } from 'node:fs';
++import { createHash } from 'node:crypto';
++import { basename, dirname, isAbsolute, resolve, sep } from 'node:path';
++import { fileURLToPath } from 'node:url';
++
++export const POLICY_ID = 'material-facts-v7-historical-execution/1';
++export const STATE_ENV = 'ANXIN_MFV7_HISTORICAL_EXECUTION_V1';
++export const ROOT_BUDGET_MS = 15 * 60 * 1000;
++export const CLEANUP_RESERVE_MS = 2000;
++export const POLICY_URL = import.meta.url;
++export const POLICY_SHA256 = createHash('sha256').update(readFileSync(fileURLToPath(import.meta.url))).digest('hex');
++// Temporary copies can import the same policy through another file URL. Keep
++// one real native function and one preload per process, rather than wrapping an
++// already patched function or restarting the shared budget in the second copy.
++const registryKey = Symbol.for('anxin.material-facts-v7.historical-execution/1');
++const existing = globalThis[registryKey];
++if (existing && existing.policy_sha256 !== POLICY_SHA256) throw new Error('Conflicting historical execution policy bytes in one process');
++const registry = existing ?? { policy_sha256: POLICY_SHA256, native: childProcess.execFileSync,
++  preload_url: POLICY_URL, patched: false, started_ms: null };
++globalThis[registryKey] = registry;
++export const nativeExecFileSync = registry.native;
++export function rootBudgetStartedMs() { return registry.started_ms ??= Date.now(); }
++
++export function historicalTarget(script, args) {
++  if (typeof script !== 'string' || !Array.isArray(args) || !args.every(arg => typeof arg === 'string')) return null;
++  const path = resolve(script), name = basename(path);
++  if (!dirname(path).endsWith(`${sep}experiments${sep}material-facts-v7`)) return null;
++  if ((name === 'verify.mjs' || name === 'verify-frozen.mjs' || /^verify-correction-v[1-7]\.mjs$/u.test(name)) && args.length === 0)
++    return `experiments/material-facts-v7/${name}`;
++  if ((name === 'summarize.mjs' || /^corrective-assessment(?:-v[2-8])?\.mjs$/u.test(name)) && args.length === 1 && args[0] === '--check')
++    return `experiments/material-facts-v7/${name}`;
++  return null;
++}
++
++export function readExecutionState(env = process.env) {
++  if (!env[STATE_ENV]) return null;
++  const state = JSON.parse(env[STATE_ENV]);
++  if (state.policy !== POLICY_ID || state.policy_sha256 !== POLICY_SHA256
++    || !Number.isSafeInteger(state.started_ms) || !Number.isSafeInteger(state.root_deadline_ms)
++    || !Number.isSafeInteger(state.deadline_ms) || state.root_deadline_ms <= state.started_ms
++    || state.root_deadline_ms - state.started_ms > ROOT_BUDGET_MS || state.deadline_ms > state.root_deadline_ms
++    || !Number.isSafeInteger(state.depth) || state.depth < 0 || state.depth > 256
++    || typeof state.receipt_path !== 'string' || !isAbsolute(state.receipt_path)) {
++    throw new Error('Invalid historical execution policy state');
++  }
++  return state;
++}
++
++export function recordExecutionEvent(state, event) {
++  appendFileSync(state.receipt_path, JSON.stringify({ policy: POLICY_ID, pid: process.pid, ...event }) + '\n');
++}
++
++export function prepareHistoricalOptions(script, args, options, state) {
++  const target = historicalTarget(script, args);
++  if (!target) throw new Error('Historical execution policy only accepts exact read-only v7 verification commands');
++  const now = Date.now(), deadline = state.deadline_ms - CLEANUP_RESERVE_MS;
++  const remaining = deadline - now;
++  if (remaining <= 0) {
++    recordExecutionEvent(state, { event: 'budget_exhausted', target, depth: state.depth + 1, deadline_ms: deadline });
++    const error = new Error('Shared historical execution deadline exhausted before starting another check');
++    error.code = 'ETIMEDOUT';
++    throw error;
++  }
++  const next = { ...state, deadline_ms: deadline, depth: state.depth + 1 };
++  const env = { ...(options.env ?? process.env) };
++  // fileURL has percent-encoded spaces. NODE_OPTIONS is interpreted by Node,
++  // never a shell, and the same absolute preload is inherited by old children.
++  const preload = `--import=${registry.preload_url}`;
++  env.NODE_OPTIONS = (env.NODE_OPTIONS ?? '').split(/\s+/u).includes(preload)
++    ? env.NODE_OPTIONS : [env.NODE_OPTIONS, preload].filter(Boolean).join(' ');
++  env[STATE_ENV] = JSON.stringify(next);
++  recordExecutionEvent(state, { event: 'child_budget', target, args, depth: next.depth,
++    requested_timeout_ms: options.timeout ?? null, effective_timeout_ms: remaining,
++    parent_deadline_ms: state.deadline_ms, child_deadline_ms: deadline,
++    cleanup_reserve_ms: CLEANUP_RESERVE_MS });
++  return { ...options, env, timeout: remaining };
++}
++
++const active = readExecutionState();
++if (active && !registry.patched) {
++  registry.patched = true;
++  recordExecutionEvent(active, { event: 'preload_active', depth: active.depth, policy_sha256: POLICY_SHA256 });
++  childProcess.execFileSync = function execFileSyncWithHistoricalBudget(file, args, options) {
++    if (file !== process.execPath || !Array.isArray(args) || !historicalTarget(args[0], args.slice(1)))
++      return nativeExecFileSync(file, args, options);
++    return nativeExecFileSync(file, args, prepareHistoricalOptions(args[0], args.slice(1), options ?? {}, readExecutionState()));
++  };
++  // Old snapshots import the named ESM builtin. Keep that binding synchronized
++  // with this explicit execution policy; no source transformation is involved.
++  syncBuiltinESMExports();
++}
+diff --git a/experiments/material-facts-v7/historical-execution-v1.mjs b/experiments/material-facts-v7/historical-execution-v1.mjs
+new file mode 100644
+--- /dev/null
++++ b/experiments/material-facts-v7/historical-execution-v1.mjs
+@@ -0,0 +1,55 @@
++// Public current entrypoints call this execution-only adapter before entering
++// unchanged archived source. Receipts go to stderr, leaving stdout JSON intact.
++import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync, writeSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { join, resolve } from 'node:path';
++import { fileURLToPath } from 'node:url';
++import { CLEANUP_RESERVE_MS, POLICY_ID, POLICY_SHA256, ROOT_BUDGET_MS, historicalTarget,
++  nativeExecFileSync, prepareHistoricalOptions, readExecutionState, rootBudgetStartedMs } from './historical-execution-policy-v1.mjs';
++
++export function runHistoricalCheckSync(scriptPath, args = [], options = {}) {
++  const script = resolve(options.cwd ?? process.cwd(), scriptPath);
++  if (!historicalTarget(script, args)) throw new Error('Expected an exact read-only historical v7 check');
++  let state = readExecutionState(), directory;
++  if (!state) {
++    // Sequential entrypoint calls share this process's one absolute budget.
++    // A later sibling gets only the remaining time, never another 15 minutes.
++    const localStartedMs = rootBudgetStartedMs();
++    directory = mkdtempSync(join(tmpdir(), 'anxin-v7-history-policy-'));
++    const receiptPath = join(directory, 'execution.jsonl');
++    writeFileSync(receiptPath, '', { flag: 'wx', mode: 0o600 });
++    state = { policy: POLICY_ID, policy_sha256: POLICY_SHA256, started_ms: localStartedMs,
++      root_deadline_ms: localStartedMs + ROOT_BUDGET_MS, deadline_ms: localStartedMs + ROOT_BUDGET_MS,
++      depth: 0, receipt_path: receiptPath };
++  }
++  let failure;
++  try {
++    return nativeExecFileSync(process.execPath, [script, ...args], prepareHistoricalOptions(script, args, options, state));
++  } catch (error) {
++    failure = error;
++    throw error;
++  } finally {
++    if (directory) {
++      try {
++        const events = readFileSync(state.receipt_path, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line));
++        writeSync(2, JSON.stringify({ execution_policy: POLICY_ID, policy_sha256: POLICY_SHA256,
++          budget_mode: 'shared_absolute_deadline', maximum_root_budget_ms: ROOT_BUDGET_MS,
++          cleanup_reserve_per_level_ms: CLEANUP_RESERVE_MS, target: historicalTarget(script, args),
++          status: failure ? 'FAIL' : 'PASS', scoring_semantics_changed: false, archived_source_bytes_changed: false, events }) + '\n');
++      } catch (error) {
++        if (failure) failure.executionPolicyReceiptError = error;
++        else throw error;
++      } finally {
++        try { rmSync(directory, { recursive: true, force: true }); }
++        catch (error) { if (failure) failure.executionPolicyCleanupError = error; else throw error; }
++      }
++    }
++  }
++}
++
++if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
++  const [script, ...args] = process.argv.slice(2);
++  if (!script) throw new Error('Expected a read-only historical v7 check path');
++  const output = runHistoricalCheckSync(script, args, { cwd: process.cwd(), encoding: 'utf8', maxBuffer: 16 * 1024 ** 2 });
++  process.stdout.write(output);
++}
+diff --git a/scripts/material-facts-v7-historical-execution.test.mjs b/scripts/material-facts-v7-historical-execution.test.mjs
+new file mode 100644
+--- /dev/null
++++ b/scripts/material-facts-v7-historical-execution.test.mjs
+@@ -0,0 +1,183 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { execFileSync } from 'node:child_process';
++import { cp, mkdtemp, mkdir, readFile, realpath, rm, writeFile } from 'node:fs/promises';
++import { tmpdir } from 'node:os';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++import { createHash } from 'node:crypto';
++
++const OWN = fileURLToPath(new URL('../', import.meta.url));
++const SOURCE = resolve(process.env.MATERIAL_FACT_TEST_ROOT ?? OWN);
++const E = 'experiments/material-facts-v7';
++const policyPath = resolve(OWN, E, 'historical-execution-policy-v1.mjs');
++const { runHistoricalCheckSync } = await import(pathToFileURL(resolve(OWN, E, 'historical-execution-v1.mjs')));
++const { STATE_ENV, POLICY_ID, POLICY_SHA256, historicalTarget } = await import(pathToFileURL(policyPath));
++const sha = bytes => createHash('sha256').update(bytes).digest('hex');
++
++// Native short timers prove execution behavior without making a model request.
++// They are a controlled deadline fixture, not a reproduction of the reviewer's
++// machine: the actual unmodified archived v5 chain passed locally in 41.117s.
++async function fixture(action) {
++  const root = await realpath(await mkdtemp(resolve(tmpdir(), 'anxin history policy spaces-')));
++  const base = resolve(root, E);
++  try {
++    await mkdir(base, { recursive: true });
++    for (const name of ['historical-execution-v1.mjs', 'historical-execution-policy-v1.mjs'])
++      await cp(resolve(OWN, E, name), resolve(base, name));
++    const write = (name, value) => writeFile(resolve(base, name), value);
++    await write('verify-correction-v4.mjs', `setTimeout(() => console.log(JSON.stringify({status:'PASS',literal:'unchanged'})),120);`);
++    await write('corrective-assessment-v5.mjs', `import {execFileSync} from 'node:child_process';
++import {fileURLToPath} from 'node:url';
++const child=fileURLToPath(new URL('./verify-correction-v4.mjs',import.meta.url));
++console.log(execFileSync(process.execPath,[child],{encoding:'utf8',timeout:10}));`);
++    await action({ root, base, write });
++  } finally { await rm(root, { recursive: true, force: true }); }
++}
++const run = (base, name = 'corrective-assessment-v5.mjs', args = ['--check'], options = {}) =>
++  runHistoricalCheckSync(resolve(base, name), args, { cwd: base, encoding: 'utf8', maxBuffer: 1024 ** 2, timeout: 30, ...options });
++const eventsIn = async file => (await readFile(file, 'utf8')).trim().split('\n').filter(Boolean).map(line => JSON.parse(line));
++
++test('only exact read-only v7 commands are eligible', () => {
++  for (const name of ['verify.mjs', 'verify-frozen.mjs', ...Array.from({ length: 7 }, (_, i) => `verify-correction-v${i + 1}.mjs`)])
++    assert(historicalTarget(resolve(SOURCE, E, name), []));
++  for (const name of ['summarize.mjs', 'corrective-assessment.mjs', ...Array.from({ length: 7 }, (_, i) => `corrective-assessment-v${i + 2}.mjs`)])
++    assert(historicalTarget(resolve(SOURCE, E, name), ['--check']));
++  for (const [path, args] of [['run.mjs', []], ['freeze.mjs', []], ['corrective-assessment-v5.mjs', ['--write']],
++    ['verify-correction-v5.mjs', ['--check']], ['corrective-assessment-v5.mjs', ['--check', '--write']], ['corrective-assessment-v9.mjs', ['--check']]])
++    assert.equal(historicalTarget(resolve(SOURCE, E, path), args), null);
++  assert.equal(historicalTarget(resolve(SOURCE, 'other/verify-correction-v5.mjs'), []), null);
++});
++
++test('native archived-shaped control times out; explicit API lets the unchanged child finish', async () => fixture(async ({ base }) => {
++  const script = resolve(base, 'corrective-assessment-v5.mjs');
++  let legacy;
++  try { execFileSync(process.execPath, [script, '--check'], { encoding: 'utf8', timeout: 3000, stdio: 'pipe' }); }
++  catch (error) { legacy = error; }
++  assert.equal(legacy?.status, 1); assert.match(String(legacy.stderr), /ETIMEDOUT/u);
++  const before = sha(await readFile(script));
++  assert.deepEqual(JSON.parse(run(base)), { status: 'PASS', literal: 'unchanged' });
++  assert.equal(sha(await readFile(script)), before);
++  console.log(JSON.stringify({ evidence: 'controlled_native_timer_red_to_green', original_child_timeout_ms: 10,
++    original_failure: 'ETIMEDOUT', policy_result: 'PASS', original_chain_timeout_reproduced: false }));
++}));
++
++test('loading the preload with no state leaves the old timeout untouched', async () => fixture(async ({ base }) => {
++  assert.throws(() => execFileSync(process.execPath, ['--import', pathToFileURL(policyPath).href,
++    resolve(base, 'corrective-assessment-v5.mjs'), '--check'], { encoding: 'utf8', stdio: 'pipe', timeout: 3000 }),
++  error => error.status === 1 && /ETIMEDOUT/u.test(String(error.stderr)));
++}));
++
++test('the public CLI propagates an absolute preload fileURL from a path containing spaces', async () => fixture(async ({ base }) => {
++  const result = execFileSync(process.execPath, [resolve(base, 'historical-execution-v1.mjs'),
++    resolve(base, 'corrective-assessment-v5.mjs'), '--check'], { encoding: 'utf8', stdio: 'pipe', timeout: 5000 });
++  assert.deepEqual(JSON.parse(result), { status: 'PASS', literal: 'unchanged' });
++}));
++
++test('API refuses writes, runner commands and extra arguments before executing them', async () => fixture(async ({ base }) => {
++  for (const [name, args] of [['corrective-assessment-v5.mjs', ['--write']], ['run.mjs', []], ['verify-correction-v4.mjs', ['--check']]])
++    assert.throws(() => run(base, name, args), /exact read-only/u);
++}));
++
++test('a non-historical child keeps its original native timeout under the preload', async () => fixture(async ({ base, write }) => {
++  await write('other.mjs', 'setTimeout(()=>console.log("unexpected"),120);');
++  await write('corrective-assessment-v5.mjs', `import {execFileSync} from 'node:child_process';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';
++try{execFileSync(process.execPath,[fileURLToPath(new URL('./other.mjs',import.meta.url))],{timeout:10});throw Error('unexpected success');}
++catch(error){assert.equal(error.code,'ETIMEDOUT');console.log(JSON.stringify({status:'PASS',native_error:error.code}));}`);
++  assert.equal(JSON.parse(run(base)).native_error, 'ETIMEDOUT');
++}));
++
++test('a known filename with --write gets no deadline extension from the preload', async () => fixture(async ({ base, write }) => {
++  await write('corrective-assessment-v5.mjs', `import {execFileSync} from 'node:child_process';import assert from 'node:assert/strict';import {fileURLToPath} from 'node:url';
++try{execFileSync(process.execPath,[fileURLToPath(new URL('./verify-correction-v4.mjs',import.meta.url)),'--write'],{timeout:10});throw Error('unexpected success');}
++catch(error){assert.equal(error.code,'ETIMEDOUT');console.log(JSON.stringify({status:'PASS',native_error:error.code}));}`);
++  assert.equal(JSON.parse(run(base)).native_error, 'ETIMEDOUT');
++}));
++
++test('original child exit status, stdout and stderr propagate', async () => fixture(async ({ base, write }) => {
++  await write('verify-correction-v4.mjs', `process.stdout.write('original stdout');process.stderr.write('original failure');process.exit(7);`);
++  assert.throws(() => run(base, 'verify-correction-v4.mjs', [], { stdio: 'pipe' }), error =>
++    error.status === 7 && String(error.stdout) === 'original stdout' && String(error.stderr) === 'original failure');
++}));
++
++test('maxBuffer and supplied environment/cwd are preserved; process.env is untouched', async () => fixture(async ({ base, write }) => {
++  const before = { ...process.env };
++  await write('verify-correction-v4.mjs', `console.log(JSON.stringify({cwd:process.cwd(),custom:process.env.TEST_HISTORY_CUSTOM}));`);
++  assert.deepEqual(JSON.parse(run(base, 'verify-correction-v4.mjs', [], { env: { ...process.env, TEST_HISTORY_CUSTOM: 'literal' } })), { cwd: base, custom: 'literal' });
++  await write('verify-correction-v4.mjs', `process.stdout.write('x'.repeat(100000));`);
++  assert.throws(() => run(base, 'verify-correction-v4.mjs', [], { maxBuffer: 128, stdio: 'pipe' }), error => error.code === 'ENOBUFS');
++  assert.deepEqual({ ...process.env }, before);
++}));
++
++test('nested children and sequential siblings share an absolute deadline, with parent cleanup time', async () => fixture(async ({ base, write }) => {
++  await write('verify-correction-v3.mjs', `setTimeout(()=>console.log(JSON.stringify({status:'PASS'})),30);`);
++  await write('verify-correction-v4.mjs', `import {execFileSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
++console.log(execFileSync(process.execPath,[fileURLToPath(new URL('./verify-correction-v3.mjs',import.meta.url))],{timeout:10,encoding:'utf8'}));`);
++  await write('corrective-assessment-v5.mjs', `import {execFileSync} from 'node:child_process';import {fileURLToPath} from 'node:url';import {readFileSync} from 'node:fs';
++const s=JSON.parse(process.env.${STATE_ENV});const script=fileURLToPath(new URL('./verify-correction-v4.mjs',import.meta.url));
++for(let i=0;i<2;i++)execFileSync(process.execPath,[script],{timeout:10,encoding:'utf8'});
++console.log(JSON.stringify({status:'PASS',state:s,events:readFileSync(s.receipt_path,'utf8').trim().split('\\n').map(JSON.parse)}));`);
++  const result = JSON.parse(run(base)), edges = result.events.filter(event => event.event === 'child_budget');
++  assert.deepEqual(edges.map(event => event.depth), [1, 2, 3, 2, 3]);
++  for (const edge of edges) assert.equal(edge.parent_deadline_ms - edge.child_deadline_ms, 2000);
++  const siblings = edges.filter(edge => edge.depth === 2);
++  assert.equal(siblings[0].child_deadline_ms, siblings[1].child_deadline_ms);
++  assert(siblings[1].effective_timeout_ms < siblings[0].effective_timeout_ms);
++  assert.equal(result.state.root_deadline_ms - result.state.started_ms, 900000);
++}));
++
++test('two URLs of identical policy bytes reuse the true native function without double preparation', async () => fixture(async ({ base, write }) => {
++  await write('corrective-assessment-v5.mjs', `import {runHistoricalCheckSync} from './historical-execution-v1.mjs';import {fileURLToPath} from 'node:url';import {readFileSync} from 'node:fs';
++runHistoricalCheckSync(fileURLToPath(new URL('./verify-correction-v4.mjs',import.meta.url)),[],{timeout:10,encoding:'utf8'});
++const s=JSON.parse(process.env.${STATE_ENV});console.log(JSON.stringify({status:'PASS',events:readFileSync(s.receipt_path,'utf8').trim().split('\\n').map(JSON.parse)}));`);
++  const { events } = JSON.parse(run(base)), edges = events.filter(event => event.event === 'child_budget');
++  assert.deepEqual(edges.map(event => event.depth), [1, 2]);
++  const activations = events.filter(event => event.event === 'preload_active');
++  assert.equal(new Set(activations.map(event => event.pid)).size, activations.length);
++}));
++
++test('a second URL with different policy bytes fails visibly', async () => fixture(async ({ base, write }) => {
++  await write('historical-execution-policy-v1.mjs', (await readFile(policyPath, 'utf8')) + '\n// changed policy copy\n');
++  await write('corrective-assessment-v5.mjs', `await import('./historical-execution-policy-v1.mjs');console.log('unexpected success');`);
++  assert.throws(() => run(base, 'corrective-assessment-v5.mjs', ['--check'], { stdio: 'pipe' }),
++    error => error.status === 1 && /Conflicting historical execution policy bytes/u.test(String(error.stderr)));
++}));
++
++test('a short shared overall budget stops a real child before its parent deadline', async () => fixture(async ({ base, root, write }) => {
++  await write('verify-correction-v4.mjs', `setTimeout(()=>console.log('unexpected success'),5000);`);
++  const receipt = resolve(root, 'bounded-events.jsonl'); await writeFile(receipt, '', { flag: 'wx' });
++  const now = Date.now(), state = { policy: POLICY_ID, policy_sha256: POLICY_SHA256,
++    started_ms: now, root_deadline_ms: now + 4500, deadline_ms: now + 4500, depth: 0, receipt_path: receipt };
++  let error;
++  try { execFileSync(process.execPath, ['--import', pathToFileURL(policyPath).href,
++    resolve(base, 'corrective-assessment-v5.mjs'), '--check'], {
++    cwd: base, encoding: 'utf8', stdio: 'pipe', timeout: 7000,
++    env: { ...process.env, [STATE_ENV]: JSON.stringify(state) },
++  }); } catch (failure) { error = failure; }
++  assert.equal(error?.status, 1, 'The child must report failure; the outer harness must not time out');
++  assert.match(String(error.stderr), /ETIMEDOUT/u);
++  assert(Date.now() - now < 4500, 'Parent cleanup reserve was exhausted');
++  const edges = (await eventsIn(receipt)).filter(event => event.event === 'child_budget');
++  assert.equal(edges.length, 1); assert.equal(edges[0].child_deadline_ms, state.deadline_ms - 2000);
++}));
++
++test('current wrapper still rejects archived snapshot and manifest drift before callback', async () => {
++  const { withCorrectionV5Code } = await import(pathToFileURL(resolve(OWN, E, 'verify-correction-v5.mjs')));
++  const root = await mkdtemp(resolve(tmpdir(), 'anxin-history-archive-negative-'));
++  const base = resolve(root, E);
++  try {
++    await mkdir(resolve(base, 'corrections-v5'), { recursive: true });
++    await cp(resolve(SOURCE, E, 'correction-code-v5'), resolve(base, 'correction-code-v5'), { recursive: true });
++    const manifestBytes = await readFile(resolve(SOURCE, E, 'corrections-v5/manifest.json'));
++    await writeFile(resolve(base, 'corrections-v5/manifest.json'), manifestBytes);
++    const snapshot = resolve(base, 'correction-code-v5/lib/material-fact-source-review.ts.snapshot');
++    const bytes = await readFile(snapshot); await writeFile(snapshot, Buffer.concat([bytes, Buffer.from('\n// drift\n')]));
++    let entered = false;
++    await assert.rejects(withCorrectionV5Code(() => { entered = true; }, root), /Correction code changed/u);
++    assert.equal(entered, false);
++    await writeFile(snapshot, bytes);
++    await writeFile(resolve(base, 'corrections-v5/manifest.json'), Buffer.concat([manifestBytes, Buffer.from('\n')]));
++    await assert.rejects(withCorrectionV5Code(() => { entered = true; }, root));
++    assert.equal(entered, false);
++  } finally { await rm(root, { recursive: true, force: true }); }
++});
