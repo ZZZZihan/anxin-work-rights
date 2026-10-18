@@ -118,9 +118,9 @@ for (const [expression, first, second] of ranges) test('neither endpoint of a co
   for (const value of [first, second]) unavailableInSource(text, value);
 });
 
-for (const [value, amount] of [['5元5角', '5.50'], ['5元5角2分', '5.52'], ['0元5角', '0.50'], ['12元3分', '12.03'],
+for (const [value, amount] of [["5元５角", "5.50"], ["５元5角", "5.50"], ['5元5角', '5.50'], ['5元5角2分', '5.52'], ['0元5角', '0.50'], ['12元3分', '12.03'],
   ['1,005元2角3分', '1005.23'], ['人民币5元5角2分整', '5.52'], ['5元0角0分', '5.00']])
-  test('a complete ASCII yuan/jiao/fen literal has exact cents without an automatic historical upgrade: ' + value, () => {
+  test('a complete yuan/jiao/fen literal has exact cents without an automatic historical upgrade: ' + value, () => {
     const normalized = normalizeMoneyValueV4(value);
     assert.equal(normalized.amount, amount);
     assert.equal(normalized.status, 'exact');
@@ -145,7 +145,7 @@ for (const expression of ['5元5角2分', '5元５角２分', '5.5元5角', '5�
     const value = expression.startsWith('5.5') ? '5.5元' : expression.startsWith('5万') ? '5万元' : '5元';
     unavailableInSource('😀王甲工资为' + expression + '。', value);
   });
-for (const value of ['5元５角', '５元5角', '5.5元5角', '5万元5角'])
+for (const value of ['5.5元5角', '5万元5角'])
   test('unsupported mixed, scaled, decimal or fullwidth subunits do not become precise fragments: ' + value, () => {
     assert.equal(normalizeMoneyValueV4(value).amount, null);
     const text = '😀王甲工资为' + value + '。', candidate = entry(value, value), source = sourceFor(text);
@@ -197,3 +197,5 @@ test('a whole ASCII subunit literal has the Chinese-equivalent key and scores it
   const row = allScores(text, candidate, candidate, '5元5角2分', [1, 0, 0]);
   assert.equal(row.production_defense[0].amount, '5.52');
 });
+
+// ROUND30 adds complete fullwidth numerals; all malformed/cropped cases retain their assertions.

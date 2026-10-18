@@ -1238,6 +1238,39 @@ try {
     durableSnapshots.push({ name: `round29-split-${name}`, item, state: before });
     return { amount: expected, sourceBlocks: 2, rawAndStoredHistoryUnchanged: true };
   });
+  // ROUND30: keep all prior cases and verify bounded fullwidth/prose support,
+  // explicit proportion operands and signed suffixes in fresh and historical reads.
+  const round30Cases = [
+    ...['４０００元', '人民币４０００元', '￥４０００元'].map(value => ({ name: `fullwidth-${value}`, phrase: value, value, amount: '4000.00', historyNull: true })),
+    ...['一次性支付', '一并支付', '三日内支付'].map(tail => ({ name: `prose-${tail}`, phrase: `4000元${tail}`, value: '4000元', amount: '4000.00' })),
+    ...['半成', '半折', '对折'].flatMap(tail => [false, true].map(full => ({ name: `proportion-${tail}-${full}`, phrase: `四万元乘以${tail}`, value: full ? `四万元乘以${tail}` : '四万元', amount: null, seed: '40000.00' }))),
+    ...['（负数）', '为负数', '负值'].flatMap(tail => [false, true].map(full => ({ name: `signed-${tail}-${full}`, phrase: `4000元${tail}`, value: full ? `4000元${tail}` : '4000元', amount: null, seed: '4000.00' }))),
+    ...['半成计算', '半折计发', '对折支付'].flatMap(tail => [false, true].map(full => ({ name: `proportion-tail-${tail}-${full}`, phrase: `四万元乘以${tail}`, value: full ? `四万元乘以${tail}` : '四万元', amount: null, seed: '40000.00' }))),
+    ...['为负数记录', '负值金额'].flatMap(tail => [false, true].map(full => ({ name: `signed-tail-${tail}-${full}`, phrase: `4000元${tail}`, value: full ? `4000元${tail}` : '4000元', amount: null, seed: '4000.00' }))),
+    ...[false, true].map(full => ({ name: `payment-question-${full}`, phrase: '4000元三日内支付?', value: full ? '4000元三日内支付?' : '4000元', amount: null, seed: '4000.00' })),
+    { name: 'fullwidth-foreign', phrase: '４０００港元', value: '４０００', amount: null, seed: '4000.00' },
+    { name: 'fullwidth-range', phrase: '４０００元至５０００元', value: '４０００元', amount: null, seed: '4000.00' },
+    { name: 'fullwidth-rate', phrase: '４０００元每天', value: '４０００元', amount: null, seed: '4000.00' },
+    { name: 'real-number-tail', phrase: '4000元五角', value: '4000元', amount: null, seed: '4000.00' },
+    { name: 'signed-next-sentence', phrase: '4000元。王乙余额为负数', value: '4000元', amount: '4000.00' },
+    { name: 'fullwidth-decimal', phrase: '４０００．５０元', value: '４０００．５０元', amount: '4000.50', historyNull: true },
+  ];
+  for (const entry of round30Cases) await scenario(`round30_${entry.name}`, async () => {
+    const text = `测试王甲工资${entry.phrase}。`;
+    const [item] = await fixture(`round30-${entry.name}`, [{ text, exactSource: true, candidates: [money(entry.value, entry.value, { meaning: 'other_money', completeness: 'not_applicable', period: null })] }]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, entry.amount);
+    if (entry.amount === null) assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    else assert.equal(material.candidates[0].normalization.status, 'exact');
+    if (entry.historyNull || entry.amount === null) {
+      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = entry.historyNull ? null : entry.seed;
+      old.normalization = { rawValue: old.value, amount: old.amount, status: entry.historyNull ? 'unsupported' : 'exact', matchedText: old.value, span: { start: 0, end: Array.from(old.value).length }, reason: 'Synthetic historical ROUND30 amount for downgrade or non-upgrade verification' };
+      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, entry.historyNull ? null : entry.amount); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round30-${entry.name}`, item, state: before });
+    return { freshAmount: entry.amount, historicalExactDowngraded: entry.amount === null, historicalUnsupportedNotUpgraded: Boolean(entry.historyNull), rawAndStoredHistoryUnchanged: true };
+  });
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

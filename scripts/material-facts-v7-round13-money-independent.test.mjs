@@ -100,7 +100,7 @@ for (const [value, amount] of [['5元五角', '5.50'], ['5元零五分', '5.05']
     assert.equal(canonical(value), 'exact:' + amount);
     exactSource(value, amount);
   });
-for (const value of ['5元十五角', '5元五角十二分', '5.5元五角', '4万元五角', '5元五角零伍分', '5元零零分', '５元五角', '5元五角２分'])
+for (const value of ['5元十五角', '5元五角十二分', '5.5元五角', '4万元五角', '5元五角零伍分', '5元零零分', ])
   test('unsupported mixed precision or ordering stays accepted but unavailable: ' + value, () => {
     assert.equal(money(value).amount, null);
     const candidate = entry(value), source = sourceFor('😀王甲工资' + value + '。');
@@ -189,3 +189,8 @@ test('noncurrency unit extraction remains a raw FP while all accepted score laye
   const row = assess(source, [], [], [entry('5分鐘')], { raw: [0, 1, 0], accepted: [0, 0, 0] });
   assert.equal(row.raw_count, 1); assert.equal(row.accepted_count, 0); assert.equal(row.rejected.length, 1);
 });
+
+for (const [value, amount] of [["５元五角", "5.50"], ["5元五角２分", "5.52"]])
+  test("complete fullwidth numeral contract: " + value, () => exactSource(value, amount));
+
+// ROUND30 adds complete fullwidth numerals; all malformed/cropped cases retain their assertions.

@@ -81,7 +81,7 @@ for (const value of ['5元十五角', '5元五角十二分', '5元55角', '5元�
   '5元五分伍角', '5元五角贰角', '5元五分贰分', '5元整五角', '5元五角零2分', '5元五角零贰分',
   '5元零零分', '5元零〇分', '5元零0分', '5元〇五分', '5元零零五分', '5元五角贰分3', '5元五角贰分３',
   '5元五角贰分另有300', '5元五角贰分另有３', '5.5元五角', '5.0元五角', '4万元五角', '4亿元五角',
-  '５元五角', '5元５角', '5元伍角２分', '5元5角２分', '5元五角贰分3元', '12,34元五角',
+  '5元五角贰分3元', '12,34元五角',
   '1000000000000元壹角', '5元五角的两倍', '5元五角乘以K', '5元五分之K', '5元伍分之一',
   '5元五分钟后离开', '5元伍分鐘后离开', '5元五分\u200d钟后离开', '5元五分\n钟后离开', '5元伍角度示意图'])
   test(`invalid order, precision, scale, unit word or formula stays unavailable: ${JSON.stringify(value)}`, () => {
@@ -109,3 +109,8 @@ for (const [unit, rateUnit] of [['月', 'month'], ['日', 'day'], ['小时', 'ho
   assert.equal(ingest(f).materials[0].candidates[0].amount, '5.52');
   assert.equal(ingest({ ...f, candidate: { ...f.candidate, meaning: 'arrears', rateUnit: null }, raw: JSON.stringify({ schemaVersion: 3, candidates: [{ ...f.candidate, meaning: 'arrears', rateUnit: null }] }) }).materials[0].candidates[0].amount, null);
 });
+
+// ROUND30 adds complete fullwidth numerals; the former unsupported cases now
+// require exact cents, raw evidence and source handling. Cropped cases stay rejected.
+for (const [value, amount] of [["５元五角", "5.50"], ["5元５角", "5.50"], ["5元伍角２分", "5.52"], ["5元5角２分", "5.52"]])
+  test("complete fullwidth numeral contract: " + value, () => exact(value, amount));

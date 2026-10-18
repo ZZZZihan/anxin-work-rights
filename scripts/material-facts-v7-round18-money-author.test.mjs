@@ -84,9 +84,9 @@ for (const [value, expected] of [
 for (const value of [
   '五元55角', '五元十五角', '五元5角22分', '五元5角十二分', '五元五五角', '五元5分2角', '五元5角2角',
   '五元零零分', '五元零0分', '五元零〇分', '五元5角零2分', '五元〇5分', '五元整5角',
-  '五元５角', '五元5角２分', '五元5角2分３', '五元5角2分3', '五点五元5角', '5.5元5角', '4万元5角',
+  '五元5角2分３', '五元5角2分3', '五点五元5角', '5.5元5角', '4万元5角',
   '壹仟壹元5角', '伍元5角零2分', '伍元伍角零贰分', '伍元零零分', '伍元零0分', '伍元5角22分',
-  '伍元5分2角', '伍元5角2分元', '伍元５角', '负伍元5角2分', '负五元5角2分', '+伍元5角2分',
+  '伍元5分2角', '伍元5角2分元', '负伍元5角2分', '负五元5角2分', '+伍元5角2分',
   '壹万亿元5角2分', '一万亿元5角2分', '五元5角2分另有300', '五元5角2分和六元5角', '五元5角至六元5角', '约五元5角', '五元5角余',
   '五元5角的2倍', '五元5角乘以实际出勤系数', '五元5分钟', '五元5分之一', '五元5角度',
 ]) test('abnormal order, precision, scaled Arabic yuan, qualifier or word boundary remains null: ' + value, () => {
@@ -159,3 +159,8 @@ test('a normal 之后 continuation does not turn fen into a fractional operand',
   assert.equal(normalize({ ...f.candidate, quote: f.source.blocks[0].text }).amount, '5.05');
   assert.equal(ingest(f).materials[0].candidates[0].amount, '5.05');
 });
+
+for (const [value, amount] of [["五元５角", "5.50"], ["五元5角２分", "5.52"], ["伍元５角", "5.50"]])
+  test("complete fullwidth numeral contract: " + value, () => exact(value, amount));
+
+// ROUND30 adds complete fullwidth numerals; all malformed/cropped cases retain their assertions.
