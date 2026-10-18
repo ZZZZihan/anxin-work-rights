@@ -172,12 +172,36 @@ describe('three-way classification does not require ASCII digits', () => {
 });
 
 describe('v7 integration compatibility and definite wage descriptions', () => {
+  it('rejects a definite relative-month wage description without an amount', () => {
+    expect(classifyMonetaryExpression('这个月工资')).toMatchObject({ kind: 'not_monetary', normalization: { status: 'not_money', amount: null } });
+  });
   it.each(['某月工资', '7月份工资', '七月份工资', '本月工资', '离职前工资', '工资合计'])('rejects the definite non-money phrase %s', value => {
     expect(classifyMonetaryExpression(value).kind).toBe('not_monetary');
   });
   it.each(['8000 CNY', 'CNY8000', '8000 RMB', '8000ＲＭＢ', '8000人民币', '￥8000元'])('keeps directly attached RMB context: %s', quote => {
     const raw = { kind: 'money', value: '8000', quote, blockId: 'b', subject: null, scope: 'unknown', meaning: 'other_money', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' } as const;
     expect(normalizeCandidateValueV4(raw).amount).toBe('8000.00');
+  });
+});
+
+describe('relative-month wage descriptions retain the three-way money boundary', () => {
+  const relativeMonths = ['上月', '上个月', '上一个月', '下月', '下个月', '下一个月', '本月', '当月', '该月', '这月', '这个月', '某月', '每月'];
+  it.each(relativeMonths)('identifies a complete wage description for %s without inventing an amount', month => {
+    for (const value of [`${month}工资`, `${month}的基本工资`, `${month}劳务费合计`, `${month}其他劳动报酬总额`]) {
+      expect(classifyMonetaryExpression(value)).toMatchObject({ kind: 'not_monetary', normalization: { rawValue: value, status: 'not_money', amount: null } });
+    }
+  });
+  it.each(relativeMonths)('retains unknown, masked, ranged and precise amounts for %s', month => {
+    for (const [suffix, status] of [['工资未明确', 'masked'], ['工资X元', 'masked'], ['工资四万元至五万元', 'range'], ['工资约四万元', 'approximate']] as const) {
+      const value = `${month}${suffix}`;
+      expect(classifyMonetaryExpression(value)).toMatchObject({ kind: 'monetary', normalization: { rawValue: value, status, amount: null } });
+    }
+    const value = `${month}工资四万元`;
+    expect(classifyMonetaryExpression(value)).toMatchObject({ kind: 'monetary', normalization: { rawValue: value, status: 'exact', amount: '40000.00' } });
+  });
+  it.each(['这个月工资若干', '当月工资四万', '下一个月工资待核'])('keeps the unresolved expression %s available for review', value => {
+    expect(classifyMonetaryExpression(value).kind).toBe('undetermined');
+    expect(classifyMonetaryExpression(value).normalization.amount).toBeNull();
   });
 });
 

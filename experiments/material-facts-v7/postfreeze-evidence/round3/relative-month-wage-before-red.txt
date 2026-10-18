@@ -1,0 +1,46 @@
+Actual tool execution evidence; no replay or reconstructed output.
+Command: npx vitest run lib/material-money-v4.test.ts --reporter=dot
+Tool chunk_id: e87768
+Exit code: 1
+
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money
+
+··············································································································································································································x························································································································
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/material-money-v4.test.ts > v7 integration compatibility and definite wage descriptions > rejects a definite relative-month wage description without an amount
+AssertionError: expected { kind: 'undetermined', …(1) } to match object { kind: 'not_monetary', …(1) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "kind": "not_monetary",
++   "kind": "undetermined",
+    "normalization": {
+      "amount": null,
+-     "status": "not_money",
++     "status": "unsupported",
+    },
+  }
+
+ ❯ lib/material-money-v4.test.ts:176:49
+    174| describe('v7 integration compatibility and definite wage descriptions'…
+    175|   it('rejects a definite relative-month wage description without an am…
+    176|     expect(classifyMonetaryExpression('这个月工资')).toMatchObject({ kind: …
+       |                                                 ^
+    177|   });
+    178|   it.each(['某月工资', '7月份工资', '七月份工资', '本月工资', '离职前工资', '工资合计'])('reject…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 326 passed (327)
+   Start at  12:41:40
+   Duration  497ms (transform 60ms, setup 0ms, collect 69ms, tests 39ms, environment 0ms, prepare 47ms)
+
+
