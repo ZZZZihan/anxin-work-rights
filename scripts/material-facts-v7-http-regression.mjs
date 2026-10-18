@@ -1444,6 +1444,31 @@ try {
     return {freshAmount: entry.amount, historicalExactDowngraded: entry.amount === null, historicalNullNotUpgraded: entry.amount !== null, rawAndStoredHistoryUnchanged: true};
   });
   // End ROUND34 additions.
+  // ROUND34 CI closure: independent newline versus explicit slash continuation.
+  for (const entry of [
+    {name: 'detached-month', text: '测试王甲2026年1月完整应付工资80000元\n每月。', amount: '80000.00', status: 'exact', relation: true},
+    {name: 'slash-line-total', text: '测试王甲工资80000元/\n月。', amount: null, status: 'rate_unit_mismatch'},
+    {name: 'slash-line-rate', text: '测试王甲工资80000元/\n月。', amount: '80000.00', status: 'exact', rate: true},
+    {name: 'slash-line-compound', text: '测试王甲工资80000元/\n月亮。', amount: null, status: 'unsupported', rate: true},
+    {name: 'slash-next-block', text: '测试王甲工资80000元\n/月亮。', amount: null, status: 'unsupported', rate: true},
+    {name: 'bounded-unit-total', text: '测试王甲工资80000元/月以上。', amount: null, status: 'rate_unit_mismatch'},
+    {name: 'bounded-unit-rate', text: '测试王甲工资80000元/月以上。', amount: null, status: 'approximate', rate: true},
+    {name: 'bounded-word-compound', text: '测试王甲工资80000元/月以上海。', amount: null, status: 'unsupported', rate: true},
+  ]) await scenario(`round34_ci_${entry.name}`, async () => {
+    const attributes = entry.rate ? {meaning: 'rate', completeness: 'not_applicable', period: null, rateUnit: 'month'} : {period: entry.name === 'detached-month' ? '2026年1月' : null};
+    const [item] = await fixture(`round34-ci-${entry.name}`, [{text: entry.text, exactSource: true, candidates: [money('80000元', '80000元', attributes)]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); const fact = material.candidates[0];
+    assert.equal(fact.amount, entry.amount); assert.equal(fact.normalization.status, entry.status);
+    if (entry.relation) assert(fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = entry.amount === null ? '80000.00' : null;
+    old.normalization = {rawValue: old.value, amount: old.amount, status: entry.amount === null ? 'exact' : 'unsupported', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic historical ROUND34 CI compatibility boundary'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round34-ci-${entry.name}`, item, state: before});
+    return {freshAmount: entry.amount, normalizationStatus: entry.status, historicalExactDowngraded: entry.amount === null, historicalNullNotUpgraded: entry.amount !== null, rawAndStoredHistoryUnchanged: true};
+  });
+  // End ROUND34 CI closure additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

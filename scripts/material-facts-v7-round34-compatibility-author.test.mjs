@@ -1,0 +1,66 @@
+// ROUND34 CI compatibility closure; synthetic module checks, no HTTP/model/scorer.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+const OWN = fileURLToPath(new URL('../', import.meta.url));
+const BASE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
+const PATCH = resolve(process.env.MATERIAL_FACT_PATCH_ROOT || OWN);
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-round34-unit-compat-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+await cp(resolve(BASE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+for (const file of ['material-money-v4.ts', 'material-fact-source-review.ts']) await cp(resolve(PATCH, 'lib', file), resolve(temporary, 'lib', file));
+const load = file => import(pathToFileURL(resolve(temporary, 'lib', file)).href);
+const { normalizeCandidateValueV4: normalize } = await load('material-money-v4.ts');
+const { emptyFactState, ingestCandidates, applyFactAction, buildFactView } = await load('material-facts-v3.ts');
+const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest.ts');
+const { reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
+const AT = '2026-10-17T12:00:00.000Z', ACTOR = 'synthetic-owner';
+const entry = overrides => ({ kind: 'money', value: '80000元', quote: '80000元', blockId: 'b1', subject: '王甲', scope: 'individual', meaning: 'due_total', completeness: 'complete', period: '2024年7月', rateUnit: null, assertion: 'narrated', ...overrides });
+function fixture(text, overrides = {}, next = null) {
+ const source = { id: 'round34-compat', name: '合成分母词界兼容', sha256: 'a'.repeat(64), analysisRevision: 1, ready: true, blocks: [{ id: 'b1', page: 1, text: '😀王甲2024年7月' + text + (next === null ? '。' : ''), bbox: null, confidence: null }] };
+ if(next !== null) source.blocks.push({ ...source.blocks[0], id: 'b2', text: next + '。' });
+ const candidate = entry(overrides), raw = JSON.stringify({ schemaVersion: 3, candidates: [candidate] });
+ return { source, candidate, raw };
+}
+function verify(f, expectedAmount, expectedStatus = null) {
+ const initial = structuredClone(f), fresh = ingestRuntimeCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', ACTOR, AT);
+ assert.equal(fresh.materials[0].raw, f.raw); assert.equal(fresh.confirmations.due, null); assert.equal(fresh.confirmations.paid, null); assert.equal(fresh.calculation, null);
+ const check = state => { const fact = state.materials[0].candidates[0]; assert(fact); assert.equal(fact.amount, expectedAmount); if(expectedStatus) assert.equal(fact.normalization.status, expectedStatus);
+  assert.deepEqual(fact.representation, f.candidate); assert.equal(fact.normalization.rawValue, f.candidate.value); assert.equal(fact.value, f.candidate.value); assert.equal(fact.quote, f.candidate.quote);
+  const block = f.source.blocks.find(b => b.id === fact.blockId); assert.equal(Array.from(block.text).slice(fact.start, fact.end).join(''), f.candidate.quote); return fact; };
+ check(fresh);
+ let legacy = ingestCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', ACTOR, AT);
+ legacy = applyFactAction(legacy, { action: 'confirm_scope', scope: { worker: '王甲', employer: '甲公司', start: '2024-07-01', end: '2024-07-31' }, note: 'Synthetic legacy scope', verified: true }, [f.source], ACTOR, AT);
+ const fact = legacy.materials[0].candidates[0]; fact.amount = '80000.00'; fact.normalization = { rawValue: fact.value, amount: fact.amount, status: 'exact', matchedText: fact.value, span: { start: 0, end: Array.from(fact.value).length }, reason: 'Synthetic persisted exact' };
+ const stored = structuredClone(legacy), reviewed = reviewFactsAgainstSources(legacy, [f.source]); check(reviewed); assert.deepEqual(legacy, stored); assert.deepEqual(reviewed.history, stored.history);
+ fact.amount = null; fact.normalization = { rawValue: fact.value, amount: null, status: 'unsupported', matchedText: null, span: null, reason: 'Synthetic unavailable history' };
+ const unavailable = structuredClone(legacy); assert.equal(reviewFactsAgainstSources(legacy, [f.source]).materials[0].candidates[0].amount, null); assert.deepEqual(legacy, unavailable); assert.deepEqual(f, initial);
+ return reviewed;
+}
+for(const text of ['工资记录1\n80000元', '工资记录每小时\n80000元', '完整应付80000元\n每月']) test('legacy newline stays a relation warning: ' + text, () => {
+ const f = fixture(text), reviewed = verify(f, '80000.00', 'exact');
+ assert.deepEqual(reviewed.materials[0].candidates[0].reviewIssues.map(i => i.code), ['source_relation_unresolved']);
+ assert.deepEqual(buildFactView(reviewed, [f.source]).fields.due.values, []);
+});
+for(const tail of ['月以上', '月以下', '月以内', '小时以上', '小時以上']) for(const correct of [false, true]) test('supported unit plus finite bound: ' + tail + '/' + correct, () => {
+ const c = entry({ value: '四万元', quote: '王甲工资四万元/' + tail, period: null, ...(correct ? { meaning: 'rate', completeness: 'not_applicable', rateUnit: /小时|小時/u.test(tail) ? 'hour' : 'month' } : {}) });
+ const actual = normalize(c); assert.equal(actual.amount, null); assert.equal(actual.normalization.status, correct ? 'approximate' : 'rate_unit_mismatch'); assert.equal(actual.normalization.rawValue, c.value);
+});
+for(const layout of ['line', 'block']) for(const tail of ['月', '月亮', '月份', '小时候']) for(const correct of [false, true]) test('explicit slash preserves layout denominator: ' + JSON.stringify({layout, tail, correct}), () => {
+ const unit = tail === '小时候' ? 'hour' : 'month', overrides = correct ? { meaning: 'rate', completeness: 'not_applicable', rateUnit: unit } : {};
+ const f = layout === 'line' ? fixture('完整应付80000元/\n' + tail, overrides) : fixture('完整应付80000元', overrides, '/' + tail);
+ const valid = tail === '月'; verify(f, valid && correct ? '80000.00' : null, valid ? correct ? 'exact' : 'rate_unit_mismatch' : 'unsupported');
+});
+for(const tail of ['月亮', '月份', '小时候', '月以上海', '月以下列']) test('ordinary denominator compound cannot borrow a supported unit: ' + tail, () => {
+ const c = entry({ value: '四万元', quote: '王甲工资四万元/' + tail, meaning: 'rate', completeness: 'not_applicable', rateUnit: /小时/u.test(tail) ? 'hour' : 'month' });
+ assert.equal(normalize(c).amount, null); assert.equal(normalize(c).normalization.status, 'unsupported');
+});
+
+for(const unit of ['月', '小時']) for(const layout of ['line', 'block']) test('supported rate still carries its bound through layout: ' + JSON.stringify({unit, layout}), () => {
+ const attributes = { meaning: 'rate', completeness: 'not_applicable', rateUnit: unit === '月' ? 'month' : 'hour' };
+ const f = layout === 'line' ? fixture('完整应付80000元/' + unit + '\n以上', attributes) : fixture('完整应付80000元', attributes, '/' + unit + '以上');
+ verify(f, null, 'approximate');
+});
