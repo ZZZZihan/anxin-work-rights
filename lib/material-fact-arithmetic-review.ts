@@ -87,10 +87,10 @@ const AMOUNT_NOUN = ['工资', '基本工资', '月工资', '工资款', '工资
 const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${PROPORTION})`, 'u');
 
 function detectionView(value: string): string {
-  const glyphs: Record<string, string> = { 貳: '贰', 參: '叁', 陸: '陆', 獎: '奖', 終: '终', 費: '费', 資: '资', 績: '绩', 貼: '贴', 補: '补', 勞: '劳', 務: '务', 動: '动', 報: '报', 經: '经', 濟: '济', 償: '偿', 賠: '赔', 減: '减', 當: '当', 實: '实', 應: '应', 約: '约', 適: '适', 計: '计', 發: '发', 齡: '龄', 數: '数' };
+  const glyphs: Record<string, string> = { 貳: '贰', 參: '叁', 陸: '陆', 獎: '奖', 終: '终', 費: '费', 資: '资', 績: '绩', 貼: '贴', 補: '补', 勞: '劳', 務: '务', 動: '动', 報: '报', 經: '经', 濟: '济', 償: '偿', 賠: '赔', 減: '减', 當: '当', 實: '实', 應: '应', 約: '约', 適: '适', 計: '计', 發: '发', 齡: '龄', 數: '数', 係: '系' };
   return value.normalize('NFKC').replace(/\p{Cf}/gu, '')
     .replace(/[^\S\r\n\u2028\u2029]/gu, '')
-    .replace(/[貳參陸獎終費資績貼補勞務動報經濟償賠減當實應約適計發齡數]/gu, glyph => glyphs[glyph]);
+    .replace(/[貳參陸獎終費資績貼補勞務動報經濟償賠減當實應約適計發齡數係]/gu, glyph => glyphs[glyph]);
 }
 
 /** Inspect raw text immediately before and after one already anchored money span.
