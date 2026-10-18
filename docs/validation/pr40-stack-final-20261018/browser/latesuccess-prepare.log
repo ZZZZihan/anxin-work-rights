@@ -1,0 +1,22 @@
+### Result
+{"scenario":"late_success_prepare","status":"READY","held":{"status":200,"generation":10,"revision":18,"receipt":{"due":"8000.00","paid":"0.00","gap":"8000.00","at":"2026-10-18T02:10:44.727Z","actor":"independent-browser-owner","generation":10,"receiptId":"1b36b0c6-82d8-4035-95bf-5bd745217171"}},"interception":"Genuine completed calculation response held at page fetch return boundary"}
+### Ran Playwright code
+```js
+await (async (page) => {
+ const headers={'oai-authenticated-user-id':'independent-browser-owner','oai-authenticated-user-email':'independent@synthetic.test'};const path='http://127.0.0.1:63531/api/cases/3175b33b-687a-496c-a569-cbb41dbb33a4/facts';
+ let data=await(await page.request.get(path,{headers})).json();const act=async action=>{const response=await page.request.post(path,{headers,data:{...action,generation:data.generation,revision:data.revision}});if(response.status()!==200)throw new Error('Calculation setup failed '+response.status());data=await response.json();};
+ for(const source of data.sources.filter(x=>x.id!=='413ae0bc-45e0-4856-bd1b-e4345e4ca29c'))await act({action:'exclude_source',evidenceId:source.id,reason:'合成软件测试：额外并发测试文件，不属于本次核算原文。'});
+ await act({action:'confirm_scope',scope:{worker:'测试张甲',employer:'独立浏览器合成单位',start:'2026-01-01',end:'2026-01-31'},note:'合成软件测试：人工确认范围，不从候选自动授权。',verified:true});
+ const reviewedCandidateIds=data.candidates.filter(x=>!['worker','employer','period'].includes(x.kind)).map(x=>x.id);
+ for(const[field,amount]of[['due','8000'],['paid','0']])await act({action:'confirm_amount',field,amount,note:'合成软件测试：人工输入已核实总额，仅为软件回归。',reviewedCandidateIds,complete:true,verified:true});if(!data.canCalculate)throw new Error('No calculation authorization');
+ await page.reload();await page.getByRole('button',{name:'按已确认事实计算差额',exact:true}).waitFor();
+ await page.waitForFunction(()=>!Array.from(document.querySelectorAll('button')).find(x=>x.textContent.includes('按已确认事实计算差额'))?.disabled);
+ await page.evaluate(()=>{const real=window.fetch.bind(window);window.__lateSuccess={held:false};window.fetch=async(...args)=>{const[url,init]=args;const response=await real(...args);if(String(url).endsWith('/facts')&&init?.method==='POST'&&JSON.parse(init.body).action==='calculate'){window.__lateSuccess.status=response.status;window.__lateSuccess.body=await response.clone().json();window.__lateSuccess.held=true;await new Promise(resolve=>window.__lateSuccess.release=resolve);}else if(String(url).endsWith('/facts')&&(!init?.method||init.method==='GET'))window.__latestFactGet=await response.clone().json();return response;};});
+ await page.getByRole('button',{name:'按已确认事实计算差额',exact:true}).click();await page.waitForFunction(()=>window.__lateSuccess.held);
+ const held=await page.evaluate(()=>({status:window.__lateSuccess.status,generation:window.__lateSuccess.body.generation,revision:window.__lateSuccess.body.revision,receipt:window.__lateSuccess.body.state.calculation}));if(held.status!==200||!held.receipt?.receiptId)throw new Error('No genuine completed server calculation');
+ return {scenario:'late_success_prepare',status:'READY',held,interception:'Genuine completed calculation response held at page fetch return boundary'};
+})(page);
+```
+### Page
+- Page URL: http://127.0.0.1:63531/#evidence
+- Page Title: 安薪乐业｜劳动权益行动工作台

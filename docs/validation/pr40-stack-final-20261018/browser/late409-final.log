@@ -1,0 +1,15 @@
+### Result
+{"scenario":"late_real409_after_newGET","status":"PASS","oldRequest":{"generation":6,"revision":9,"httpStatus":409},"newGet":{"generation":10,"revision":12,"held":true,"httpStatus":409},"draftWorker":"未保存的范围劳动者草稿","draftNote":"未保存的范围核实依据草稿","errorCount":0,"sourceCount":3,"interception":"Real server409 held at page fetch return boundary; real UI upload triggers newerGET"}
+### Ran Playwright code
+```js
+await (async (page) => {
+ await page.waitForFunction(()=>window.__latestFactGet?.generation>6);
+ const latest=await page.evaluate(()=>({generation:window.__latestFactGet.generation,revision:window.__latestFactGet.revision,held:window.__late409.held,httpStatus:window.__late409.httpStatus}));
+ await page.waitForFunction(latest=>document.querySelector('.material-result-meta')?.textContent.includes('材料版本 '+latest.generation+' · 确认版本 '+latest.revision),latest);
+ const before=await page.locator('.material-result-meta').textContent();await page.evaluate(()=>window.__late409.release());await page.waitForFunction(()=>!document.querySelector('.fact-scope input[type=text]')?.disabled);
+ if(await page.locator('.material-result-meta').textContent()!==before)throw new Error('Old409 changed accepted version');if(await page.locator('.material-error').count())throw new Error('Old409 locked newGET');
+ const worker=await page.getByRole('textbox',{name:'劳动者全名',exact:true}).inputValue();const note=await page.getByRole('textbox',{name:'范围核实依据 / 冲突处理说明',exact:true}).inputValue();if(worker!=='未保存的范围劳动者草稿'||note!=='未保存的范围核实依据草稿')throw new Error('Old409 cleared draft');
+ await page.locator('.fact-scope').screenshot({path:'output/playwright/pr40-final-browser/late409-ignored.png'});
+ return {scenario:'late_real409_after_newGET',status:'PASS',oldRequest:{generation:6,revision:9,httpStatus:409},newGet:latest,draftWorker:worker,draftNote:note,errorCount:await page.locator('.material-error').count(),sourceCount:await page.locator('.fact-source-card').count(),interception:'Real server409 held at page fetch return boundary; real UI upload triggers newerGET'};
+})(page);
+```

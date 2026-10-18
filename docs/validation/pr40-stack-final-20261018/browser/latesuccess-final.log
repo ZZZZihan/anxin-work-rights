@@ -1,0 +1,14 @@
+### Result
+{"scenario":"late_completed_calculation_ignored","status":"PASS","held":{"generation":10,"revision":18,"receipt":{"due":"8000.00","paid":"0.00","gap":"8000.00","at":"2026-10-18T02:10:44.727Z","actor":"independent-browser-owner","generation":10,"receiptId":"1b36b0c6-82d8-4035-95bf-5bd745217171"}},"newGet":{"generation":12,"revision":19,"calculation":null,"canCalculate":false},"receiptVisible":false,"calculationDisabled":true,"errorCount":0,"sourceCount":4,"interception":"Genuine server completed calculation response delayed only before browser component receives it; actual UI upload plus newerGET"}
+### Ran Playwright code
+```js
+await (async (page) => {
+ await page.waitForFunction(()=>window.__latestFactGet?.generation>window.__lateSuccess.body.generation);
+ const latest=await page.evaluate(()=>({generation:window.__latestFactGet.generation,revision:window.__latestFactGet.revision,calculation:window.__latestFactGet.state.calculation,canCalculate:window.__latestFactGet.canCalculate}));await page.waitForFunction(latest=>document.querySelector('.material-result-meta')?.textContent.includes('材料版本 '+latest.generation+' · 确认版本 '+latest.revision),latest);
+ const before=await page.locator('.material-result-meta').textContent();const held=await page.evaluate(()=>({generation:window.__lateSuccess.body.generation,revision:window.__lateSuccess.body.revision,receipt:window.__lateSuccess.body.state.calculation}));await page.evaluate(()=>window.__lateSuccess.release());await page.waitForFunction(()=>!document.querySelector('.fact-scope input[type=text]')?.disabled);
+ if(await page.locator('.material-result-meta').textContent()!==before)throw new Error('Old success changed current generation/revision');if(await page.locator('.fact-calculation-result').count())throw new Error('Old receipt restored');if(await page.locator('.material-error').count())throw new Error('Old success introduced error');
+ if(!await page.getByRole('button',{name:'按已确认事实计算差额',exact:true}).isDisabled())throw new Error('Old success restored compute authorization');
+ await page.locator('.fact-calculation').screenshot({path:'output/playwright/pr40-final-browser/late-success-ignored.png'});
+ return {scenario:'late_completed_calculation_ignored',status:'PASS',held,newGet:latest,receiptVisible:false,calculationDisabled:true,errorCount:await page.locator('.material-error').count(),sourceCount:await page.locator('.fact-source-card').count(),interception:'Genuine server completed calculation response delayed only before browser component receives it; actual UI upload plus newerGET'};
+})(page);
+```
