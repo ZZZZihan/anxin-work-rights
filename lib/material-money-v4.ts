@@ -57,8 +57,8 @@ function result(rawValue: string, status: CandidateNormalization['status'], reas
 // the numeric token. It cannot silently turn 数十万 or 负数四万 into its tail.
 function monetaryDetectionView(value: string): string {
   // Fold only detection copies; keep line boundaries and every raw offset.
-  return moneyQualifierDetectionView(value).replace(/[兩億詳無確認載記註實補暫計給發號]/gu,
-    glyph => ({ 兩: '两', 億: '亿', 詳: '详', 無: '无', 確: '确', 認: '认', 載: '载', 記: '记', 註: '注', 實: '实', 補: '补', 暫: '暂', 計: '计', 給: '给', 發: '发', 號: '号' })[glyph]!);
+  return moneyQualifierDetectionView(value).replace(/[兩億詳無確認載記註實補暫計給發號時]/gu,
+    glyph => ({ 兩: '两', 億: '亿', 詳: '详', 無: '无', 確: '确', 認: '认', 載: '载', 記: '记', 註: '注', 實: '实', 補: '补', 暫: '暂', 計: '计', 給: '给', 發: '发', 號: '号', 時: '时' })[glyph]!);
 }
 
 // Only uncertainty matching joins layout inside its finite existing words;
@@ -288,7 +288,13 @@ export function hasPostposedMoneyUncertainty(after: string): boolean {
   // ×/x/* also occur in redactions. An explicit attached operation keeps
   // its established unsupported status instead of becoming a masked value.
   if (hasAttachedMoneyArithmetic('', after)) return false;
-  const text = uncertaintyDetectionView(after);
+  const detection = uncertaintyDetectionView(after);
+  // A supported slash/每 denominator cannot hide the same directly attached
+  // unknown marker. Consume one finite rate wrapper only; clause punctuation
+  // and another person's prose remain barriers in the existing predicate.
+  const rate = detection.match(/^(?:[元圆圓])?(?:\/|每)(?:小时|月|日|天|时|件)(?:计算|计酬|计价|计薪|计)?/u);
+  const text = rate ? detection.slice(rate[0].length) : detection;
+  if (rate && hasAttachedMoneyArithmetic('', text)) return false;
   return new RegExp(`^\\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\\s*[()[\\]{}【】]*\\s*(?:(?:金[额額]|[数數][额額])\\s*(?:为|為|是|[:=])?\\s*)?(?:${MASKED.source}|${UNCERTAIN.source})`, 'iu').test(text);
 }
 
@@ -334,7 +340,9 @@ function attachedSuffixRate(after: string) {
   }
   const suffix = detection.match(/^\s*(?:[元圆圓]\s*)?(?:\/\s*([\p{L}]+)|每\s*(小时|月|日|天|时|件|年|周|週|季度|季|次|分钟|分鐘|秒|公里|人|班))/u);
   const text = suffix?.[1] ?? suffix?.[2];
-  return { present: suffix !== null, supported: text?.match(/^(小时|月|日|天|时|件)/u)?.[1], postposedBy: false, uncertain: false };
+  const supported = text?.match(/^(小时|月|日|天|时|件)/u)?.[1];
+  return { present: suffix !== null, supported, postposedBy: false,
+    uncertain: supported !== undefined && hasPostposedMoneyUncertainty(detection) };
 }
 
 /** A single 整/正 may end a complete amount, but cannot hide its continuation.

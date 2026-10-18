@@ -7,7 +7,12 @@ const owned = new WeakMap();
 const pause = ms => new Promise(done => setTimeout(done, ms));
 
 export function spawnOwnedChild(command, args, options = {}) {
-  const child = spawn(command, args, { stdio: 'ignore', ...options, detached: process.platform !== 'win32' });
+  // Windows has no POSIX process group. Killing only the launcher (or using
+  // taskkill after that launcher exits) cannot prove its descendants are gone.
+  // Until a native owned-tree implementation is available and tested, refuse
+  // before spawning so a failed runner cannot leave a worker behind.
+  if (process.platform === 'win32') throw Object.assign(new Error('Windows HTTP runners require a verified owned process-tree implementation; no child was started.'), { code: 'ERR_OWNED_HTTP_PLATFORM_UNSUPPORTED' });
+  const child = spawn(command, args, { stdio: 'ignore', ...options, detached: true });
   const state = { closed: false };
   child.once('close', () => { state.closed = true; });
   child.once('error', () => {}); // The caller still handles startup errors.
@@ -20,8 +25,7 @@ export function signalOwnedChild(child, signal) {
   assert(owned.has(child), 'Only runner-owned detached children may be signalled.');
   if (!child.pid) return;
   try {
-    if (process.platform === 'win32') child.kill(signal);
-    else process.kill(-child.pid, signal);
+    process.kill(-child.pid, signal);
   } catch (error) { if (error.code !== 'ESRCH') throw error; }
 }
 
@@ -48,7 +52,6 @@ function processTable(timeoutMs) {
 export async function ownedGroupAlive(child, timeoutMs = 1000) {
   assert(owned.has(child), 'Only runner-owned process groups may be inspected.');
   if (!child.pid) return false;
-  if (process.platform === 'win32') return child.exitCode === null && child.signalCode === null;
   // Group signal probes can report EPERM after the group has disappeared on
   // macOS. The bounded, validated process table below establishes live members;
   // a signal error or a failed/empty table never counts as successful cleanup.

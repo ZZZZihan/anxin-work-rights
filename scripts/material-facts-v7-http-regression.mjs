@@ -1271,6 +1271,48 @@ try {
     durableSnapshots.push({ name: `round30-${entry.name}`, item, state: before });
     return { freshAmount: entry.amount, historicalExactDowngraded: entry.amount === null, historicalUnsupportedNotUpgraded: Boolean(entry.historyNull), rawAndStoredHistoryUnchanged: true };
   });
+  // ROUND31: traditional/date spelling preserves raw evidence and confirmation.
+  for (const [name, text, value, meaning, supported] of [
+    ['monthly-number', '测试王甲每月15号收到工资。', '每月15号', 'payment_date', true],
+    ['monthly-traditional', '测试王甲每月十五號收到工資。', '每月十五號', 'payment_date', true],
+    ['actual-receipt', '测试王甲於2026年1月實際收到工資。', '2026年1月', 'payment_date', true],
+    ['employment-end', '测试王甲於2026年1月解除勞動關係。', '2026年1月', 'employment_period', true],
+    ['denied-receipt', '测试王甲於2026年1月未實際收到工資。', '2026年1月', 'payment_date', false],
+    ['other-worker', '测试王甲记载测试王乙每月15号收到工资。', '每月15号', 'payment_date', false],
+  ]) await scenario(`round31_date_${name}`, async () => {
+    const candidate = { kind: 'date', value, quote: value, subject: '测试王甲', scope: 'individual', meaning, completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' };
+    const [item] = await fixture(`round31-date-${name}`, [{ text, exactSource: true, candidates: [candidate] }]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1);
+    assert.equal(material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !supported);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !supported);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round31-date-${name}`, item, state: before });
+    return { value, supported, rawAndStoredHistoryUnchanged: true };
+  });
+  for (const [name, value, meaning, rateUnit, amount, sourceValue = value] of [
+    ['hour-long', '4000元/小時', 'rate', 'hour', '4000.00'],
+    ['hour-every', '4000元每小時', 'rate', 'hour', '4000.00'],
+    ['hour-short', '4000元/時', 'rate', 'hour', '4000.00'],
+    ['hour-as-total', '4000元/小時', 'due_total', null, null],
+    ['hour-pending-cropped', '4000元', 'rate', 'hour', null, '4000元/小時待定'],
+    ['hour-pending-full', '4000元/小時待定', 'rate', 'hour', null],
+  ]) await scenario(`round31_rate_${name}`, async () => {
+    const text = `测试王甲工资${sourceValue}。`;
+    const [item] = await fixture(`round31-rate-${name}`, [{ text, exactSource: true, candidates: [money(value, value, { meaning, completeness: meaning === 'rate' ? 'not_applicable' : 'complete', period: null, rateUnit })] }]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, amount);
+    if (amount !== null) {
+      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = null;
+      old.normalization = { rawValue: value, amount: null, status: 'unsupported', matchedText: null, span: null, reason: 'Synthetic historical unsupported traditional hourly suffix' };
+      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null, 'Read-time review must not upgrade a stored null amount.');
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round31-rate-${name}`, item, state: before });
+    return { freshAmount: amount, historicalUnsupportedNotUpgraded: amount !== null, rawAndStoredHistoryUnchanged: true };
+  });
+  // End ROUND31 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
