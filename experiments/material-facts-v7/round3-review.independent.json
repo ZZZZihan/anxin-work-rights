@@ -1,0 +1,276 @@
+{
+  "schema": "material-facts-v7-round3-independent/1",
+  "reviewed_at": "2026-10-18T04:47:09.842490+00:00",
+  "status": "passed_for_scoped_round3_repairs_and_independently_recomputed_v2",
+  "blocking_findings": [],
+  "reviewer": "Non-implementer of money presence, ingestion deduplication, scorer and historical wrappers.",
+  "requested_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_runtime_independently_verified": false
+  },
+  "reviewed_sha256": {
+    "lib/material-fact-runtime-ingest.ts": "a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f",
+    "lib/material-money-v4.ts": "0cb4948c106dbf4522ea7deec8e3c4f0fe141bd3260869813a3cb7c9b2a14ff8",
+    "lib/material-money-v4.test.ts": "8c552e7e88e55c121976614a56563f72926a86f93787c97c738b7549ce23bca0",
+    "lib/material-fact-source-review.ts": "97c3ed0e0f24fa67ff3369a9732261811caba224dddbf63a87b54b3cb8115ae0",
+    "experiments/material-facts-v7/assess.mjs": "d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1",
+    "experiments/material-facts-v7/verify-correction-v1.mjs": "c064038697087ef882ac581c5cebc7389098074a685f8bbb6d5299c61a68bc09",
+    "experiments/material-facts-v7/corrective-assessment-v2.mjs": "47e26263c368bdd4a7c8a5fe1356637ceff82fcb8c86cf8208782d5044b12b21",
+    "experiments/material-facts-v7/verify-frozen.mjs": "530d6fbc3c9bbeeeeea6fd7812496fe3b605d9c0724f71591fecbed8db4bc5f9",
+    "experiments/material-facts-v7/corrective-assessment.mjs": "daeb46b530667f243aabd52ec117ab431b5bbe77c8c2f607271afac9d2d87ea4",
+    "scripts/material-facts-v7-round3-independent.test.mjs": "2028d3413d72e05e6c8d39dbdad8a000ff85d328bb1479f5b07ef4d1e2a6122c",
+    "scripts/material-facts-v7-correction-v2-gates.test.mjs": "e581cd0aeb80a802e2b0010a7775906dadcde1c7a9692869a2224f9c7f815a12"
+  },
+  "historical_evidence_preserved_sha256": {
+    "POSTRUN_INDEPENDENT.md": "be4d3a449ba45861f68a721ab1c385b409824ca0198036d4955f8bfd5e4f264a",
+    "postrun-review.independent.json": "454c1fad40d3aeb8a30bcdae27eb638c84cf7601f579a5f2d9c5b3b00149205b",
+    "postfreeze-technical-review.independent.json": "f0ebb59c4cfce344cc50c60c64dbb223230f0d20a613af550b0adea245f8e710",
+    "technical-review.json": "b032f3fb9f0fb44cc3c6c5306523868bd32dcd9e7859270eff95feb897c6ea65",
+    "technical-review.initial.json": "9284a9748bd926fb54dfc5ebf7902dc654f884a955bb990d88d571218e9a7c2c",
+    "benchmark-review.independent.json": "aca940ba6f5cddc39769fb4afae952c1f34cbf3d620c06d1e9b3eb8dd54fdc49",
+    "benchmark-review.initial.json": "76da2f4ed48e51a9a37f200a3877ae8a07c07346a463afb8a9fe20e937eb540a",
+    "result-manifest.json": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+    "comparison.json": "5377e0b4b281ec7b2d31ba80ae796bbaac18996db361d364391409a7932ff1ce",
+    "freeze.json": "0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2",
+    "corrections/manifest.json": "eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de"
+  },
+  "new_evidence_sha256": {
+    "round3-independent-before-red.txt": "f7727cbcdbaae00009bc412f502a15071ec592388fe413f5398dc5767401c2c2",
+    "round3-independent-final-green.txt": "105912c78012efaa5ebe5aae9a91e7c290e7f9b7795279ff261fb3e753716670",
+    "correction-v2-independent-gates.txt": "cdf8165c498b32e44132f441e3a38b943828378c6f02eefb35455431ba39f5e8",
+    "correction-v2-independent-final-gates.txt": "747f421a4a272c5ee885a930c5aefead3e59d9fdb4aba3e5bb32aa3691c66863",
+    "correction-v2-independent-recompute.py": "c1ed53ba32fc59776dd8c9a012a0358b0a7cc06daa6e1fed6c563519e25cdaf6",
+    "correction-v2-independent-recomputation.json": "e7c1a213214343608473a0ce213a1580948be2d4073b21987db9e14fe5f5383a"
+  },
+  "supplement_sha256": "43edbc3e91ccd38f17092c44cbaaa89edbe287548e3d4b6b4d45316df5d084ba",
+  "actual_independent_checks": {
+    "round3_baseline": {
+      "tests": 26,
+      "pass": 12,
+      "fail": 14,
+      "fixture_errors": 0
+    },
+    "round3_final": {
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "expectations_changed": false
+    },
+    "v2_gates_final": {
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "subscenarios": 10
+    },
+    "eslint_new_scripts": "exit0"
+  },
+  "program_findings": {
+    "4305746125": "null/ambiguous occurrence never deduplicates a fallback; both observations stay raw and accepted, unresolved for scoring.",
+    "4305746130": "Illegal narrative wrappers cannot suppress minimal literal in either order; true unique finite RMB wrappers still deduplicate.",
+    "4305746128": "Finite complete relative-month wage descriptions are positively non-monetary; actual unknown/masked/ranged/foreign evidence remains reviewable."
+  },
+  "v1_archive": {
+    "paths": 24,
+    "manifest_sha256": "81327626774bed4b76305eb84fd3f00b9c4702228a012720b83b7ab95065a400",
+    "code_bytes_match_v1_manifest": true,
+    "current_code_claim": false,
+    "positive_real_cli_and_corruption_rejection_tested": true,
+    "cleanup_success_and_throw_tested": true
+  },
+  "v2": {
+    "manifest_sha256": "1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80",
+    "exact_file_count": 5,
+    "files_sha256": {
+      "report-rules.json": "0553db2f6eb0801c6311021f16ce67268a165cd8198afe66fa4821ee737dbaf7",
+      "report-qwen.json": "38eefe88b7cbdd047e20f6cc160cbd4290dfcb16ef599522881a597d06613c41",
+      "report-deepseek.json": "32937a32ce0f8af3ce61845cf05f8edc3d07f0e0200c623581014b5f3c117f7d",
+      "comparison.json": "bfdaa289b8a0f0eec1cfa7ebdf36c00cb9723d7785ed4bdbd0294be170f957d5"
+    },
+    "code_sha256_verified": true,
+    "first_result_manifest_sha256": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+    "previous_correction_manifest_sha256": "eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de",
+    "inference": false,
+    "training": false,
+    "documents_per_backend": 12,
+    "expected_facts_per_backend": 43,
+    "backend_document_pairs": 36,
+    "case_layer_counts_checked": 216,
+    "aggregate_metric_sets_checked": 18,
+    "case_layer_count_mismatches": 0,
+    "aggregate_mismatches": 0,
+    "canonical_key_differences": 0,
+    "protocol_differences": 0,
+    "changed_matching_or_count_cases_vs_v1": [],
+    "metrics": {
+      "rules": {
+        "raw_basic": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 41,
+          "precision": 1.0,
+          "recall": 0.046511627906976744,
+          "f1": 0.08888888888888889
+        },
+        "raw_relational": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "raw_strict": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "accepted_basic": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 41,
+          "precision": 1.0,
+          "recall": 0.046511627906976744,
+          "f1": 0.08888888888888889
+        },
+        "accepted_relational": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "accepted_strict": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      },
+      "qwen": {
+        "raw_basic": {
+          "tp": 16,
+          "fp": 47,
+          "fn": 27,
+          "precision": 0.25396825396825395,
+          "recall": 0.37209302325581395,
+          "f1": 0.3018867924528302
+        },
+        "raw_relational": {
+          "tp": 10,
+          "fp": 53,
+          "fn": 33,
+          "precision": 0.15873015873015872,
+          "recall": 0.23255813953488372,
+          "f1": 0.18867924528301888
+        },
+        "raw_strict": {
+          "tp": 8,
+          "fp": 55,
+          "fn": 35,
+          "precision": 0.12698412698412698,
+          "recall": 0.18604651162790697,
+          "f1": 0.1509433962264151
+        },
+        "accepted_basic": {
+          "tp": 16,
+          "fp": 35,
+          "fn": 27,
+          "precision": 0.3137254901960784,
+          "recall": 0.37209302325581395,
+          "f1": 0.3404255319148936
+        },
+        "accepted_relational": {
+          "tp": 10,
+          "fp": 41,
+          "fn": 33,
+          "precision": 0.19607843137254902,
+          "recall": 0.23255813953488372,
+          "f1": 0.2127659574468085
+        },
+        "accepted_strict": {
+          "tp": 8,
+          "fp": 43,
+          "fn": 35,
+          "precision": 0.1568627450980392,
+          "recall": 0.18604651162790697,
+          "f1": 0.1702127659574468
+        }
+      },
+      "deepseek": {
+        "raw_basic": {
+          "tp": 34,
+          "fp": 17,
+          "fn": 9,
+          "precision": 0.6666666666666666,
+          "recall": 0.7906976744186046,
+          "f1": 0.723404255319149
+        },
+        "raw_relational": {
+          "tp": 27,
+          "fp": 24,
+          "fn": 16,
+          "precision": 0.5294117647058824,
+          "recall": 0.627906976744186,
+          "f1": 0.574468085106383
+        },
+        "raw_strict": {
+          "tp": 25,
+          "fp": 26,
+          "fn": 18,
+          "precision": 0.49019607843137253,
+          "recall": 0.5813953488372093,
+          "f1": 0.5319148936170213
+        },
+        "accepted_basic": {
+          "tp": 34,
+          "fp": 17,
+          "fn": 9,
+          "precision": 0.6666666666666666,
+          "recall": 0.7906976744186046,
+          "f1": 0.723404255319149
+        },
+        "accepted_relational": {
+          "tp": 27,
+          "fp": 24,
+          "fn": 16,
+          "precision": 0.5294117647058824,
+          "recall": 0.627906976744186,
+          "f1": 0.574468085106383
+        },
+        "accepted_strict": {
+          "tp": 25,
+          "fp": 26,
+          "fn": 18,
+          "precision": 0.49019607843137253,
+          "recall": 0.5813953488372093,
+          "f1": 0.5319148936170213
+        }
+      }
+    },
+    "independent_source_sha256": "c1ed53ba32fc59776dd8c9a012a0358b0a7cc06daa6e1fed6c563519e25cdaf6",
+    "independent_full_details_sha256": "e7c1a213214343608473a0ce213a1580948be2d4073b21987db9e14fe5f5383a",
+    "method_dependency": "Uses real hash-bound runtime to produce accepted set and defense diagnostics; schema, all-position event alignment, comparison keys and maximum matching are independently implemented. No assess/verify called to count."
+  },
+  "limitations": [
+    "Original first-run and v1 defects remain part of their historical scope; v2 does not replace them.",
+    "Synthetic repairs change no scores for these saved answers; no fresh independent model run.",
+    "Cross-event partial-payment false alarm and cropped terminal 整 runtime null remain availability limitations.",
+    "Accepted and nonnull amount do not grant wage calculation authorization.",
+    "Provisional non-expert labels are not legal expert acceptance."
+  ],
+  "activity": {
+    "model_calls": 0,
+    "workers_or_services_started": 0,
+    "heavy_build": false,
+    "training": false,
+    "production_deployment": false,
+    "git_commit_push_merge": false
+  }
+}
