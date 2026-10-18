@@ -1,0 +1,431 @@
+{
+  "boundary": "Real route handlers and disposable Miniflare D1 with controlled material-service replies; no second Worker or actual model",
+  "baseline": "090b070",
+  "final_files_sha256": {
+    "lib/material-fact-recovery.test.ts": "d24122953327a36227272e8a71742d1090f50991281e30edf089787e727d85a2",
+    "lib/material-fact-store.ts": "aa6ee2c56929ab7844cf2d559ea16a1fe4d18513badb4a9db206c90316c7ee24",
+    "lib/material-fact-types.ts": "391383e2b8a6f0ab854b6a098f022f87d8592e0636bb33e7836cf80d7d438f98"
+  },
+  "only_authored_file": "lib/material-fact-recovery.test.ts",
+  "product_files": "Copied from root36 for verification only; not authored or delivered",
+  "runs": [
+    {
+      "phase": "baseline_minimal",
+      "path": "/tmp/anxin-pr36-recovery-before-minimal.json",
+      "passed": 0,
+      "failed": 3,
+      "cases": [
+        {
+          "name": "retains a running job after transient timeout and consumes its later success",
+          "status": "failed"
+        },
+        {
+          "name": "retains a running job after transient 503 and consumes its later success",
+          "status": "failed"
+        },
+        {
+          "name": "retains a running job after transient invalid JSON and consumes its later success",
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "phase": "baseline_20",
+      "path": "/tmp/anxin-pr36-recovery-before-full.json",
+      "passed": 7,
+      "failed": 13,
+      "cases": [
+        {
+          "name": "retains a running job after transient timeout and consumes its later success",
+          "status": "failed"
+        },
+        {
+          "name": "retains a running job after transient 503 and consumes its later success",
+          "status": "failed"
+        },
+        {
+          "name": "retains a running job after transient invalid JSON and consumes its later success",
+          "status": "failed"
+        },
+        {
+          "name": "keeps missing body recoverable without cancelling a possibly healthy task",
+          "status": "failed"
+        },
+        {
+          "name": "keeps null body recoverable without cancelling a possibly healthy task",
+          "status": "failed"
+        },
+        {
+          "name": "keeps unknown state recoverable without cancelling a possibly healthy task",
+          "status": "failed"
+        },
+        {
+          "name": "keeps incomplete ready envelope recoverable without cancelling a possibly healthy task",
+          "status": "failed"
+        },
+        {
+          "name": "preserves an explicit terminal service failure and cleans up immediately",
+          "status": "passed"
+        },
+        {
+          "name": "keeps invalid candidate protocol terminal and preserves raw output rather than authorizing it",
+          "status": "passed"
+        },
+        {
+          "name": "keeps truncated model output terminal and preserves raw output rather than authorizing it",
+          "status": "passed"
+        },
+        {
+          "name": "uses elapsed time rather than a small retry count for repeated transport errors",
+          "status": "failed"
+        },
+        {
+          "name": "a normal running reply clears the consecutive-error window before a later interruption",
+          "status": "failed"
+        },
+        {
+          "name": "permits the queue plus runtime budget, then terminates a job past the 31-minute total bound",
+          "status": "failed"
+        },
+        {
+          "name": "records the first legacy transport failure and bounds it without inventing a start date",
+          "status": "failed"
+        },
+        {
+          "name": "retains compatibility for an old starting claim and expires it without polling a fabricated job",
+          "status": "passed"
+        },
+        {
+          "name": "persists the caller UUID before POST and does not poll while submission is pending",
+          "status": "failed"
+        },
+        {
+          "name": "recovers a POST whose service accepted the known UUID but whose response was lost",
+          "status": "failed"
+        },
+        {
+          "name": "a transient loser returns the same-job completed snapshot without resurrecting it",
+          "status": "passed"
+        },
+        {
+          "name": "keeps a transient old poll conflicting after replacement job",
+          "status": "passed"
+        },
+        {
+          "name": "keeps a transient old poll conflicting after new generation",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "phase": "first_fix_20",
+      "path": "/tmp/anxin-pr36-recovery-after-first.json",
+      "passed": 20,
+      "failed": 0,
+      "cases": [
+        {
+          "name": "retains a running job after transient timeout and consumes its later success",
+          "status": "passed"
+        },
+        {
+          "name": "retains a running job after transient 503 and consumes its later success",
+          "status": "passed"
+        },
+        {
+          "name": "retains a running job after transient invalid JSON and consumes its later success",
+          "status": "passed"
+        },
+        {
+          "name": "keeps missing body recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps null body recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps unknown state recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps incomplete ready envelope recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "preserves an explicit terminal service failure and cleans up immediately",
+          "status": "passed"
+        },
+        {
+          "name": "keeps invalid candidate protocol terminal and preserves raw output rather than authorizing it",
+          "status": "passed"
+        },
+        {
+          "name": "keeps truncated model output terminal and preserves raw output rather than authorizing it",
+          "status": "passed"
+        },
+        {
+          "name": "uses elapsed time rather than a small retry count for repeated transport errors",
+          "status": "passed"
+        },
+        {
+          "name": "a normal running reply clears the consecutive-error window before a later interruption",
+          "status": "passed"
+        },
+        {
+          "name": "permits the queue plus runtime budget, then terminates a job past the 31-minute total bound",
+          "status": "passed"
+        },
+        {
+          "name": "records the first legacy transport failure and bounds it without inventing a start date",
+          "status": "passed"
+        },
+        {
+          "name": "retains compatibility for an old starting claim and expires it without polling a fabricated job",
+          "status": "passed"
+        },
+        {
+          "name": "persists the caller UUID before POST and does not poll while submission is pending",
+          "status": "passed"
+        },
+        {
+          "name": "recovers a POST whose service accepted the known UUID but whose response was lost",
+          "status": "passed"
+        },
+        {
+          "name": "a transient loser returns the same-job completed snapshot without resurrecting it",
+          "status": "passed"
+        },
+        {
+          "name": "keeps a transient old poll conflicting after replacement job",
+          "status": "passed"
+        },
+        {
+          "name": "keeps a transient old poll conflicting after new generation",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "phase": "adversarial_24",
+      "path": "/tmp/anxin-pr36-recovery-after-adversarial.json",
+      "passed": 22,
+      "failed": 2,
+      "cases": [
+        {
+          "name": "retains a running job after transient timeout and consumes its later success",
+          "status": "passed"
+        },
+        {
+          "name": "retains a running job after transient 503 and consumes its later success",
+          "status": "passed"
+        },
+        {
+          "name": "retains a running job after transient invalid JSON and consumes its later success",
+          "status": "passed"
+        },
+        {
+          "name": "keeps missing body recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps null body recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps unknown state recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps array running state recoverable without cancelling a possibly healthy task",
+          "status": "failed"
+        },
+        {
+          "name": "keeps array ready state recoverable without cancelling a possibly healthy task",
+          "status": "failed"
+        },
+        {
+          "name": "keeps incomplete ready envelope recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "preserves an explicit terminal service failure and cleans up immediately",
+          "status": "passed"
+        },
+        {
+          "name": "keeps invalid candidate protocol terminal and preserves raw output rather than authorizing it",
+          "status": "passed"
+        },
+        {
+          "name": "keeps truncated model output terminal and preserves raw output rather than authorizing it",
+          "status": "passed"
+        },
+        {
+          "name": "uses elapsed time rather than a small retry count for repeated transport errors",
+          "status": "passed"
+        },
+        {
+          "name": "a normal running reply clears the consecutive-error window before a later interruption",
+          "status": "passed"
+        },
+        {
+          "name": "permits the queue plus runtime budget, then terminates a job past the 31-minute total bound",
+          "status": "passed"
+        },
+        {
+          "name": "records the first legacy transport failure and bounds it without inventing a start date",
+          "status": "passed"
+        },
+        {
+          "name": "retains compatibility for an old starting claim and expires it without polling a fabricated job",
+          "status": "passed"
+        },
+        {
+          "name": "persists the caller UUID before POST and does not poll while submission is pending",
+          "status": "passed"
+        },
+        {
+          "name": "recovers a POST whose service accepted the known UUID but whose response was lost",
+          "status": "passed"
+        },
+        {
+          "name": "a transient loser returns the same-job completed snapshot without resurrecting it",
+          "status": "passed"
+        },
+        {
+          "name": "converges two readers recording the first warning for the same still-running job",
+          "status": "passed"
+        },
+        {
+          "name": "never attaches a mismatched submission acknowledgement instead of the claimed UUID",
+          "status": "passed"
+        },
+        {
+          "name": "keeps a transient old poll conflicting after replacement job",
+          "status": "passed"
+        },
+        {
+          "name": "keeps a transient old poll conflicting after new generation",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "phase": "final_26",
+      "path": "/tmp/anxin-pr36-recovery-after-strict.json",
+      "passed": 26,
+      "failed": 0,
+      "cases": [
+        {
+          "name": "retains a running job after transient timeout and consumes its later success",
+          "status": "passed"
+        },
+        {
+          "name": "retains a running job after transient 503 and consumes its later success",
+          "status": "passed"
+        },
+        {
+          "name": "retains a running job after transient invalid JSON and consumes its later success",
+          "status": "passed"
+        },
+        {
+          "name": "keeps missing body recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps null body recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps unknown state recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps array running state recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps array ready state recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "keeps incomplete ready envelope recoverable without cancelling a possibly healthy task",
+          "status": "passed"
+        },
+        {
+          "name": "preserves readable raw output from an incomplete envelope without making it a material or total",
+          "status": "passed"
+        },
+        {
+          "name": "preserves an explicit terminal service failure and cleans up immediately",
+          "status": "passed"
+        },
+        {
+          "name": "keeps invalid candidate protocol terminal and preserves raw output rather than authorizing it",
+          "status": "passed"
+        },
+        {
+          "name": "keeps truncated model output terminal and preserves raw output rather than authorizing it",
+          "status": "passed"
+        },
+        {
+          "name": "uses elapsed time rather than a small retry count for repeated transport errors",
+          "status": "passed"
+        },
+        {
+          "name": "a normal running reply clears the consecutive-error window before a later interruption",
+          "status": "passed"
+        },
+        {
+          "name": "permits the queue plus runtime budget, then terminates a job past the 31-minute total bound",
+          "status": "passed"
+        },
+        {
+          "name": "records the first legacy transport failure and bounds it without inventing a start date",
+          "status": "passed"
+        },
+        {
+          "name": "retains compatibility for an old starting claim and expires it without polling a fabricated job",
+          "status": "passed"
+        },
+        {
+          "name": "persists the caller UUID before POST and does not poll while submission is pending",
+          "status": "passed"
+        },
+        {
+          "name": "recovers a POST whose service accepted the known UUID but whose response was lost",
+          "status": "passed"
+        },
+        {
+          "name": "a transient loser returns the same-job completed snapshot without resurrecting it",
+          "status": "passed"
+        },
+        {
+          "name": "converges two readers recording the first warning for the same still-running job: partial raw=false",
+          "status": "passed"
+        },
+        {
+          "name": "converges two readers recording the first warning for the same still-running job: partial raw=true",
+          "status": "passed"
+        },
+        {
+          "name": "never attaches a mismatched submission acknowledgement instead of the claimed UUID",
+          "status": "passed"
+        },
+        {
+          "name": "keeps a transient old poll conflicting after replacement job",
+          "status": "passed"
+        },
+        {
+          "name": "keeps a transient old poll conflicting after new generation",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "PR40 schemaVersion3 port has not been run in this tree",
+    "Service/transport boundaries are mocked; cancellation tombstones and real HTTP are covered separately by other agent/root",
+    "31-minute and 60-second deadlines are exercised through persisted timestamps rather than waiting wall-clock durations",
+    "No repository commit, push, merge, deployment, or business acceptance performed by this agent"
+  ]
+}

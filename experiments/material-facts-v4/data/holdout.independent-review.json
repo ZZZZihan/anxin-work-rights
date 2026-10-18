@@ -1,0 +1,272 @@
+{
+  "schema": "material-facts-v4-independent-holdout-review/1",
+  "status": "passed_independent_semantic_and_provenance_review_before_holdout_inference",
+  "reviewed_at": "2026-10-17T04:45:15.454731+00:00",
+  "reviewer": {
+    "agent": "v4_app_integration",
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "ultra",
+    "independence": "did_not_author_or_select_public_materials_or_gold; previously_implemented_web_storage_API_UI_integration; did_not_author_model_prompt_or_evaluation_scorer",
+    "model_answers_or_scores_read": false,
+    "model_calls_performed": 0,
+    "training_performed": false,
+    "main_agent_received_specific_holdout_contents": false
+  },
+  "scope": [
+    "all_9_holdout_input_documents",
+    "all_167_final_expected_candidates",
+    "all_95_final_alternative_candidates",
+    "all_167_final_Unicode_locators",
+    "all_9_original_HTML_and_excerpt_reconstructions",
+    "all_6_redactions",
+    "12_selected_source_family_metadata_and_dev_context",
+    "CONTRACT.md",
+    "README.authoring.md"
+  ],
+  "baseline_files_sha256": {
+    "holdout.inputs.jsonl": "7acf7ff5c673f55668e7659497fe05d454687513e9a7e004e0b358354aca92fb",
+    "holdout.labels.provisional.jsonl": "c275c9406eae816322840b093ddb8188831c681bf1ec806944fa9c30935137a0",
+    "holdout.gold-locators.jsonl": "10d9aaebc8648bc76f3250d7d90bfcfb478d0b7ce53b7d935bffd4b99760057e",
+    "holdout.excerpt-receipts.jsonl": "653419f26f6e73d4b2953a2a4190c1b2972cb40751edac3c0d8711fecc7ea06c",
+    "README.authoring.md": "e1f1b3f39e6b210c12b434e51c6de024885776db94dd8fbc0b07e278ad668b9b",
+    "sources.selected.json": "90353b1a7d77d757f01b3a679f4ac73384f455453cc221d8fba4a7d73e1dacb2"
+  },
+  "contract_sha256": "7115fc6b1135ac2688ebca1158fa559f084dba6ebeea37087b7939d839bb5a1f",
+  "offline_checks": {
+    "status": "pass",
+    "raw_html_hashes": 9,
+    "excerpt_joined_UTF8_hashes": 9,
+    "original_paragraph_and_redaction_reconstructions": 9,
+    "redacted_substrings": 6,
+    "gold_locators": 167,
+    "strict_eight_field_and_enum_checks": "expected_and_all_alternatives_pass",
+    "quote_value_subject_period_literal_support": "pass",
+    "cross_split_family_overlap": 0,
+    "unique_selected_raw_hashes": 12,
+    "unique_selected_excerpt_hashes": 12,
+    "privacy_pattern_screen": "no_unredacted_ID_phone_email_or_labeled_residential_contact_field_detected",
+    "privacy_semantic_screen": "selected_input_paragraphs_read; nonessential_ID_address_tracking_fields_removed; necessary_public_party_names_remain; not_fully_anonymous",
+    "final_expected_candidates": 167,
+    "final_alternative_candidates": 95,
+    "strict_redundant_field_alternatives": 77,
+    "other_source_supported_alternatives": 18,
+    "exact_final_file_hashes_match_author_handoff": true,
+    "initial_input_bytes_unchanged": true,
+    "duplicate_exact_observable_expected_tuples": 0
+  },
+  "semantic_findings": [
+    {
+      "id": "H1",
+      "documents": [
+        "mf4-cq-yz-2024-75"
+      ],
+      "issue": "Contract signing event range is not evidence of contract performance period.",
+      "requested_resolution": "Change p0052 signing range qualifier from contract_period to other_period and align notes.",
+      "status": "resolved_rechecked_before_first_holdout_inference"
+    },
+    {
+      "id": "H2",
+      "documents": [
+        "mf4-yy-2025-8"
+      ],
+      "issue": "Explicit monthly wage-record periods were inconsistently omitted while one month and aggregate ranges were labeled.",
+      "requested_resolution": "Include explicit March/April/May/June/September wage-record periods and literal missing-year 2-9 range; treat same assertion same aggregate range variants as alternatives, never infer missing year or turn payment dates into wage periods.",
+      "status": "resolved_rechecked_before_first_holdout_inference"
+    },
+    {
+      "id": "H3",
+      "documents": [
+        "mf4-wx-xw-2021-50"
+      ],
+      "issue": "Employer alias candidate quoting nested contractor statement was labeled decided.",
+      "requested_resolution": "Use claimed for that nested assertion, or another exact independently supported alias location with matching assertion; do not promote from outer finding heading.",
+      "status": "resolved_rechecked_before_first_holdout_inference"
+    },
+    {
+      "id": "H4",
+      "documents": [
+        "mf4-yy-2025-8",
+        "mf4-cz-ly-2024-55"
+      ],
+      "issue": "Daily rates were labeled partial without the contract clearly identifying rates as partial amounts.",
+      "requested_resolution": "Before inference, use unknown for daily other_amount rates; reserve partial for explicit components/part amounts. Apply same generic rule to development set.",
+      "status": "resolved_rechecked_before_first_holdout_inference"
+    },
+    {
+      "id": "H5",
+      "documents": [
+        "mf4-wx-xw-2021-14",
+        "mf4-wx-xw-2021-50",
+        "mf4-yy-2025-8",
+        "mf4-cz-ly-2024-55"
+      ],
+      "issue": "Merging versus splitting repeated monetary events with different assertion/source roles was inconsistent.",
+      "requested_resolution": "Apply predeclared rule consistently: different source speakers or procedural conclusions with different assertion attributes are separate expected; same actor/assertion/event repetition is one expected with exact supported alternatives. Specifically recheck wx14 remaining-arrears party claim and reviewed 104995 finding, split wx50 payment acknowledgment/finding, ly payment claim/finding and yy table narrative/company claim.",
+      "status": "resolved_rechecked_before_first_holdout_inference"
+    },
+    {
+      "id": "H6",
+      "documents": [],
+      "issue": "Review independence must be described relative to annotation authorship rather than all application implementation.",
+      "requested_resolution": "Disclose prior web/API/storage integration role while recording no material/gold authorship, no scorer/prompt authorship and no model answer access.",
+      "status": "resolved_rechecked_before_first_holdout_inference"
+    },
+    {
+      "id": "H7",
+      "documents": [
+        "mf4-yc-th-2024-100"
+      ],
+      "issue": "Related insurance coverage/registration and wage-list evidence periods needed consistent coverage without confusing them with wage accrual.",
+      "resolution": "Source-supported other_period and literal wage-list year candidates added with attributed assertions; notes retain limits on calculable scope.",
+      "status": "resolved_rechecked_before_first_holdout_inference"
+    },
+    {
+      "id": "H8",
+      "documents": [],
+      "issue": "RawCandidate has no hidden claimant/event field, so identical observable tuples cannot be counted repeatedly solely by speaker changes.",
+      "resolution": "Contract authoring rules now deduplicate identical kind/value/subject/period/qualifier/assertion same-event tuples, preserve exact alternatives, and split observable attribute changes.",
+      "status": "resolved_rechecked_before_first_holdout_inference"
+    },
+    {
+      "id": "H9",
+      "documents": [
+        "mf4-yy-2025-8"
+      ],
+      "issue": "February wage-record period covers the cohort while the explicit zero applies only to one worker.",
+      "resolution": "Period canonical subject is null; only this source-supported period receives the explicit worker sub-scope alternative. Money zero remains strictly tied to the named worker and month; no generic monetary null relaxation.",
+      "status": "resolved_rechecked_before_first_holdout_inference"
+    },
+    {
+      "id": "H10",
+      "documents": [
+        "mf4-yc-th-2024-100",
+        "mf4-gz-hd-2024-533"
+      ],
+      "issue": "Entity alias attribution must follow its own exact quote context.",
+      "resolution": "Yc alias uses claimed under respondent answer; gz alias remains claimed with quote expanded to expose nested complaint attribution.",
+      "status": "resolved_rechecked_before_first_holdout_inference"
+    }
+  ],
+  "predeclared_equivalence_review": {
+    "status": "agree_with_strict_limits_before_inference",
+    "worker_subject": "null_or_exact_self_value_only_for_worker_kind",
+    "period_period": "null_or_exact_self_value_only_for_period_kind",
+    "not_extended_to_monetary_subject_or_period": true,
+    "matching": "maximum_one_to_one; duplicate_output_cannot_inflate_recall"
+  },
+  "limitations": [
+    "Official administrative narratives are not primary payroll or bank records.",
+    "Family separation does not establish institution/template separation or absence from pretraining.",
+    "Necessary public names remain, and privacy format screening is not proof of anonymity.",
+    "Full website terms and general redistribution or training rights are not cleared; this review does not create a license.",
+    "Freeze permission applies only to the exact four data-file hashes; any later change requires renewed review.",
+    "This is independent annotation review, not legal use-rights clearance, a model evaluation result, training, deployment, or human acceptance."
+  ],
+  "freeze_permitted": true,
+  "initial_reviewed_at": "2026-10-17T04:35:15.014189+00:00",
+  "result": "passed",
+  "files_sha256": {
+    "holdout.inputs.jsonl": "7acf7ff5c673f55668e7659497fe05d454687513e9a7e004e0b358354aca92fb",
+    "holdout.labels.provisional.jsonl": "b87b7b4c9daf25504189edb559ca2cac2d7e93ef85d3eb3def53c6d8623e45f4",
+    "holdout.gold-locators.jsonl": "876c602049e66c7223ce2ec81add36776a78edcc289f4e1f2bac0c623220c895",
+    "holdout.excerpt-receipts.jsonl": "b326760c37af8a6ff82a620640bb25050200b594570a3ecbba9278a50f63e3f6"
+  },
+  "documents": [
+    {
+      "id": "mf4-wx-xw-2021-14",
+      "expected_candidates": 17,
+      "alternative_candidates": 9,
+      "blocks": 7,
+      "codepoints": 3137,
+      "semantic_review": "passed_after_author_corrections"
+    },
+    {
+      "id": "mf4-wx-xw-2021-50",
+      "expected_candidates": 12,
+      "alternative_candidates": 6,
+      "blocks": 5,
+      "codepoints": 1878,
+      "semantic_review": "passed_after_author_corrections"
+    },
+    {
+      "id": "mf4-cq-yz-2024-75",
+      "expected_candidates": 21,
+      "alternative_candidates": 2,
+      "blocks": 7,
+      "codepoints": 2295,
+      "semantic_review": "passed_after_author_corrections"
+    },
+    {
+      "id": "mf4-yc-th-2024-100",
+      "expected_candidates": 10,
+      "alternative_candidates": 7,
+      "blocks": 4,
+      "codepoints": 3917,
+      "semantic_review": "passed_after_author_corrections"
+    },
+    {
+      "id": "mf4-yy-2025-8",
+      "expected_candidates": 22,
+      "alternative_candidates": 24,
+      "blocks": 12,
+      "codepoints": 2055,
+      "semantic_review": "passed_after_author_corrections"
+    },
+    {
+      "id": "mf4-zs-hl-2026-public",
+      "expected_candidates": 32,
+      "alternative_candidates": 21,
+      "blocks": 3,
+      "codepoints": 641,
+      "semantic_review": "passed_after_author_corrections"
+    },
+    {
+      "id": "mf4-cz-ly-2024-55",
+      "expected_candidates": 11,
+      "alternative_candidates": 4,
+      "blocks": 7,
+      "codepoints": 2235,
+      "semantic_review": "passed_after_author_corrections"
+    },
+    {
+      "id": "mf4-hn-zf-2021-28",
+      "expected_candidates": 19,
+      "alternative_candidates": 7,
+      "blocks": 4,
+      "codepoints": 3479,
+      "semantic_review": "passed_after_author_corrections"
+    },
+    {
+      "id": "mf4-gz-hd-2024-533",
+      "expected_candidates": 23,
+      "alternative_candidates": 15,
+      "blocks": 12,
+      "codepoints": 3687,
+      "semantic_review": "passed_after_author_corrections"
+    }
+  ],
+  "final_readme_sha256": "087860b927004309099606495875bc46c0df2ebc5f98e36255a8ede1eb4a8517",
+  "contract_sha256_at_final_review": "7115fc6b1135ac2688ebca1158fa559f084dba6ebeea37087b7939d839bb5a1f",
+  "review_history": [
+    {
+      "stage": "initial",
+      "status": "changes_requested",
+      "expected_candidates": 146,
+      "alternative_candidates": 16,
+      "receipt_preserved": "versions/holdout-initial-independent-review/holdout.independent-review.json"
+    },
+    {
+      "stage": "revised_review",
+      "status": "source_and_semantics_rechecked",
+      "expected_candidates": 167,
+      "alternative_candidates": 93
+    },
+    {
+      "stage": "final_before_holdout_inference",
+      "status": "passed",
+      "expected_candidates": 167,
+      "alternative_candidates": 95,
+      "input_bytes_changed": false
+    }
+  ]
+}

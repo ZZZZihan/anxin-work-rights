@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
+import { assess } from './assess.mjs';
+import { validateFactSource, validateCandidateOutput } from '../../lib/material-facts.ts';
+
+const root = fileURLToPath(new URL('../../', import.meta.url));
+const base = resolve(root, 'experiments/material-facts-v4');
+const bytes = path => readFile(resolve(base, path));
+const json = async path => JSON.parse(await bytes(path));
+const jsonl = async path => (await bytes(path)).toString().trim().split('\n').filter(Boolean).map(line => JSON.parse(line));
+const sha = value => createHash('sha256').update(value).digest('hex');
+const freeze = await json('freeze.json');
+const amendment = await json('freeze-amendment-1.json');
+const allowedAmendments = new Set(['experiments/material-facts-v4/run.mjs', 'experiments/material-facts-v4/verify.mjs']);
+for (const path of Object.keys(amendment.files)) assert(allowedAmendments.has(path), 'Amendment cannot change model/data/prompt/scorer');
+for (const [path, hash] of Object.entries(freeze.files)) {
+  const change = amendment.files[path];
+  if (change) {
+    assert.equal(change.before_sha256, hash);
+    assert.equal(sha(await bytes(change.original_snapshot)), hash, `Original frozen source changed: ${path}`);
+  }
+  assert.equal(sha(await readFile(resolve(root, path))), change?.after_sha256 ?? hash, `Frozen file changed: ${path}`);
+}
+const dataFreeze = await json('data/freeze.authoring.json');
+for (const [path, record] of Object.entries(dataFreeze.files)) assert.equal(sha(await bytes(`data/${path}`)), record.sha256, `Data changed: ${path}`);
+const sets = {};
+for (const split of ['dev', 'holdout']) {
+  const inputs = await jsonl(`data/${split}.inputs.jsonl`), labels = await jsonl(`data/${split}.labels.provisional.jsonl`);
+  assert.equal(inputs.length, split === 'dev' ? 3 : 9);
+  assert.equal(new Set(inputs.map(row => row.id)).size, inputs.length);
+  assert.deepEqual(inputs.map(row => row.id), labels.map(row => row.id));
+  for (let i = 0; i < inputs.length; i++) {
+    const source = inputs[i].source, label = labels[i];
+    validateFactSource(source);
+    assert.equal(source.sha256, sha(source.blocks.map(block => block.text).join('\n\n')));
+    const batch = validateCandidateOutput(JSON.stringify({ candidates: label.expected }), source);
+    assert.equal(batch.rejected.length, 0, `Invalid gold: ${inputs[i].id}`);
+    for (const alternative of label.acceptable_alternatives ?? []) {
+      assert(label.expected[alternative.expected_index]);
+      assert.equal(validateCandidateOutput(JSON.stringify({ candidates: alternative.candidates }), source).rejected.length, 0);
+    }
+  }
+  sets[split] = { inputs, labels };
+}
+const families = new Set(sets.dev.inputs.map(row => row.family_id));
+assert(sets.holdout.inputs.every(row => !families.has(row.family_id)));
+if (!process.argv.includes('--data-only')) {
+  const results = await json('result-manifest.json');
+  for (const [path, hash] of Object.entries(results.files)) assert.equal(sha(await bytes(path)), hash, `Result changed: ${path}`);
+  for (const run of results.runs) {
+    const { inputs, labels } = sets[run.split];
+    const report = assess(inputs, labels, await jsonl(`results/${run.name}/results.jsonl`));
+    assert.deepEqual(report, await json(`results/${run.name}/assessment.json`), `Score changed: ${run.name}`);
+    if (run.split === 'holdout') {
+      const protocol = await json(`results/${run.name}/protocol.json`);
+      assert.equal(protocol.input_sha256, sha(await bytes('data/holdout.inputs.jsonl')));
+      for (const [path, hash] of Object.entries(protocol.hashes)) assert.equal(hash, freeze.files[path]);
+    }
+  }
+}
+console.log(JSON.stringify({ status: 'PASS', frozen_files: Object.keys(freeze.files).length, dev: 3, holdout: 9, inference_or_training: false }));

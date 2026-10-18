@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFile } from 'node:child_process';
 import { createLinuxOcr } from './material-ocr-linux.mjs';
+import { createFactJobs, isFactJobId } from './fact-jobs.mjs';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_JOBS = 32;
@@ -196,14 +197,15 @@ async function ollama(path, body, timeout = 5000, signal) {
   return response.json();
 }
 
-/** Starts an authenticated, loopback-only service. Materials are never sent to a remote endpoint. */
-export async function createMaterialService({ token, port = 0, model = null } = {}) {
+/** Authenticated loopback service; OCR remains local. Fact backend is fixed by server configuration. */
+export async function createMaterialService({ token, port = 0, model = null, facts = {} } = {}) {
   if (typeof token !== 'string' || token.length < 32) throw new Error('A caller-generated token of at least 32 characters is required.');
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Invalid loopback port.');
   if (model !== null && (typeof model !== 'string' || !model.trim() || model.length > 150)) throw new Error('Invalid configured model.');
   const linuxOcr = process.platform === 'linux' ? createLinuxOcr() : null;
   const linuxCapabilities = linuxOcr ? await linuxOcr.probe() : null;
   const root = await mkdtemp(join(tmpdir(), 'anxin-material-service-'));
+  const factJobs = createFactJobs(facts);
   const jobs = new Map();
   const queue = [];
   const pendingCleanup = new Set();
@@ -364,11 +366,26 @@ export async function createMaterialService({ token, port = 0, model = null } = 
       if (url.search) throw failure('INVALID_PARAMETERS', '不接受 URL、模型或其他查询参数。');
       prune();
       if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, {
-        status: 'ok', capabilities: { ocr: process.platform === 'darwin' ? ['apple_vision', 'pdfkit', 'utf8_text'] : linuxCapabilities?.capabilities || ['utf8_text'],
+        status: 'ok', capabilities: { factBackend: factJobs.backend, factConfigured: factJobs.configured, factRemote: factJobs.backend === 'deepseek', ocr: process.platform === 'darwin' ? ['apple_vision', 'pdfkit', 'utf8_text'] : linuxCapabilities?.capabilities || ['utf8_text'],
           ...(linuxCapabilities?.error ? { ocrError: linuxCapabilities.error } : {}),
           structuring: model === APPLE_MODEL ? 'local_text_model' : model ? 'local_vision_model' : 'ocr_rules', model: modelInfo, modelError, maxPages: 5, maxBytes: MAX_BYTES, concurrency: 1, maxWaiting: 2 },
         cleanup: { pending: pendingCleanup.size, ...(pendingCleanup.size ? { error: 'TEMP_CLEANUP_FAILED' } : {}) },
       });
+      if (req.method === 'POST' && url.pathname === '/fact-jobs') {
+        if (Number(req.headers['content-length']) > 150000 || !String(req.headers['content-type']).startsWith('application/json')) throw failure('INVALID_PARAMETERS', '候选请求格式或长度无效。');
+        const bytes = await readBody(req);
+        if (bytes.length > 150000) throw failure('BODY_TOO_LARGE', '候选材料文本过长。', 413);
+        let payload;
+        try { payload = JSON.parse(bytes.toString('utf8')); } catch { throw failure('INVALID_PARAMETERS', '候选请求不是有效JSON。'); }
+        return json(res, 202, factJobs.submit(payload));
+      }
+      const factMatch = /^\/fact-jobs\/([^/]+)$/u.exec(url.pathname);
+      if (factMatch && !isFactJobId(factMatch[1])) throw failure('INVALID_PARAMETERS', '候选任务标识无效。');
+      if (factMatch && req.method === 'GET') {
+        const result = factJobs.get(factMatch[1]);
+        return json(res, result ? 200 : 404, result || { error: { code: 'JOB_NOT_FOUND', message: '候选任务不存在或已过期。' } });
+      }
+      if (factMatch && req.method === 'DELETE') { await factJobs.cancel(factMatch[1]); return json(res, 200, { ok: true }); }
       if (req.method === 'POST' && url.pathname === '/jobs') {
         if (jobs.size + incoming >= MAX_JOBS || queue.length + (processing ? 1 : 0) + incoming >= MAX_PENDING) throw failure('QUEUE_FULL', '材料处理队列已满，请稍后重试。', 429);
         const mime = String(req.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
@@ -423,6 +440,7 @@ export async function createMaterialService({ token, port = 0, model = null } = 
   catch (error) { closed = true; clearInterval(sweep); shutdown.abort(); await removeDirectory(root); throw error; }
   return { url: `http://127.0.0.1:${server.address().port}`, close: async () => {
     closed = true; clearInterval(sweep); shutdown.abort();
+    await factJobs.close();
     for (const job of jobs.values()) job.controller.abort(failure('SERVICE_CLOSED', '材料服务已关闭，请重试。'));
     for (const job of queue.splice(0)) { job.bytes = null; job.status = 'failed'; job.error = { code: 'SERVICE_CLOSED', message: '材料服务已关闭，请重试。' }; job.resolveDone(); }
     await new Promise((resolve) => server.close(resolve));
@@ -436,7 +454,7 @@ export async function createMaterialService({ token, port = 0, model = null } = 
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const service = await createMaterialService({ token: process.env.ANXIN_MATERIAL_TOKEN, port: Number(process.env.ANXIN_MATERIAL_PORT ?? 0), model: process.env.ANXIN_VISION_MODEL || null });
+  const service = await createMaterialService({ token: process.env.ANXIN_MATERIAL_TOKEN, port: Number(process.env.ANXIN_MATERIAL_PORT ?? 0), model: process.env.ANXIN_VISION_MODEL || null, facts: (await import('./fact-jobs.mjs')).factConfigFromEnvironment() });
   console.log(`Material service listening at ${service.url}`);
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, async () => { await service.close(); process.exit(0); });
 }

@@ -13,6 +13,7 @@ import { createMaterialService } from './material-service.mjs';
 const output = resolve(process.env.ANXIN_MATERIAL_REPORT || 'output/materials/http-production.json');
 await rm(output, { force: true }); // A failed run must not leave an older PASS report at this path.
 const mode = process.argv.includes('--images') ? 'images' : 'text';
+const factsMode = process.argv.includes('--facts');
 const temp = await mkdtemp(join(tmpdir(), 'anxin-material-http-'));
 const token = randomBytes(32).toString('hex');
 const model = process.env.ANXIN_MATERIAL_MODEL || process.env.ANXIN_VISION_MODEL || null;
@@ -48,7 +49,7 @@ try {
   }
   if (!ready) throw new Error('Isolated Worker readiness timed out.');
   const { mkdir } = await import('node:fs/promises'); await mkdir(dirname(output), { recursive: true });
-  const regressionArgs = ['scripts/material-http-regression.mjs', `http://127.0.0.1:${port}`, output, mode, '--service-restart'];
+  const regressionArgs = factsMode ? ['scripts/material-facts-http-regression.mjs', `http://127.0.0.1:${port}`, output] : ['scripts/material-http-regression.mjs', `http://127.0.0.1:${port}`, output, mode, '--service-restart'];
   if (process.argv.includes('--punctuation-equivalence')) regressionArgs.push('--punctuation-equivalence');
   const regression = spawn(process.execPath, regressionArgs, { stdio: ['inherit', 'inherit', 'inherit', 'ipc'] });
   let restartOperation;

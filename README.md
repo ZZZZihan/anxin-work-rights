@@ -120,7 +120,7 @@ flowchart LR
 
 ## 快速开始
 
-需要 **Node.js 22.13+、Python 3.10+**。图片与 PDF 可在 macOS（Swift、Apple Vision/PDFKit）或 Linux（Tesseract、chi_sim 中文语言包、Poppler）处理。macOS 首次使用编译本机助手；Debian/Ubuntu 可安装 `tesseract-ocr tesseract-ocr-chi-sim poppler-utils`。其他平台可用 UTF-8 TXT。
+需要 **Node.js 22.18+、Python 3.10+**。图片与 PDF 可在 macOS（Swift、Apple Vision/PDFKit）或 Linux（Tesseract、chi_sim 中文语言包、Poppler）处理。macOS 首次使用编译本机助手；Debian/Ubuntu 可安装 `tesseract-ocr tesseract-ocr-chi-sim poppler-utils`。其他平台可用 UTF-8 TXT。
 
 从主仓库获取包含材料识别样例的代码并启动：
 

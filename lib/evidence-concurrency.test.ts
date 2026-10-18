@@ -69,7 +69,7 @@ describe('evidence upload and cancellation interleavings', () => {
     }));
     bindings.db = await miniflare.getD1Database('DB') as unknown as D1Database;
     bucket = await miniflare.getR2Bucket('FILES') as unknown as R2Bucket;
-    for (const migration of ['0000_fresh_bill_hollister.sql', '0001_mighty_fantastic_four.sql', '0002_evidence_upload_cancellations.sql', '0003_material_analyses.sql']) {
+    for (const migration of ['0000_fresh_bill_hollister.sql', '0001_mighty_fantastic_four.sql', '0002_evidence_upload_cancellations.sql', '0003_material_analyses.sql', '0004_material_facts.sql']) {
       const statements = readFileSync(new URL(`../drizzle/${migration}`, import.meta.url), 'utf8').split('--> statement-breakpoint');
       await bindings.db.batch(statements.filter((statement) => statement.trim()).map((statement) => bindings.db.prepare(statement)));
     }

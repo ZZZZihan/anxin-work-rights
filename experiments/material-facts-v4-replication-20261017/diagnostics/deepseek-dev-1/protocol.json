@@ -1,0 +1,70 @@
+{
+  "at": "2026-10-17T05:48:54.694Z",
+  "backend": "deepseek",
+  "mode": "diagnostic",
+  "training": false,
+  "adapters": null,
+  "input_sha256": "0b5eed557ab21a6a72e764fbd31ed33fdff3ce7415e404a357fd32e82447ff65",
+  "case_ids": [
+    "mf4-cq-rc-2025-3",
+    "mf4-wx-xw-2023-33",
+    "mf4-cz-2023-27"
+  ],
+  "hashes": {
+    "lib/material-facts.ts": "c7ca5ea8892142ceb08b4b9a74ec8fa829be3c921d5f32d5ff91e9b69df779b9",
+    "lib/material-fact-types.ts": "482bfd611104c213358b0ff194969df6926fa96847d30e531bab40a21fff476f",
+    "scripts/fact-runtime-v2.py": "183d62e03c92b74bac0a35687e953dd1473b6f2911190d8364b4ac8af9a19a65",
+    "scripts/fact_memory_runtime.py": "9b0fab42e910736998cf54a9cfc63315f33624dce758ce15deccca1c67c8b51b",
+    "scripts/fact_api_transport.py": "958cfade7e59c08dc0397c448775b98c30cd9c5c1b689106c0fe6a4c82be5600",
+    "experiments/material-facts-v4-replication-20261017/run.mjs": "20a6ced8b76938e6f6de7cbb845e8c6f1bbf37e589d420bc8d5afd3524ced0f0",
+    "experiments/material-facts-v4/assess.mjs": "f20b5c2b080724f8da5be80e75201de4e38673032825806e28817b14e56b8457"
+  },
+  "temperature": 0,
+  "max_output_tokens": 4096,
+  "max_qwen_total_tokens": 12288,
+  "max_cases": 12,
+  "gold_sent": false,
+  "context_reset": true,
+  "calls_per_case": 1,
+  "post_retries": 0,
+  "connect_attempts_per_case": 3,
+  "concurrency": 1,
+  "process_isolation": "sequential_requests",
+  "qwen_batch_stop": "first_memory_guard_or_monitor_failure",
+  "qwen_memory": {
+    "allocator_guideline_gib": 24,
+    "wired_gib": 20,
+    "cache_mib": 512,
+    "prefill_step_size": 128,
+    "kv_bits": 4,
+    "kv_group_size": 64,
+    "quantized_kv_start": 0,
+    "critical": "immediate_stop",
+    "warning": "10_seconds",
+    "swap_growth_gib": 4,
+    "case_timeout_seconds": 600
+  },
+  "deepseek": {
+    "model": "deepseek-v4-pro",
+    "thinking": "disabled",
+    "absolute_case_timeout_seconds": 180,
+    "socket_timeout_seconds": 120,
+    "connect_timeout_seconds": 10,
+    "connect_backoff_seconds": [
+      0.5,
+      1
+    ],
+    "max_attempts_before_any_http_send": 3,
+    "egress": "temporary_loopback_ssh_test_host",
+    "tls_host": "api.deepseek.com",
+    "certificate_verification": true,
+    "stop_after_total_errors": 3,
+    "reserved_upper_usd": 2,
+    "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "pricing_checked": "2026-10-17",
+    "input_usd_per_million": 1.32,
+    "output_usd_per_million": 3.96
+  },
+  "comparison": "same_revealed_documents_replication_prompt_only_JSON_no_constrained_decoding",
+  "scope": "public_document_text_candidates_only_not_OCR_or_user_confirmation"
+}

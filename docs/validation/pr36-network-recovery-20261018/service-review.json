@@ -1,0 +1,49 @@
+{
+  "mode": "caller-job-id-service-regression",
+  "baseline": "090b0702874d180e63f82f8ab18fdc7558705b71",
+  "worktree": "/Users/xuzihan/Documents/Projects/国创/anxin-pr36-job-submit",
+  "changedFiles": ["scripts/fact-jobs.mjs", "scripts/material-service.mjs", "scripts/fact-jobs.test.mjs"],
+  "patch": "/tmp/anxin-pr36-job-submit.patch",
+  "checks": {
+    "newRegressionBefore": {"tests": 8, "passed": 0, "failed": 8, "exitCode": 1, "log": "/tmp/anxin-pr36-job-submit-before.log"},
+    "newRegressionAfter": {"tests": 8, "passed": 8, "failed": 0, "exitCode": 0, "log": "/tmp/anxin-pr36-job-submit-after.log"},
+    "existingFactAndMaterialService": {"tests": 45, "passed": 45, "failed": 0, "exitCode": 0},
+    "eslintAndDiffCheck": {"exitCode": 0},
+    "npmRunCheck": {
+      "exitCode": 0,
+      "log": "/tmp/anxin-pr36-job-submit-check.log",
+      "vitest": {"passed": 161, "failed": 0},
+      "testMaterials": {"passed": 59, "failed": 0, "skipped": 1},
+      "testFactRuntimeNode": {"passed": 30, "failed": 0},
+      "pythonTestGroupsPassed": [9, 11, 16],
+      "productionBuild": "PASS",
+      "publicDataAndRuntimeIntegrity": "PASS"
+    }
+  },
+  "httpChecks": [
+    {"name": "Discarded successful submit response followed by identical retry", "result": "202 with identical caller jobId, ready raw retained, source conflict 409, cancel 200, GET 404, replay 410, legacy source-only 202"},
+    {"name": "DELETE before POST request body completes", "result": "unknown UUID DELETE 200; late POST 410; GET 404; unauthorized and browser requests cannot create tombstones"}
+  ],
+  "contract": {
+    "submit": "POST /fact-jobs JSON {source, jobId?}; queue API submit({source, jobId?})",
+    "jobId": "lowercase UUID with version 1-8 and RFC variant; crypto.randomUUID() compatible",
+    "sameSourceRetry": "202 same jobId; no additional queue work for running, waiting or retained ready/failed jobs",
+    "sourceConflict": "409 for same jobId with a different canonical full-source SHA-256 fingerprint",
+    "retired": "410 for same-source replay of a cancelled or expired ID; GET 404",
+    "unknownDelete": "200 only after a tombstone is retained; 429 at capacity",
+    "legacy": "source-only requests still allocate a server UUID",
+    "resultRetentionMs": 300000,
+    "retiredIdRetentionMs": 1860000,
+    "idCapacity": 1024,
+    "capacity": "Active jobs reserve a ledger record at admission. Known cancellation can retire that reservation at full capacity. Unexpired tombstones are never evicted; new work and unknown cancellation fail closed with 429."
+  },
+  "cleanup": "Each test closes its queue or HTTP service in finally; the partially written HTTP request is destroyed in finally. npm check completed and no task service is intentionally left running.",
+  "limits": [
+    "The ledger is process-local memory: no service-restart, replica-wide or permanent replay guarantee.",
+    "Protection is bounded to at least 31 minutes after actual cancellation/removal; a replay after that retention horizon may be admitted.",
+    "Clock and inference boundaries are controlled in queue lifecycle tests; real HTTP tests use the rules backend. No model inference or production request was made.",
+    "Application Worker/D1 lost-response recovery is an independent integration check owned by another agent; it is not asserted by this service-only report.",
+    "The PR36 frozen material-facts.ts import is unchanged. PR40 integration must preserve its existing material-facts-v3.ts import."
+  ],
+  "gitActions": "No commit, push, merge or deployment performed."
+}

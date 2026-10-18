@@ -73,6 +73,20 @@ export const evidenceAnalyses = sqliteTable('evidence_analyses', {
   updatedAt: text('updated_at').notNull(),
 }, (table) => [index('analyses_user_idx').on(table.userId)]);
 
+export const caseMaterialGenerations = sqliteTable('case_material_generations', {
+  caseId: text('case_id').primaryKey(),
+  userId: text('user_id').notNull(),
+  generation: integer('generation').notNull().default(1),
+});
+
+export const caseMaterialFacts = sqliteTable('case_material_facts', {
+  caseId: text('case_id').primaryKey(),
+  userId: text('user_id').notNull(),
+  revision: integer('revision').notNull().default(1),
+  stateJson: text('state_json').notNull(),
+  updatedAt: text('updated_at').notNull(),
+}, (table) => [index('material_facts_user_idx').on(table.userId)]);
+
 export const chatMessages = sqliteTable(
   'chat_messages',
   {

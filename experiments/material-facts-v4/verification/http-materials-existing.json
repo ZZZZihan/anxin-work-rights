@@ -1,0 +1,147 @@
+{
+  "status": "PASS",
+  "mode": "text",
+  "semanticComparison": "exact",
+  "serviceRestartCoverage": "PASS",
+  "syntheticInputs": true,
+  "recordedAt": "2026-10-17T04:44:17.443Z",
+  "observations": [
+    {
+      "name": "upload_extract_retrieve_cite_owner_isolation",
+      "fixture": "facts.txt",
+      "deniedMethods": [
+        "analysis_GET",
+        "analysis_POST",
+        "analysis_PUT",
+        "evidence_DELETE",
+        "download_GET"
+      ],
+      "ownerAnalysisUnchanged": true,
+      "originalBytesPreserved": true,
+      "engine": {
+        "ocr": "utf8_text",
+        "structuring": "ocr_rules",
+        "model": null,
+        "imageCount": 0
+      },
+      "fields": [
+        {
+          "key": "employer",
+          "value": "合成星海科技有限公司",
+          "extractedValue": "合成星海科技有限公司",
+          "quote": "用人单位：合成星海科技有限公司",
+          "blockIds": [
+            "p1-b2"
+          ],
+          "origin": "rule"
+        },
+        {
+          "key": "worker",
+          "value": "张小合",
+          "extractedValue": "张小合",
+          "quote": "劳动者：张小合",
+          "blockIds": [
+            "p1-b3"
+          ],
+          "origin": "rule"
+        },
+        {
+          "key": "job",
+          "value": "设备维护员",
+          "extractedValue": "设备维护员",
+          "quote": "工作岗位：设备维护员",
+          "blockIds": [
+            "p1-b4"
+          ],
+          "origin": "rule"
+        },
+        {
+          "key": "employment_start",
+          "value": "2026年01月05日",
+          "extractedValue": "2026年01月05日",
+          "quote": "入职日期：2026年01月05日",
+          "blockIds": [
+            "p1-b5"
+          ],
+          "origin": "rule"
+        },
+        {
+          "key": "wage_standard",
+          "value": "8000元",
+          "extractedValue": "8000元",
+          "quote": "月工资：8000元",
+          "blockIds": [
+            "p1-b6"
+          ],
+          "origin": "rule"
+        }
+      ],
+      "semanticFixtureAssertions": "PASS",
+      "semanticComparison": "exact",
+      "warnings": [
+        "字段由 OCR 与明确文字规则提取，未调用视觉模型；请对照原件核对。"
+      ],
+      "blockCount": 7,
+      "publicHitIds": [
+        "case-spc-2024-wage-employer-burden",
+        "labor-contract-law-2012:a008",
+        "case-spc-2024-anticipatory-wage-breach",
+        "labor-contract-law-2012:a003",
+        "case-spc-2024-overseas-arrears",
+        "labor-contract-law-2012:a004"
+      ],
+      "fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a",
+      "status": "PASS"
+    },
+    {
+      "name": "review_persists_and_stale_revision_rejected",
+      "fixture": "facts.txt",
+      "status": "PASS"
+    },
+    {
+      "name": "delete_removes_analysis_access",
+      "fixture": "facts.txt",
+      "status": "PASS"
+    },
+    {
+      "name": "service_restart_old_job_fails_explicit_retry_recovers",
+      "fixture": "facts.txt",
+      "oldStatus": "failed",
+      "recoveredStatus": "ready",
+      "originalBytesPreserved": true,
+      "explicitRetryRequired": true,
+      "revision": 2,
+      "semanticFixtureAssertions": "PASS",
+      "semanticComparison": "exact",
+      "status": "PASS"
+    },
+    {
+      "name": "recovered_field_correction_persists_with_raw_source_and_citations",
+      "originalValue": "8000元",
+      "correctedValue": "8500元",
+      "sourcePreserved": true,
+      "originalBytesPreserved": true,
+      "publicHitIds": [
+        "case-spc-2024-wage-employer-burden",
+        "labor-contract-law-2012:a008",
+        "case-spc-2024-anticipatory-wage-breach",
+        "labor-contract-law-2012:a003",
+        "case-spc-2024-overseas-arrears",
+        "labor-contract-law-2012:a004"
+      ],
+      "status": "PASS"
+    },
+    {
+      "name": "recovered_material_cleanup_removes_analysis_and_original",
+      "status": "PASS"
+    },
+    {
+      "name": "unrelated_query_has_no_fabricated_hit",
+      "status": "PASS"
+    },
+    {
+      "name": "natural_language_labor_query",
+      "status": "PASS"
+    }
+  ]
+}
