@@ -1,0 +1,132 @@
+{"evidence":"implementation_hash","path":"lib/material-money-v4.ts","sha256":"215414bd3bb54a5b3b5ce281c55f60ebc6abd0db9009cb6363e4903da0d8159f"}
+{"evidence":"implementation_hash","path":"lib/material-fact-source-review.ts","sha256":"f4aa9580e5114a5f42cb51fb1d5139c906fd7974dad4a5c2775db61b79ff954b"}
+{"evidence":"implementation_hash","path":"lib/material-fact-arithmetic-review.ts","sha256":"3b299b4449c0311516c211bd5ef6253360fc3c45585a7cb6c7123c4002d5eed7"}
+{"evidence":"implementation_hash","path":"lib/material-fact-runtime-ingest.ts","sha256":"a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f"}
+{"evidence":"implementation_hash","path":"experiments/material-facts-v7/assess.mjs","sha256":"d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"}
+✔ amount-free wage-standard label is rejected without erasing raw: 工资标准 (10.120625ms)
+✔ amount-free wage-standard label is rejected without erasing raw: 每月工资标准 (0.550375ms)
+✔ amount-free wage-standard label is rejected without erasing raw: 基本工资标准 (0.36125ms)
+✔ amount-free wage-standard label is rejected without erasing raw: 今日工资标准 (0.314541ms)
+✔ amount-free wage-standard label is rejected without erasing raw: 每月基本工资标准 (0.304875ms)
+✔ amount-free wage-standard label is rejected without erasing raw: 2024年5月工资标准 (1.012208ms)
+✔ amount-free wage-standard label is rejected without erasing raw: 岗位工资标准 (0.255667ms)
+✔ amount-free wage-standard label is rejected without erasing raw: 劳动报酬标准 (0.194959ms)
+✔ unknown wage standard remains reviewable instead of being called no amount: 工资标准不详 (0.334208ms)
+✔ unknown wage standard remains reviewable instead of being called no amount: 工资标准若干元 (0.237167ms)
+✔ unknown wage standard remains reviewable instead of being called no amount: 工资标准××元 (0.128333ms)
+✔ a real stated wage-standard rate including zero remains exact: 4000元/月 (14.028459ms)
+✔ a real stated wage-standard rate including zero remains exact: 0元/月 (0.583833ms)
+✔ supported traditional yuan keeps its original evidence and exact cents: 4000圓 (2.111875ms)
+✔ supported traditional yuan keeps its original evidence and exact cents: 四千圓 (1.2635ms)
+✔ supported traditional yuan keeps its original evidence and exact cents: 人民幣四千圓 (0.586417ms)
+✔ supported traditional yuan keeps its original evidence and exact cents: 人民币4000圓 (0.526209ms)
+✔ supported traditional yuan keeps its original evidence and exact cents: 5圓5角2分 (0.483458ms)
+✔ supported traditional yuan keeps its original evidence and exact cents: 四千圓五角二分 (0.449292ms)
+✖ traditional yuan cannot hide omitted subunits or a rate behind a crop: 4000 / 5角 (2.617833ms)
+✔ traditional yuan cannot hide omitted subunits or a rate behind a crop: 4000圓 / 5角 (0.866875ms)
+✖ traditional yuan cannot hide omitted subunits or a rate behind a crop: 4000 / /月 (0.216209ms)
+✔ traditional yuan cannot hide omitted subunits or a rate behind a crop: 4000圓 / /月 (0.543917ms)
+✖ traditional yuan cannot hide omitted subunits or a rate behind a crop: 4000 / 每天 (0.103042ms)
+✖ traditional yuan cannot hide omitted subunits or a rate behind a crop: 4000圓 / 每天 (0.08225ms)
+✔ a complete traditional yuan monthly rate stays exact with its stated role (0.506541ms)
+✔ traditional yuan glyph does not turn an explicitly foreign amount into RMB: 😀王甲工资港幣4000圓。 (0.641041ms)
+✔ traditional yuan glyph does not turn an explicitly foreign amount into RMB: 😀王甲工资按美元計4000圓。 (0.48375ms)
+✔ traditional and simplified yuan literals share a key at the same source event (1.697625ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 25
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 213.214583
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-round12-money-independent.test.mjs:148:3
+✖ traditional yuan cannot hide omitted subunits or a rate behind a crop: 4000 / 5角 (2.617833ms)
+  AssertionError [ERR_ASSERTION]: Full quote must expose the attached modifier.
+  
+  '4000.00' !== null
+  
+      at unavailableInSource (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round12-money-independent.test.mjs:51:32)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round12-money-independent.test.mjs:149:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round12-money-independent.test.mjs:148:3
+✖ traditional yuan cannot hide omitted subunits or a rate behind a crop: 4000 / /月 (0.216209ms)
+  AssertionError [ERR_ASSERTION]: Full quote must expose the attached modifier.
+  
+  '4000.00' !== null
+  
+      at unavailableInSource (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round12-money-independent.test.mjs:51:32)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round12-money-independent.test.mjs:149:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round12-money-independent.test.mjs:148:3
+✖ traditional yuan cannot hide omitted subunits or a rate behind a crop: 4000 / 每天 (0.103042ms)
+  AssertionError [ERR_ASSERTION]: Full quote must expose the attached modifier.
+  
+  '4000.00' !== null
+  
+      at unavailableInSource (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round12-money-independent.test.mjs:51:32)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round12-money-independent.test.mjs:149:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round12-money-independent.test.mjs:148:3
+✖ traditional yuan cannot hide omitted subunits or a rate behind a crop: 4000圓 / 每天 (0.08225ms)
+  AssertionError [ERR_ASSERTION]: Full quote must expose the attached modifier.
+  
+  '4000.00' !== null
+  
+      at unavailableInSource (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round12-money-independent.test.mjs:51:32)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round12-money-independent.test.mjs:149:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '4000.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

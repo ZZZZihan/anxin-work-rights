@@ -3,7 +3,7 @@ import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 
 import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from './material-facts-v3.ts';
 import { normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
-import { sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
+import { sourceMoneyHasNonCurrencySubunit, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
 import { isConjunctionMoneyRangeEndpoint } from './material-fact-range-review.ts';
 import { reviewMaterialCoverage } from './material-fact-coverage-review.ts';
@@ -46,9 +46,9 @@ function sourceEvent(candidate: FactCandidate, source: FactSource | undefined): 
     // "Another worker" can still qualify this total (e.g. included above). Only
     // explicitly bounded independent events may be skipped, never an arbitrary tail.
     if (/^另一(?:班组|工人|劳动者|员工)(?:[0-9一二三四五六七八九十百千万零两]+(?:名|位|人)(?:工人|员工|劳动者)?)?另案处理$/u.test(trimmed)) return true;
-    if (/^另一(?:工人|劳动者|员工)(?:(?:工资|本次|此次|部分|完整|应付|已付|支付|约|合计|共计)|\s)*[0-9一二三四五六七八九十百千万亿零两壹贰叁肆伍陆柒捌玖拾佰仟.]+[元圆](?:整|正)?$/u.test(trimmed)) return true;
+    if (/^另一(?:工人|劳动者|员工)(?:(?:工资|本次|此次|部分|完整|应付|已付|支付|约|合计|共计)|\s)*[0-9一二三四五六七八九十百千万亿零两壹贰叁肆伍陆柒捌玖拾佰仟.]+[元圆圓](?:整|正)?$/u.test(trimmed)) return true;
     const ownerAndPeriod = trimmed.match(/^([\p{Script=Han}]{2,4})(?:在[\p{L}\p{N}（）()·]{1,60}(?:公司|单位|厂|店))?\s*(\d{4}年\d{1,2}月(?:\d{1,2}日)?)/u);
-    const worker = ownerAndPeriod?.[1], value = trimmed.match(/[0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟.]+\s*[元圆](?:整|正)?$/u)?.[0];
+    const worker = ownerAndPeriod?.[1], value = trimmed.match(/[0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟.]+\s*[元圆圓](?:整|正)?$/u)?.[0];
     if (!worker || !value || hasGroupText(clause)
       || /全|组|工资|金额|总额|合计|汇总|部分|仅|记录|单位|公司|个人|本人|统计|币种|名单|备注|说明|以下|上述/u.test(worker)) return false;
     const other: RawCandidateV3 = { kind: 'money', value, quote: trimmed, blockId: block.id, subject: worker,
@@ -122,13 +122,13 @@ function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: Candidate
   const numerals = '0-9０-９零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟';
   if (new RegExp(`[${numerals}.．]$`, 'u').test(edges.before)
     || new RegExp(`[${numerals}][^\\S\\r\\n]*[,，]$`, 'u').test(edges.before)) return true;
-  if (!/[元圆角分](?:整|正)?$/u.test(edges.matched)) {
+  if (!/[元圆圓角分](?:整|正)?$/u.test(edges.matched)) {
     if (new RegExp(`^[${numerals}.．]`, 'u').test(edges.after)
       || new RegExp(`^[,，][^\\S\\r\\n]*[${numerals}]`, 'u').test(edges.after)) return true;
   }
   // A bare historical number followed only by 元/圆 keeps its old numeric meaning.
   // Extra 角/分, including after an omitted 元, changes that same amount.
-  return new RegExp(`^(?:[元圆]\\s*)?[${numerals}]+\\s*[角分]`, 'u').test(edges.after);
+  return new RegExp(`^(?:[元圆圓]\\s*)?[${numerals}]+\\s*[角分]`, 'u').test(edges.after);
 }
 
 function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null): RateUnit | null {
@@ -140,7 +140,7 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   const before = detectionText(edges.before.split(/[，,。！？!?；;\n\r\u2028\u2029]/u).at(-1)!);
   const after = detectionText(edges.after.split(/[，,。！？!?；;\n\r\u2028\u2029]/u)[0]);
   const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
-  const suffix = after.match(/^(?:[元圆]\s*)?(?:[/／]\s*|每\s*)(小时|月|日|天|时|件)/u);
+  const suffix = after.match(/^(?:[元圆圓]\s*)?(?:[/／]\s*|每\s*)(小时|月|日|天|时|件)/u);
   if (suffix) return units[suffix[1]];
   const prefix = before.match(/(?:每(小时|月|日|天|时|件)|(月|日|时)(?:薪|(?:基本)?工资)|小时工资|计件(?:单价|工资)?)(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|[¥￥:=])*$/u);
   if (!prefix) return null;
@@ -205,7 +205,12 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       code: 'source_relation_unresolved', message: '源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。',
     });
     if (sourceNormalized.amount !== null) {
-      if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
+      const blockIndex = source!.blocks.findIndex(block => block.id === candidate.blockId);
+      const subunitSource = { blockText: [context.blockText, ...source!.blocks.slice(blockIndex + 1).map(block => block.text)].join('\n'), valueStart: context.valueStart };
+      if (sourceMoneyHasNonCurrencySubunit(subunitSource, sourceNormalized.normalization)) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文中的角或分属于时间、计量或普通词语，未将裁剪片段作为分币金额。', 'unsupported'),
+      };
+      else if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着外币或不支持的币种标记，当前规范化不进行币种转换。', 'unsupported'),
       };
       else if (sourceMoneyIsConjunctionRange(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {

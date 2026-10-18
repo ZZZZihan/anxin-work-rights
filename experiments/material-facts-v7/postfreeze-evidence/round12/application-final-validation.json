@@ -1,0 +1,68 @@
+{
+  "scope": "Round12 application integration; synthetic technical verification, no real-model or human business acceptance",
+  "baseline_commit": "7f3a79bf8b01a5982e9039b1b83e4c428d7197a5",
+  "source_sha256": {
+    "lib/material-money-v4.ts": "128319f7bc7415c4e46aa1e70ab4135437a6f74d97f3275db3aa1b1793176f45",
+    "lib/material-fact-currency-review.ts": "83291d8fd26b76b05f455ac7094dc6e8622f246c48182cd0f0f1680715cf1ff4",
+    "lib/material-fact-source-review.ts": "d7fd4f6508a1158721b27c3cc3b4e7014cf35ade48b2695e0b47ec748cf97210",
+    "lib/material-fact-arithmetic-review.ts": "09e91a8462dfffb1bd2e0ea2f3ec3fb7dea57cca1f4fdd18260ef8c53ace1ba1",
+    "scripts/material-facts-v7-http-regression.mjs": "44837d7be12dec94e1777a4cbaff0d8d50d21087a7b4a1d52ff1a122da8d073b",
+    "scripts/material-fact-subunit-time-range-review.test.mjs": "a15eef9c7fed0c5c1d80cbcad3cfdf1c0571b67f6c85e9b13c0ab439266e91f0",
+    "scripts/material-facts-v7-round12-money-independent.test.mjs": "746d4e92d4577e65653e5bc8f805d673b54b7cca770aabc9c33979dc47f7cef7",
+    "scripts/material-fact-round12-root-boundaries.probe.mjs": "bf948e7fb195d690b23c98c026c6bc9e6c020edb0aa6e0c1f581de79f590307a"
+  },
+  "full_check": {
+    "command": "npm run check",
+    "exit_code": 0,
+    "vitest": 1789,
+    "runtime_tests_in_full_check": 1601,
+    "additional_nonimplementer_probe": 107,
+    "materials_pass": 67,
+    "materials_platform_skip": 1,
+    "python_suites": [
+      9,
+      11,
+      16
+    ],
+    "note": "107-test probe was added to the package after the already-started npm command loaded scripts; it passed separately and is included in subsequent CI."
+  },
+  "http": {
+    "script_sha256": "44837d7be12dec94e1777a4cbaff0d8d50d21087a7b4a1d52ff1a122da8d073b",
+    "baseline": {
+      "pass": 52,
+      "fail": 12,
+      "report": "http-64-before-red.json"
+    },
+    "current": {
+      "pass": 64,
+      "fail": 0,
+      "restarted_snapshots": 63,
+      "report": "http-64-after-green.json"
+    },
+    "cleanup": "PASS",
+    "no_model_calls": true
+  },
+  "root_author": {
+    "same_final_test": 65,
+    "old_pass": 31,
+    "old_fail": 34,
+    "new_pass": 65,
+    "additional_intermediate_followup": {
+      "pass": 59,
+      "fail": 6,
+      "reason": "fraction word and traditional approximation before final guard"
+    }
+  },
+  "fixtures_and_failures_preserved": [
+    "Initial root tests used arrears with unknown completeness (invalid conditional schema); corrected to arrears/not_applicable, without changing product assertions. Earlier trial arrears_total was also invalid and all failure logs remain.",
+    "Genuine-cents controls originally cropped 整 and ran into existing conservative boundary; final controls include 整, retain punctuation before 分别, and separately cover 5分工资/5分之后.",
+    "Initial HTTP fixtures supplied a period absent from the source; corrected synthetic period to null. The first report also used a mistaken rejectedCandidates property; exact contract is rejected. All initial reports remain; only final identical 64-scenario scripts are compared.",
+    "An initial integration file-copy lookup used the wrong independent evidence directory, before root edits ran; the failed log is retained."
+  ],
+  "residuals": [
+    "Finite lexical and symbolic grammars; no arbitrary natural-language correctness claim.",
+    "Yuan-only crop next to a minute count remains conservatively null.",
+    "History can only lose availability, never auto-upgrade, and raw/positions/storage remain intact.",
+    "Model semantics and nonexpert labels remain unaccepted for business use."
+  ]
+}

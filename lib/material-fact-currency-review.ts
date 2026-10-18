@@ -104,3 +104,20 @@ export function sourceMoneyHasExplicitRmbCurrency(source: AnchoredMoneySource, n
     && (/(?:人民币|人民幣|¥)/u.test(edges.token) || unitInToken);
   return inToken || RMB_PREFIX.test(edges.before) || RMB_SUFFIX.test(edges.after);
 }
+
+/** A matched 角/分 may be the start of an ordinary word rather than cents.
+ * Inspect only subunit characters inside this token; the following source can
+ * complete a cropped word across OCR whitespace, but cannot contribute a unit.
+ * Detection copies never replace the source used for evidence or offsets. */
+export function moneyTokenHasNonCurrencySubunit(token: string, after: string): boolean {
+  const part = currencyText(token).replace(/\s/gu, '');
+  const whole = part + currencyText(after).replace(/\s/gu, '');
+  const ordinary = /^(?:分(?:钟|鐘|米|贝|貝|数|數|配|类|類|析|别|別|期|段|批|时|時|量|摊|攤|红|紅|店|公司|支|组|組|隔|辨|歧|清|离|離)|角(?:度|色|落|逐|标|標|形|点|點|膜|质|質))/u;
+  const fraction = /^分之(?=$|[0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟A-Za-z_α-ωΑ-Ω])/u;
+  return [...part.matchAll(/[角分]/gu)].some(match => ordinary.test(whole.slice(match.index)) || fraction.test(whole.slice(match.index)));
+}
+
+export function sourceMoneyHasNonCurrencySubunit(source: AnchoredMoneySource, normalized: CandidateNormalization): boolean {
+  const edges = anchoredMoneyEdges(source, normalized);
+  return edges !== null && moneyTokenHasNonCurrencySubunit(edges.token, edges.after);
+}
