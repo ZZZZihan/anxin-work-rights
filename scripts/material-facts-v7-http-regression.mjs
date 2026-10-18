@@ -1375,6 +1375,34 @@ try {
     return {amount: null, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true};
   });
   // End ROUND32 additions.
+  // ROUND33: postfix RMB scope, duplicate markers and lexical layout boundaries.
+  const round33Cases = [
+    { name: 'postfix-rmb', text: '测试王甲2026年1月全部应付工资合计4000人民币。', value: '4000人民币', amount: '4000.00', total: true, group: false },
+    { name: 'postfix-traditional', text: '测试王甲2026年1月全部应付工资合计4000人民幣。', value: '4000人民幣', amount: '4000.00', total: true, group: false },
+    ...['4000人民币人民币', '4000元人民币CNY', '4000人民幣人民幣'].map(value => ({ name: `duplicate-${value}`, text: `测试王甲工资${value}。`, value, amount: null, seed: '4000.00' })),
+    { name: 'duplicate-cropped', text: '测试王甲工资4000人民币人民币。', value: '4000人民币', amount: null, seed: '4000.00' },
+    { name: 'duplicate-next-block', text: '测试王甲工资4000人民币\n人民币。', value: '4000人民币', amount: null, seed: '4000.00' },
+    { name: 'new-worker-not-minutes', text: '测试王甲工资人民币2分\n钟某2026年2月工资9000元。', value: '人民币2分', amount: '0.02' },
+    { name: 'true-group', text: '测试王甲等3人2026年1月全部应付工资合计4000人民币。', value: '4000人民币', amount: '4000.00', total: true, group: true },
+    { name: 'actual-minutes-continuation', text: '测试王甲工资人民币2分\n钟。', value: '人民币2分', amount: null, seed: '0.02' },
+  ];
+  for (const entry of round33Cases) await scenario(`round33_${entry.name}`, async () => {
+    const attributes = entry.total ? {} : { meaning: 'other_money', completeness: 'not_applicable', period: null };
+    const [item] = await fixture(`round33-${entry.name}`, [{ text: entry.text, exactSource: true, candidates: [money(entry.value, entry.value, attributes)] }]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1);
+    assert.equal(material.candidates[0].amount, entry.amount);
+    if (entry.group !== undefined) assert.equal(material.candidates[0].reviewIssues.some(issue => issue.code === 'scope_text_mismatch'), entry.group);
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
+    old.amount = entry.amount === null ? entry.seed : null;
+    old.normalization = { rawValue: old.value, amount: old.amount, status: entry.amount === null ? 'exact' : 'unsupported', matchedText: old.value, span: { start: 0, end: Array.from(old.value).length }, reason: 'Synthetic historical ROUND33 candidate for downgrade and non-upgrade verification' };
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round33-${entry.name}`, item, state: before });
+    return { freshAmount: entry.amount, scopeMismatch: entry.group ?? null, historicalExactDowngraded: entry.amount === null, historicalNullNotUpgraded: entry.amount !== null, rawAndStoredHistoryUnchanged: true };
+  });
+  // End ROUND33 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

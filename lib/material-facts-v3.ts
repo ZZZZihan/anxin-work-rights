@@ -205,7 +205,7 @@ export function normalizeCandidateValue(candidate: RawCandidateV3): NormalizedCa
 
 function hasGroupText(text: string): boolean {
   if (/(?:班组|全组|全体(?:工人|员工|劳动者|农民工)?|多人|多名(?:工人|员工|劳动者|农民工))/u.test(text)) return true;
-  return [...text.matchAll(/(?<![第0-9一二三四五六七八九十百千万零两])([0-9一二三四五六七八九十百千万零两]+)\s*(?:名|位|人)(?:工人|员工|劳动者|农民工)?/gu)]
+  return [...text.matchAll(/(?<![第0-9一二三四五六七八九十百千万零两])([0-9一二三四五六七八九十百千万零两]+)\s*(?:名|位|人)(?!民[币幣])(?:工人|员工|劳动者|农民工)?/gu)]
     .some(match => /^\d+$/u.test(match[1]) ? BigInt(match[1]) > 1n : !['一', '零'].includes(match[1]));
 }
 function reviewIssues(candidate: RawCandidateV3): FactReviewIssue[] {
