@@ -153,13 +153,27 @@ function sourceHasUnsupportedRate(beforeEdge: string): boolean {
   return /(?:每|按)\s*(?:年(?:度)?|周|週|星期|季度|季|次|分钟|分鐘|秒|公里|人|班)\s*(?:(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|RMB|CNY|[¥￥:=])\s*)*$/u.test(before);
 }
 
-function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null): RateUnit | null {
+function sourcePostposedRate(afterEdge: string): { unit: RateUnit; uncertain: boolean } | null {
+  // Only this explicit 按+unit branch may continue through OCR layout. Its
+  // finite tail excludes payment dates (按月15日) and prose (按时支付/计数).
+  const after = sourceRateDetectionText(afterEdge);
+  const match = after.match(/^\s*(?:[元圆圓]\s*)?(?:[整正]\s*)?按\s*(?:(小时|月|日|天|件)(?:\s*(?:计算|计酬|计价|计薪|计))?|(时)\s*(?:计算|计酬|计价|计薪|计))/u);
+  if (!match) return null;
+  const tail = after.slice(match[0].length), uncertain = hasPostposedMoneyUncertainty(tail);
+  if (!/^\s*(?:$|[，,。；;！!？?）)】\]])/u.test(tail) && !uncertain) return null;
+  const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
+  return { unit: units[match[1] ?? match[2]], uncertain };
+}
+
+function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null, postposedUnit?: RateUnit): RateUnit | null {
   const edges = monetaryEdges(context, normalized, true);
   if (!edges) return null;
   const detectionText = sourceRateDetectionText;
   const before = detectionText(edges.before.split(/[，,。！？!?；;\n\r\u2028\u2029]/u).at(-1)!);
   const after = detectionText(edges.after.split(/[，,。！？!?；;\n\r\u2028\u2029]/u)[0]);
   const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
+  // A model-supplied subject never exempts a postposed source denominator.
+  if (postposedUnit) return postposedUnit;
   const suffix = after.match(/^(?:[元圆圓]\s*)?(?:[/／]\s*|每\s*)(小时|月|日|天|时|件)/u);
   if (suffix) return units[suffix[1]];
   const prefix = before.match(/(?:(?:每|按)(小时|月|日|天|时|件)|(月|日|时)(?:薪|(?:基本)?工资)|小时工资|计件(?:单价|工资)?)(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|[¥￥:=])*$/u);
@@ -240,6 +254,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       // prose cannot attach, and stored quote/positions stay in their own block.
       const layout = sourceMoneyLayoutEdges(context, sourceNormalized.normalization, source!, candidate.blockId);
       const qualifierStatus = layout && attachedMoneyQualifierStatus(layout.before, layout.after);
+      const postposedRate = layout && sourcePostposedRate(layout.after);
       if (sourceMoneyHasNonCurrencyYuan(subunitSource, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文中的元或圆属于普通复合词，未将裁剪片段作为人民币金额。', 'unsupported'),
       };
@@ -264,7 +279,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       else if (sourceMoneyHasAttachedArithmetic(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。', 'unsupported'),
       };
-      else if (layout && hasPostposedMoneyUncertainty(layout.after)) sourceNormalized = {
+      else if (layout && (hasPostposedMoneyUncertainty(layout.after) || postposedRate?.uncertain)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额后直接附着问号、待核或未知标记；保留原文，不将裁剪金额作为确定值。'),
       };
       else if (truncatedMoneyToken(context, sourceNormalized.normalization, layout?.after)) sourceNormalized = {
@@ -273,7 +288,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       else if (layout && sourceHasUnsupportedRate(layout.before)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额前明确附着不受支持的费率分母，未换算成总额或现有费率单位，请人工核对。', 'unsupported'),
       };
-      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject))) sourceNormalized = {
+      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject, postposedRate?.unit))) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着费率单位，与当前总额角色或已声明费率单位冲突，未生成精确金额。', 'rate_unit_mismatch'),
       };
       else if (!sourceMoneyHasExplicitRmbCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
