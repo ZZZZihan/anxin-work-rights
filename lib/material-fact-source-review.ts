@@ -131,14 +131,26 @@ function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: Candidate
   return new RegExp(`^(?:[元圆圓]\\s*)?[${numerals}]+\\s*[角分]`, 'u').test(edges.after);
 }
 
-function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null): RateUnit | null {
-  const edges = monetaryEdges(context, normalized, true);
-  if (!edges) return null;
+function sourceRateDetectionText(text: string): string {
   // Fold only the detection view. In particular LS/PS remain line boundaries;
   // horizontal OCR spacing cannot hide a directly attached wage standard.
   const traditional: Record<string, string> = { 資: '资', 標: '标', 準: '准', 時: '时', 約: '约', 為: '为', 計: '计', 額: '额', 幣: '币', 單: '单', 價: '价', 後: '后', 當: '当', 該: '该', 這: '这', 個: '个' };
-  const detectionText = (text: string) => text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[^\S\r\n\u2028\u2029]/gu, '')
+  return text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[^\S\r\n\u2028\u2029]/gu, '')
     .replace(/[資標準時約為計額幣單價後當該這個]/gu, character => traditional[character]);
+}
+
+/** An explicit unsupported denominator cannot become a total or an enum rate.
+ * Only this finite prefix may span OCR layout; punctuation and other prose stop
+ * the match. An unstructured model-supplied subject cannot exempt this guard. */
+function sourceHasUnsupportedRate(beforeEdge: string): boolean {
+  const before = sourceRateDetectionText(beforeEdge).split(/[，,。！？!?；;]/u).at(-1)!;
+  return /(?:每|按)\s*(?:年(?:度)?|周|週|星期|季度|季|次|分钟|分鐘|秒|公里|人|班)\s*(?:(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|RMB|CNY|[¥￥:=])\s*)*$/u.test(before);
+}
+
+function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null): RateUnit | null {
+  const edges = monetaryEdges(context, normalized, true);
+  if (!edges) return null;
+  const detectionText = sourceRateDetectionText;
   const before = detectionText(edges.before.split(/[，,。！？!?；;\n\r\u2028\u2029]/u).at(-1)!);
   const after = detectionText(edges.after.split(/[，,。！？!?；;\n\r\u2028\u2029]/u)[0]);
   const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
@@ -155,6 +167,13 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
     && !(subject && calendarPrefix.endsWith(detectionText(subject)))) return null;
   if (!explicitStandard && prefix[2] === '月' && /^月(?:基本)?工资/u.test(prefix[0])
     && /(?:上(?:一?个)?|下(?:一?个)?|本|当|该|这(?:个)?)$/u.test(calendarPrefix)
+    && !(subject && calendarPrefix.endsWith(detectionText(subject)))) return null;
+  // A complete weekday, such as 周日 or 星期日, is a wage period.
+  // Only the naked 日工资 form qualifies: explicit standards, recurring
+  // 每/按 weekday wording and a subject's own suffix keep their rate guard.
+  const weekday = calendarPrefix.match(/(?:周|週|星期|礼拜|禮拜)$/u);
+  if (!explicitStandard && prefix[2] === '日' && /^日(?:基本)?工资/u.test(prefix[0])
+    && weekday && !/(?:每(?:一?个)?|按)$/u.test(calendarPrefix.slice(0, weekday.index))
     && !(subject && calendarPrefix.endsWith(detectionText(subject)))) return null;
   // “今日工资合计” names one day's amount. Keep explicit 每日, 日薪,
   // 日工资标准 and suffix units as rates; a subject ending in 今/昨/etc.
@@ -238,6 +257,9 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       };
       else if (truncatedMoneyToken(context, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
+      };
+      else if (layout && sourceHasUnsupportedRate(layout.before)) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额前明确附着不受支持的费率分母，未换算成总额或现有费率单位，请人工核对。', 'unsupported'),
       };
       else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject))) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着费率单位，与当前总额角色或已声明费率单位冲突，未生成精确金额。', 'rate_unit_mismatch'),

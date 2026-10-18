@@ -1,0 +1,621 @@
+{"evidence":"round22_implementation_hash","path":"lib/material-money-v4.ts","sha256":"3316417d402d64c8f792ba0ad55080c05d232e02bbaacd3b484fa528efe93517"}
+{"evidence":"round22_implementation_hash","path":"lib/material-fact-source-review.ts","sha256":"fb34ec5d861fb774dfe8f3eb74018c3479b7f7a6784171c3621a076f38ed13f1"}
+{"evidence":"round22_implementation_hash","path":"lib/material-fact-runtime-ingest.ts","sha256":"93b6b213871eb3fd8d98fd3f3eb1bd735190746438b96bbf69e9c745971296ea"}
+{"evidence":"round22_implementation_hash","path":"experiments/material-facts-v7/assess.mjs","sha256":"d4f0c98828d091f9f99681a5c404091f76fd1f4e4103aae0a056e5d493ce9e9d"}
+✖ traditional numeral aliases derive an exact value without repairing evidence: 人民幣兩萬圓 (7.784292ms)
+✖ traditional numeral aliases derive an exact value without repairing evidence: 人民幣四億圓 (6.871875ms)
+✖ traditional numeral aliases derive an exact value without repairing evidence: 4億圓 (0.441709ms)
+✖ traditional numeral aliases derive an exact value without repairing evidence: 兩元五角 (0.089042ms)
+✔ new numeral aliases cannot bypass an attached foreign/range/bound/formula: 王甲以港幣支付兩萬圓。 (7.41175ms)
+✔ new numeral aliases cannot bypass an attached foreign/range/bound/formula: 王甲工资兩萬圓至四萬圓。 (0.909958ms)
+✔ new numeral aliases cannot bypass an attached foreign/range/bound/formula: 王甲工资三萬圓至兩億圓。 (1.072ms)
+✔ new numeral aliases cannot bypass an attached foreign/range/bound/formula: 王甲工资約兩萬圓。 (0.609709ms)
+✔ new numeral aliases cannot bypass an attached foreign/range/bound/formula: 王甲工资兩萬圓的2倍。 (0.61225ms)
+✔ recognizing an alias does not upgrade a previously unsupported stored candidate (0.234666ms)
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 不满四万元 (4.363292ms)
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 低于四万元 (0.446333ms)
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 四万元不到 (1.535084ms)
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 四万元开外 (0.114291ms)
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 不滿四萬元 (0.135958ms)
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 四萬元開外 (0.114083ms)
+✖ bound direction, literal qualifier and prefix/suffix position are retained in comparison keys (0.20725ms)
+✔ source-exact qualified gold still extracts by literal fallback without inventing a non-null key (2.545958ms)
+✖ a finite weekday identifies an attributable day rather than a daily rate: 周日 (10.176666ms)
+✖ a finite weekday identifies an attributable day rather than a daily rate: 星期日 (1.832917ms)
+✖ a finite weekday identifies an attributable day rather than a daily rate: 礼拜日 (0.411334ms)
+✖ a finite weekday identifies an attributable day rather than a daily rate: 週日 (0.343959ms)
+✖ a finite weekday identifies an attributable day rather than a daily rate: 禮拜日 (0.327792ms)
+✔ a weekday suffix does not erase a rate or absorb a literal subject ending: 王甲周日工资标准400元。 (0.980333ms)
+✔ a weekday suffix does not erase a rate or absorb a literal subject ending: 王甲每周日工资400元。 (1.210958ms)
+✔ a weekday suffix does not erase a rate or absorb a literal subject ending: 王甲按日工资400元。 (0.821084ms)
+✔ a weekday suffix does not erase a rate or absorb a literal subject ending: 王周日工资400元。 (0.794875ms)
+✔ a weekday suffix does not erase a rate or absorb a literal subject ending: 李星期日工资400元。 (0.78975ms)
+✔ a correct supported daily rate remains usable as a rate and never authorizes calculation (1.327959ms)
+✖ another person's daily rate cannot contaminate this weekday total (0.446333ms)
+✖ traditional finite event wrappers align in either containment direction: 工資/false (1.757417ms)
+✖ traditional finite event wrappers align in either containment direction: 工資/true (0.68525ms)
+✖ traditional finite event wrappers align in either containment direction: 勞務費/false (0.57925ms)
+✖ traditional finite event wrappers align in either containment direction: 勞務費/true (0.745ms)
+✖ traditional finite event wrappers align in either containment direction: 勞動報酬/false (0.961834ms)
+✖ traditional finite event wrappers align in either containment direction: 勞動報酬/true (0.553208ms)
+✖ the same traditional amount at two source events retains six-layer one-to-one matches in reverse output order (1.366666ms)
+✔ an arbitrary traditional narrative is not a finite monetary wrapper (0.514458ms)
+✔ repeated traditional short quotes remain ambiguous across distinct events (0.797291ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 15
+ℹ fail 24
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 159.8655
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:75:3
+✖ traditional numeral aliases derive an exact value without repairing evidence: 人民幣兩萬圓 (7.784292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  null !== '20000.00'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:76:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '20000.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:75:3
+✖ traditional numeral aliases derive an exact value without repairing evidence: 人民幣四億圓 (6.871875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - '400000000.00'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:76:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '400000000.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:75:3
+✖ traditional numeral aliases derive an exact value without repairing evidence: 4億圓 (0.441709ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - '400000000.00'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:76:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '400000000.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:75:3
+✖ traditional numeral aliases derive an exact value without repairing evidence: 兩元五角 (0.089042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  null !== '2.50'
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:76:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '2.50',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:90:3
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 不满四万元 (4.363292ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(canonical(a))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:92:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:90:3
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 低于四万元 (0.446333ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(canonical(a))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:92:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:90:3
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 四万元不到 (1.535084ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(canonical(a))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:92:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:90:3
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 四万元开外 (0.114291ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(canonical(a))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:92:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:90:3
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 不滿四萬元 (0.135958ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(canonical(a))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:92:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:90:3
+✖ a supported bound has an anchored numeric-spelling key, never an exact amount: 四萬元開外 (0.114083ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(canonical(a))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:92:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:97:1
+✖ bound direction, literal qualifier and prefix/suffix position are retained in comparison keys (0.20725ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(keys.every(Boolean))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:99:39)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:108:3
+✖ a finite weekday identifies an attributable day rather than a daily rate: 周日 (10.176666ms)
+  AssertionError [ERR_ASSERTION]: fresh source-bound amount
+  
+  null !== '400.00'
+  
+      at checkSource (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:49:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:109:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '400.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:108:3
+✖ a finite weekday identifies an attributable day rather than a daily rate: 星期日 (1.832917ms)
+  AssertionError [ERR_ASSERTION]: fresh source-bound amount
+  
+  null !== '400.00'
+  
+      at checkSource (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:49:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:109:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '400.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:108:3
+✖ a finite weekday identifies an attributable day rather than a daily rate: 礼拜日 (0.411334ms)
+  AssertionError [ERR_ASSERTION]: fresh source-bound amount
+  
+  null !== '400.00'
+  
+      at checkSource (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:49:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:109:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '400.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:108:3
+✖ a finite weekday identifies an attributable day rather than a daily rate: 週日 (0.343959ms)
+  AssertionError [ERR_ASSERTION]: fresh source-bound amount
+  
+  null !== '400.00'
+  
+      at checkSource (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:49:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:109:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '400.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:108:3
+✖ a finite weekday identifies an attributable day rather than a daily rate: 禮拜日 (0.327792ms)
+  AssertionError [ERR_ASSERTION]: fresh source-bound amount
+  
+  null !== '400.00'
+  
+      at checkSource (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:49:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:109:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '400.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:116:1
+✖ another person's daily rate cannot contaminate this weekday total (0.446333ms)
+  AssertionError [ERR_ASSERTION]: fresh source-bound amount
+  
+  null !== '400.00'
+  
+      at checkSource (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:49:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:117:3)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '400.00',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:120:44
+✖ traditional finite event wrappers align in either containment direction: 工資/false (1.757417ms)
+  AssertionError [ERR_ASSERTION]: raw_basic
+  + actual - expected
+  
+    [
+  +   0,
+      1,
+  +   1
+  -   0,
+  -   0
+    ]
+  
+      at six (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:69:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:124:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 0, 1, 1 ],
+    expected: [ 1, 0, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:120:44
+✖ traditional finite event wrappers align in either containment direction: 工資/true (0.68525ms)
+  AssertionError [ERR_ASSERTION]: raw_basic
+  + actual - expected
+  
+    [
+  +   0,
+      1,
+  +   1
+  -   0,
+  -   0
+    ]
+  
+      at six (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:69:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:124:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 0, 1, 1 ],
+    expected: [ 1, 0, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:120:44
+✖ traditional finite event wrappers align in either containment direction: 勞務費/false (0.57925ms)
+  AssertionError [ERR_ASSERTION]: raw_basic
+  + actual - expected
+  
+    [
+  +   0,
+      1,
+  +   1
+  -   0,
+  -   0
+    ]
+  
+      at six (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:69:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:124:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 0, 1, 1 ],
+    expected: [ 1, 0, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:120:44
+✖ traditional finite event wrappers align in either containment direction: 勞務費/true (0.745ms)
+  AssertionError [ERR_ASSERTION]: raw_basic
+  + actual - expected
+  
+    [
+  +   0,
+      1,
+  +   1
+  -   0,
+  -   0
+    ]
+  
+      at six (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:69:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:124:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 0, 1, 1 ],
+    expected: [ 1, 0, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:120:44
+✖ traditional finite event wrappers align in either containment direction: 勞動報酬/false (0.961834ms)
+  AssertionError [ERR_ASSERTION]: raw_basic
+  + actual - expected
+  
+    [
+  +   0,
+      1,
+  +   1
+  -   0,
+  -   0
+    ]
+  
+      at six (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:69:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:124:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 0, 1, 1 ],
+    expected: [ 1, 0, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:120:44
+✖ traditional finite event wrappers align in either containment direction: 勞動報酬/true (0.553208ms)
+  AssertionError [ERR_ASSERTION]: raw_basic
+  + actual - expected
+  
+    [
+  +   0,
+      1,
+  +   1
+  -   0,
+  -   0
+    ]
+  
+      at six (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:69:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:124:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 0, 1, 1 ],
+    expected: [ 1, 0, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round22-independent.test.mjs:126:1
+✖ the same traditional amount at two source events retains six-layer one-to-one matches in reverse output order (1.366666ms)
+  AssertionError [ERR_ASSERTION]: raw_basic
+  + actual - expected
+  
+    [
+  +   0,
+      2,
+  +   2
+  -   0,
+  -   0
+    ]
+  
+      at six (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:69:12)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round22-independent.test.mjs:132:3)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 0, 2, 2 ],
+    expected: [ 2, 0, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

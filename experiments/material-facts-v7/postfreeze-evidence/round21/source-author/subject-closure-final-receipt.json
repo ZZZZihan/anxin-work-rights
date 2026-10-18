@@ -1,0 +1,69 @@
+{
+  "at": "2026-10-18T10:37:57.044407+00:00",
+  "kind": "implementer_targeted_self_test",
+  "baseline_commit": "91a364f0fd54cdeaa95a69d0a9e48d231f5b22f7",
+  "intermediate_source_sha256": "736b772e68425851097a0f3f70d4be50dcf6b78a79ea45fc7e069bc1ca91a254",
+  "final_files": {
+    "lib/material-fact-source-review.ts": "fb34ec5d861fb774dfe8f3eb74018c3479b7f7a6784171c3621a076f38ed13f1",
+    "scripts/material-facts-v7-round21-source-rate-author.test.mjs": "1855ba6946eda2b0ec53d1dc6b6cef86f1503b0a63e368b262ef11dcf1ea32c6",
+    "scripts/material-facts-v7-round21-rate-subject-author.test.mjs": "8e7b7e38a8c856966ab52c25c8d15f8f23fedfe1a799f6de5cd448e7a2ecf099"
+  },
+  "checks": [
+    {
+      "test": "new subject closure 14",
+      "intermediate_736b": {
+        "pass": 6,
+        "fail": 8,
+        "exit": 1
+      },
+      "final": {
+        "pass": 14,
+        "fail": 0,
+        "exit": 0
+      }
+    },
+    {
+      "test": "updated main author 90",
+      "baseline_91a": {
+        "pass": 29,
+        "fail": 61,
+        "exit": 1
+      },
+      "final": {
+        "pass": 90,
+        "fail": 0,
+        "exit": 0
+      },
+      "note": "Original author90 had32P58F baseline and90P final736b. Three model-subject-only name assumptions changed conservatively to unsupported. Their original bytes/logs remain; these three contract changes are not counted as independent new preexisting defects."
+    },
+    {
+      "test": "existing postposed-rate and currency-rate-source215",
+      "pass": 215,
+      "fail": 0,
+      "exit": 0
+    },
+    {
+      "test": "scoped ESLint production+two author scripts",
+      "exit": 0
+    }
+  ],
+  "change": "Remove only unstructured model-subject substring exemption from explicit unsupported denominator guard. Supported enum/date logic unchanged. No surname/length whitelist.",
+  "evidence_sha256": {
+    "subject-before-736b.actual.log": "e0abdc8bce2ecf97b17734730c2684fa42310257d486604eb72e4dc4ce4221c6",
+    "subject-after-final.actual.log": "9bf6231c8aa57918c4b7a90a2a51865cb55b7643639e9f529a2f8665e7a31970",
+    "subject-closure-final90-before-91a.actual.log": "b7ce21c887bad068ddb8378330d72e6a848b22114a9b1baec7c773e0fde93f84",
+    "subject-closure-final90.actual.log": "3c865605bd2192b23f4aca611dc3cc54f1570738c7f00a009fdc7a24d3cea01e",
+    "subject-closure-existing215.actual.log": "35a4c2584510cf498ef2742539ceb15186c88da5994a2b0ca56c4e6d58045a1b",
+    "subject-closure-lint.actual.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "behavior": [
+    "Complex pseudo-subject 王甲每周/王甲按年 and single-surname pseudo-subject 王每周/李按年 remain unsupported in full/cropped quotes.",
+    "Ordinary names 王周/李年 remain exact. Literal source quotation/name-field punctuation still establishes separation without adding name parsing.",
+    "Fresh ingest and forced historical exact are checked; source/raw/representation/codepoint anchor/storage remain unchanged; stored null is not upgraded."
+  ],
+  "limits": [
+    "Finite lexical rate prefix only, not general identity recognition.",
+    "Synthetic local author tests, not independent review, real model output, real HTTP, legal acceptance, or final integrated npm check.",
+    "No models/training/deployment/commit/push; ROOT/CODE/frozen artifacts/results untouched by this subagent."
+  ]
+}

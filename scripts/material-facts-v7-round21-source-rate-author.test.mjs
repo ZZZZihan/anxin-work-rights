@@ -1,0 +1,108 @@
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// Synthetic source/history checks only: no HTTP, model, frozen data or scoring.
+const OWN = fileURLToPath(new URL('../', import.meta.url));
+const BASE = resolve(process.env.V7_ROUND21_BASE_ROOT || OWN);
+const PATCH = resolve(process.env.V7_ROUND21_PATCH_ROOT || OWN);
+const temp = await mkdtemp(resolve(tmpdir(), 'anxin-round21-source-rate-author-'));
+after(() => rm(temp, { recursive: true, force: true }));
+await cp(resolve(BASE, 'lib'), resolve(temp, 'lib'), { recursive: true });
+const sourceFile = 'lib/material-fact-source-review.ts';
+await cp(resolve(PATCH, sourceFile), resolve(temp, sourceFile));
+console.log(JSON.stringify({ reviewed_source_sha256: createHash('sha256').update(await readFile(resolve(temp, sourceFile))).digest('hex') }));
+const load = name => import(pathToFileURL(resolve(temp, 'lib', name)).href);
+const { ingestRuntimeCandidates: fresh } = await load('material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates: legacy, buildFactView } = await load('material-facts-v3.ts');
+const { reviewFactsAgainstSources: review } = await load('material-fact-source-review.ts');
+const chars = text => Array.from(text).length;
+
+function fixture(before, { full = false, blocks = false, subject = '王甲', meaning = 'due_total', rateUnit = null,
+  value = '四万元', after = '。' } = {}) {
+  const parts = blocks ? before.split('\n') : [before];
+  const texts = parts.map((part, index) => (index === 0 ? '😀𠮷' : '') + part);
+  texts[texts.length - 1] += value + after;
+  const blockId = `b${texts.length}`, blockText = texts.at(-1);
+  const candidate = { kind: 'money', value, quote: full ? blockText : value, blockId, subject, scope: 'individual', meaning,
+    completeness: ['due_total', 'paid_total'].includes(meaning) ? 'complete' : 'not_applicable', period: null, rateUnit, assertion: 'narrated' };
+  return { candidate, raw: JSON.stringify({ schemaVersion: 3, candidates: [candidate] }), source: {
+    id: 'round21-author', name: '合成预置费率守护', sha256: '2'.repeat(64), analysisRevision: 21, ready: true,
+    blocks: texts.map((text, index) => ({ id: `b${index + 1}`, page: index + 1, text, bbox: null, confidence: null })),
+  } };
+}
+function ingest(f, historical = false) {
+  const sourceBefore = structuredClone(f.source);
+  const state = (historical ? legacy : fresh)(emptyFactState(21), f.source, { raw: f.raw }, 'round21-author', 'synthetic', '2026-10-18T00:00:00Z');
+  assert.deepEqual(f.source, sourceBefore); assert.equal(state.materials[0].raw, f.raw);
+  assert.equal(state.materials[0].candidates.length, 1); assert.equal(state.materials[0].rejected.length, 0);
+  const fact = state.materials[0].candidates[0], block = f.source.blocks.find(item => item.id === fact.blockId);
+  assert.deepEqual(fact.representation, f.candidate);
+  assert.equal(Array.from(block.text).slice(fact.start, fact.end).join(''), f.candidate.quote);
+  assert.equal(fact.start, chars(block.text.slice(0, block.text.indexOf(f.candidate.quote))));
+  assert.equal(fact.sourceSha256, f.source.sha256);
+  assert.deepEqual(state.confirmations, { due: null, paid: null }); assert.equal(state.calculation, null);
+  assert.equal(buildFactView(state, [f.source]).canCalculate, false);
+  return state;
+}
+function check(before, options = {}, expected = null, status = 'unsupported') {
+  const f = fixture(before, options), state = ingest(f), current = state.materials[0].candidates[0];
+  assert.equal(current.amount, expected); assert.equal(current.normalization.status, status);
+  const old = ingest(f, true), stored = old.materials[0].candidates[0];
+  Object.assign(stored, { amount: '40000.00', normalization: { rawValue: f.candidate.value, amount: '40000.00', status: 'exact',
+    matchedText: f.candidate.value, span: { start: 0, end: chars(f.candidate.value) }, reason: 'Synthetic pre-fix exact, not a real experiment result.' } });
+  const snapshot = structuredClone(old), checked = review(old, [f.source]).materials[0].candidates[0];
+  assert.equal(checked.amount, expected); assert.equal(checked.normalization.status, status);
+  assert.deepEqual(checked.representation, f.candidate); assert.equal(checked.normalization.rawValue, f.candidate.value);
+  assert.deepEqual(old, snapshot); assert.equal(old.materials[0].raw, f.raw);
+  stored.amount = null; stored.normalization = { ...stored.normalization, amount: null, status: 'unsupported' };
+  const nullSnapshot = structuredClone(old); assert.equal(review(old, [f.source]).materials[0].candidates[0].amount, null);
+  assert.deepEqual(old, nullSnapshot);
+}
+
+test('minimal every-week rate cannot become a payable total', () => check('王甲每周工资'));
+test('minimal every-quarter rate cannot become a payable total', () => check('王甲每季度工资', { full: true }));
+for (const unit of ['年', '年度', '周', '週', '星期', '季度', '季', '次', '分钟', '分鐘', '秒', '公里', '人', '班']) {
+  for (const full of [false, true]) test(`unsupported explicit denominator ${unit}, full=${full}`, () => {
+    check(`王甲每${unit}工资`, { full });
+    check(`王甲工资按${unit}计`, { full });
+  });
+}
+for (const before of ['王甲每周基本工资标准为', '王甲按季度工资约定为人民币', '王甲每週工資標準為',
+  '王甲工資按季度計人民幣', '王甲每\u200d周工资', '王甲每 周 工资 标准：', '王甲每季度工资\n',
+  '王甲每周\n工资', '王甲每\n周工资', '王甲工资按\n季度计', '王甲每週工資標準為\n']) {
+  for (const blocks of [false, true]) test(`layout/detection preserves explicit unsupported rate ${JSON.stringify(before)}, blocks=${blocks}`,
+    () => check(before, { blocks }));
+}
+for (const meaning of ['due_total', 'paid_total', 'arrears', 'other_money', 'rate']) for (const rateUnit of [null, 'unknown', 'month'])
+  test(`unsupported denominator is unavailable regardless of model attributes ${meaning}/${rateUnit}`, () => {
+    if ((meaning === 'rate') === (rateUnit !== null)) check('王甲每周工资', { meaning, rateUnit });
+    else {
+      // These attribute combinations are already schema-invalid; they never
+      // reach source review and must not be counted as a new parser failure.
+      const f = fixture('王甲每周工资', { meaning, rateUnit });
+      const state = fresh(emptyFactState(21), f.source, { raw: f.raw }, 'round21-author', 'synthetic', '2026-10-18T00:00:00Z');
+      assert.equal(state.materials[0].candidates.length, 0); assert.equal(state.materials[0].raw, f.raw);
+      assert.equal(state.materials[0].rejected.length, 1);
+    }
+  });
+for (const [prefix, unit] of [['每月', 'month'], ['按月', 'month'], ['每日', 'day'], ['按日', 'day'], ['每小时', 'hour'], ['按小时', 'hour'], ['每件', 'piece'], ['按件', 'piece']])
+  test(`supported unit remains exact when correctly labelled ${prefix}`, () => {
+    check(`王甲工资${prefix}`, { meaning: 'rate', rateUnit: unit }, '40000.00', 'exact');
+    check(`王甲工资${prefix}`, { meaning: 'due_total', rateUnit: null }, null, 'rate_unit_mismatch');
+  });
+for (const before of ['王甲2026年工资', '王甲本周工资', '王甲上周工资', '王甲2026年第3周工资', '王甲本季度工资',
+  '王甲2026年1月至3月工资', '王乙每周工资。王甲工资', '王乙按季度计，王甲工资', '王乙每周工资\n王甲工资'])
+  test(`calendar/period/separate event is not an unsupported denominator ${before}`, () => check(before, { blocks: true }, '40000.00', 'exact'));
+for (const subject of ['王每周', '李按年', '张每季度']) test(`ambiguous subject-only name cannot exempt explicit rate ${subject}`,
+  () => check(subject + '工资', { subject }));
+for (const [value, after, status] of [['工资金额不详', '。', 'masked'], ['约四万元', '。', 'approximate'], ['四万元', '至五万元。', 'range']])
+  test(`existing uncertainty is preserved ${value + after}`, () => {
+    const f = fixture('王甲每周', { value, after }), state = ingest(f);
+    assert.equal(state.materials[0].candidates[0].amount, null);
+    assert.equal(state.materials[0].candidates[0].normalization.status, status);
+  });

@@ -1,0 +1,29 @@
+--- a/lib/material-fact-source-review.ts
++++ b/lib/material-fact-source-review.ts
+@@ -141,14 +141,10 @@
+ 
+ /** An explicit unsupported denominator cannot become a total or an enum rate.
+  * Only this finite prefix may span OCR layout; punctuation and other prose stop
+- * the match. A supplied subject's literal suffix is not a rate instruction. */
+-function sourceHasUnsupportedRate(beforeEdge: string, subject: string | null): boolean {
++ * the match. An unstructured model-supplied subject cannot exempt this guard. */
++function sourceHasUnsupportedRate(beforeEdge: string): boolean {
+   const before = sourceRateDetectionText(beforeEdge).split(/[，,。！？!?；;]/u).at(-1)!;
+-  const prefix = before.match(/(?:每|按)\s*(?:年(?:度)?|周|週|星期|季度|季|次|分钟|分鐘|秒|公里|人|班)\s*(?:(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|RMB|CNY|[¥￥:=])\s*)*$/u);
+-  if (!prefix) return false;
+-  const subjectText = subject && sourceRateDetectionText(subject);
+-  const subjectStart = subjectText ? before.lastIndexOf(subjectText) : -1;
+-  return subjectStart < 0 || prefix.index! < subjectStart || prefix.index! >= subjectStart + subjectText!.length;
++  return /(?:每|按)\s*(?:年(?:度)?|周|週|星期|季度|季|次|分钟|分鐘|秒|公里|人|班)\s*(?:(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|RMB|CNY|[¥￥:=])\s*)*$/u.test(before);
+ }
+ 
+ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null): RateUnit | null {
+@@ -255,7 +251,7 @@
+       else if (truncatedMoneyToken(context, sourceNormalized.normalization)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
+       };
+-      else if (layout && sourceHasUnsupportedRate(layout.before, raw.subject)) sourceNormalized = {
++      else if (layout && sourceHasUnsupportedRate(layout.before)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额前明确附着不受支持的费率分母，未换算成总额或现有费率单位，请人工核对。', 'unsupported'),
+       };
+       else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject))) sourceNormalized = {

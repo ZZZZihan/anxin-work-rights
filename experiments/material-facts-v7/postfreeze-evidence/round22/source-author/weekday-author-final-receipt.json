@@ -1,0 +1,68 @@
+{
+  "at": "2026-10-18T10:47:50.544805+00:00",
+  "kind": "implementer_targeted_synthetic_self_test",
+  "baseline_commit": "ca3e6bcc154484e0169b85af8a7fc4ed3f8b6a97",
+  "baseline_source_sha256": "fb34ec5d861fb774dfe8f3eb74018c3479b7f7a6784171c3621a076f38ed13f1",
+  "final_files": {
+    "lib/material-fact-source-review.ts": "e3311ec84388fea955340100c2f1db3f5b90da0cc5a389b09215fb0f15675b11",
+    "scripts/material-fact-weekday-source-rate.test.mjs": "434cab07a8dc242669970b4626101ece8970a58ee51aeb6af9deafab1a7ca233"
+  },
+  "production_diff": {
+    "file": "lib/material-fact-source-review.ts",
+    "added_lines": 7,
+    "removed_lines": 0,
+    "patch_sha256": "c9c16e162e4fff1abe0ea5efe82f967834584924e3d8a1d9161d9b8b4d0a6720"
+  },
+  "contract": "For naked 日(基本)工资 only, full 周/週/星期/礼拜/禮拜 immediately preceding 日 names a wage period. Explicit standard, recurring 每/按 wording, suffix rate and an actual subject ending at the introducer retain rate precedence. No enum/schema/calculation changes.",
+  "checks": [
+    {
+      "test": "new author66, fixedca3 dependency lib with only source overlay",
+      "before": {
+        "pass": 35,
+        "fail": 31,
+        "exit": 1
+      },
+      "after": {
+        "pass": 66,
+        "fail": 0,
+        "exit": 0
+      }
+    },
+    {
+      "test": "existing round21 unsupported-prefix and untrusted-subject104",
+      "pass": 104,
+      "fail": 0,
+      "exit": 0
+    },
+    {
+      "test": "existing postposed-rate and currency/rate source215",
+      "pass": 215,
+      "fail": 0,
+      "exit": 0
+    },
+    {
+      "test": "scoped ESLint production+new test",
+      "exit": 0
+    }
+  ],
+  "evidence_sha256": {
+    "weekday-before-ca3.actual.log": "19a41c4aa3d92d67b37f917cfe85c9f2233330cd8111936828eb3c3fb6d58278",
+    "weekday-after-first.actual.log": "89c9bdc8d68346000b3c1067c64cca82c0dbbee2a1e8dee922d4b4a5898e2b06",
+    "weekday-existing104.actual.log": "45c0a6cf985604afd732dc83b2197d8ef37d3394ba613e3b2b6f185353a4095c",
+    "weekday-existing215.actual.log": "c24f6639e3f5bd64986b0e7c51af5e0deaf4d3fdbd3d6346086b4795f60d5ea7",
+    "weekday-lint.actual.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "assertions": [
+    "Full and cropped quote, simplified/traditional, Cf and horizontal layout retain source value/raw/representation/quote/CP position.",
+    "Forced historical exact for a real weekday period remains exact; stored null stays null and state/source/history/confirmations/calculation are not changed.",
+    "Daily explicit 每日/每天/按日/按天, 日工资标准, suffix /日 or /天, recurring 每周日/按星期日 and model subject absorbing 每日/每天 cannot become exact totals.",
+    "Real subjects 王周/李星期 retain their following day-rate guard; correct day-rate labels remain exact.",
+    "Unknown/masked, approximate and range values remain unavailable rather than zero."
+  ],
+  "temporary_test_setup": "All baseline lib bytes came from git archive ca3. Existing215 ran in the disposable baseline copy with final source overlaid; saved fb34 baseline source restored after execution. Existing104 also explicitly overlays final source. No frozen repository artifact was used as a mutable fixture.",
+  "limits": [
+    "Finite weekday grammar, not general calendar or identity recognition.",
+    "Implementer local synthetic tests, not independent review or actual model/HTTP/business acceptance.",
+    "No fullcheck/deepchain/model/training/deployment/commit/push or frozen result mutation; parent handles integrated checks."
+  ]
+}
