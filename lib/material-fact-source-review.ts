@@ -221,7 +221,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       else if (sourceMoneyHasNonCurrencySubunit(subunitSource, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文中的角或分属于时间、计量或普通词语，未将裁剪片段作为分币金额。', 'unsupported'),
       };
-      else if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
+      else if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization, raw.subject)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着外币或不支持的币种标记，当前规范化不进行币种转换。', 'unsupported'),
       };
       else if (layout && isMoneyRangeEndpoint(layout.before, layout.matched, layout.after)) sourceNormalized = {
