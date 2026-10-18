@@ -6,11 +6,13 @@ Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的解析�
 
 本次交付的精简入口见[Issue #42 技术验收与模型比较](ISSUE42_ACCEPTANCE.md)，以下保留逐轮证据与失败历史。
 
-当前应用提交 `b0a9554d0b7ab1a064ce490cee181d2197c31b0c` 在前序防护上补充含混连接主体、翻倍/加倍基数、繁体辞职日期和完整日期边界评分。原始输出、位置、审计、人工确认及历史null不自动升级均保留。旧的内部连接名字“王和平／李与诚／张及春”现进入关联待核，这种保守收紧可能增加真实单人的核对负担。见[ROUND37](POSTRUN_ROUND37_APPLICATION.md)。
+当前应用`66581e78`在前序防护上补齐高达/低至金额界限、带数词的翻/加倍算式、后置人民币符号、发薪日期及唯一同源前置工资词去重。原始输出、材料位置、审计、人工核对和历史null不自动升级均保留；两笔同额事件不合并。详见[ROUND38](POSTRUN_ROUND38_APPLICATION.md)。
 
-当前本地完整检查97.742秒退出0：Vitest1789项/46文件、材料67通过/1平台跳过、runtime9074通过/1平台跳过；HTTP428项旧411P17F→新428P0F，429份输出除临时ID外不变，427份重启核对和cleanup通过。真实隔离Worker/D1/R2使用合成模型输出，不等于真实案件或OCR业务验收。精确b0a9554的CI39155201166仍失败：runtime9074P1F，后续HTTP/OCR跳过，artifact实际0。失败点为重复信号清理时旧端口可连，缺少端口归属证据；不能用本地通过抵销。该失败与针对性观测协议修复分开记录。
+本地完整检查104.704秒退出0：Vitest1789/46文件、runtime9304通过/1平台跳过、材料67通过/1平台跳过。HTTP447项旧429P18F→新447P0F，448份注入输出除顶层临时ID外字段字节不变，446份重启核对、cleanup通过。真实隔离Worker/D1/R2使用合成回答，不等于真实案件/OCR或人工业务验收。精确应用CI39157925394以PR检查为准；b0a9554与d963425两次CI失败及R38首次10个旧契约断言失败均完整保留，未用本地通过覆盖。
 
-v27已另存，manifest `37d4f9ae5f64d1dfe97d21a30a0a1d3f7ab4d7df0efa338e2a5f326b0a7cb49e`，100当前/97归档代码；write288.810秒、check290.874秒均退出0；独立LIGHT重计12案43事实41锚点、216分区与18指标，100当前/97归档/60原结果匹配，1948保护路径（含父侧1726项）前后未变。首轮LIGHT因审计脚本残留旧schema断言停止，原失败保留，修正独立脚本后实际通过；见[本轮独立计数](ROUND37_V27_LIGHT_INDEPENDENT.md)。三路逐案报告与v26逐字相同。v26 manifest `3046e7bf9318945e38d3c4de724563cd32fbf251629314aedaa419d81cf654cf`、原首跑、失败及所有旧冻结保留；见[上一检查点独立计数](ROUND36_V26_LIGHT_INDEPENDENT.md)。所有后验修复仅对同一首跑输出另存复评，零新增模型请求，不称新一轮盲测或模型能力提升。历史失败、停止与不通过记录在各轮文件中保留。
+v28 manifest`e223d58a86c6ae56aa5df36fb529ab5b6a66ad742f8f2c4a4c30def8aa4a2cbe`绑定103当前/100归档代码，write316.591秒、check318.398秒均退出0。独立LIGHT核对12案43事实41锚点、216分区18指标、103/100/60及2057保护字节通过，见[独立计数](ROUND38_V28_LIGHT_INDEPENDENT.md)。18指标与v27相同；Qwen/DeepSeek开平“高达1.2亿元”两条由精确转概数/null，DeepSeek新增金额上下文核对提示，不能称两个模型报告逐字不变。原始模型回答不改，无新增调用。46条协议接受金额中19精确、25概数null、2unsupported/null，全有关联警告，不能当作已确认金额。
+
+v27检查点仍保留：manifest`37d4f9ae5f64d1dfe97d21a30a0a1d3f7ab4d7df0efa338e2a5f326b0a7cb49e`，100/97代码，write288.810秒/check290.874秒退出0；三路报告当时与v26逐字相同。[ROUND37](POSTRUN_ROUND37_APPLICATION.md)及[当轮独立计数](ROUND37_V27_LIGHT_INDEPENDENT.md)记录原完整证据和失败。所有后验修改仅另存相同首跑输出的复评，不能倒称预登记或新的独立盲测。
 
 v24检查点保留：应用8ac精确CI39142356614成功；v24 manifest86560d…、91当前/88归档，write181.910秒/check183.688秒退出0，379保护字节不变；独立轻核398路径及216评分分区通过。随后四项ROUND33审查触发本次修复，旧结果不覆盖。
 
@@ -124,17 +126,18 @@ node experiments/material-facts-v7/verify-correction-v18.mjs
 node experiments/material-facts-v7/verify-correction-v19.mjs
 # 用79项归档代码验证v20，不调用模型。
 node experiments/material-facts-v7/verify-correction-v20.mjs
-# 历史v21至v26按归档代码核对，当前v27零推理复算。
+# 历史v21至v27按归档代码核对，当前v28零推理复算。
 node experiments/material-facts-v7/verify-correction-v21.mjs
 node experiments/material-facts-v7/verify-correction-v22.mjs
 node experiments/material-facts-v7/verify-correction-v23.mjs
 node experiments/material-facts-v7/verify-correction-v24.mjs
 node experiments/material-facts-v7/verify-correction-v25.mjs
 node experiments/material-facts-v7/verify-correction-v26.mjs
-node experiments/material-facts-v7/corrective-assessment-v27.mjs --check
+node experiments/material-facts-v7/verify-correction-v27.mjs
+node experiments/material-facts-v7/corrective-assessment-v28.mjs --check
 ```
 
-以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1至v26的 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
+以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1至v27的 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
 
 诊断运行从检查尚未冻结到终态写完，与冻结的枚举至发布共用 `.experiment.lock`。锁在results之外；并发竞争直接拒绝，SIGKILL或所有权变化的遗留锁保留，恢复前须核查owner的主机/PID、worker和已有attempt。不能仅按锁年龄自动删除。生命周期与锁回归使用本地合成worker/临时文件系统，不调用真实模型；完整生产代码的数据和身份门禁另行校验。
 
@@ -188,10 +191,8 @@ node experiments/material-facts-v7/corrective-assessment-v27.mjs --check
 
 第八轮最终本机完整检查通过1789项Vitest/46文件、842项运行时/证据检查、材料67通过/1平台跳过、Python9+11+16；当前v7只读复算通过。原子发布12项、保留名11项及现有锁9项组合32通过；独立v7门禁5项实际验证同JSON空白/键序改写被拒，39代码绑定和216材料×层级重新核对。应用代码仍为PR45 `36ad568`，其完整CI通过，32项HTTP与31快照证据保持；本轮未重复本机HTTP。PR46最新精确提交的远端CI在PR状态单独记录。
 
-本批共46条协议接受金额，21条派生出精确金额、23条概数无精确金额、2条不支持；全部仍带 `source_relation_unresolved`，没有“无核对问题的精确金额”。这说明当前防御保守，不说明46条都语义错误。报告的 `calculation_authorized:false` 是比较工具固定政策字段，不是每条模型候选经过真实 UI 授权流程的证明。
+v28本批共46条协议接受金额，19条派生出精确金额、25条概数无精确金额、2条不支持；全部仍带 `source_relation_unresolved`，没有“无核对问题的精确金额”。这说明当前防御保守，不说明46条都语义错误。报告的 `calculation_authorized:false` 是比较工具固定政策字段，不是每条模型候选经过真实 UI 授权流程的证明。
 
 待办与明确语义错误、程序保守拒绝、标签争议分别见 `ERROR_REVIEW.md`、`POSTRUN_LABEL_AUDIT.md`、`POSTRUN_MONEY_AUDIT.md`、`POSTRUN_INDEPENDENT.md`、`POSTRUN_ROUND3_INDEPENDENT.md`、`POSTRUN_ROUND4_INDEPENDENT.md`、`POSTRUN_ROUND5_INDEPENDENT.md`、`POSTRUN_ROUND6_INDEPENDENT.md`、`POSTRUN_ROUND7_INDEPENDENT.md`、`POSTRUN_ROUND8_INDEPENDENT.md`、`POSTRUN_ROUND9_INDEPENDENT.md`、`POSTRUN_ROUND11_INDEPENDENT.md`、`POSTRUN_ROUND12_INDEPENDENT.md`、`POSTRUN_ROUND13_APPLICATION.md`、`POSTRUN_ROUND13_INDEPENDENT.md` 与第十三轮独立回执。没有法律专家/用户业务验收；没有自然零金额、承认的年假部分应付、真实 OCR 图片及两笔同额同属性独立实际工资付款的完整自然覆盖。样本少且来源集中，不形成模型总体能力、真实案件可靠性、训练就绪或生产发布结论。
 
-当前后续状态：应用d963425的精确CI仍待完成；18:48 UTC追加的5条审查涉及高达/低至、翻一倍、发薪日期、重复后置人民币符号及前置工资词去重，尚待ROUND38复现修复。因此v27是保存的技术检查点，不能视为最终可合并结论。
-
-更新：d963425的CI39156365623实际失败，runtime9075P1F0skip，新增端口重占用例未处理read ECONNRESET；原始失败正独立归档，进入ROUND38夹具修复。不得把该提交记为远端通过。
+技术检查点状态：应用66581e78精确CI39157925394成功，27步骤及447项HTTP经独立原件核对。但最新审查另有4项待处理（币种后年份、减半/折半、到账/入账日期、兄弟/双方群体主体）；v28及CI仅是当时检查点，不构成当前最终放行。进入ROUND39，旧结果不覆写。

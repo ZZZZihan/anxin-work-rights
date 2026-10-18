@@ -1,0 +1,22 @@
+--- a/lib/material-fact-event-review.ts
++++ b/lib/material-fact-event-review.ts
+@@ -97,7 +97,7 @@
+   // actual receipt or a money payer. The located single owner and full left/
+   // right envelopes cannot absorb negation, another person or a partial date.
+   if (recurringPaymentDate.test(value)) {
+-    const payment = '(?:支付|发放|给付|給付|付清)';
++    const payment = '(?:支付|发放|给付|給付|付清|发薪)';
+     if (new RegExp(`^(?:的)?${wage}(?:于|在)?$`, 'u').test(left)
+       && new RegExp(`^${payment}$`, 'u').test(right)) return true;
+     return left === '' && new RegExp(`^${payment}${wage}$`, 'u').test(right);
+--- a/lib/material-fact-runtime-ingest.ts
++++ b/lib/material-fact-runtime-ingest.ts
+@@ -65,7 +65,7 @@
+       const after = points.slice(inner.end, outer.end).join('');
+       // Sharing an exact parsed amount does not make an arbitrary narrative a
+       // duplicate of its minimal literal. Only these finite wrappers may nest.
+-      return /^\s*(?:(?:人民[币幣]|RMB|CNY|[¥￥])\s*)?$/iu.test(before)
++      return /^\s*(?:(?:人民[币幣]|RMB|CNY|[¥￥])\s*)?(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/iu.test(before)
+         && /^\s*(?:整|正)?\s*(?:(?:人民[币幣]|RMB|CNY)\s*)?(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/iu.test(after);
+     });
+     // A non-unique quote/value has no proven occurrence identity. Retain every

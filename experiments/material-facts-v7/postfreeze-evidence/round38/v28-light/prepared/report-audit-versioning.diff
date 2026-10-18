@@ -1,0 +1,146 @@
+--- completed-v27-audit
++++ prepared-v28-audit
+@@ -1,8 +1,9 @@
+-# Adapted from REVIEW round32 v24 LIGHT by the money-module author.
++# Versioned from the completed v27 LIGHT audit by the money-module author.
++# Prepared for v28; no artifact result is assumed and no scorer is imported.
+ # Role boundary: not a label/scorer implementer; arithmetic/bytes only, not semantic rematching.
+ """Read-only independent arithmetic/byte/diagnostic audit. Never imports a scorer.
+ 
+-Arguments: root, expected v27 manifest SHA supplied after formal publication.
++Arguments: root, expected v28 manifest SHA supplied after formal publication.
+ Preparation does not run the controller, model, service, or this audit itself.
+ """
+ import hashlib
+@@ -23,9 +24,10 @@
+ historical["corrections-v24/manifest.json"] = "86560d13902cba7458cae1d5c1b9175c01442c404a4d47bd17305950206e795e"
+ historical["corrections-v25/manifest.json"] = "4eef4eeeba7df54d6f40a67ff4cca3170de8788b1ab9578b45c29d06ed1cb8ca"
+ historical["corrections-v26/manifest.json"] = "3046e7bf9318945e38d3c4de724563cd32fbf251629314aedaa419d81cf654cf"
++historical["corrections-v27/manifest.json"] = "37d4f9ae5f64d1dfe97d21a30a0a1d3f7ab4d7df0efa338e2a5f326b0a7cb49e"
+ for path, digest in historical.items():
+     assert sha((base / path).read_bytes()) == digest, path
+-for directory in ["corrections"] + [f"corrections-v{n}" for n in range(2, 27)]:
++for directory in ["corrections"] + [f"corrections-v{n}" for n in range(2, 28)]:
+     for path, digest in read(base / directory / "manifest.json")["files"].items():
+         assert sha((base / directory / path).read_bytes()) == digest, (directory, path)
+ frozen_material_and_failure_paths = {}
+@@ -40,27 +42,27 @@
+     assert sha((base / path).read_bytes()) == digest, path
+ labels = {row["id"]: row for row in (json.loads(line) for line in (base / "data/holdout.labels.provisional.jsonl").read_text().splitlines())}
+ assert len(labels) == 12 and sum(len(row["expected"]) for row in labels.values()) == 43
+-manifest_bytes = (base / "corrections-v27/manifest.json").read_bytes()
++manifest_bytes = (base / "corrections-v28/manifest.json").read_bytes()
+ assert sha(manifest_bytes) == expected_manifest_sha
+ manifest = json.loads(manifest_bytes)
+-assert manifest["schema"] == "material-facts-v7-postfreeze-correction-manifest/27"
+-assert manifest["previous_correction_manifest_sha256"] == historical["corrections-v26/manifest.json"]
++assert manifest["schema"] == "material-facts-v7-postfreeze-correction-manifest/28"
++assert manifest["previous_correction_manifest_sha256"] == historical["corrections-v27/manifest.json"]
+ assert manifest["first_result_manifest_sha256"] == historical["result-manifest.json"]
+ assert manifest["freeze_sha256"] == historical["freeze.json"]
+ assert manifest["inference"] is False and manifest["training"] is False
+-assert len(manifest["code_sha256"]) == 100
+-prior_code = read(base / "corrections-v26/manifest.json")["code_sha256"]
++assert len(manifest["code_sha256"]) == 103
++prior_code = read(base / "corrections-v27/manifest.json")["code_sha256"]
+ new_code = set(manifest["code_sha256"]) - set(prior_code)
+ assert set(prior_code) <= set(manifest["code_sha256"])
+-assert new_code == {"experiments/material-facts-v7/historical-v26-execution.mjs", "experiments/material-facts-v7/verify-correction-v26.mjs", "experiments/material-facts-v7/corrective-assessment-v27.mjs"}
+-previous = read(base / "corrections-v26/manifest.json")
+-archive_base = base / "correction-code-v26"
++assert new_code == {"experiments/material-facts-v7/historical-v27-execution.mjs", "experiments/material-facts-v7/verify-correction-v27.mjs", "experiments/material-facts-v7/corrective-assessment-v28.mjs"}
++previous = read(base / "corrections-v27/manifest.json")
++archive_base = base / "correction-code-v27"
+ archive = read(archive_base / "manifest.json")
+-assert sha((archive_base / "manifest.json").read_bytes()) == "125283860c9a78e8dca56fc50f7eeba9ee7fcf8ea8149d94c06e0c37bdb37f81"
+-assert archive["correction_manifest_sha256"] == historical["corrections-v26/manifest.json"]
++assert sha((archive_base / "manifest.json").read_bytes()) == "528a40a69142978ca6a46885bcf6ff7e2b7063e4b16ff3e208ca411fd3d13f11"
++assert archive["correction_manifest_sha256"] == historical["corrections-v27/manifest.json"]
+ assert set(archive["files"]) == set(previous["code_sha256"])
+-assert len(archive["files"]) == 97
+-assert archive["schema"] == "material-facts-v7-correction-code/26"
++assert len(archive["files"]) == 100
++assert archive["schema"] == "material-facts-v7-correction-code/27"
+ assert {str(path.relative_to(archive_base)) for path in archive_base.rglob("*.snapshot")} == {path + ".snapshot" for path in archive["files"]}
+ for path, digest in archive["files"].items():
+     assert previous["code_sha256"][path] == digest
+@@ -70,21 +72,21 @@
+ for backend in ("rules", "qwen", "deepseek"):
+     for key, name in [("raw_sha256", "results.jsonl"), ("first_report_sha256", "report.json")]:
+         assert manifest["evidence"][backend][key] == previous["evidence"][backend][key] == sha((base / f"results/holdout-{backend}-1" / name).read_bytes())
+-required = ["lib/material-money-v4.ts", "lib/material-fact-range-review.ts", "lib/material-fact-arithmetic-review.ts", "lib/material-fact-event-review.ts", "lib/material-fact-currency-review.ts", "lib/material-fact-source-review.ts", "lib/material-fact-runtime-ingest.ts", "experiments/material-facts-v7/assess.mjs", "experiments/material-facts-v7/verify-correction-v26.mjs", "experiments/material-facts-v7/corrective-assessment-v27.mjs", "experiments/material-facts-v7/historical-v26-execution.mjs", "experiments/material-facts-v7/historical-execution-policy-v1.mjs", "experiments/material-facts-v7/historical-execution-v1.mjs"]
++required = ["lib/material-money-v4.ts", "lib/material-fact-range-review.ts", "lib/material-fact-arithmetic-review.ts", "lib/material-fact-event-review.ts", "lib/material-fact-currency-review.ts", "lib/material-fact-source-review.ts", "lib/material-fact-runtime-ingest.ts", "experiments/material-facts-v7/assess.mjs", "experiments/material-facts-v7/verify-correction-v27.mjs", "experiments/material-facts-v7/corrective-assessment-v28.mjs", "experiments/material-facts-v7/historical-v27-execution.mjs", "experiments/material-facts-v7/historical-execution-policy-v1.mjs", "experiments/material-facts-v7/historical-execution-v1.mjs"]
+ assert all(path in manifest["code_sha256"] for path in required)
+ for path, digest in manifest["code_sha256"].items():
+     assert sha((root / path).read_bytes()) == digest, path
+ assert manifest["code_sha256"]["experiments/material-facts-v7/historical-execution-policy-v1.mjs"] == "cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea"
+ assert manifest["code_sha256"]["experiments/material-facts-v7/historical-execution-v1.mjs"] == "0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c"
+-assert {path.name for path in (base / "corrections-v27").iterdir()} == set(manifest["files"]) | {"manifest.json"}
++assert {path.name for path in (base / "corrections-v28").iterdir()} == set(manifest["files"]) | {"manifest.json"}
+ for path, digest in manifest["files"].items():
+-    assert sha((base / "corrections-v27" / path).read_bytes()) == digest, path
+-comparison = read(base / "corrections-v27/comparison.json")
+-assert comparison["schema"] == "material-facts-v7-postfreeze-correction/27"
++    assert sha((base / "corrections-v28" / path).read_bytes()) == digest, path
++comparison = read(base / "corrections-v28/comparison.json")
++assert comparison["schema"] == "material-facts-v7-postfreeze-correction/28"
+ assert comparison["expected_facts"] == 43 and comparison["planned_per_backend"] == 12
+ assert comparison["inference"] is False and comparison["new_holdout_run"] is False
+-prior_comparison = read(base / "corrections-v26/comparison.json")
+-comparison_models_unchanged_from_v26 = comparison["models"] == prior_comparison["models"]
++prior_comparison = read(base / "corrections-v27/comparison.json")
++comparison_models_unchanged_from_v27 = comparison["models"] == prior_comparison["models"]
+ 
+ # Independently inspect saved raw JSON/envelopes; no production parser is loaded.
+ def raw_candidates(row):
+@@ -176,8 +178,8 @@
+ old_money_warnings = 0
+ for backend in ("rules", "qwen", "deepseek"):
+     name = f"report-{backend}.json"
+-    old_bytes = (base / "corrections-v26" / name).read_bytes()
+-    new_bytes = (base / "corrections-v27" / name).read_bytes()
++    old_bytes = (base / "corrections-v27" / name).read_bytes()
++    new_bytes = (base / "corrections-v28" / name).read_bytes()
+     report = json.loads(new_bytes)
+     assert len(report["cases"]) == 12 and report["expected_facts"] == 43
+     assert {case["id"] for case in report["cases"]} == set(labels)
+@@ -231,19 +233,19 @@
+     report_changes = recursive_changes(prior, report)
+     # Discover all byte/semantic differences instead of assuming no change.
+     # Source/label/history inputs are still byte-bound above.
+-    metrics_unchanged_from_v26 = totals == prior["metrics"]
++    metrics_unchanged_from_v27 = totals == prior["metrics"]
+     reason_changes = report_changes
+-    models[backend] = dict(full_report_changes_from_v26=reason_changes, v26_v27_report_byte_identical=(old_bytes == new_bytes), report_sha256=sha(new_bytes), cases=12, expected_facts=43,
+-        metrics_recounted_from_saved_match_partitions=totals, metrics_unchanged_from_v26=metrics_unchanged_from_v26, partition_changes_from_v26=partition_changes,
++    models[backend] = dict(full_report_changes_from_v27=reason_changes, v27_v28_report_byte_identical=(old_bytes == new_bytes), report_sha256=sha(new_bytes), cases=12, expected_facts=43,
++        metrics_recounted_from_saved_match_partitions=totals, metrics_unchanged_from_v27=metrics_unchanged_from_v27, partition_changes_from_v27=partition_changes,
+         raw=report["raw_candidates"], accepted=report["accepted_candidates"], rejected=report["rejected_candidates"],
+-        original_defense=defense_summary(first_defense), v26_defense=defense_summary(prior_defense), v27_defense=defense_summary(current_defense),
+-        defense_changes_from_original=defense_changes(first_defense, current_defense), defense_changes_from_v26=defense_changes(prior_defense, current_defense))
++        original_defense=defense_summary(first_defense), v27_defense=defense_summary(prior_defense), v28_defense=defense_summary(current_defense),
++        defense_changes_from_original=defense_changes(first_defense, current_defense), defense_changes_from_v27=defense_changes(prior_defense, current_defense))
+ assert partition_count == 216
+ assert anchor_count == 41
+ assert old_money_warnings == 46
+ status_totals = {}
+ for model in models.values():
+-    defense = model["v27_defense"]
++    defense = model["v28_defense"]
+     assert defense["exact_money_without_review_issue"] == 0 and defense["calculation_authorized"] == 0
+     for status, count in defense["normalizations"].items():
+         status_totals[status] = status_totals.get(status, 0) + count
+@@ -251,9 +253,9 @@
+ # unchanged. Saved prior/original records remain independently byte-bound.
+ assert set(status_totals) <= {"exact", "approximate", "unsupported", "uncertain", "multiple", "range", "masked", "invalid", "rate_unit_mismatch"}
+ 
+-print(json.dumps(dict(schema="material-facts-v7-v27-independent-artifact-check/1", status="PASS", model_requests=0, builds=0, scorer_imported=False, calculation_authorized_is_report_constant_not_production_approval=True, reviewer_role="money product author, not label/scorer implementer; technical LIGHT audit, not human acceptance",
++print(json.dumps(dict(schema="material-facts-v7-v28-independent-artifact-check/1", status="PASS", model_requests=0, builds=0, scorer_imported=False, calculation_authorized_is_report_constant_not_production_approval=True, reviewer_role="money product author, not label/scorer implementer; technical LIGHT audit, not human acceptance",
+     scope="Independent saved-match disjoint partition/count arithmetic, fixed denominators, file/code/archive binding and raw-index-aligned defense changes; not a replacement for source-semantic review or actual historical CLI gates.",
+-    case_layers_recounted=partition_count, aggregate_metrics_recounted=18, historical_sha256=historical, original_result_files_verified=60, archived_v26_code_paths_verified=97,
+-    current_code_paths_verified=100, frozen_material_and_failure_paths_verified=frozen_material_and_failure_paths, gold_anchor_spans_validated=anchor_count, v27_manifest_sha256=sha(manifest_bytes), current_code_sha256=manifest["code_sha256"], archive_manifest_sha256=sha((archive_base / "manifest.json").read_bytes()),
+-    comparison_models_unchanged_from_v26=comparison_models_unchanged_from_v26,
++    case_layers_recounted=partition_count, aggregate_metrics_recounted=18, historical_sha256=historical, original_result_files_verified=60, archived_v27_code_paths_verified=100,
++    current_code_paths_verified=103, frozen_material_and_failure_paths_verified=frozen_material_and_failure_paths, gold_anchor_spans_validated=anchor_count, v28_manifest_sha256=sha(manifest_bytes), current_code_sha256=manifest["code_sha256"], archive_manifest_sha256=sha((archive_base / "manifest.json").read_bytes()),
++    comparison_models_unchanged_from_v27=comparison_models_unchanged_from_v27,
+     current_money_normalization_totals=status_totals, original_accepted_money_relation_warnings=old_money_warnings, models=models), ensure_ascii=False, indent=2))

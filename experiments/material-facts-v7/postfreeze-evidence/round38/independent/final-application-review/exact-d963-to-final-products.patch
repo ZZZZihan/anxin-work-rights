@@ -1,0 +1,85 @@
+diff --git a/lib/material-fact-arithmetic-review.ts b/lib/material-fact-arithmetic-review.ts
+index eef2595..14849bd 100644
+--- a/lib/material-fact-arithmetic-review.ts
++++ b/lib/material-fact-arithmetic-review.ts
+@@ -69,7 +69,9 @@ const PREFIX_PAY_COMPONENT = new RegExp(`(?<!\\p{L}|\\p{N})${PAY_COMPONENT_OPERA
+ // These complete verbs state multiplication without spelling a numeric factor.
+ // They apply only immediately after this amount or its finite amount noun,
+ // never by searching another clause or treating an earlier wage result as math.
+-const DOUBLING = `(?:翻${LINE}*倍|加${LINE}*倍)`;
++// A spelled factor still describes an operation on the base (翻一倍/加2倍).
++// Reuse the strict numeric factor; never infer the resulting payable amount.
++const DOUBLING = `(?:翻|加)${LINE}*(?:${FACTOR}${LINE}*)?倍`;
+ const SUFFIX_DOUBLING = new RegExp(`^${DOUBLING}`, 'u');
+ // A presentation hyphen can introduce a payment date or duration. Require a
+ // complete time unit: a bare -2000, -200元 or -50% remains subtraction. This
+diff --git a/lib/material-fact-event-review.ts b/lib/material-fact-event-review.ts
+index 3d1bd7e..c0dcbce 100644
+--- a/lib/material-fact-event-review.ts
++++ b/lib/material-fact-event-review.ts
+@@ -97,7 +97,7 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
+   // actual receipt or a money payer. The located single owner and full left/
+   // right envelopes cannot absorb negation, another person or a partial date.
+   if (recurringPaymentDate.test(value)) {
+-    const payment = '(?:支付|发放|给付|給付|付清)';
++    const payment = '(?:支付|发放|给付|給付|付清|发薪)';
+     if (new RegExp(`^(?:的)?${wage}(?:于|在)?$`, 'u').test(left)
+       && new RegExp(`^${payment}$`, 'u').test(right)) return true;
+     return left === '' && new RegExp(`^${payment}${wage}$`, 'u').test(right);
+diff --git a/lib/material-fact-range-review.ts b/lib/material-fact-range-review.ts
+index d4fefe8..ca2cb64 100644
+--- a/lib/material-fact-range-review.ts
++++ b/lib/material-fact-range-review.ts
+@@ -1,7 +1,9 @@
+ // Only detection copies are folded. The source and its code-point positions
+ // remain untouched, including when layout divides an explicit range.
+ const COMPARISON_BOUND = '(?:<=|>=|[<>≤≥≦≧])';
+-export const MONEY_BOUND_PREFIX = `(?:不得少于|不得低于|不得超过|不得高于|不超过|不少于|不低于|不高于|不多于|不大于|不小于|不满|未满|低于|高于|多达|少于|多于|大于|小于|未达|大约|约(?!定|束)|将近|接近|逾|不到|不止|超过|不足|至少|至多|上限|下限|最高|最低|最多|最少|${COMPARISON_BOUND})`;
++// 高达 may also emphasize a precise figure. Without that semantic proof, the
++// shared anchored grammar conservatively keeps it (and 低至) for human review.
++export const MONEY_BOUND_PREFIX = `(?:不得少于|不得低于|不得超过|不得高于|不超过|不少于|不低于|不高于|不多于|不大于|不小于|不满|未满|低于|高于|高\\s*达|低\\s*至|多达|少于|多于|大于|小于|未达|大约|约(?!定|束)|将近|接近|逾|不到|不止|超过|不足|至少|至多|上限|下限|最高|最低|最多|最少|${COMPARISON_BOUND})`;
+ // A following explicit duration or occurrence count belongs to its own number,
+ // e.g. 四万元不到三天付清. Do not treat that temporal bound as a money bound.
+ const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;
+diff --git a/lib/material-fact-runtime-ingest.ts b/lib/material-fact-runtime-ingest.ts
+index 34605dc..66e73bc 100644
+--- a/lib/material-fact-runtime-ingest.ts
++++ b/lib/material-fact-runtime-ingest.ts
+@@ -65,7 +65,7 @@ export function validateRuntimeCandidateOutput(raw: string, source: FactSource):
+       const after = points.slice(inner.end, outer.end).join('');
+       // Sharing an exact parsed amount does not make an arbitrary narrative a
+       // duplicate of its minimal literal. Only these finite wrappers may nest.
+-      return /^\s*(?:(?:人民[币幣]|RMB|CNY|[¥￥])\s*)?$/iu.test(before)
++      return /^\s*(?:(?:人民[币幣]|RMB|CNY|[¥￥])\s*)?(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/iu.test(before)
+         && /^\s*(?:整|正)?\s*(?:(?:人民[币幣]|RMB|CNY)\s*)?(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/iu.test(after);
+     });
+     // A non-unique quote/value has no proven occurrence identity. Retain every
+diff --git a/lib/material-money-v4.ts b/lib/material-money-v4.ts
+index 3fb4aba..29c20d0 100644
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -213,7 +213,7 @@ function hasCompleteMoneyUnit(token: string): boolean {
+   return /[元圆圓角分](?:整|正)?$/u.test(token);
+ }
+ 
+-/** Count only named RMB labels attached to this monetary token's edges.
++/** Count only RMB currency markers attached to this monetary token's edges.
+  * One label is valid; a second cannot be discarded by a clipped value or
+  * quote. Detection folding joins layout/Cf only, never intervening prose. */
+ function hasRepeatedRmbCurrency(before: string, token: string, after: string): boolean {
+@@ -227,10 +227,14 @@ function hasRepeatedRmbCurrency(before: string, token: string, after: string): b
+   // A bare Arabic value may omit its one yuan unit; an explicit whole-amount
+   // ending can also precede the first named suffix. Neither adds a currency.
+   let tail = monetaryDetectionView(after).replace(/^\s*(?:[元圆圓]\s*)?(?:[整正]\s*)?/u, '');
+-  const suffix = new RegExp(`^\\s*${RMB_NAME}\\s*`, 'iu');
++  const suffix = new RegExp(`^\\s*(?:${RMB_NAME}|[¥￥])\\s*`, 'iu');
+   while (count < 2) {
+     const match = tail.match(suffix);
+     if (!match) break;
++    // Symbols have a supported prefix position only. A symbol appended to an
++    // already anchored amount (including a clipped yuan ending) is malformed;
++    // it cannot be discarded as a harmless one-label suffix like 人民币.
++    if (/[¥￥]/u.test(match[0])) return true;
+     count++; tail = tail.slice(match[0].length);
+   }
+   return count > 1;

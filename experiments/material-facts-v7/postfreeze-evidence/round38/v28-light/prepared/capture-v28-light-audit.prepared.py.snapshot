@@ -1,0 +1,77 @@
+"""Authorized read/hash and local Python recount only; never a historical CLI/scorer.
+
+Usage after parent confirms actual publication and authorizes LIGHT:
+  python3 capture-v28-light-audit.prepared.py ROOT MANIFEST_SHA PROTECTED_JSON COUNT --execute-authorized-readonly-audit
+
+COUNT is supplied from the actual parent pre-write protected snapshot. Preparation
+has no future artifact SHA, result-count conclusion, or automatic execution.
+"""
+import datetime, hashlib, json, pathlib, re, subprocess, sys, time
+assert len(sys.argv) == 6 and sys.argv[5] == "--execute-authorized-readonly-audit"
+here = pathlib.Path(__file__).resolve().parent
+root = pathlib.Path(sys.argv[1]).resolve()
+expected = sys.argv[2]
+assert re.fullmatch(r"[0-9a-f]{64}", expected)
+expected_parent_count = int(sys.argv[4])
+assert expected_parent_count > 0
+base = root / "experiments/material-facts-v7"
+current = base / "corrections-v28"
+assert {p.name for p in current.iterdir()} == {"manifest.json", "comparison.json", "report-rules.json", "report-qwen.json", "report-deepseek.json"}
+manifest_bytes = (current / "manifest.json").read_bytes()
+assert hashlib.sha256(manifest_bytes).hexdigest() == expected
+manifest = json.loads(manifest_bytes)
+assert manifest["schema"] == "material-facts-v7-postfreeze-correction-manifest/28"
+assert len(manifest["code_sha256"]) == 103
+paths = {base / "freeze.json", base / "result-manifest.json", base / "data/holdout.inputs.jsonl", base / "data/holdout.labels.provisional.jsonl", root / "package.json"}
+original = json.loads((base / "result-manifest.json").read_bytes())
+paths.update(base / rel for rel in original["files"])
+for name in ["corrections"] + [f"corrections-v{n}" for n in range(2,29)]:
+    folder = base / name
+    paths.update(p for p in folder.iterdir() if p.is_file())
+archive = base / "correction-code-v27"
+paths.update(p for p in archive.rglob("*") if p.is_file())
+paths.update(root / rel for rel in manifest["code_sha256"])
+paths.update(base / f"results/holdout-{backend}-1/results.jsonl" for backend in ["rules", "qwen", "deepseek"])
+freeze = json.loads((base / "freeze.json").read_bytes())
+paths.update(root / rel for rel in freeze["files"] if rel.startswith("experiments/material-facts-v7/data/") or rel.startswith("experiments/material-facts-v7/review-evidence/"))
+parent_protected_path = pathlib.Path(sys.argv[3]).resolve()
+assert parent_protected_path.is_file()
+parent_bytes = parent_protected_path.read_bytes()
+parent_sha = hashlib.sha256(parent_bytes).hexdigest()
+parent_protected = json.loads(parent_bytes)
+assert isinstance(parent_protected, dict) and len(parent_protected) == expected_parent_count
+for rel, digest in parent_protected.items():
+    assert isinstance(rel,str) and re.fullmatch(r"[0-9a-f]{64}", digest)
+    path = (root / rel).resolve()
+    assert path.is_relative_to(root)
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, rel
+paths.update(root / rel for rel in parent_protected)
+for archive_dir in base.glob("correction-code-v*"):
+    paths.update(p for p in archive_dir.rglob("*") if p.is_file())
+paths.update(p for p in (base / "frozen-code").rglob("*") if p.is_file())
+output = here.parent / "actual-authorized-run"
+output.mkdir(exist_ok=False)
+def hashes():
+    return {str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
+def write_json(name,value):
+    with (output / name).open("x") as f:
+        json.dump(value,f,ensure_ascii=False,indent=2); f.write("\n")
+before = hashes()
+write_json("v28-light-protected-before.json", before)
+script = here / "v28-independent-report-check.prepared.py"
+argv = [sys.executable, str(script), str(root), expected]
+started = datetime.datetime.now(datetime.timezone.utc).isoformat()
+t0 = time.monotonic()
+result = subprocess.run(argv,capture_output=True,timeout=60)
+elapsed = time.monotonic()-t0
+for name,content in [("v28-light-audit.stdout.json",result.stdout),("v28-light-audit.stderr.txt",result.stderr)]:
+    with (output / name).open("xb") as f: f.write(content)
+after = hashes()
+write_json("v28-light-protected-after.json", after)
+parent_unchanged = hashlib.sha256(parent_protected_path.read_bytes()).hexdigest() == parent_sha
+record = {"schema":"round38-v28-light-audit-execution/1", "root":str(root), "argv":argv, "script_sha256":hashlib.sha256(script.read_bytes()).hexdigest(), "started_at":started, "elapsed_seconds":elapsed, "exit_code":result.returncode, "stdout_sha256":hashlib.sha256(result.stdout).hexdigest(), "stderr_sha256":hashlib.sha256(result.stderr).hexdigest(), "protected_count":len(before), "protected_unchanged":before==after, "manifest_sha256":expected, "parent_prewrite_protected_path":str(parent_protected_path), "parent_prewrite_protected_sha256":parent_sha, "parent_prewrite_protected_snapshot_unchanged":parent_unchanged, "parent_prewrite_protected_count":len(parent_protected), "parent_prewrite_protected_all_match":True, "audit_prepared_only_until_explicit_authorization":False, "deep_chain_calls":0, "scorer_imports":0, "model_calls":0, "http_calls":0}
+write_json("v28-light-audit.execution.json", record)
+assert before == after and parent_unchanged
+print(json.dumps(record,ensure_ascii=False,indent=2))
+if result.returncode: print(result.stderr.decode(),file=sys.stderr)
+sys.exit(result.returncode)

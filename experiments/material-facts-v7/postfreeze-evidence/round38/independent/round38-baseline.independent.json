@@ -1,0 +1,113 @@
+{
+  "schema": "issue42-round38-independent-baseline/1",
+  "created_at": "2026-10-18T19:07:09.725774+00:00",
+  "state": "FIXED_D963_BASELINE_RED_FINAL_APPLICATION_PENDING",
+  "exact_head": "d963425ef16831768395ba6a233df272dbaee196",
+  "independent_script": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round38-independent.test.mjs",
+    "sha256": "ce208da7a20513ef80a28a15e2013b36a699c98ebbfacb475fedc3402e1e5397",
+    "test_count": 20
+  },
+  "actual_executions": [
+    {
+      "node": "24.22.0",
+      "counts": {
+        "tests": 20,
+        "pass": 5,
+        "fail": 15,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "exit_code": 1,
+      "stdout_sha256": "0412acc2a74d31ee29b4340635f33ab04939f7805a21e7c4cf227cb70ff200f5",
+      "stderr_bytes": 0,
+      "observation_records": 45
+    },
+    {
+      "node": "26.11.0",
+      "counts": {
+        "tests": 20,
+        "pass": 5,
+        "fail": 15,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "exit_code": 1,
+      "stdout_sha256": "86b15440e93da054e6774fcf5efc2d7fbcf7d6908964f241cc35769b7be9bc50",
+      "stderr_bytes": 0,
+      "observation_records": 45
+    }
+  ],
+  "immutable_baseline": {
+    "files": 78,
+    "manifest_sha256": "aba518a299a144ca540b86ab9f1fcdd253c0feb17ddb4027e15e5d6f506d181f",
+    "all_bytes_unchanged_after_both": true
+  },
+  "five_review_families": [
+    {
+      "id": 4308248425,
+      "scope": [
+        "高达",
+        "高達",
+        "低至"
+      ],
+      "failing_tests": 6,
+      "checks": "literal plus full/min quote, fresh source, forced stored exact downgrade, stored null unchanged"
+    },
+    {
+      "id": 4308248432,
+      "scope": [
+        "4000元翻一倍"
+      ],
+      "failing_tests": 2,
+      "checks": "literal and full/min quote source"
+    },
+    {
+      "id": 4308248435,
+      "scope": [
+        "王甲工资每月15日发薪"
+      ],
+      "failing_tests": 1,
+      "checks": "payment_date role only, no actual-receipt claim"
+    },
+    {
+      "id": 4308248438,
+      "scope": [
+        "￥4000￥",
+        "人民币4000￥",
+        "4000元￥"
+      ],
+      "failing_tests": 4,
+      "checks": "three literal and one source crop/fullquote fresh/history"
+    },
+    {
+      "id": 4308248444,
+      "scope": [
+        "工资4000元 / 4000元 at the same unique position, both orders"
+      ],
+      "failing_tests": 2,
+      "checks": "raw output preserved; one finite wrapper deduplicates only same occurrence and attributes"
+    }
+  ],
+  "passing_control_tests": 5,
+  "controls": [
+    "发薪 negation/another recipient/invalid32",
+    "supported 发放 with wrong-role negative",
+    "single currency marker exact without confirmation",
+    "equal amount two owners remains two",
+    "equal amount two block positions remains two"
+  ],
+  "initial_precheck_correction": {
+    "snapshot": "independent-initial-batch-validation.snapshot",
+    "initial_actual_counts": "4P16F",
+    "incorrect_precheck_failures": 3,
+    "reason": "The archived batch validator intentionally rejects duplicate entries; this is not a malformed schema. The locked script validates each representation separately before invoking the production adapter. Initial logs and snapshot retained.",
+    "not_counted_as_product_failures": true
+  },
+  "evidence_boundaries": [
+    "Synthetic module/runtime/source checks only; no scorer, history CLI, fullcheck, HTTP, build, model, UI acceptance or external write.",
+    "An accepted candidate and a precise amount are not proof of usable confirmed business facts.",
+    "Stored-null read-only source review must never upgrade; original raw and code-point anchors are asserted.",
+    "Requested GPT-6.1 Sol / ultra; actual backend cannot be independently verified."
+  ]
+}

@@ -1,0 +1,1 @@
+ROUND38 作者定向交付。固定 d963 的高达/高達/低至与翻一倍/同族严格数字倍数，经共享锚定 helper 降为 approximate 或 unsupported，amount=null；不计算、不改原文或 CP。修订同94基线23P71F→94P，相关既有173P，3文件lint0。原94初稿两项时长正控误设 runtime 精确金额，基线与补丁本来同为null，原21P73F/92P2F及脚本快照保留；修订只记录既有source费率局限，pure金额仍要求exact。高达可能仅强调确数，本轮保守待核有可用性代价。没有运行模型、HTTP、评分器或历史链，也没有修改ROOT/CODE。

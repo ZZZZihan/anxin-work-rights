@@ -1,0 +1,69 @@
+--- a/scripts/material-facts-http-repeat-signal.test.mjs
++++ b/scripts/material-facts-http-repeat-signal.test.mjs
+@@ -8,6 +8,7 @@
+ import { dirname, resolve, join } from 'node:path';
+ import { fileURLToPath } from 'node:url';
+ import { tmpdir } from 'node:os';
++import { EventEmitter } from 'node:events';
+ 
+ const ROOT = resolve(process.env.ANXIN_HTTP_REPEAT_SIGNAL_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+ const pause = ms => new Promise(done => setTimeout(done, ms));
+@@ -16,6 +17,12 @@
+   socket.once('connect', () => { socket.destroy(); done(true); });
+   socket.once('error', () => { socket.destroy(); done(false); });
+ });
++function endReplacementConnection(socket) {
++  // The readiness probe closes its short connection. A deliberate TCP reset is
++  // expected on this unrelated replacement listener; other failures remain fatal.
++  socket.on('error', error => { if (error.code !== 'ECONNRESET') throw error; });
++  socket.end('unrelated replacement listener');
++}
+ // Observe a connection established with the original fixture process. A later
+ // listener can legitimately reuse its port while the TERM-ignoring descendant
+ // keeps group cleanup active; a fresh connect cannot identify the old owner.
+@@ -151,7 +158,7 @@
+       await until(() => launcherConnection.closed, 'The original listener connection must close before its port is reused.', 2000);
+       assert.equal(descendantConnection.closed, false, 'The original TERM-ignoring descendant must still be active at controlled port reuse.');
+       assert(members(childInfo.pid).some(([pid]) => Number(pid) === leafInfo.pid), 'The original descendant must still belong to its owned group during port reuse.');
+-      rebound = createServer(socket => socket.end('unrelated replacement listener'));
++      rebound = createServer(endReplacementConnection);
+       await new Promise((done, reject) => { rebound.once('error', reject); rebound.listen(childInfo.port, '127.0.0.1', done); });
+       t.diagnostic(JSON.stringify({ controlledPortReuse: true, originalLauncherPid: childInfo.pid, replacementPid: process.pid,
+         replacementOutsideOriginalGroup: !members(childInfo.pid).some(([pid]) => Number(pid) === process.pid) }));
+@@ -191,3 +198,36 @@
+     assert.equal(recorded.syntheticInputs, true);
+   });
+ }
++
++test('replacement listener accepts the readiness client resetting its connection', { timeout: 5000 }, async t => {
++  let peer, client;
++  const errors = [];
++  const server = createServer(socket => {
++    peer = socket;
++    socket.on('error', error => errors.push(error.code));
++    endReplacementConnection(socket);
++  });
++  t.after(async () => {
++    client?.destroy(); peer?.destroy();
++    await new Promise(done => server.close(done));
++  });
++  await new Promise((done, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', done); });
++  client = connect({ host: '127.0.0.1', port: server.address().port });
++  await new Promise((done, reject) => {
++    client.once('error', reject);
++    client.once('data', () => { client.resetAndDestroy(); done(); });
++  });
++  await until(() => errors.length !== 0, 'The controlled native reset did not reach the replacement listener.', 2000);
++  assert.deepEqual(errors, ['ECONNRESET']);
++  assert.equal(server.listening, true, 'A reset readiness connection must not stop the unrelated replacement listener.');
++});
++
++test('replacement listener does not suppress unexpected socket errors', () => {
++  // This is only the error propagation contract; the preceding test uses a real
++  // kernel TCP reset rather than emitting a synthetic ECONNRESET.
++  const socket = new EventEmitter();
++  socket.end = () => {};
++  endReplacementConnection(socket);
++  const unexpected = Object.assign(new Error('unexpected fixture socket failure'), { code: 'EPIPE' });
++  assert.throws(() => socket.emit('error', unexpected), error => error === unexpected);
++});

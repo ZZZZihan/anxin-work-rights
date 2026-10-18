@@ -1,0 +1,29 @@
+{
+  "reviewed_files": {
+    "DATA/scripts/material-facts-http-repeat-signal.test.mjs": "2e577f137321bdc141cb63f664f644cc1acd85c86dd279752a3866485350bf09"
+  },
+  "status": "NO_BLOCKING_FINDING_WITHIN_SCOPE",
+  "role": "nonimplementer of fixture-only socket reset handling",
+  "static": [
+    "Original9 CLI scenarios and cleanup/owned-group/original-connection/unrelated-process assertions preserved.",
+    "Replacement listener installs error handler before end(); only expected ECONNRESET is ignored. Any other error object is thrown.",
+    "New native test waits for server payload then client resetAndDestroy, checks real ECONNRESET and listener survival. EPIPE test asserts identity-preserving propagation.",
+    "Test cleanup destroys its peer/client and closes its server; this change does not alter product/helper lifecycle semantics."
+  ],
+  "actual_execution": "Node26 only2 new targeted replacement listener tests,2P,0.256s; no rerun of original9 real CLI scenarios.",
+  "author_report": "DATA Node24 actual11P is external author evidence and is not my execution.",
+  "limitations": [
+    "Controlled reset proves this fixture error path, not the cause of the earlier CI port-only failure.",
+    "Socket close event delivery is still event-loop scheduled; this patch does not change original connection observation."
+  ],
+  "not_run": [
+    "full11 CLI suite",
+    "HTTP application",
+    "fullcheck",
+    "model",
+    "historical CLI"
+  ],
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning_effort": "ultra",
+  "actual_backend_independently_verified": false
+}

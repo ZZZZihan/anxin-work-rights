@@ -1,0 +1,8 @@
+import { createServer, connect } from 'node:net';
+const server = createServer(socket => socket.end('unrelated replacement listener'));
+server.listen(0, '127.0.0.1', () => {
+  const client = connect({ host: '127.0.0.1', port: server.address().port });
+  client.on('error', error => { console.error('client-error', error.code); process.exitCode = 2; });
+  client.once('connect', () => client.resetAndDestroy());
+  client.once('close', () => setTimeout(() => server.close(), 100));
+});
