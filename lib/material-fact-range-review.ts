@@ -50,6 +50,11 @@ const QUALIFIER_BRIDGE = `(?:\\s|${CURRENCY}|[:：=()（）]|为|為|应付|應�
 const ATTACHED_PREFIX = new RegExp(`(?:${MONEY_BOUND_PREFIX}|(?<!最)近)${QUALIFIER_BRIDGE}$`, 'iu');
 const SIGNED_BRIDGE = `(?:${CURRENCY_BRIDGE_PART}|的|为|為|是|金额|金額|数值|數值|工资|工資|薪资|薪資|薪酬|计|計|共|合计|合計)*`;
 const ATTACHED_SIGNED = new RegExp(`(?:负数|負數|负值|負值|正数|正數|正值|[负負+＋\\-－−﹣±])${SIGNED_BRIDGE}$`, 'iu');
+// A postposed negative annotation belongs to this anchored amount only when
+// its finite words are adjacent. Layout may split the annotation, but another
+// subject, number or sentence cannot bridge it. Never convert it into -amount.
+const NEGATIVE_ANNOTATION_TAIL = `(?:记${SPACE}录|記${SPACE}錄|金${SPACE}[额額])`;
+const ATTACHED_NEGATIVE_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[(]${SPACE})?(?:(?:金额|金額|数值|數值)${SPACE})?(?:(?:为|為|是)${SPACE})?[负負]${SPACE}(?:[数數]|值)(?:(?!\\p{L}|\\p{N})|(?=${NEGATIVE_ANNOTATION_TAIL}))`, 'iu');
 const ATTACHED_INDEFINITE = new RegExp(`(?:数|數|几|幾)${CURRENCY_BRIDGE}$`, 'iu');
 const ATTACHED_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[/／]${SPACE}(?:小时|月|日|天|时|件)${SPACE})?${MONEY_BOUND_SUFFIX}`, 'iu');
 // A comparison's left operand is no more an exact total than its right one.
@@ -61,7 +66,7 @@ const ATTACHED_COMPARISON_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY
  * A signed amount remains unsupported, distinct from an approximate bound. */
 export function attachedMoneyQualifierStatus(before: string, after: string): 'unsupported' | 'approximate' | null {
   const prefix = view(before), suffix = view(after);
-  if (ATTACHED_SIGNED.test(prefix)) return 'unsupported';
+  if (ATTACHED_SIGNED.test(prefix) || ATTACHED_NEGATIVE_SUFFIX.test(suffix)) return 'unsupported';
   return ATTACHED_INDEFINITE.test(prefix) || ATTACHED_PREFIX.test(prefix) || ATTACHED_SUFFIX.test(suffix)
     || ATTACHED_COMPARISON_SUFFIX.test(suffix) ? 'approximate' : null;
 }

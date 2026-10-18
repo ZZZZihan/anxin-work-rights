@@ -54,7 +54,7 @@ for (const expression of namedExpressions) test(`an explicit operation with a fi
   assert.equal(fresh.calculation, null); assert.deepEqual(fresh.confirmations, { due: null, paid: null });
 });
 
-const decimalSubunits = [
+const decimalSubunits = [["5元５角", "5.50"],
   ['5元五角', '5.50'],
   ['5元5角', '5.50'], ['5元5角2分', '5.52'], ['5元2分', '5.02'], ['5元0角2分', '5.02'],
   ['四元5角', '4.50'], ['0元0角0分', '0.00'], ['0元5角2分', '0.52'], ['5元5角0分', '5.50'], ['5元0分', '5.00'],
@@ -77,8 +77,7 @@ for (const [value, amount] of decimalSubunits) test(`complete Arabic yuan/jiao/f
 
 for (const expression of ['5元15角', '5元5角12分', '5元5角2分3', '5元5角2分3元', '5元5角2分5分',
   '5元5角2角', '5元整5角', '5元5角零2分', '5.5元5角', '4万元5角',
-  '1000000000000元0角0分', '5元5角2分另有300', '5元5角2分２', '5元５角',
-  '5元5角2分另有３',
+  '1000000000000元0角0分', '5元5角2分另有300', '5元5角2分２', '5元5角2分另有３',
   '5元5角2分的2倍', '5元5角2分×2', '5元5角2分乘以出勤系数']) test(`an invalid, cropped or calculated Arabic subunit token is not a precise result: ${expression}`, () => {
   const normalized = normalizeMoneyValueV4(expression);
   assert.equal(normalized.amount, null); assert.equal(normalized.rawValue, expression);
@@ -133,3 +132,5 @@ for (const [raw, amount] of [['３人工资共四万元', '40000.00'], ['３人�
   ['２０２６年２月３人工资5元5角2分', '5.52'], ['5元5角2分已工作２个月', '5.52']]) test(`fullwidth dates/counts remain unrelated to the anchored amount: ${raw}`, () => {
   assert.equal(normalizeMoneyValueV4(raw).amount, amount);
 });
+
+// ROUND30 adds complete fullwidth numerals; all malformed/cropped cases retain their assertions.

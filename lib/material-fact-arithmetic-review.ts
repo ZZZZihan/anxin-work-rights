@@ -48,6 +48,11 @@ const SUFFIX_MULTIPLIER = new RegExp(`^${OPERAND}${CONTINUATION_BRIDGE}倍`, 'u'
 const SUFFIX_EXPLICIT_MULTIPLIER = new RegExp(`^${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
 const SUFFIX_FRACTION = new RegExp(`^(?:${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${EXPLICIT_OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
 const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
+// Half proportions have no leading numeric factor. They are operands only
+// after an explicit operation. A finite calculation/payment verb may follow;
+// arbitrary noun continuations such as 半成品 must keep their word boundary.
+const PROPORTION_ACTION = ['计算', '计发', '支付'].map(word => Array.from(word).join(`${LINE}*`)).join('|');
+const SUFFIX_PROPORTION_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${PROPORTION}(?:(?!\\p{L}|\\p{N})|(?=(?:${PROPORTION_ACTION})))`, 'u');
 const SUFFIX_COEFFICIENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${COEFFICIENT_OPERAND}`, 'u');
 // A named wage component is an unknown operand only on an explicit operation.
 // Bound a complete Han component name to 16 code points and require one of the
@@ -71,7 +76,7 @@ const TIME_INTEGER = `[${NUMERALS}]+`;
 const HYPHEN_TIME = new RegExp(`^-${LINE}*(?:[0-9]{4}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12][0-9]|3[01])|${TIME_INTEGER}年(?:${LINE}*${TIME_INTEGER}月(?:${LINE}*${TIME_INTEGER}日)?)?|${NUMBER}(?:个?月|日|天|小时|分钟|秒))(?![${NUMERALS}点.元圆圓角分%/×*xX÷+−-])`, 'u');
 
 function suffixIsOperation(suffix: string): boolean {
-  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
+  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_PROPORTION_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
 }
 const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
 // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
