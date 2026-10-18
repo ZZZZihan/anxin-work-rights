@@ -313,13 +313,14 @@ test('real loopback fact HTTP requires token, blocks browser and arbitrary model
 // Submission IDs are generated and persisted by the caller before HTTP starts.
 // Queue tests control only inference/clock boundaries; HTTP checks use real rules.
 const replayWindow = 31 * 60_000;
+const resultWindow = 31 * 60_000;
 const assertStatus = status => error => error.status === status;
-function deferredFactJobs() {
+function deferredFactJobs(options) {
   const executions = [];
   const jobs = createFactJobs(deepseek, (submitted, _, signal) => new Promise(resolve => {
     executions.push({ source: submitted, signal, finish: () => resolve({ raw: 'original controlled raw', backend: 'deepseek', model: 'fixture', finish_reason: 'stop' }) });
     signal.addEventListener('abort', () => resolve({ raw: 'discarded after cancel', backend: 'deepseek', model: 'fixture', finish_reason: 'stop' }), { once: true });
-  }));
+  }), options);
   return { jobs, executions };
 }
 
@@ -376,7 +377,7 @@ test('caller job ID: finished-result expiry leaves a full replay-window tombston
   const jobs = createFactJobs({}, undefined, { now: () => time }), jobId = randomUUID();
   try {
     jobs.submit({ source, jobId });
-    time = 5 * 60_000 + 1;
+    time = resultWindow + 1;
     assert.equal(jobs.get(jobId), null);
     assert.throws(() => jobs.submit({ source, jobId }), assertStatus(410));
     time += replayWindow - 1;
@@ -384,6 +385,144 @@ test('caller job ID: finished-result expiry leaves a full replay-window tombston
     // New IDs remain usable after the bounded retention period.
     time += 2;
     assert.equal(jobs.submit({ source, jobId: randomUUID() }).jobId.length, 36);
+  } finally { await jobs.close(); }
+});
+
+test('finished result retention: a tab returning after six minutes recovers the unchanged raw result', async () => {
+  let time = 0;
+  const jobs = createFactJobs({}, undefined, { now: () => time }), jobId = randomUUID();
+  try {
+    jobs.submit({ source, jobId });
+    const completed = jobs.get(jobId);
+    assert.equal(completed.status, 'ready');
+    time = 6 * 60_000;
+    assert.deepEqual(jobs.get(jobId), completed);
+    assert.equal(jobs.submit({ source, jobId }).jobId, jobId);
+  } finally { await jobs.close(); }
+});
+
+test('finished result retention: the complete 31-minute window is readable before expiry becomes 410', async () => {
+  let time = 0;
+  const jobs = createFactJobs({}, undefined, { now: () => time }), jobId = randomUUID();
+  try {
+    jobs.submit({ source, jobId });
+    const completed = jobs.get(jobId);
+    time = resultWindow - 1;
+    assert.deepEqual(jobs.get(jobId), completed);
+    time++;
+    assert.deepEqual(jobs.get(jobId), completed);
+    assert.equal(jobs.submit({ source, jobId }).jobId, jobId);
+    time++;
+    assert.equal(jobs.get(jobId), null);
+    assert.throws(() => jobs.submit({ source, jobId }), assertStatus(410));
+    time += replayWindow - 1;
+    assert.throws(() => jobs.submit({ source, jobId }), assertStatus(410));
+  } finally { await jobs.close(); }
+});
+
+test('finished result retention: queued and late completions each keep a full window after finishing', async () => {
+  let time = 0;
+  const { jobs, executions } = deferredFactJobs({ now: () => time });
+  const ids = Array.from({ length: 3 }, randomUUID);
+  try {
+    for (const jobId of ids) jobs.submit({ source, jobId });
+    assert.equal(executions.length, 1);
+    for (let i = 0; i < ids.length; i++) {
+      time = (i + 1) * 10 * 60_000;
+      assert.equal(jobs.get(ids[i]).status, 'running');
+      executions[i].finish(); await flush();
+      assert.equal(jobs.get(ids[i]).result.raw, 'original controlled raw');
+    }
+    time = 31 * 60_000;
+    for (const id of ids) assert.equal(jobs.get(id).status, 'ready');
+    time = 10 * 60_000 + resultWindow;
+    for (const id of ids) assert.equal(jobs.get(id).status, 'ready');
+    time++;
+    assert.equal(jobs.get(ids[0]), null);
+    assert.throws(() => jobs.submit({ source, jobId: ids[0] }), assertStatus(410));
+    for (const id of ids.slice(1)) assert.equal(jobs.get(id).status, 'ready');
+    time = 30 * 60_000 + resultWindow;
+    assert.equal(jobs.get(ids[2]).status, 'ready');
+    time++;
+    assert.equal(jobs.get(ids[2]), null);
+    assert.throws(() => jobs.submit({ source, jobId: ids[2] }), assertStatus(410));
+    assert.equal(executions.length, 3);
+  } finally { await jobs.close(); }
+});
+
+test('finished result retention: cancellation immediately hides work and discards a late completion', async () => {
+  let finish, signal, cancelled = false;
+  const jobs = createFactJobs(deepseek, (_, __, submittedSignal) => new Promise(resolve => {
+    signal = submittedSignal;
+    finish = () => resolve({ raw: 'late cancelled raw', backend: 'deepseek', model: 'fixture', finish_reason: 'stop' });
+  }));
+  try {
+    const running = jobs.submit({ source }).jobId, queued = jobs.submit({ source }).jobId;
+    await jobs.cancel(queued);
+    assert.equal(jobs.get(queued), null);
+    assert.throws(() => jobs.submit({ source, jobId: queued }), assertStatus(410));
+    const cancellation = jobs.cancel(running).then(() => { cancelled = true; });
+    assert.equal(signal.aborted, true);
+    assert.equal(jobs.get(running), null);
+    assert.throws(() => jobs.submit({ source, jobId: running }), assertStatus(410));
+    await flush(); assert.equal(cancelled, false);
+    finish(); await cancellation;
+    assert.equal(jobs.get(running), null);
+    assert.throws(() => jobs.submit({ source, jobId: running }), assertStatus(410));
+    const ready = createFactJobs();
+    try {
+      const id = ready.submit({ source }).jobId;
+      assert.equal(ready.get(id).status, 'ready');
+      const deleting = ready.cancel(id);
+      assert.equal(ready.get(id), null);
+      await deleting;
+    } finally { await ready.close(); }
+  } finally { finish?.(); await jobs.close(); }
+});
+
+test('finished result retention: 32 cached jobs remain bounded and expiry restores capacity', async () => {
+  let time = 0;
+  const jobs = createFactJobs({}, undefined, { now: () => time });
+  const ids = Array.from({ length: 32 }, randomUUID);
+  try {
+    for (const jobId of ids) jobs.submit({ source, jobId });
+    assert.throws(() => jobs.submit({ source }), assertStatus(429));
+    time = 6 * 60_000;
+    assert.throws(() => jobs.submit({ source }), assertStatus(429));
+    time = resultWindow;
+    assert.throws(() => jobs.submit({ source }), assertStatus(429));
+    time++;
+    const replacement = jobs.submit({ source }).jobId;
+    assert.equal(jobs.get(replacement).status, 'ready');
+    for (const jobId of ids) {
+      assert.equal(jobs.get(jobId), null);
+      assert.throws(() => jobs.submit({ source, jobId }), assertStatus(410));
+    }
+    // Result slots recover without evicting unexpired ID tombstones.
+    for (let i = ids.length; i < 1023; i++) await jobs.cancel(randomUUID());
+    await assert.rejects(jobs.cancel(randomUUID()), assertStatus(429));
+    assert.throws(() => jobs.submit({ source }), assertStatus(429));
+    await jobs.cancel(replacement);
+    time += replayWindow + 1;
+    assert.equal(jobs.get(jobs.submit({ source }).jobId).status, 'ready');
+  } finally { await jobs.close(); }
+});
+
+test('finished result retention: failed jobs also remain recoverable for the full window', async () => {
+  let time = 0;
+  const jobs = createFactJobs(deepseek, async () => { throw new Error('synthetic inference failure'); }, { now: () => time });
+  try {
+    const jobId = jobs.submit({ source }).jobId;
+    await flush();
+    const failed = jobs.get(jobId);
+    assert.equal(failed.status, 'failed');
+    time = 6 * 60_000;
+    assert.deepEqual(jobs.get(jobId), failed);
+    time = resultWindow;
+    assert.deepEqual(jobs.get(jobId), failed);
+    time++;
+    assert.equal(jobs.get(jobId), null);
+    assert.throws(() => jobs.submit({ source, jobId }), assertStatus(410));
   } finally { await jobs.close(); }
 });
 
