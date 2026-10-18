@@ -1,0 +1,219 @@
+{
+  "role": "non-implementer review of owned process cleanup and cancel/poll interruption; reviewer only fixed synthetic fixture marker publication, not production runners or assertion expectations",
+  "reviewer_agent": "/root/v7_money",
+  "requested_configuration": "gpt-6.1-sol / ultra; no independent model-runtime verification claimed",
+  "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "code_head": "9b4bba2fbc85ccd2a7cd8003a2d4a1f2e0593207",
+  "reviewed_current_sha256": {
+    "scripts/owned-http-process-group.mjs": "460130907f28e027bcc15368aac87bf82c7e9b7dfa7c22eefe021895cddd007a",
+    "scripts/material-facts-cancel-http-regression.mjs": "5df94b5d749e700148c6b1ce2aa534e85a84e6c8f7fa05dd4d4c5f79b3b473e2",
+    "scripts/material-facts-poll-http-regression.mjs": "045c4b72d1a260c27dbfcd7c6922503f6ff927cc127690da32b269661cee7dde",
+    "scripts/material-facts-http-round14-independent.test.mjs": "92a763fbcd5fcffcccfc6d631233c0d290170e41069fd775f74578d1e2245986",
+    "scripts/material-facts-http-group-inspection.test.mjs": "0713e7c1a6a981892ef4f00ecdb720b2d69838f16fc4ee540ef790a30a916fd6",
+    "scripts/material-facts-http-interrupt.test.mjs": "a38f6c3e946f361a333d6da4eb18a57c49e54e7a020375e4ea7297cf228e93c2"
+  },
+  "status": "passed_product_review_with_explicit_fixture_and_scope_limits",
+  "blocking_product_findings": [],
+  "checks": [
+    {
+      "log": "group-inspection.native.txt",
+      "exit": 0,
+      "pass": 2,
+      "fail": 0,
+      "scope": "real owned children plus controlled signal-permission probes"
+    },
+    {
+      "log": "interrupt.native.txt",
+      "exit": 1,
+      "pass": 7,
+      "fail": 1,
+      "scope": "pre-unified-cleanup runner bytes; transient fixture partial JSON before poll-pending signal; 4 recorded cleanup FAIL with retention left visible"
+    },
+    {
+      "log": "interrupt.poll-pending-rerun.txt",
+      "exit": 0,
+      "pass": 1,
+      "fail": 0,
+      "scope": "same pre-unified-cleanup bytes and original fixture; isolated retry only, not an 8-test all-green claim"
+    },
+    {
+      "log": "interrupt.atomic-single-cleanup.native.txt",
+      "exit": 0,
+      "pass": 8,
+      "fail": 0,
+      "cleanup_pass": 8,
+      "cleanup_fail": 0,
+      "scope": "new unified-finally cleanup product bytes plus atomic synthetic marker fixture"
+    }
+  ],
+  "evidence_sha256": {
+    "group-inspection.native.txt": "132b5b41d0f307000a6a67cd3e059393dcbdcbc51b2462c9d31df9974a42c095",
+    "interrupt.native.txt": "5ecb5b9f6f0adc714c82428dba8ab326a323d96b32dcde002f7803c4a1a10bc4",
+    "interrupt.poll-pending-rerun.txt": "a7a40b0c246f63edb3d11d8f55b61381999e201dc724396ee553aff956cf039a",
+    "interrupt.atomic-single-cleanup.native.txt": "ec69b46055105c36a0483a7e077e70e729fb5487342b39ad40c81caf0e3e9dc1"
+  },
+  "fixture_change": {
+    "file": "scripts/material-facts-http-interrupt.test.mjs",
+    "sha256": "a38f6c3e946f361a333d6da4eb18a57c49e54e7a020375e4ea7297cf228e93c2",
+    "changes": "Only leaf/owned/request JSON marker writes use same-directory temp+rename. Report JSON after closed remains strictly parsed. Existing assertions unchanged.",
+    "syntax_check_exit": 0,
+    "eslint_exit": 0
+  },
+  "final_native_exits": [
+    {
+      "mode": "migration",
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "sockets": {
+        "launcher": false,
+        "descendant": false,
+        "unrelated": true
+      }
+    },
+    {
+      "mode": "startup",
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "sockets": {
+        "launcher": false,
+        "descendant": false,
+        "unrelated": true
+      }
+    },
+    {
+      "mode": "pending",
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "sockets": {
+        "launcher": false,
+        "descendant": false,
+        "unrelated": true
+      }
+    },
+    {
+      "mode": "migration-failure",
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "sockets": {
+        "launcher": false,
+        "descendant": false,
+        "unrelated": true
+      }
+    },
+    {
+      "mode": "migration",
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "sockets": {
+        "launcher": false,
+        "descendant": false,
+        "unrelated": true
+      }
+    },
+    {
+      "mode": "startup",
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "sockets": {
+        "launcher": false,
+        "descendant": false,
+        "unrelated": true
+      }
+    },
+    {
+      "mode": "pending",
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "sockets": {
+        "launcher": false,
+        "descendant": false,
+        "unrelated": true
+      }
+    },
+    {
+      "mode": "migration-failure",
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "sockets": {
+        "launcher": false,
+        "descendant": false,
+        "unrelated": true
+      }
+    }
+  ],
+  "final_native_cleanup": [
+    {
+      "mode": "migration",
+      "cleanup": "PASS",
+      "cleanupOperations": []
+    },
+    {
+      "mode": "startup",
+      "cleanup": "PASS",
+      "cleanupOperations": []
+    },
+    {
+      "mode": "pending",
+      "cleanup": "PASS",
+      "cleanupOperations": []
+    },
+    {
+      "mode": "migration-failure",
+      "cleanup": "PASS",
+      "cleanupOperations": []
+    },
+    {
+      "mode": "migration",
+      "cleanup": "PASS",
+      "cleanupOperations": []
+    },
+    {
+      "mode": "startup",
+      "cleanup": "PASS",
+      "cleanupOperations": []
+    },
+    {
+      "mode": "pending",
+      "cleanup": "PASS",
+      "cleanupOperations": []
+    },
+    {
+      "mode": "migration-failure",
+      "cleanup": "PASS",
+      "cleanupOperations": []
+    }
+  ],
+  "static_findings": [
+    "First SIGINT/SIGTERM aborts waits/requests and releases held poll barriers. Repeated signals return without process.exit or restoring default termination.",
+    "Abort-aware migration and request waits propagate to finally; finally is the sole group-termination owner after root removed eager handler TERM loops.",
+    "Original operational failures, including migration exit23, retain failure; interruption is separately recorded and cannot overwrite them.",
+    "Pending promises capture rejection on creation, barriers release in interrupt and finally, pending settlement is bounded at5s before proxy/service closure.",
+    "Group inspection uses bounded validated ps membership, not kill0 EPERM as cleanup success. Real termination EPERM remains an error; malformed/empty inspection is failclosed.",
+    "Cleanup TERM/KILL phases and ps are bounded, force-kill retains the original inspection error, owned process failures retain temporary resources and FAIL.",
+    "The round14 test adaptation only records/accepts a final signal0 EPERM diagnostic; socket closure/rebind, live sibling and stop/repeat error assertions remain strict."
+  ],
+  "limitations": [
+    "No complete HTTP runner, application build, model, training, deployment or deep round14 native suite was run.",
+    "Native8 uses synthetic Wrangler/material-service replacements with real CLI subprocesses/signals and kernel sockets, not production Worker business acceptance.",
+    "Its pending mode hangs the first /api/cases request; it does not dynamically reach the internal held fact-job pendingPoll barrier. That release path was statically reviewed only.",
+    "Native signals cover first SIGINT at startup, first SIGTERM at migration/pending/failure and repeated SIGTERM during cleanup. Repeated SIGINT and mixed signal sequences share the same statically reviewed handler but were not separately executed.",
+    "Native platform was macOS; no native Windows or Linux retained-zombie acceptance was performed in this review.",
+    "An initial attempted interrupt log redirect preceded creation of its evidence directory, so that shell invocation did not launch tests; it is excluded from test counts."
+  ]
+}

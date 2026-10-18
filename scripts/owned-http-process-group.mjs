@@ -49,8 +49,9 @@ export async function ownedGroupAlive(child, timeoutMs = 1000) {
   assert(owned.has(child), 'Only runner-owned process groups may be inspected.');
   if (!child.pid) return false;
   if (process.platform === 'win32') return child.exitCode === null && child.signalCode === null;
-  try { process.kill(-child.pid, 0); }
-  catch (error) { if (error.code === 'ESRCH') return false; throw error; }
+  // Group signal probes can report EPERM after the group has disappeared on
+  // macOS. The bounded, validated process table below establishes live members;
+  // a signal error or a failed/empty table never counts as successful cleanup.
   const table = await processTable(Math.max(1, Math.min(1000, timeoutMs)));
   assert(table.trim(), 'Empty process table cannot establish owned-group cleanup.');
   let alive = false;

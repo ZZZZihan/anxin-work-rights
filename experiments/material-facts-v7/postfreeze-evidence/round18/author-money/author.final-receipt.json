@@ -1,0 +1,101 @@
+{
+  "task": "ROUND18 Chinese-integer yuan mixed subunits and unsupported explicit rate denominators",
+  "baseline": {
+    "baseline_commit": "9b4bba2fbc85ccd2a7cd8003a2d4a1f2e0593207",
+    "baseline_root": "/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin-round18-9b4bba2-goi6rfhw",
+    "own_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money",
+    "baseline_money_sha256": "638ce714a35886481731c6c1bfd58e8887597b6d15940c3c3ed0ef7b7fecee8f"
+  },
+  "production_files": {
+    "lib/material-money-v4.ts": "3c3132601b90243045d5d3b05b6aa4c7c3f537a01c4ec3d56b709e28f1e43418"
+  },
+  "author_test": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-round18-money-author.test.mjs",
+    "sha256": "1ed21807b4c01e8fd50fb45af5c5eba66b089f13149d62ef8d7f68ffe9806f0d",
+    "tests": 193
+  },
+  "fixed_baseline_dependencies": {
+    "lib/material-fact-currency-review.ts": "9e96fd7a53b30da0b7858f09e5bc9f7c7f99b19ec4f45d6aec056bdcbd139804",
+    "lib/material-fact-source-review.ts": "461379bfaa9d3238f8d6f849ce8c3d52a19221cb68da84a0d230b4d8abce0c16",
+    "lib/material-fact-runtime-ingest.ts": "93b6b213871eb3fd8d98fd3f3eb1bd735190746438b96bbf69e9c745971296ea"
+  },
+  "checks": [
+    {
+      "log": "author.final193-fixed-9b-before-red.txt",
+      "exit": 1,
+      "tests": 193,
+      "pass": 69,
+      "fail": 124,
+      "scope": "same final193 test with exact git9b money and dependencies"
+    },
+    {
+      "log": "author.final-after-green.txt",
+      "exit": 0,
+      "tests": 193,
+      "pass": 193,
+      "fail": 0,
+      "scope": "OWN final money over exact git9b dependencies"
+    },
+    {
+      "log": "existing-mixed-subunits.expanded-after.txt",
+      "exit": 0,
+      "tests": 191,
+      "pass": 191,
+      "fail": 0
+    },
+    {
+      "log": "existing-vitest.txt",
+      "exit": 1,
+      "tests": 532,
+      "pass": 529,
+      "fail": 3,
+      "scope": "485 money plus47 runtime regression; 3 expectations need task-authorized syntax migration, original tests unmodified"
+    },
+    {
+      "log": "scoped-lint.final193.txt",
+      "exit": 0
+    }
+  ],
+  "expected_old_contract_migrations": [
+    {
+      "file": "lib/material-money-v4.test.ts",
+      "line": 133,
+      "value": "四元五角伍分",
+      "old": "unsupported",
+      "new_amount": "4.55"
+    },
+    {
+      "file": "lib/material-money-v4.test.ts",
+      "line": 134,
+      "value": "一千万元伍分",
+      "old": "unsupported",
+      "new_amount": "10000000.05"
+    },
+    {
+      "file": "lib/material-money-v4.test.ts",
+      "line": 134,
+      "value": "伍仟元五角",
+      "old": "unsupported",
+      "new_amount": "5000.50"
+    }
+  ],
+  "evidence_sha256": {
+    "author.final193-fixed-9b-before-red.txt": "39f0f0870dea4600d769b507b2a040e9b2a82f8881f8aaf07e79a4acaf921bbd",
+    "author.final-after-green.txt": "a506fa1f2313e6c43c6496b9d6ef689915a9bd52ce51ddbfe55fd3f5dc331716",
+    "existing-mixed-subunits.expanded-after.txt": "79820e0b7000dd58e92100bad78b382a798917894f229ab55f7841344b89fd82",
+    "existing-vitest.txt": "dbeea8c1d147f0e628c1855a6b657513afe5e9669018fc2ca5373566365409c6",
+    "scoped-lint.final193.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "money.round18.patch": "aab4e24f6f0f66d666d56b75d21342638dd69daf6625324eeaa61a4a5dcfc524"
+  },
+  "excluded_intermediate_evidence": {
+    "author.9b-before-red.txt": "initial153 test draft, superseded by fixed193 replay",
+    "author.expanded-fixed-9b-before-red.txt": "180-test draft included incorrect canonical financial spelling 拾贰 as a positive",
+    "author.expanded-money-after.txt": "179/180; only failure was author test expected 拾贰 to be canonical; corrected to existing strict spelling 壹拾贰, no product relaxation"
+  },
+  "limitations": [
+    "No model, HTTP, complete npm check, CI, deployment, commit or push run by this author task.",
+    "ROOT currency/source traditional aliases remain parent-owned and are not included in money-only final193 proof.",
+    "Pure normalizeMoneyValueV4 retains established /月-style operand parsing; meaning/rate safety is enforced in candidate/source normalization.",
+    "Slash units are explicit Unicode-letter denominators. Supported finite unit prefixes retain legacy following-prose compatibility; 每 is a finite known-unit grammar, not arbitrary prose."
+  ]
+}

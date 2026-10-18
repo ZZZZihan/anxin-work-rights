@@ -1,0 +1,83 @@
+{
+  "schema": "material-facts-v7-round18-money-application-review/1",
+  "created_utc": "2026-10-18T09:32:16.544969+00:00",
+  "status": "PASS_WITHIN_REVIEWED_SCOPE",
+  "blocking_findings_in_reviewed_scope": [],
+  "configuration": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "reviewer_implemented_product_changes": false,
+  "source_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "baseline_commit": "9b4bba2fbc85ccd2a7cd8003a2d4a1f2e0593207",
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "3c3132601b90243045d5d3b05b6aa4c7c3f537a01c4ec3d56b709e28f1e43418",
+    "lib/material-fact-currency-review.ts": "6015980876561d92d7e6198b0d58cc2355aa7916c72b2066a25b84db4d0e4bf9",
+    "lib/material-fact-source-review.ts": "d6c26eec1dff24082127015792fa7c34fd7adb769e8e62f3976b47fd1ecba6a1",
+    "lib/material-fact-runtime-ingest.ts": "93b6b213871eb3fd8d98fd3f3eb1bd735190746438b96bbf69e9c745971296ea",
+    "experiments/material-facts-v7/assess.mjs": "d4f0c98828d091f9f99681a5c404091f76fd1f4e4103aae0a056e5d493ce9e9d",
+    "scripts/owned-http-process-group.mjs": "460130907f28e027bcc15368aac87bf82c7e9b7dfa7c22eefe021895cddd007a",
+    "scripts/material-facts-http-group-inspection.test.mjs": "0713e7c1a6a981892ef4f00ecdb720b2d69838f16fc4ee540ef790a30a916fd6"
+  },
+  "independent_tests": {
+    "path": "scripts/material-facts-v7-round18-money-independent.test.mjs",
+    "sha256": "8a9bd050a11d18a4040c86693359ca40d0d17a636412345905324300fb312b64",
+    "baseline": {
+      "pass": 29,
+      "fail": 32
+    },
+    "traditional_intermediate": {
+      "pass": 42,
+      "fail": 19
+    },
+    "final": {
+      "pass": 61,
+      "fail": 0
+    },
+    "final_duration_ms": 282.841209
+  },
+  "author_tests_independently_executed": {
+    "path": "scripts/material-facts-http-group-inspection.test.mjs",
+    "pass": 2,
+    "fail": 0,
+    "coverage": "signal-zero permission ambiguity cannot replace valid ps group membership; actual TERM/KILL EPERM remains AggregateError"
+  },
+  "evidence": {
+    "postfreeze-evidence/round18/baseline-9b4bba2.receipt.json": "617f3e48553de949cde25b9aea6a1f6a484916251b64a9df1489ae8bb8ac65d0",
+    "postfreeze-evidence/round18/9b4bba2-money-before-red.txt": "5b45e136118b5aeb700baa3d4e7a7df5e032abcfaf39fcf93a6c2e2fad81308c",
+    "postfreeze-evidence/round18/traditional-integration-first.txt": "f6faa129f0d21280e3de1743776fbfd8f596b2135ddc53c313a981aaefb6a59b",
+    "postfreeze-evidence/round18/code-money-integrated-first-green.txt": "13b6ab976d47cbf386013aaaeeb8a0462558080ab483e18400a82dd1f536d571",
+    "postfreeze-evidence/round18/group-inspection-independent-execution.txt": "4cb9d67706220c2510c3da6baace833a97869c6db55801795378b7d8e84b6400",
+    "postfreeze-evidence/round18/independent-scoped-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "findings_reviewed": [
+    "4306457794 traditional foreign-wage currency bridge",
+    "4306457800 traditional monthly/daily/hourly rate labels",
+    "4306457804 Chinese yuan with Arabic jiao/fen",
+    "4306457807 unsupported slash-rate denominator",
+    "owned process-group signal-zero EPERM inspection"
+  ],
+  "contracts": [
+    "Raw 11-field representation, JSON raw and quote code-point positions remain unchanged.",
+    "Accepted candidates with unavailable amount remain distinguishable from rejected candidates.",
+    "Fresh extraction may parse mixed subunits; unsupported historical candidates are never automatically upgraded.",
+    "A cropped yuan amount cannot drop jiao/fen; invalid subunit precision stays unavailable.",
+    "Unsupported /year /week /quarter /occurrence rates never become exact totals or an existing finite rateUnit.",
+    "Correct supported rates, genuine calendar wage totals and separate currency events keep their own amount.",
+    "Equal mixed-subunit amounts at two different source events remain two accepted facts and two TP at all six score layers.",
+    "Confirmations remain null, calculation null, canCalculate false."
+  ],
+  "static_review": [
+    "Parser uses existing strict Chinese integer grammar, single-digit subunits and BigInt cents; financial yuan branch does not fall back after invalid grammar.",
+    "Currency traditional vocabulary and horizontal-space folding apply only to the finite anchored comparison bridge; line/clause/person boundaries remain.",
+    "Rate aliases apply only to detection copies and the complete subject comparison; raw text and offsets are untouched.",
+    "ownedGroupAlive relies on bounded validated nonempty ps rows and non-Z/X membership; signal failures still propagate and trigger best-effort owned SIGKILL."
+  ],
+  "limits": [
+    "This staged receipt covers four business findings plus the shared-helper change. Cancel/poll interrupt finding 4306457806 remains pending final integrated independent verification.",
+    "HTTP118/full check/remote CI were not executed by this reviewer and are not certified by this receipt.",
+    "Finite literal/role guards do not establish arbitrary Chinese semantic understanding, legal accuracy or calculation authorization.",
+    "No frozen label, output, archive, old receipt or production implementation was changed; no model, build, service, commit, push, merge or deployment was run."
+  ]
+}

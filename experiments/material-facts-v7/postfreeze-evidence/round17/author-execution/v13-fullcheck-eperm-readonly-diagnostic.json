@@ -1,0 +1,57 @@
+{
+  "scope": "Read-only source and original-log investigation; no helper/test edit and no diagnostic rerun",
+  "original_log_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round16/integrated-full-check.log",
+  "original_log_sha256": "125471b2a2bcf33bffb6d81d7ae51b044c9f9e7d52356abce84e73284fe79301",
+  "preserved_copy": "v13-fullcheck-original-eperm.log",
+  "last_modified_utc": "2026-10-18T09:12:08.906410+00:00",
+  "recorded_fullcheck_counts": {
+    "pass": 2805,
+    "fail": 2,
+    "skip": 1,
+    "duration_ms": 501214.812208
+  },
+  "current_source_bindings": {
+    "scripts/owned-http-process-group.mjs": "37c86a25a10bcf666ad9144971627f0b83b31a5d3d3d1e70768f09ca7ba94435",
+    "scripts/material-facts-v7-http-process-tree.test.mjs": "7323a90a924f44e7873732e7e5441f20ea3572d885f3897df364835a522df8d9",
+    "scripts/material-facts-http-round14-independent.test.mjs": "3762bc1b93c1d2d37a6ea12735e6883f11c162d4fb6feb6e9f69a5a407736341"
+  },
+  "failure_locations": [
+    {
+      "test": "stop owned HTTP launcher and listening descendant: redirected-ignore-term",
+      "observed": "AggregateError with two kill EPERM errors",
+      "primary_stack": "stopChild line89 -> stoppedBy line77 -> ownedGroupAlive line52: process.kill(-child.pid,0), after first group SIGKILL line88",
+      "fallback_stack": "stopChild catch line93 -> signalOwnedChild line24: group SIGKILL also EPERM",
+      "excludes": "The logged failure is a native kill error, not a process-table query timeout."
+    },
+    {
+      "test": "recovery: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent",
+      "observed": "fixtureError kill EPERM, no surviving stopError/PGID/member snapshot in emitted result",
+      "source_localization": "exerciseSource catches api.stop at source line78 and repeat stop at82. Within that try, the only unguarded kill is post-stop process.kill(-child.pid,0) at line79. Non-ESRCH errors are rethrown and replaced by fixtureError at84.",
+      "limit": "This event alone does not identify whether api.stop had succeeded or failed first: fixtureError replaces the earlier stopError variable before result emission."
+    }
+  ],
+  "concurrency_evidence": {
+    "test_runner": "The original full-check uses a single node --test invocation over multiple files; default file concurrency was not disabled in the printed invocation.",
+    "external_cli_overlap": "Parent reports v13 check/fullcheck and independent gates were concurrent. Original failure record has no timestamp per signal or failed group snapshot sufficient to attribute the EPERM to an overlapping external CLI.",
+    "causal_conclusion": "Not established. Parallel work is a possible condition, not a proven cause.",
+    "avoid_extra_pressure": "No new diagnostic test process was launched while parent current fullcheck runs."
+  },
+  "our_eb_build_timing": {
+    "build_started_utc": "2026-10-18T09:12:22.301965+00:00",
+    "seconds_after_original_log_last_modified": 13.395555,
+    "interpretation": "The newly requested eb baseline build started after this original fullcheck log had finished; it cannot explain the already recorded failures."
+  },
+  "missing_evidence": [
+    "failed owned PGID and leaf PID",
+    "uid/stat/pgid members at native EPERM",
+    "native signal invocation timestamp",
+    "whether the group had already become empty or was re-used",
+    "independent fixture stopError retained before post-stop probe failure"
+  ],
+  "production_changes": false,
+  "helper_changed": false,
+  "errors_swallowed": false,
+  "tests_rerun": 0,
+  "model_requests": 0,
+  "recommended_next_observation": "If reproduced, capture only task-owned signal target, signal, error code, monotonic time and a pid/pgid/uid/stat-only member snapshot before cleanup exits. Preserve EPERM as a failure; avoid recording command lines/env or changing historical artifacts."
+}

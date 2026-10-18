@@ -2,7 +2,7 @@
 
 以下问题来自首次全部输出及独立复核，索引从0开始。详细原文、候选、标签位置见三个 POSTRUN 审阅文件。本文件不改原数据、gold、有限备选或结果；首九版修正分别另存 `corrections/`、`corrections-v2/`、`corrections-v3/`、`corrections-v4/`、`corrections-v5/`、`corrections-v6/`、`corrections-v7/`、`corrections-v8/` 与 `corrections-v9/`，均不改第一次输出。Issue #42 保持打开，新的 PR 未经授权不合并，不训练或部署生产。
 
-当前已追加至第十三版：v10至v13也分别另存，58项当前代码绑定与55项v12归档可以独立核对。最新应用 `eb86736` 补齐第十五轮明确界限/区间限定/成折，以及第十六轮未完成端点跨版面漏口；原v12通过后追加发现的红证据与旧绿回执均保留。具体证据见 `POSTRUN_ROUND15_APPLICATION.md`、`POSTRUN_ROUND16_APPLICATION.md`。本轮模型语义错误和人工业务验收缺口仍成立，不能因有限词法合成回归通过而消除。
+当前已追加至第十四版，61项当前代码绑定与58项v13归档可以独立核对。最新应用 `02cf204` 完成第十七、十八轮币种/词界/费率/混合角分及中断清理修复，细节见 `POSTRUN_ROUND17_APPLICATION.md`、`POSTRUN_ROUND18_APPLICATION.md`。全部原始红、中间失败和旧绿回执保留。本轮自然材料语义错误和人工业务验收缺口仍成立，不能因有限词法合成回归或CI通过而消除。
 
 ## 已修复且有红→绿证据的程序问题
 
