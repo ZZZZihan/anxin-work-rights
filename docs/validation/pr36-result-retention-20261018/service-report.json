@@ -1,0 +1,45 @@
+{
+  "mode": "finished-result-retention-regression",
+  "baseline": "d14cbd44e20952afe58274c4c28cfc54f19ad902",
+  "branch": "fix/pr36-result-retention-20261018",
+  "worktree": "/Users/xuzihan/Documents/Projects/国创/anxin-pr36-result-retention",
+  "changedFiles": ["scripts/fact-jobs.mjs", "scripts/fact-jobs.test.mjs"],
+  "patch": "/tmp/anxin-pr36-result-retention.patch",
+  "change": {
+    "completedResultRetentionBeforeMs": 300000,
+    "completedResultRetentionAfterMs": 1860000,
+    "retentionStartsAt": "finishedAt, separately for every completed or failed job",
+    "boundary": "age == 31 minutes remains readable; age > 31 minutes expires",
+    "maxJobs": 32,
+    "maxIdRecords": 1024,
+    "retiredIdRetentionMs": 1860000,
+    "cancellation": "immediately hides ready/running/queued jobs and retains existing wait-for-close plus replay protection"
+  },
+  "checks": {
+    "targetedBaseline": {"tests": 7, "passed": 2, "failed": 5, "exitCode": 1, "log": "/tmp/anxin-pr36-result-retention-before.log"},
+    "targetedAfter": {"tests": 7, "passed": 7, "failed": 0, "exitCode": 0, "log": "/tmp/anxin-pr36-result-retention-after.log"},
+    "factJobsFile": {"tests": 38, "passed": 38, "failed": 0, "exitCode": 0, "log": "/tmp/anxin-pr36-result-retention-fact-jobs.log"},
+    "eslint": {"files": ["scripts/fact-jobs.mjs", "scripts/fact-jobs.test.mjs"], "exitCode": 0},
+    "gitDiffCheck": {"exitCode": 0},
+    "fullProjectCheck": "Not run as explicitly requested; root performs the integrated full check."
+  },
+  "coverage": [
+    "Six-minute tab absence preserves exact ready snapshot/raw and idempotent resubmit",
+    "31-minute-minus-1ms and exact-31-minute result reads; expiry at +1ms; same-ID replay 410",
+    "Three queued jobs finish at 10/20/30 minutes and each receives a full recovery window after its own completion",
+    "Running cancellation hides immediately before inference completion, queued cancellation removes work, ready cancellation hides immediately and late raw is discarded",
+    "32 retained result slots stay bounded through exact 31 minutes; expiry frees result slots while old IDs still return 410",
+    "1024 ID records remain bounded without evicting live tombstones; known cancellation works at capacity and eventual expiry recovers capacity",
+    "Failed jobs retain the same recovery window and expire fail-closed",
+    "Existing real loopback HTTP submit-loss retry, source conflict and cancellation-before-complete-body regressions still pass",
+    "Existing actual child SIGTERM/SIGKILL ownership regression still passes"
+  ],
+  "limits": [
+    "Retention ages use injected queue time rather than a real 31-minute wall-clock wait.",
+    "No new Worker or D1 HTTP environment was launched for this narrow service TTL patch; a peer independently owns route/D1 integration validation.",
+    "The existing bounded in-memory lifetime and restart/replica limitations remain unchanged.",
+    "Completed raw can remain cached up to 31 minutes if the caller never consumes/cancels it; 32 jobs and 1024 ID records are still hard limits.",
+    "No store, frozen builder, workflow, commit, push, merge or deployment changes."
+  ],
+  "cleanup": "All test queues/services close in finally; actual child close is awaited. No persistent test service was started."
+}

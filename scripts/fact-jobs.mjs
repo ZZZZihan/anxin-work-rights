@@ -4,7 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { buildExtractionMessages, extractRuleCandidates, validateFactSource } from '../lib/material-facts.ts';
 
-const ttl = 5 * 60_000;
+// Persisted callers can resume a job for 31 minutes. Give every completed job
+// that full recovery window, measured after it finishes rather than admission.
+const ttl = 31 * 60_000;
 // Three admitted jobs can each own the model for ten minutes. Keep retired
 // caller IDs longer than that entire lifecycle, without retaining source text.
 const replayTtl = 31 * 60_000;

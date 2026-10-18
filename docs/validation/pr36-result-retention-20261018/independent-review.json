@@ -1,0 +1,87 @@
+{
+  "base": "d14cbd44e20952afe58274c4c28cfc54f19ad902",
+  "boundary": "Real route handlers and Miniflare D1, actual createFactJobs rules queue; controlled Date/queue now and service-client adapter; no live Worker/HTTP transport/model evaluation",
+  "testFile": "/Users/xuzihan/Documents/Projects/国创/anxin-pr36-retention-d1-review/lib/material-fact-retention.test.ts",
+  "testSHA256": "ae76885ff52595e34fa16e72e744ab9ce582697b0fd24079df76c633fb784cb1",
+  "productFileCopiedForAfterOnly": "scripts/fact-jobs.mjs",
+  "afterServiceSHA256": "b7741dfe2edfedf272f2e789ab70b8f3f1103198f76fa76537672f8630b3235c",
+  "checks": {
+    "tsc": "exit 0",
+    "newTestEslint": "exit 0",
+    "gitDiffCheck": "exit 0"
+  },
+  "phases": {
+    "before": {
+      "tests": 7,
+      "passed": 4,
+      "failed": 3,
+      "success": false,
+      "cases": [
+        {
+          "title": "recovers the original ready result after six minutes and commits it only once",
+          "status": "failed"
+        },
+        {
+          "title": "recovers the original ready result after 30 minutes 59.999 seconds and commits it only once",
+          "status": "failed"
+        },
+        {
+          "title": "converges two returning readers near the deadline to one raw import and one D1 write",
+          "status": "failed"
+        },
+        {
+          "title": "fails closed exactly 31 minutes before polling and cancels the owned task",
+          "status": "passed"
+        },
+        {
+          "title": "fails closed past 31 minutes before polling and cancels the owned task",
+          "status": "passed"
+        },
+        {
+          "title": "allows an explicit exclusion after six minutes to cancel retained output without importing it",
+          "status": "passed"
+        },
+        {
+          "title": "keeps an earlier cancellation effective when the inactive page returns at six minutes",
+          "status": "passed"
+        }
+      ]
+    },
+    "after": {
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "success": true,
+      "cases": [
+        {
+          "title": "recovers the original ready result after six minutes and commits it only once",
+          "status": "passed"
+        },
+        {
+          "title": "recovers the original ready result after 30 minutes 59.999 seconds and commits it only once",
+          "status": "passed"
+        },
+        {
+          "title": "converges two returning readers near the deadline to one raw import and one D1 write",
+          "status": "passed"
+        },
+        {
+          "title": "fails closed exactly 31 minutes before polling and cancels the owned task",
+          "status": "passed"
+        },
+        {
+          "title": "fails closed past 31 minutes before polling and cancels the owned task",
+          "status": "passed"
+        },
+        {
+          "title": "allows an explicit exclusion after six minutes to cancel retained output without importing it",
+          "status": "passed"
+        },
+        {
+          "title": "keeps an earlier cancellation effective when the inactive page returns at six minutes",
+          "status": "passed"
+        }
+      ]
+    }
+  }
+}
