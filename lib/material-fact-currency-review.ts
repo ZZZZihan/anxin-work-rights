@@ -194,7 +194,14 @@ export function sourceMoneyHasExplicitRmbCurrency(source: AnchoredMoneySource, n
  * Inspect only subunit characters inside this token; the following source can
  * complete a cropped word across OCR whitespace, but cannot contribute a unit.
  * Detection copies never replace the source used for evidence or offsets. */
-const NON_CURRENCY_SUBUNIT_WORD = '(?:分(?:钟|鐘|米|贝|貝|数|數|配|类|類|析|别|別|期|段|批|时|時|量|摊|攤|红|紅|店|公司|支|组|組|隔|辨|歧|清|离|離)|角(?:度|色|落|逐|标|標|形|点|點|膜|质|質))';
+const NON_CURRENCY_ANGLE_COUNT_WORD = '角(?:度|形|星|洲|亭|大[楼樓])';
+const NON_CURRENCY_SUBUNIT_WORD = `(?:分(?:钟|鐘|米|贝|貝|数|數|配|类|類|析|别|別|期|段|批|时|時|量|摊|攤|红|紅|店|公司|支|组|組|隔|辨|歧|清|离|離)|${NON_CURRENCY_ANGLE_COUNT_WORD}|角(?:色|落|逐|标|標|点|點|膜|质|質))`;
+
+/** A complete counted angle word is not a monetary subunit. This finite
+ * whole-word predicate does not reject an unknown suffix or a money sentence. */
+export function isNonCurrencyAngleCountWord(value: string): boolean {
+  return new RegExp(`^${NON_CURRENCY_ANGLE_COUNT_WORD}$`, 'u').test(currencyText(value).replace(/\s/gu, ''));
+}
 
 /** Only complete, explicit measure units establish a non-monetary count.
  * Other lexical uses such as 十万分红 may name a unitless amount: excluding

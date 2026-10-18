@@ -22,15 +22,15 @@ const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及�
 const compact = (text: string) => text.normalize('NFKC').replace(/\s+/gu, '');
 // Recurring payment days are explicit source dates, without an invented year or
 // month. Keep their finite valid day range separate from other calendar roles.
-const recurringPaymentDate = /^每月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)日$/u;
+const recurringPaymentDate = /^每月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)[日号號]$/u;
 // Fold only detection copies of the existing money-role vocabulary, after raw
 // subject/period offsets are located. No source text or candidate is rewritten.
 const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总', 額: '额', 計: '计', 實: '实', 幣: '币', 圓: '圆', 稅: '税', 間: '间', 補: '补', 貼: '贴', 預: '预', 賠: '赔', 償: '偿', 決: '决', 給: '给', 單: '单', 標: '标', 準: '准', 費: '费', 時: '时', 領: '领', 為: '为' };
 const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
 // Date-only cue/bridge aliases, after literal owner/value positions are found.
 // Folding never changes the subject, date literal, quote or source offsets.
-const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须' };
-const dateRole = (text: string) => compact(text).replace(/[於職資歸屬間簽訂勞動關終開廠離約發計領實該時為調傷並與結後從應須]/gu, glyph => dateGlyphs[glyph]);
+const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须' };
+const dateRole = (text: string) => compact(text).replace(/[於職資歸屬間簽訂勞動關終開廠離約發計領實際係該時為調傷並與結後從應須]/gu, glyph => dateGlyphs[glyph]);
 const groupLabel = /[、，,]|班[组組]|公司|[单單]位|集[团團]|工人|[员員]工|[劳勞][动動]者|群[体體]|集[体體]|[众眾]人/u;
 // Single surnames and placeholder people can form coordinated short subjects
 // (张和李/甲和乙). These are ambiguity cues, not a whitelist proving identity.
@@ -97,6 +97,15 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
   if (raw.kind !== 'date' || raw.meaning !== 'payment_date' || raw.scope !== 'individual') return false;
   const value = dateRole(raw.value), left = dateRole(before), right = dateRole(after);
   const wage = '(?:工资|薪酬|薪资)';
+  // An explicit recurring wage schedule identifies its payment date, not an
+  // actual receipt or a money payer. The located single owner and full left/
+  // right envelopes cannot absorb negation, another person or a partial date.
+  if (recurringPaymentDate.test(value)) {
+    const payment = '(?:支付|发放|给付|給付|付清)';
+    if (new RegExp(`^(?:的)?${wage}$`, 'u').test(left)
+      && new RegExp(`^${payment}$`, 'u').test(right)) return true;
+    return left === '' && new RegExp(`^${payment}${wage}$`, 'u').test(right);
+  }
   const point = new RegExp(`^${calendarDate}$`, 'u');
   // The wage belongs to the already located owner. No new person, calendar
   // fragment, negation or procedural command can be absorbed by these layouts.

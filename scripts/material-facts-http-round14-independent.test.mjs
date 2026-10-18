@@ -211,23 +211,15 @@ for (const mode of ['empty', 'malformed', 'failure']) test(`shared helper: ${mod
   assert.equal(result.rebound, true); assert.equal(result.siblingOpen, true);
 });
 
-test('Windows fallback control flow bounds a TERM-ignoring direct child (POSIX execution, not native Windows acceptance)', { skip: !hasHelper || process.platform === 'win32', timeout: 10000 }, async t => {
-  const directory = await mkdtemp(resolve(tmpdir(), 'anxin-r14-windows-branch-'));
-  t.after(() => rm(directory, { recursive: true, force: true }));
-  await writeFile(resolve(directory, 'leaf.mjs'), leafSource);
-  const probe = `import{readFile}from'node:fs/promises';import{connect}from'node:net';
-import{spawnOwnedChild,stopChild}from${JSON.stringify(pathToFileURL(helperPath).href)};
+test('Windows runners refuse before creating an unowned process tree (emulated branch, not native Windows acceptance)', { skip: !hasHelper, timeout: 10000 }, async () => {
+  const probe = `import assert from 'node:assert/strict';
+import cp from 'node:child_process';import{syncBuiltinESMExports}from'node:module';
+import{spawnOwnedChild}from${JSON.stringify(pathToFileURL(helperPath).href)};
 const originalPlatform=process.platform;Object.defineProperty(process,'platform',{value:'win32'});
-const child=spawnOwnedChild(process.execPath,[${JSON.stringify(resolve(directory, 'leaf.mjs'))},${JSON.stringify(resolve(directory, 'ready.json'))}]);
-const wait=ms=>new Promise(done=>setTimeout(done,ms));let ready;
-try{for(let i=0;i<200;i++){try{ready=JSON.parse(await readFile(${JSON.stringify(resolve(directory, 'ready.json'))}));break;}catch{await wait(10);}}
-if(!ready)throw new Error('Direct child did not become ready');
-const began=Date.now();await stopChild(child,'Windows branch direct child',{graceMs:30,killMs:500});
-const open=await new Promise(done=>{const socket=connect(ready.port,'127.0.0.1');socket.once('connect',()=>{socket.destroy();done(true);});socket.once('error',()=>{socket.destroy();done(false);});});
-console.log(JSON.stringify({emulatedBranch:'win32',actualKernel:originalPlatform,milliseconds:Date.now()-began,open,signal:child.signalCode}));
-}finally{Object.defineProperty(process,'platform',{value:originalPlatform});if(child.exitCode===null&&child.signalCode===null){const closed=new Promise(done=>child.once('close',done));child.kill('SIGKILL');await closed;}}\n`;
+let launches=0;cp.spawn=()=>{launches++;throw new Error('Unexpected process launch');};syncBuiltinESMExports();
+assert.throws(()=>spawnOwnedChild(process.execPath,['-e','setInterval(()=>{},1000)']),{code:'ERR_OWNED_HTTP_PLATFORM_UNSUPPORTED'});
+assert.equal(launches,0);console.log(JSON.stringify({emulatedBranch:'win32',actualKernel:originalPlatform,launches,unsupported:true}));\n`;
   const { stdout, stderr } = await run(process.execPath, ['--input-type=module', '-e', probe], { timeout: 5000 });
-  const result = JSON.parse(stdout); console.log(JSON.stringify({ evidence: 'round14_windows_branch', ...result }));
-  assert.equal(stderr, ''); assert.equal(result.open, false); assert.equal(result.signal, 'SIGKILL');
-  assert(result.milliseconds < 2000);
+  const result = JSON.parse(stdout); console.log(JSON.stringify({ evidence: 'round31_windows_prelaunch_rejection', ...result }));
+  assert.equal(stderr, ''); assert.equal(result.launches, 0); assert.equal(result.unsupported, true);
 });

@@ -184,6 +184,8 @@ npm run check
 
 检查包括类型、ESLint、应用测试、生产构建、公开数据与运行索引一致性，以及材料处理服务测试。
 
+隔离 HTTP 回归中的自有 Worker 进程组管理支持 Linux/macOS。Windows 尚无经过验证的进程树清理实现，这些回归会在启动 Worker 或迁移子进程前明确报错；当前不提供原生 Windows HTTP 回归验收。
+
 **最新整合发布 `0cadf0f`**：目标 Debian 的 107 项应用/部署测试、9 项数据测试、24 项材料服务测试全部通过；隔离 HTTP 为基础展示 30 项、文字材料 8 项、图片/PDF 17 项。实际网站通过四类材料完整流程和五页面 × 三种宽度检查，详见[发布验收记录](docs/validation/material-live-20261013/README.md)与[该候选 CI](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/38354457745)。图片语义回归显式允许六种中英文标点等价，原始 OCR 和出处不改写；不代表任意真实材料准确率。
 
 以下保留历史本机功能验证：已记录的功能候选为 [`7deb75e`](https://github.com/ZZZZihan/anxin-work-rights/commit/7deb75ef7b1aa170f39f9c14daf5c7c3ae5fa65e)，验证日期为 **2026-10-13**：
