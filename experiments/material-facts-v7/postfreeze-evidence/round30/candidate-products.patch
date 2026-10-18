@@ -1,0 +1,127 @@
+--- 47e4/lib/material-money-v4.ts
++++ CODE-candidate/lib/material-money-v4.ts
+@@ -40,9 +40,10 @@
+ }
+ 
+ const RMB_NAME = '(?:人民[币幣]|(?<![A-Za-z])(?:RMB|CNY)(?![A-Za-z]))';
+-const LITERAL_NUMBER = `(?:(?:\\d[\\d,，]*(?:\\.\\d+)?)\\s*(?:万|萬|亿|億)?|[${LOWER}壹贰貳叁參肆伍陆陸柒捌玖拾佰仟]+)`;
+-const SUBUNITS = `(?:[0-9${SINGLE_DIGIT}]角(?:[0-9${SINGLE_DIGIT}]分)?|[0-9${SINGLE_DIGIT}]分)`;
+-const YUAN_TAIL = `[元圆圓](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`;
++const ARABIC_DIGITS = '0-9０-９';
++const LITERAL_NUMBER = `(?:(?:[${ARABIC_DIGITS}][${ARABIC_DIGITS},，]*(?:[.．][${ARABIC_DIGITS}]+)?)\\s*(?:万|萬|亿|億)?|[${LOWER}壹贰貳叁參肆伍陆陸柒捌玖拾佰仟]+)`;
++const SUBUNITS = `(?:[${ARABIC_DIGITS}${SINGLE_DIGIT}]角(?:[${ARABIC_DIGITS}${SINGLE_DIGIT}]分)?|[${ARABIC_DIGITS}${SINGLE_DIGIT}]分)`;
++const YUAN_TAIL = `[元圆圓](?:[${ARABIC_DIGITS}${SINGLE_DIGIT}]角)?(?:零?[${ARABIC_DIGITS}${SINGLE_DIGIT}]分)?(?:整|正)?`;
+ // New alternatives require an explicit named RMB currency. A bare 5角/2分
+ // remains unsupported; no time/measure unit is inferred to be money.
+ const TOKEN = new RegExp(`(?:${RMB_NAME}\\s*${SUBUNITS}(?:整|正)?|${SUBUNITS}(?:整|正)?\\s*${RMB_NAME}|${RMB_NAME}\\s*${LITERAL_NUMBER}(?:\\s*${YUAN_TAIL})?|${LITERAL_NUMBER}\\s*(?:${YUAN_TAIL}\\s*)?${RMB_NAME}|(?:人民[币幣]\\s*)?[¥￥]?\\s*${LITERAL_NUMBER}\\s*${YUAN_TAIL})`, 'giu');
+@@ -199,6 +200,18 @@
+     .replace(new RegExp(`${count}(?:\\.\\d+)?\\s*(?:个?月|天|日|小时|分钟|秒|件|(?:个|名|位)(?:工人|员工|劳动者)|名|人|倍|年)`, 'gu'), '');
+ }
+ 
++/** A complete amount can precede a finite payment instruction. This only
++ * distinguishes its following count/duration from another monetary digit;
++ * currency, uncertainty, range and arithmetic guards still run separately. */
++function isPostposedMoneyPaymentInstruction(after: string): boolean {
++  const detection = monetaryDetectionView(after);
++  return new RegExp(`^\\s*(?:一次性|一并|[${NUMERALS}]+\\s*(?:日|天)\\s*内)\\s*(?:支付|付清|给付|发放)(?=\\s*(?:$|[，,。；;！!）)】\\]]))`, 'u').test(detection);
++}
++
++function hasCompleteMoneyUnit(token: string): boolean {
++  return /[元圆圓角分](?:整|正)?$/u.test(token);
++}
++
+ /** Parse one complete RMB literal with exact cents, preserving the unmodified evidence. */
+ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization {
+   if (rawValue.length > MAX_INPUT) return result(rawValue, 'unsupported', '金额原文超过4000字符上限，未尝试解析或截断。');
+@@ -230,14 +243,16 @@
+     const yuanAt = text.search(/[元圆圓]/u);
+     if (yuanAt >= 0 && !isRmbCurrencyUnitAt(rawValue, index + yuanAt)) return result(rawValue, 'unsupported', '匹配到的元或圆属于普通词语，不能截成金额单位。');
+     if (new RegExp(`[${NUMERALS}０-９,.，负負+＋\\-－−﹣¥￥]$`, 'u').test(before)
+-      || new RegExp(`^[${NUMERALS}０-９元圆圓角分整正]|^[,.，]\\s*[${NUMERALS}０-９]`, 'u').test(after)) return result(rawValue, 'unsupported', '完整金额的数字、单位或符号边界不合法，未截取其中有效片段。');
++      || (new RegExp(`^[${NUMERALS}０-９元圆圓角分整正]|^[,.，]\\s*[${NUMERALS}０-９]`, 'u').test(after)
++        && !(hasCompleteMoneyUnit(text) && isPostposedMoneyPaymentInstruction(after)))) return result(rawValue, 'unsupported', '完整金额的数字、单位或符号边界不合法，未截取其中有效片段。');
+     const rest = remainingNumbers(rawValue, index, text)
+       .replace(/(?:一共|一次性|一并|同一|唯一|统一|另一笔|一笔)/gu, '')
+       .replace(new RegExp(`第[${NUMERALS}]+(?:笔|次|项|条|人)`, 'gu'), '');
+     if (new RegExp(`[${NUMERALS}０-９]`, 'u').test(rest)) return result(rawValue, 'multiple_amounts', '原文仍有无法解释为日期、计数或倍数的数字，可能存在省略币种的另一笔金额或复杂中文数表达。');
+     // Currency spelling aliases exist only in this parse copy after the raw
+     // token is anchored. Returned evidence and code-point spans use text/rawValue.
+-    let parseText = text.replace(/^人民幣/u, '人民币').replace(/圓/gu, '圆').replace(/萬/gu, '万').replace(/億/gu, '亿').replace(/兩/gu, '两').replace(/[貳參陸]/gu, glyph => ({ 貳: '贰', 參: '叁', 陸: '陆' })[glyph]!);
++    let parseText = text.replace(/[０-９．]/gu, glyph => glyph === '．' ? '.' : String(glyph.charCodeAt(0) - 0xff10))
++      .replace(/^人民幣/u, '人民币').replace(/圓/gu, '圆').replace(/萬/gu, '万').replace(/億/gu, '亿').replace(/兩/gu, '两').replace(/[貳參陸]/gu, glyph => ({ 貳: '贰', 參: '叁', 陸: '陆' })[glyph]!);
+     const subunitAmount = parseExplicitRmbSubunits(parseText);
+     const prefix = parseText.match(new RegExp(`^${RMB_NAME}\\s*`, 'iu'));
+     if ((subunitAmount !== null || prefix) && (new RegExp(`${RMB_NAME}\\s*$`, 'iu').test(before) || new RegExp(`^\\s*${RMB_NAME}`, 'iu').test(after)))
+@@ -338,7 +353,8 @@
+   const tail = terminalTail.replace(rmbSuffix, '');
+   if (tail !== terminalTail && rmbSuffix.test(tail)) return true;
+   // One terminator never consumes another unit, digit, decimal or terminator.
+-  if (new RegExp(`^[${NUMERALS}元圆圓角分整正]|^[.．,，]\\s*[${NUMERALS}]`, 'u').test(tail)) return true;
++  if (new RegExp(`^[${NUMERALS}元圆圓角分整正]|^[.．,，]\\s*[${NUMERALS}]`, 'u').test(tail)
++    && !isPostposedMoneyPaymentInstruction(tail)) return true;
+   const rate = attachedSuffixRate(tail);
+   if (rate.present && (rate.uncertain || !rate.supported || candidate.meaning !== 'rate'
+     || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== RATE_UNITS[rate.supported]))) return true;
+@@ -377,7 +393,9 @@
+       const terminalRateTail = monetaryDetectionView(arithmeticAfter).trimStart().match(/^[整正](.*)$/su)?.[1];
+       const terminalRate = terminalRateTail !== undefined ? attachedSuffixRate(terminalRateTail) : null;
+       const attachedWholeTerminator = /[元圆圓角分]$/u.test(monetaryDetectionView(candidate.value))
+-        && (/^(?:整|正)$/u.test(afterBoundary) || (terminalRate?.postposedBy === true && terminalRate.supported !== undefined));
++        && (/^(?:整|正)$/u.test(afterBoundary) || (terminalRate?.postposedBy === true && terminalRate.supported !== undefined)
++          || (terminalRateTail !== undefined && isPostposedMoneyPaymentInstruction(terminalRateTail)));
++      const attachedPaymentInstruction = hasCompleteMoneyUnit(normalized.matchedText ?? '') && isPostposedMoneyPaymentInstruction(arithmeticAfter);
+       const sourceAnchor = { blockText: local.text, valueStart: offset };
+       const attachedCurrency = sourceMoneyHasExplicitRmbCurrency(sourceAnchor, normalized);
+       const qualifierStatus = attachedQualifierStatus(arithmeticBefore, arithmeticAfter);
+@@ -409,7 +427,7 @@
+         || new RegExp(`[${NUMERALS}]+\\s*[元圆圓角分]$`, 'u').test(beforeBoundary)
+         || new RegExp(`[${NUMERALS}][元圆圓]?\\s*(?:点|又|分之|加上|另加|加|减|乘|除)\\s*$`, 'u').test(beforeBoundary)
+         || /^[,.，]\d/u.test(afterBoundary)
+-        || (!attachedYuan && !attachedWholeTerminator && new RegExp(`^[${NUMERALS}元圆圓角分整正]`, 'u').test(afterBoundary))) normalized = result(candidate.value, 'unsupported', 'value 截去了直接相邻的金额数字或角分，未升级为精确金额。');
++        || (!attachedYuan && !attachedWholeTerminator && !attachedPaymentInstruction && new RegExp(`^[${NUMERALS}元圆圓角分整正]`, 'u').test(afterBoundary))) normalized = result(candidate.value, 'unsupported', 'value 截去了直接相邻的金额数字或角分，未升级为精确金额。');
+       // The shared edge grammar has already checked every attached bound.
+       // The frozen parser's whole-string approximate test must not suppress
+       // an exact token because another clause bounds a duration or a name.
+--- 47e4/lib/material-fact-arithmetic-review.ts
++++ CODE-candidate/lib/material-fact-arithmetic-review.ts
+@@ -48,6 +48,9 @@
+ const SUFFIX_EXPLICIT_MULTIPLIER = new RegExp(`^${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
+ const SUFFIX_FRACTION = new RegExp(`^(?:${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${EXPLICIT_OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
+ const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
++// Half proportions have no leading numeric factor. They are operands only
++// after an explicit operation, and their complete word must not cut 半成品.
++const SUFFIX_PROPORTION_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${PROPORTION}(?!\\p{L}|\\p{N})`, 'u');
+ const SUFFIX_COEFFICIENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${COEFFICIENT_OPERAND}`, 'u');
+ // A named wage component is an unknown operand only on an explicit operation.
+ // Bound a complete Han component name to 16 code points and require one of the
+@@ -71,7 +74,7 @@
+ const HYPHEN_TIME = new RegExp(`^-${LINE}*(?:[0-9]{4}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12][0-9]|3[01])|${TIME_INTEGER}年(?:${LINE}*${TIME_INTEGER}月(?:${LINE}*${TIME_INTEGER}日)?)?|${NUMBER}(?:个?月|日|天|小时|分钟|秒))(?![${NUMERALS}点.元圆圓角分%/×*xX÷+−-])`, 'u');
+ 
+ function suffixIsOperation(suffix: string): boolean {
+-  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
++  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_PROPORTION_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
+ }
+ const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
+ // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
+--- 47e4/lib/material-fact-range-review.ts
++++ CODE-candidate/lib/material-fact-range-review.ts
+@@ -50,6 +50,10 @@
+ const ATTACHED_PREFIX = new RegExp(`(?:${MONEY_BOUND_PREFIX}|(?<!最)近)${QUALIFIER_BRIDGE}$`, 'iu');
+ const SIGNED_BRIDGE = `(?:${CURRENCY_BRIDGE_PART}|的|为|為|是|金额|金額|数值|數值|工资|工資|薪资|薪資|薪酬|计|計|共|合计|合計)*`;
+ const ATTACHED_SIGNED = new RegExp(`(?:负数|負數|负值|負值|正数|正數|正值|[负負+＋\\-－−﹣±])${SIGNED_BRIDGE}$`, 'iu');
++// A postposed negative annotation belongs to this anchored amount only when
++// its finite words are adjacent. Layout may split the annotation, but another
++// subject, number or sentence cannot bridge it. Never convert it into -amount.
++const ATTACHED_NEGATIVE_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[(]${SPACE})?(?:(?:金额|金額|数值|數值)${SPACE})?(?:(?:为|為|是)${SPACE})?[负負]${SPACE}(?:[数數]|值)(?!\\p{L}|\\p{N})`, 'iu');
+ const ATTACHED_INDEFINITE = new RegExp(`(?:数|數|几|幾)${CURRENCY_BRIDGE}$`, 'iu');
+ const ATTACHED_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[/／]${SPACE}(?:小时|月|日|天|时|件)${SPACE})?${MONEY_BOUND_SUFFIX}`, 'iu');
+ // A comparison's left operand is no more an exact total than its right one.
+@@ -61,7 +65,7 @@
+  * A signed amount remains unsupported, distinct from an approximate bound. */
+ export function attachedMoneyQualifierStatus(before: string, after: string): 'unsupported' | 'approximate' | null {
+   const prefix = view(before), suffix = view(after);
+-  if (ATTACHED_SIGNED.test(prefix)) return 'unsupported';
++  if (ATTACHED_SIGNED.test(prefix) || ATTACHED_NEGATIVE_SUFFIX.test(suffix)) return 'unsupported';
+   return ATTACHED_INDEFINITE.test(prefix) || ATTACHED_PREFIX.test(prefix) || ATTACHED_SUFFIX.test(suffix)
+     || ATTACHED_COMPARISON_SUFFIX.test(suffix) ? 'approximate' : null;
+ }

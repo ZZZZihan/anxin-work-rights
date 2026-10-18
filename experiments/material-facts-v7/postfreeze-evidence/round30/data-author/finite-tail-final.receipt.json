@@ -1,0 +1,169 @@
+{
+  "kind": "ROUND30 implementation-author synthetic directed regression with appended finite-tail closure",
+  "baseline_commit": "47e4c30545b4fc1af27e716c030ea9e583728938",
+  "findings": [
+    "4307423028",
+    "4307423038"
+  ],
+  "implementation_files": [
+    {
+      "path": "lib/material-fact-arithmetic-review.ts",
+      "sha256": "460e412fa75fc9879c5b1973290ee8c2232eb0408b8f7fcc6d539e399e367e03",
+      "baseline_sha256": "10f1193d65bc24a7e0898bdf1711f1fd038f74ba3abd0c5fea7dd8dcf14db284"
+    },
+    {
+      "path": "lib/material-fact-range-review.ts",
+      "sha256": "7dafb86e05c78fef64e815ecd6ec9439573a9099692b67f0ec8eb7951b0d24aa",
+      "baseline_sha256": "f70673d8bb3b6886558ca14ddcb2d14f55f0cd4fa7cd8c9b4f849de938b1eacb"
+    }
+  ],
+  "author_test": {
+    "path": "scripts/material-fact-proportion-negative-suffix.test.mjs",
+    "sha256": "235b2e621227d40631c4b150bbe61561ef7f5e1427aa68cf5c571493bba2cfa3",
+    "count": 114
+  },
+  "implementation_summary": [
+    "Explicit operators reuse the existing finite PROPORTION grammar. Operand may have no leading number: 半成/半折/对折/對折. It must end at an L/N boundary or one of the finite 计算/计发/支付 actions (traditional aliases via existing detection copy). No calculation is performed.",
+    "A negative suffix must attach to the anchored amount through only existing currency/unit wrappers, optional bracket/金额/数值/为/是, then 负数/负值 (including traditional/layout forms). Finite 记录/金额 annotation continuations are accepted; no other subject, number or sentence can bridge it. Never convert a positive literal into a negative number."
+  ],
+  "initial_implementation": {
+    "arithmetic_sha256": "81ffc2a346166a5240cf20f21944eb67383cd2a631fd55fa52cd921d4b138795",
+    "range_sha256": "6bc5e3a79026eb002d8cc59fe62ff0d10ae6aad19deda4e22081c17619589457",
+    "author_tests": 91,
+    "baseline_pass": 17,
+    "baseline_fail": 74,
+    "initial_patched_pass": 91,
+    "note": "Initial 91 PASS does not include the subsequent finite-tail counterexamples; all original logs and receipt remain unchanged."
+  },
+  "finite_tail_closure": {
+    "same_114_fixed_baseline": {
+      "pass": 22,
+      "fail": 92
+    },
+    "same_114_initial_implementation": {
+      "pass": 96,
+      "fail": 18
+    },
+    "same_114_final": {
+      "pass": 114,
+      "fail": 0
+    },
+    "new_tests": 23,
+    "new_failing_cases_on_initial_implementation": 18,
+    "ordinary_compound_controls": 5
+  },
+  "checks": [
+    {
+      "path": "author-fixed-47e4-before-red.log",
+      "sha256": "258564cabc21d329bb78ccb65fca67efabfade91ba45186f0f9968365e63b908",
+      "tests": 91,
+      "pass": 17,
+      "fail": 74,
+      "skipped": 0
+    },
+    {
+      "path": "author-first-patched-green.log",
+      "sha256": "ac91919aa00167ecbb6cbcc957c0e46ea33d31b67bc57b0580fba7a404a39b1a",
+      "tests": 91,
+      "pass": 91,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "path": "finite-tail-initial-implementation-before-red.log",
+      "sha256": "a06e24f7293489a97a0795843f9cd280fbca5945f73cd2b483a5f81179be3c52",
+      "tests": 114,
+      "pass": 96,
+      "fail": 18,
+      "skipped": 0
+    },
+    {
+      "path": "finite-tail-exact-47e4-before-red.log",
+      "sha256": "93b10a5d3454a85fed232fac1fc67d10b02cad6ddd853758c309911480227061",
+      "tests": 114,
+      "pass": 22,
+      "fail": 92,
+      "skipped": 0
+    },
+    {
+      "path": "finite-tail-patched-green.log",
+      "sha256": "7093da0b0971e7386679ce35d4c7dee3ed6d922731c0f816281fbc7227305934",
+      "tests": 114,
+      "pass": 114,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "path": "money-final-overlay-author-green.log",
+      "sha256": "5468ae5776e912192224c9bb31062d105d3d8a1323ccb94a3a4fc74c969271fc",
+      "tests": 114,
+      "pass": 114,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "path": "final-tail-original-five-suite-522.log",
+      "sha256": "d3742d98def1c5f790c81eba5ce60218aefa6b592a91e30d0ff30c023f3c168c",
+      "tests": 522,
+      "pass": 522,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "path": "final-tail-prior-nine-597.log",
+      "sha256": "164f0061c64b55e0c0ec5df2ff1bf39fe568f7706b923702838a2e5901d59178",
+      "tests": 597,
+      "pass": 597,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "path": "money-author-integrated-nonimplementer-rerun.log",
+      "sha256": "95ffec245e45ce4f9de22f879def467e640b04c9626cf0da5866d9c90ee85f44",
+      "tests": 161,
+      "pass": 161,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "path": "final-tail-scoped-eslint.log",
+      "sha256": "4f3f189237745bad96407a61a43d534a3f102b2f88073c6292325fe2d548d1ee"
+    }
+  ],
+  "regression_scopes": {
+    "original_five_scripts": 522,
+    "additional_four_scripts": 597,
+    "scoped_eslint_exit": 0
+  },
+  "cross_review": {
+    "money_file": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-money-v4.ts",
+    "money_sha256": "b3047474600bd08e829c53c6ca0914c87d3f152df4322fba196477b80c70dd46",
+    "money_author_script": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-round30-money-author.test.mjs",
+    "money_author_sha256": "71a67d35f814e082c086a001197e10135616593b9adb95493d68311c7ebbcdcf",
+    "static_read": "Compared exact47e4 to a8f3 money diff. Raw TOKEN supports explicit fullwidth digits/dot; per-token parse copy preserves raw indices; finite complete-unit payment prose exceptions retain prior guards. No blocking issue in this scope found.",
+    "nonimplementer_execution_of_money_author": {
+      "tests": 161,
+      "pass": 161,
+      "fail": 0
+    },
+    "money_final_overlay_own_author": {
+      "tests": 114,
+      "pass": 114,
+      "fail": 0
+    },
+    "limit": "Execution of another author fixture is a technical cross-check, not new independent business cases or human acceptance."
+  },
+  "evidence_limits": [
+    "Failing pipeline tests stop at their first fresh assertion, so a red test does not establish that its subsequent historical assertions executed. The final green tests execute fresh, forced-historical-exact downgrade, old-null no-upgrade and immutable raw/CP branches.",
+    "Source module was not modified. Same-amount other-event six-layer checks are existing/protective controls, not a newly discovered scoring bug.",
+    "No HTTP, build, fullcheck, historical CLI chain or model execution by this author. Parent owns integrated application/HTTP/CI.",
+    "No frozen data/labels/raw outputs/results/snapshots were changed. No training, deployment, commit or push."
+  ],
+  "model_configuration": "Requested gpt-6.1-sol ultra, actual backend not independently verified",
+  "runtime": "v26.11.0",
+  "patch": {
+    "path": "round30-final-arithmetic-negative-suffix.patch",
+    "sha256": "e1d2cde88fd4a83c8696ea5e6b8748b5c87da947938ad305232d7923b6ab7a44"
+  },
+  "status": "author directed PASS; parent integration/independent review separate"
+}

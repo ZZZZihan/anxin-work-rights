@@ -1,0 +1,38 @@
+TAP version 13
+# {"evidence":"round30_fullwidth_boundary","expression":"4000元５角","cropped":"4000元","whole":{"rawValue":"4000元５角","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"完整金额的数字、单位或符号边界不合法，未截取其中有效片段。"},"rows":[{"fresh":{"amount":null,"status":"unsupported"},"storedExact":{"amount":null,"status":"unsupported"},"storedUnavailable":{"amount":null,"status":"unsupported"}},{"fresh":{"amount":null,"status":"unsupported"},"storedExact":{"amount":null,"status":"unsupported"},"storedUnavailable":{"amount":null,"status":"unsupported"}}]}
+# {"evidence":"round30_fullwidth_boundary","expression":"４０００元五角","cropped":"４０００元","whole":{"rawValue":"４０００元五角","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"未找到唯一且受支持的精确金额，保留原文供核对。"},"rows":[{"fresh":{"amount":null,"status":"unsupported"},"storedExact":{"amount":null,"status":"unsupported"},"storedUnavailable":{"amount":null,"status":"unsupported"}},{"fresh":{"amount":null,"status":"unsupported"},"storedExact":{"amount":null,"status":"unsupported"},"storedUnavailable":{"amount":null,"status":"unsupported"}}]}
+# {"evidence":"round30_fullwidth_boundary","expression":"人民币５角２分","cropped":"２分","whole":{"rawValue":"人民币５角２分","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"未找到唯一且受支持的精确金额，保留原文供核对。"},"rows":[{"fresh":{"amount":null,"status":"unsupported"},"storedExact":{"amount":null,"status":"unsupported"},"storedUnavailable":{"amount":null,"status":"unsupported"}},{"fresh":{"amount":null,"status":"unsupported"},"storedExact":{"amount":null,"status":"unsupported"},"storedUnavailable":{"amount":null,"status":"unsupported"}}]}
+# {"evidence":"round30_fullwidth_boundary","expression":"４０００．５０元","cropped":"５０元","whole":{"rawValue":"４０００．５０元","status":"unsupported","amount":null,"matchedText":null,"span":null,"reason":"未找到唯一且受支持的精确金额，保留原文供核对。"},"rows":[{"fresh":{"amount":null,"status":"unsupported"},"storedExact":{"amount":null,"status":"unsupported"},"storedUnavailable":{"amount":null,"status":"unsupported"}},{"fresh":{"amount":null,"status":"unsupported"},"storedExact":{"amount":null,"status":"unsupported"},"storedUnavailable":{"amount":null,"status":"unsupported"}}]}
+# Subtest: fullwidth support does not authorize a cropped currency fragment: 4000元５角 -> 4000元
+ok 1 - fullwidth support does not authorize a cropped currency fragment: 4000元５角 -> 4000元
+  ---
+  duration_ms: 55.375417
+  type: 'test'
+  ...
+# Subtest: fullwidth support does not authorize a cropped currency fragment: ４０００元五角 -> ４０００元
+ok 2 - fullwidth support does not authorize a cropped currency fragment: ４０００元五角 -> ４０００元
+  ---
+  duration_ms: 1.918625
+  type: 'test'
+  ...
+# Subtest: fullwidth support does not authorize a cropped currency fragment: 人民币５角２分 -> ２分
+ok 3 - fullwidth support does not authorize a cropped currency fragment: 人民币５角２分 -> ２分
+  ---
+  duration_ms: 1.557
+  type: 'test'
+  ...
+# Subtest: fullwidth support does not authorize a cropped currency fragment: ４０００．５０元 -> ５０元
+ok 4 - fullwidth support does not authorize a cropped currency fragment: ４０００．５０元 -> ５０元
+  ---
+  duration_ms: 1.174708
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 150.78875

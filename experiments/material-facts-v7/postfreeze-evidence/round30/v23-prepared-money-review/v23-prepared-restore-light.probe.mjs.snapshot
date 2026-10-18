@@ -1,0 +1,65 @@
+// Nonimplementer bounded static/native contract probe; no historical CLI, inference or publication.
+import assert from 'node:assert/strict';
+import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const ROOT=process.env.V7_PREPARED_REVIEW_ROOT??'/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards';
+const E='experiments/material-facts-v7';
+const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+const read=path=>readFile(resolve(ROOT,path));
+const at=path=>read(`${E}/${path}`);
+const mod=name=>import(pathToFileURL(resolve(ROOT,E,name)).href);
+const names=['freeze.json','result-manifest.json','corrections/manifest.json',...[...Array(21)].map((_,i)=>`corrections-v${i+2}/manifest.json`),'correction-code-v22/manifest.json','historical-execution-policy-v1.mjs','historical-execution-v1.mjs',...[...Array(14)].map((_,i)=>`historical-v${i+9}-execution.mjs`)];
+const protectedBefore=Object.fromEntries(await Promise.all(names.map(async name=>[name,digest(await at(name))])));
+assert.equal(protectedBefore['result-manifest.json'],'3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee');
+assert.equal(protectedBefore['corrections-v22/manifest.json'],'7fbed100eb6fde657242b325ef73a8b7a42faa6ef3472e412958643230cfaa22');
+assert.equal(protectedBefore['historical-execution-policy-v1.mjs'],'cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea');
+assert.equal(protectedBefore['historical-execution-v1.mjs'],'0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c');
+const previous=JSON.parse(await at('corrections-v22/manifest.json'));
+const archive=JSON.parse(await at('correction-code-v22/manifest.json'));
+assert.equal(archive.schema,'material-facts-v7-correction-code/22');
+assert.equal(archive.correction_manifest_sha256,protectedBefore['corrections-v22/manifest.json']);
+assert.equal(Object.keys(previous.code_sha256).length,85);
+assert.deepEqual(archive.files,previous.code_sha256);
+for(const [path,hash]of Object.entries(archive.files))assert.equal(digest(await at(`correction-code-v22/${path}.snapshot`)),hash,path);
+const {RUN_HASH_FILES}=await mod('freeze.mjs');
+const expectedUnion=[...new Set([...RUN_HASH_FILES,...[`${E}/verify-frozen.mjs`,`${E}/corrective-assessment.mjs`,`${E}/publish-artifacts.mjs`],...Object.keys(previous.code_sha256),...[`${E}/verify-correction-v22.mjs`,`${E}/corrective-assessment-v23.mjs`,`${E}/historical-v22-execution.mjs`]])].sort();
+assert.equal(expectedUnion.length,88);
+for(const path of expectedUnion)await stat(resolve(ROOT,path));
+const {historicalV22Target}=await mod('historical-v22-execution.mjs');
+const {historicalTarget,ROOT_BUDGET_MS}=await mod('historical-execution-policy-v1.mjs');
+assert.equal(ROOT_BUDGET_MS,900000);
+assert.equal(historicalV22Target(resolve(ROOT,E,'corrective-assessment-v23.mjs'),['--check']),null);
+assert.equal(historicalTarget(resolve(ROOT,E,'corrective-assessment-v23.mjs'),['--check']),null);
+assert.equal(historicalV22Target(resolve(ROOT,E,'corrective-assessment-v22.mjs'),['--write']),null);
+assert.equal(historicalV22Target(resolve(ROOT,E,'corrective-assessment-v22.mjs'),['--check']),`${E}/corrective-assessment-v22.mjs`);
+const {withCorrectionV22Code}=await mod('verify-correction-v22.mjs');
+const fixture=await mkdtemp(resolve(tmpdir(),'anxin-v23-light-archive-fixture-'));
+let owned;
+try{
+ for(const folder of ['lib','scripts','docs',E])await mkdir(resolve(fixture,folder),{recursive:true});
+ await writeFile(resolve(fixture,'package.json'),'{}\n');
+ await mkdir(resolve(fixture,E,'corrections-v22'),{recursive:true});
+ await writeFile(resolve(fixture,E,'corrections-v22/manifest.json'),await at('corrections-v22/manifest.json'));
+ await cp(resolve(ROOT,E,'correction-code-v22'),resolve(fixture,E,'correction-code-v22'),{recursive:true});
+ const sentinel=new Error('Owned-temp cleanup sentinel');
+ await assert.rejects(withCorrectionV22Code(async temporary=>{
+  owned=temporary;
+  for(const[path,hash]of Object.entries(previous.code_sha256))assert.equal(digest(await readFile(resolve(temporary,path))),hash,path);
+  throw sentinel;
+ },fixture),error=>error===sentinel);
+ assert(owned);
+ await assert.rejects(stat(owned),{code:'ENOENT'});
+}finally{await rm(fixture,{recursive:true,force:true});}
+const packageJSON=JSON.parse(await read('package.json'));
+const runtime=packageJSON.scripts['test:fact-runtime'];
+assert(runtime.includes('--test-concurrency=2'));
+for(const file of ['material-facts-v7-historical-v22-execution.test.mjs','material-facts-v7-correction-v22-gates-independent.test.mjs','material-facts-v7-correction-v23-gates-independent.test.mjs'])assert.equal(runtime.split(`scripts/${file}`).length-1,1,file);
+const ci=(await read('.github/workflows/ci.yml')).toString();
+assert(ci.includes('node experiments/material-facts-v7/verify-correction-v22.mjs'));
+assert(ci.includes('node experiments/material-facts-v7/corrective-assessment-v23.mjs --check'));
+for(const[name,hash]of Object.entries(protectedBefore))assert.equal(digest(await at(name)),hash,name);
+let published=false;try{await stat(resolve(ROOT,E,'corrections-v23/manifest.json'));published=true;}catch(error){if(error.code!=='ENOENT')throw error;}
+console.log(JSON.stringify({status:'PASS',scope:'Nonimplementer prepared-only static/bounded wrapper exercise; owned archive fixture, not real historical CLI.',archive_count:85,archive_manifest_sha256:protectedBefore['correction-code-v22/manifest.json'],previous_manifest_sha256:protectedBefore['corrections-v22/manifest.json'],expected_current_dependency_union:expectedUnion.length,callback_throw_preserved:true,owned_temp_removed:true,protected_before_after_unchanged:true,v23_manifest_present_at_probe:published,historical_CLI_executions:0,model_requests:0,protected_sha256:protectedBefore,expected_current_paths:expectedUnion},null,2));

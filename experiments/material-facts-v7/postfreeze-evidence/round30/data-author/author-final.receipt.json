@@ -1,0 +1,106 @@
+{
+  "review_type": "implementation-author-synthetic-directed-regression",
+  "baseline_commit": "47e4c30545b4fc1af27e716c030ea9e583728938",
+  "baseline_acquisition": {
+    "path": "baseline-acquisition.json",
+    "sha256": "b67a3790ba412df90c7d3a9a390574557a0296372e10d85a3dcaeebf2fa06256",
+    "lib_files": 77
+  },
+  "findings": [
+    "4307423028",
+    "4307423038"
+  ],
+  "implementation_files": [
+    {
+      "path": "lib/material-fact-arithmetic-review.ts",
+      "sha256": "81ffc2a346166a5240cf20f21944eb67383cd2a631fd55fa52cd921d4b138795",
+      "baseline_sha256": "10f1193d65bc24a7e0898bdf1711f1fd038f74ba3abd0c5fea7dd8dcf14db284"
+    },
+    {
+      "path": "lib/material-fact-range-review.ts",
+      "sha256": "6bc5e3a79026eb002d8cc59fe62ff0d10ae6aad19deda4e22081c17619589457",
+      "baseline_sha256": "f70673d8bb3b6886558ca14ddcb2d14f55f0cd4fa7cd8c9b4f849de938b1eacb"
+    }
+  ],
+  "author_test": {
+    "path": "scripts/material-fact-proportion-negative-suffix.test.mjs",
+    "sha256": "28a277d30aa5d3cc0f123193c247aae14fdab66654c9695ff3965711bf690148"
+  },
+  "patch": {
+    "path": "round30-arithmetic-negative-suffix.patch",
+    "sha256": "7aa69b738801facc8e857486259a27c8e70f8631db455ae519c6e451cc14ee39"
+  },
+  "runtime": {
+    "node": "v26.11.0",
+    "platform": "macOS arm64",
+    "model_configuration": "requested gpt-6.1-sol ultra; actual backend not independently verified"
+  },
+  "changes": [
+    "明确算符右操作数复用既有比例文法，支持半成/半折/对折/對折；完整字母数字右边界避免截取半成品等普通复合词，不做比例计算。",
+    "共享界限检查仅在锚定金额后接受相邻的负数/负值有限说明，可有币种/单位、括号、为/是及layout空白；只降unsupported/null，不转为负数。"
+  ],
+  "checks": [
+    {
+      "path": "author-fixed-47e4-before-red.log",
+      "sha256": "258564cabc21d329bb78ccb65fca67efabfade91ba45186f0f9968365e63b908",
+      "tests": 91,
+      "pass": 17,
+      "fail": 74,
+      "skipped": 0
+    },
+    {
+      "path": "author-first-patched-green.log",
+      "sha256": "ac91919aa00167ecbb6cbcc957c0e46ea33d31b67bc57b0580fba7a404a39b1a",
+      "tests": 91,
+      "pass": 91,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "path": "original-five-suite-522-green.log",
+      "sha256": "044fd448db50ddde6c2c1bb0352c58089789a4337be39a69ebd7d51e859861a2",
+      "tests": 522,
+      "pass": 522,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "path": "previous-schedule-proportion-bound-regressions-green.log",
+      "sha256": "7573148dfa0cb19670dd652ed374a8877cc3cfe82ee8c79954efa03ba188c390",
+      "tests": 597,
+      "pass": 597,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "path": "scoped-eslint.log",
+      "sha256": "4706eea51f6bfab15252175ab10320306c2672ccae84187ed3c89b6ef1281766",
+      "exit_code": 0,
+      "scope": [
+        "lib/material-fact-arithmetic-review.ts",
+        "lib/material-fact-range-review.ts",
+        "scripts/material-fact-proportion-negative-suffix.test.mjs"
+      ]
+    }
+  ],
+  "coverage": [
+    "full/cropped value and quote",
+    "fresh ingestion and forced historical exact downgrade",
+    "historical unsupported/null never upgraded",
+    "newlines/Cf/adjacent source blocks",
+    "source CP spans/raw/representation/value/quote/history immutable",
+    "unrelated event/subject/ordinary word controls",
+    "true declared rates retained",
+    "same-amount separate event cannot earn TP in all six scoring layers"
+  ],
+  "limits": [
+    "Only deterministic synthetic fixtures, not live model, real worker HTTP, legal or human business acceptance.",
+    "Source module was not modified; parent owns final integrated check/HTTP/CI.",
+    "No original frozen data, labels, model outputs, historical reports or archives changed.",
+    "91 author tests and 1119 prior regression tests are technical checks, not additional independent business cases."
+  ],
+  "no_model_requests": true,
+  "no_training_or_deployment": true,
+  "no_commit_or_push": true,
+  "status": "author-directed-PASS; integrated parent checks and independent review recorded separately"
+}

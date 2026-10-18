@@ -1,0 +1,61 @@
+{
+  "scope": "Expected contract changes only; no old test or log modified by this child.",
+  "files": 6,
+  "fixtures": 13,
+  "reason": "ROUND30 explicitly adds complete fullwidth Arabic digits in anchored parse copies, including existing strict valid yuan/jiao/fen grammar.",
+  "changes": [
+    {
+      "file": "scripts/material-fact-mixed-subunits.test.mjs",
+      "baseline_line": 84,
+      "new_exact_amounts": {
+        "５元五角": "5.50",
+        "5元５角": "5.50",
+        "5元伍角２分": "5.52",
+        "5元5角２分": "5.52"
+      }
+    },
+    {
+      "file": "scripts/material-fact-named-arithmetic-subunits.test.mjs",
+      "baseline_line": 80,
+      "new_exact_amounts": {
+        "5元５角": "5.50"
+      }
+    },
+    {
+      "file": "scripts/material-facts-v7-round18-money-author.test.mjs",
+      "baseline_line": 87,
+      "new_exact_amounts": {
+        "五元５角": "5.50",
+        "五元5角２分": "5.52",
+        "伍元５角": "5.50"
+      }
+    },
+    {
+      "file": "scripts/material-facts-v7-round13-money-independent.test.mjs",
+      "baseline_line": 103,
+      "new_exact_amounts": {
+        "５元五角": "5.50",
+        "5元五角２分": "5.52"
+      }
+    },
+    {
+      "file": "scripts/material-facts-v7-round20-money-author.test.mjs",
+      "baseline_line": 96,
+      "new_exact_amounts": {
+        "四萬圓５角": "40000.50"
+      }
+    },
+    {
+      "file": "scripts/material-facts-v7-round11-money-independent.test.mjs",
+      "baseline_line": 148,
+      "new_exact_amounts": {
+        "5元５角": "5.50",
+        "５元5角": "5.50"
+      }
+    }
+  ],
+  "unchanged_controls": [
+    "round11:143 cropped 5元 from 5元５角２分 must remain unavailable",
+    "fullwidth extra trailing digits, invalid grouping/order, scaled Arabic yuan with subunits, currency conflicts, bounds, unknowns, formulas and rates retain guards"
+  ]
+}

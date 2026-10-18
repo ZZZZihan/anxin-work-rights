@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "round": 30,
+  "at_utc": "2026-10-18T14:49:49.421948+00:00",
+  "role": "money implementer author self-check; DATA production diffs separately nonimplementer static review",
+  "baseline_commit": "47e4c30545b4fc1af27e716c030ea9e583728938",
+  "baseline_acquisition": "git archive fixed commit lib and assess.mjs only; no holdout/model data",
+  "node": "v26.11.0",
+  "product": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-money-v4.ts",
+    "sha256": "b3047474600bd08e829c53c6ca0914c87d3f152df4322fba196477b80c70dd46",
+    "only_modified_product": "lib/material-money-v4.ts"
+  },
+  "author": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-round30-money-author.test.mjs",
+    "sha256": "71a67d35f814e082c086a001197e10135616593b9adb95493d68311c7ebbcdcf",
+    "tests": 164,
+    "portable_defaults": "BASE/PATCH default repository; fixed-red explicitly chooses archived dependency fixture"
+  },
+  "changes": [
+    "TOKEN explicitly accepts fullwidth Arabic digits and decimal dot; only anchored parse copy converts these glyphs. Original value, quote and code-point spans are preserved.",
+    "Complete monetary unit may precede finite 一次性/一并/N日天内 + 支付/付清/给付/发放 with a right boundary; this exception changes numeric-continuation recognition, not currency/range/arithmetic/rate/unknown guards.",
+    "Complete quote and full source-layout must satisfy that same finite payment boundary; question mark after payment instruction cannot be lost by a local sentence cut."
+  ],
+  "preserved": [
+    "No old unsupported/null monetary amount auto-upgrade during read review",
+    "No raw/source/quote/state rewrite, no calculation authorization",
+    "Malformed fullwidth group/subunit/scale/extra digits, cropped cents/range/formula, foreign currency and real monthly rate guards",
+    "Six score layers compare same monetary event; equal amount in another event cannot borrow TP"
+  ],
+  "tests": {
+    "minimum6-before47e4.actual.log": {
+      "tests": 6,
+      "pass": 0,
+      "fail": 6,
+      "exit_code": 1,
+      "scope": "Actual fixed47e4 initial minimum author red.",
+      "sha256": "12635b8ef37a4a35cfbc21b074df532a8a6bd975141134e3ea487efb37ad508b"
+    },
+    "minimum6-after-initial.actual.log": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "exit_code": 0,
+      "scope": "Initial implementation, not final code.",
+      "sha256": "c0449a234bf90fd7698ca8ef3b5eaf0e58bcb4ca927a68159e415a823a79e9f4"
+    },
+    "author-after-first.actual.log": {
+      "tests": 161,
+      "pass": 159,
+      "fail": 2,
+      "exit_code": 1,
+      "scope": "Intermediate: one author expectation incorrectly rejected valid 4000元五角; other actual candidate quote ? boundary issue. Both logs retained.",
+      "sha256": "c883d82e85bb3837ce119c6071050abec5bbdbd9f7decd63c5d1009deb34be84"
+    },
+    "author-after-second.actual.log": {
+      "tests": 161,
+      "pass": 161,
+      "fail": 0,
+      "exit_code": 0,
+      "scope": "a8f intermediate, before source-local question closure.",
+      "sha256": "84130033faa8758075d39176d45df3f0ba8e85accabde8aaf710e636bb707f1d"
+    },
+    "payment-source-edge-before.actual.log": {
+      "tests": 161,
+      "pass": 160,
+      "fail": 1,
+      "exit_code": 1,
+      "scope": "Actual a8f source-minquote question-boundary regression; original47e4 blocked it via old numeric guard. Not counted as original review defect.",
+      "sha256": "e74bcd4c7fc807eeb4b24f6be017fcb66068078921157336e08f65a8eb8c1fde"
+    },
+    "author164-before47e4-final.actual.log": {
+      "tests": 164,
+      "pass": 64,
+      "fail": 100,
+      "exit_code": 1,
+      "scope": "Same final locked164 author script on exact fixed47e4 full dependencies, no patch.",
+      "sha256": "d30b63cc7fd01b08a6b4be361a1b5c2848b6b68204fe540366d8f3eca69a8555"
+    },
+    "author164-after-final.actual.log": {
+      "tests": 164,
+      "pass": 164,
+      "fail": 0,
+      "exit_code": 0,
+      "scope": "Final money b304 on fixed47e4 dependencies.",
+      "sha256": "0b24e0552f5cf59e396437e797b26defc8b8f876e85de731272f2250edb671b6"
+    },
+    "author164-combined-final.actual.log": {
+      "tests": 164,
+      "pass": 164,
+      "fail": 0,
+      "exit_code": 0,
+      "scope": "Final money b304 with DATA arithmetic460e/range7daf read-only overlay, exact47e4 other dependencies.",
+      "sha256": "a93042f7ec35542bcbe6f942bd572045f32f5cc73e76e0b6d0a39cf7fa92e3b0"
+    },
+    "key-round29-author233-final.actual.log": {
+      "tests": 233,
+      "pass": 233,
+      "fail": 0,
+      "exit_code": 0,
+      "scope": "Existing ROUND29 critical money author suite; exact47e4 dependencies + final money.",
+      "sha256": "32974047ab5c0adbeee26056dd598891e8c0a073da008252717e62e5242ecfde"
+    },
+    "lint-final.actual.log": {
+      "exit_code": 0,
+      "scope": "ESLint final money and new author script only.",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "contract_migrations": "fullwidth-contract-migration.json: 6 files, 13 valid old unsupported fixtures; parent owns migration; raw logs unchanged",
+  "data_nonimplementer_static_review": {
+    "arithmetic_sha256": "460e412fa75fc9879c5b1973290ee8c2232eb0408b8f7fcc6d539e399e367e03",
+    "range_sha256": "7dafb86e05c78fef64e815ecd6ec9439573a9099692b67f0ec8eb7951b0d24aa",
+    "result": "No blocking issue in inspected finite explicit-operation proportion/negative-annotation diffs. New finite tail verbs remain bounded; arbitrary ordinary compounds and another event are not bridges.",
+    "limits": "Static review plus own164 combined execution only; DATA114 and REVIEW25 are peer executions, not claimed as my execution."
+  },
+  "limits": [
+    "No fullcheck/build/HTTP/deep historical gate/model/API call performed by this child.",
+    "Finite payment vocabulary is not a full natural-language payment parser; unsupported complex forms remain conservative.",
+    "Pure fullwidth format/invisible-character arbitrary spellings are not newly normalized into exact amounts.",
+    "Parent integration, independent actual-CODE checks and full verification remain separate."
+  ],
+  "no_further_product_changes": true
+}

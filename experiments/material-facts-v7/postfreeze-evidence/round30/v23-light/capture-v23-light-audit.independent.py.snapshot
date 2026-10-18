@@ -1,0 +1,46 @@
+"""Read/hash and run only the independent local Python partition audit; no historical CLI."""
+import datetime, hashlib, json, pathlib, re, subprocess, sys, time
+here = pathlib.Path(__file__).resolve().parent
+root = pathlib.Path(sys.argv[1]).resolve()
+expected = sys.argv[2]
+assert re.fullmatch(r"[0-9a-f]{64}", expected)
+base = root / "experiments/material-facts-v7"
+current = base / "corrections-v23"
+assert {p.name for p in current.iterdir()} == {"manifest.json", "comparison.json", "report-rules.json", "report-qwen.json", "report-deepseek.json"}
+manifest = json.loads((current / "manifest.json").read_bytes())
+assert hashlib.sha256((current / "manifest.json").read_bytes()).hexdigest() == expected
+paths = {base / "freeze.json", base / "result-manifest.json", base / "data/holdout.inputs.jsonl", base / "data/holdout.labels.provisional.jsonl", root / "package.json"}
+original = json.loads((base / "result-manifest.json").read_bytes())
+paths.update(base / rel for rel in original["files"])
+for name in ["corrections"] + [f"corrections-v{n}" for n in range(2,24)]:
+    folder = base / name
+    paths.update(p for p in folder.iterdir() if p.is_file())
+archive = base / "correction-code-v22"
+paths.update(p for p in archive.rglob("*") if p.is_file())
+paths.update(root / rel for rel in manifest["code_sha256"])
+paths.update(base / f"results/holdout-{backend}-1/results.jsonl" for backend in ["rules", "qwen", "deepseek"])
+freeze = json.loads((base / "freeze.json").read_bytes())
+paths.update(root / rel for rel in freeze["files"] if rel.startswith("experiments/material-facts-v7/data/") or rel.startswith("experiments/material-facts-v7/review-evidence/"))
+def hashes():
+    return {str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
+def write_json(name,value):
+    with (here / name).open("x") as f:
+        json.dump(value,f,ensure_ascii=False,indent=2); f.write("\n")
+before = hashes()
+write_json("v23-light-protected-before.json", before)
+script = here / "v23-independent-report-check-final.py"
+argv = [sys.executable, str(script), str(root), expected]
+started = datetime.datetime.now(datetime.timezone.utc).isoformat()
+t0 = time.monotonic()
+result = subprocess.run(argv,capture_output=True,timeout=60)
+elapsed = time.monotonic()-t0
+for name,content in [("v23-light-audit.stdout.json",result.stdout),("v23-light-audit.stderr.txt",result.stderr)]:
+    with (here / name).open("xb") as f: f.write(content)
+after = hashes()
+write_json("v23-light-protected-after.json", after)
+record = {"schema":"round30-v23-light-audit-execution/1", "root":str(root), "argv":argv, "script_sha256":hashlib.sha256(script.read_bytes()).hexdigest(), "started_at":started, "elapsed_seconds":elapsed, "exit_code":result.returncode, "stdout_sha256":hashlib.sha256(result.stdout).hexdigest(), "stderr_sha256":hashlib.sha256(result.stderr).hexdigest(), "protected_count":len(before), "protected_unchanged":before==after, "manifest_sha256":expected, "deep_chain_calls":0, "scorer_imports":0, "model_calls":0, "http_calls":0}
+write_json("v23-light-audit.execution.json", record)
+assert before == after
+print(json.dumps(record,ensure_ascii=False,indent=2))
+if result.returncode: print(result.stderr.decode(),file=sys.stderr)
+sys.exit(result.returncode)

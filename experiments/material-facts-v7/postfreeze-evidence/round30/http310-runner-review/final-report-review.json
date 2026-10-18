@@ -1,0 +1,133 @@
+{
+  "kind": "Read-only review of parent actual HTTP JSON and source assertions",
+  "input_sha256": [
+    {
+      "path": "scripts/material-facts-v7-http-regression.mjs",
+      "sha256": "d9a38da7a062b6c78c94b2c32abb1ccb158fd90a655efccb987f9a91cbb29627"
+    },
+    {
+      "path": ".scratch/issue42/round30/http274-47e4-baseline.mjs.snapshot",
+      "sha256": "878f329c8fe6be29dd9ed0f3dc0497997d615311111a2a869a52ea238b328c9f"
+    },
+    {
+      "path": ".scratch/issue42/round30/http310-locked-runner.mjs.snapshot",
+      "sha256": "d9a38da7a062b6c78c94b2c32abb1ccb158fd90a655efccb987f9a91cbb29627"
+    },
+    {
+      "path": ".scratch/issue42/round30/http310-lock.json",
+      "sha256": "ecf59c6719047f8d4673e64e6bdea5fd00b126d7e588b429969827da829890c7"
+    },
+    {
+      "path": ".scratch/issue42/round30/http298-lock.json",
+      "sha256": "ae57e379e6de5bf3387578d66e21a7d600f8f3d39a2fb3f697d66bec1f6d9069"
+    },
+    {
+      "path": ".scratch/issue42/round30/before-build-dist-sha256.json",
+      "sha256": "7d3ac4b2551178d6bb26f8f6b67762f8b2b596ebe5b3eaabf30a1285794514f2"
+    },
+    {
+      "path": ".scratch/issue42/round30/http310-47e4-before.json",
+      "sha256": "e28e7c16940c9ca91d32d064d56ee8d20ad7ee466ea2c8d90221ea3cc0eadc97"
+    },
+    {
+      "path": ".scratch/issue42/round30/http310-final-after.json",
+      "sha256": "17f416f620287af14717001f029ff1b2e29daf5d9965a35b081f236e8df7bf68"
+    },
+    {
+      "path": ".scratch/issue42/round29/http274-status-closure-after.json",
+      "sha256": "e423a2238cbecc1453d44b44f8c0d4638c3dfbc90009e29248402a718990283b"
+    },
+    {
+      "path": ".scratch/issue42/round30/http310-before.receipt.json",
+      "sha256": "248bc4f8f0407acab2d207b91470e7210aa13eaf7d4a9520771e6e9a1e617a5f"
+    }
+  ],
+  "before": {
+    "status": "FAIL",
+    "observations": 310,
+    "counts": {
+      "PASS": 281,
+      "FAIL": 29
+    },
+    "new_counts": {
+      "FAIL": 29,
+      "PASS": 7
+    },
+    "synthetic_outputs": 311,
+    "restart": {
+      "name": "worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots",
+      "status": "PASS",
+      "checkedCases": 280,
+      "storedRawAndHistoryUnchanged": true,
+      "privateServiceAuthentication": true
+    },
+    "service_calls": 1555,
+    "all_service_calls_authenticated": true,
+    "retired_service_jobs": 622,
+    "all_retired_persisted_before_retirement": true,
+    "cleanup": {
+      "status": "PASS",
+      "failures": []
+    },
+    "failure": {
+      "phase": "acceptance",
+      "message": "One or more synthetic HTTP scenarios failed; original observations and raw outputs are retained."
+    },
+    "interruption": null
+  },
+  "after": {
+    "status": "PASS",
+    "observations": 310,
+    "counts": {
+      "PASS": 310
+    },
+    "new_counts": {
+      "PASS": 36
+    },
+    "synthetic_outputs": 311,
+    "restart": {
+      "name": "worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots",
+      "status": "PASS",
+      "checkedCases": 309,
+      "storedRawAndHistoryUnchanged": true,
+      "privateServiceAuthentication": true
+    },
+    "service_calls": 1555,
+    "all_service_calls_authenticated": true,
+    "retired_service_jobs": 622,
+    "all_retired_persisted_before_retirement": true,
+    "cleanup": {
+      "status": "PASS",
+      "failures": []
+    },
+    "failure": null,
+    "interruption": null
+  },
+  "same_locked_runner": true,
+  "same_310_scenario_names_in_order": true,
+  "raw_candidates_finish_reason_311_identical": true,
+  "normalized_raw_sequence_sha256": "935e6b857be476efcb8a56ec4441953b3836d72bb97a09a8a5e793452baa2482",
+  "new_36_raw_contiguous_start_zero_based": 270,
+  "remove_new36_restores_old275_raw_sequence": true,
+  "old273_nonrestart_observations_identical_to_prior274": true,
+  "old274_source_byte_recovered": true,
+  "new36_result_breakdown": {
+    "fresh_null": 28,
+    "fresh_exact": 8,
+    "historical_synthetic_exact_downgrade_to_null": 28,
+    "historical_unsupported_null_not_upgraded": 4
+  },
+  "before_valid_failures": {
+    "unsafe_proportion_or_negative_positive_amount": 22,
+    "new_capability_previously_unavailable": 7,
+    "protective_controls_already_pass": 7
+  },
+  "conclusion": "No blocking fixture/evidence inconsistency found. Parent actual final HTTP310 PASS and cleanup PASS; all original outputs/failures preserved.",
+  "limits": [
+    "Only source/JSON arithmetic and exact byte checks by this reviewer, not live HTTP execution or new independent model inference.",
+    "Original124/60 artifact protection and historical chain not re-run. Parent owns build provenance; this review binds the saved dist hash receipt without reconstructing the build.",
+    "No independent DB reopen; DB/history claims are supported by existing executed runner assertions, reported PASS observations, and static review.",
+    "Baseline failures stop on first fresh assertion; do not infer that later historical branches of those failing tests ran. Final PASS executes them.",
+    "No raw/model/gold/frozen records changed; no training, deployment, commit or push."
+  ]
+}

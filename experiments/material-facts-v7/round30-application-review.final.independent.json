@@ -1,0 +1,135 @@
+{
+  "schema": "material-facts-round30-application-independent-review/1",
+  "created_at": "2026-10-18T14:54:57.086482+00:00",
+  "status": "PASS_WITHIN_REVIEWED_ROUND30_SCOPE",
+  "scope": "Only the four fixed47e4 review findings and their direct finite continuation/cropping boundaries; no global correctness claim.",
+  "baseline_commit": "47e4c30545b4fc1af27e716c030ea9e583728938",
+  "reviewed_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "reviewer": {
+    "agent": "/root/v7_independent",
+    "product_implementation_participation": false,
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "findings_reviewed": [
+    4307423028,
+    4307423033,
+    4307423038,
+    4307423042
+  ],
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "b3047474600bd08e829c53c6ca0914c87d3f152df4322fba196477b80c70dd46",
+    "lib/material-fact-arithmetic-review.ts": "460e412fa75fc9879c5b1973290ee8c2232eb0408b8f7fcc6d539e399e367e03",
+    "lib/material-fact-range-review.ts": "7dafb86e05c78fef64e815ecd6ec9439573a9099692b67f0ec8eb7951b0d24aa",
+    "lib/material-fact-source-review.ts": "4a6c88c1663c3b02b7166013d502c32f1fa37778d020b7f4a09617069f5cd3f5",
+    "lib/material-fact-runtime-ingest.ts": "cbf7c724c30568ed1c5640410d6027baaed47503a4a09b7e39ed4e2ff0bd2bbc",
+    "lib/material-fact-currency-review.ts": "be4f151b5e588dc6cf1c35d30948d836a380a24ab6bb6497cc860abf7b68fde5",
+    "lib/material-fact-event-review.ts": "cc35b6a597231967c721ca70bc378e6b8877fc23b10a6e5e634a5bc24f15e010",
+    "experiments/material-facts-v7/assess.mjs": "04d16d173e4ab491d91e0a083f07c734b10591f9814296fa30d1464a9116c0c5"
+  },
+  "scripts": {
+    "scripts/material-facts-v7-round30-independent.test.mjs": "d11b269834d50d74d07a0f7a44cf2048056f9d0371472219d540b50e593d51cb",
+    "scripts/material-facts-v7-round30-fullwidth-boundaries-independent.test.mjs": "86509229380dfcc13d1c65f56807b79e6a3387674e853aa9951089468c4b5d99",
+    "scripts/material-facts-v7-round30-finite-tail-independent.test.mjs": "6fa4ef78dea4150b6e16a112e368b316c8716d4acd22c80206de7412f10251dc",
+    "scripts/material-facts-v7-round30-payment-question-independent.test.mjs": "930498e571e656486751c0f3a4d1ccff84d5cf859b3a85954d71e898140edaa9"
+  },
+  "independent_executions": [
+    {
+      "node_version": "v24.19.0",
+      "exit_code": 0,
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skip": 0,
+      "elapsed_seconds": 0.29207920900080353,
+      "protected_paths": 80,
+      "protected_before_after_identical": true,
+      "receipt": "experiments/material-facts-v7/postfreeze-evidence/round30/actual-code-final-31-node24.execution.json",
+      "stdout_sha256": "681b7ded923fa39ed98956ae3d959142a19a3de33cfc6d217fc5bd499a981c0f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "node_version": "v26.11.0",
+      "exit_code": 0,
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skip": 0,
+      "elapsed_seconds": 0.46605183399515226,
+      "protected_paths": 80,
+      "protected_before_after_identical": true,
+      "receipt": "experiments/material-facts-v7/postfreeze-evidence/round30/actual-code-final-31-node26.execution.json",
+      "stdout_sha256": "829baa89eb4a89809e6b01a972f71c45fcc327419ff5496c7d04cf1bd4b1e5e4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "actual_baseline_and_intermediate_evidence": [
+    {
+      "script": "main25",
+      "exact47e4": "8 pass / 17 fail, exit1 on Node24 and Node26",
+      "final": "25 pass as part of combined31 on both Nodes"
+    },
+    {
+      "script": "fullwidth_boundary4",
+      "exact47e4": "4 pass / 0 fail on both Nodes",
+      "meaning": "Safety controls already passed before the new fullwidth capability."
+    },
+    {
+      "script": "finite_tail1",
+      "logical_cases": 5,
+      "exact47e4": "0 pass / 1 fail",
+      "initial_a8f_81ff_6bc": "0 pass / 1 fail",
+      "meaning": "Missing finite calculation/record continuation in old baseline and intermediate implementation."
+    },
+    {
+      "script": "payment_question1",
+      "exact47e4": "1 pass / 0 fail",
+      "initial_a8f_81ff_6bc": "0 pass / 1 fail",
+      "meaning": "Intermediate regression after adding payment instructions; not claimed as an original47e4 defect."
+    }
+  ],
+  "coverage": [
+    "whole literal and cropped value/quote source context",
+    "fresh runtime and stored forced-exact downgrade",
+    "historical unsupported/null not automatically upgraded",
+    "raw_output, representation, raw value/quote and Unicode code-point offsets retained",
+    "fullwidth adjacent digit/subunit/decimal fragments unavailable",
+    "negative annotation/proportion continuation across layout",
+    "another subject/sentence does not contaminate an independent amount",
+    "equal values from different source events cannot borrow a score in any of the six layers",
+    "candidate acceptance is distinct from amount availability and calculation authorization"
+  ],
+  "fullwidth_contract_migration": {
+    "files": 6,
+    "migrated_complete_literals": 13,
+    "review_type": "exact before/after byte diff plus assertion review",
+    "unsafe_controls_preserved": true,
+    "extra_named_subunits_change": "one trailing space only; separately verified and hashed",
+    "independent_rerun_of_parent_688": false,
+    "audit": "experiments/material-facts-v7/postfreeze-evidence/round30/fullwidth-test-migration/independent-review.json",
+    "audit_sha256": "0b237fcc2560338b9fd44ce949ca31ba350e7bcbc211ff0ab6f39eb1c712227c"
+  },
+  "static_review": {
+    "blocking_findings": [],
+    "record": "experiments/material-facts-v7/postfreeze-evidence/round30/final-static-review.json",
+    "sha256": "d0b09deec328f0e15b360f9aedb10112369b9c39c6fa5dffd818005916cc28bd"
+  },
+  "parent_executions_separate_from_independent": {
+    "evidence_read_and_hash_checked": true,
+    "own_execution": false,
+    "targeted309": "309 pass",
+    "fullcheck": "exit0; fact-runtime7562 pass/1 skip among7563",
+    "http": "fixed47e4 281 pass29 fail -> final310 pass;311 raw byte equal;309 restart snapshots;cleanup PASS",
+    "evidence": "experiments/material-facts-v7/postfreeze-evidence/round30/parent-reported-evidence/read-only-check.json"
+  },
+  "evidence_author_tree_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round30",
+  "recommended_evidence_target_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/experiments/material-facts-v7/postfreeze-evidence/round30",
+  "limits": [
+    "No product edits, history/frozen artifacts edits, model calls, fullcheck, HTTP, deep historical CLI, build, commit or push by this reviewer.",
+    "No human legal/business acceptance or calculation authorization is established by these synthetic checks.",
+    "Finite syntax coverage does not establish arbitrary Chinese segmentation or all money expressions.",
+    "Old baseline and intermediate failure logs remain unchanged. Early files named stdout.tap used the native spec reporter; final combined31 explicitly used TAP."
+  ],
+  "blocking_findings": []
+}
