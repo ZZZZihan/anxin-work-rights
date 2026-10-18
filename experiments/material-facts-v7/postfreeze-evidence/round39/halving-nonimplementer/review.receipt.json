@@ -1,0 +1,72 @@
+{
+  "schema": "round39-halving-nonimplementer-review/1",
+  "completed_utc": "2026-10-18T19:34:43.796683+00:00",
+  "status": "NO_BLOCKING_ISSUE_IN_REVIEWED_SCOPE",
+  "reviewer": "v7_data; did not implement the arithmetic change",
+  "baseline_commit": "66581e78f695cf4ed70e9b1bde2f1456814f8b05",
+  "baseline_dependency_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/.scratch/round39-collective/exact-66581e78",
+  "input_sha256": {
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-fact-arithmetic-review.ts": "76e5b291acca1386c4cceb3b0b95e676984999dfa76119db2090f100e53d4b29",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-round39-halving-author.test.mjs": "5a8e7c6c1411adf71b044648ed0ba4805a1984d1660e232c687070365112902a",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round39/halving-author/product-only.patch": "ff8f45db7a817689fea6d917350202a32b520189a81d168665c79a2ee72454d5",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round39/halving-author/author-final.receipt.json": "3d844c6016d74f852b09fa2c9031c9ababa36906bf11de08e6a98c2490e6d67c"
+  },
+  "static_findings": [
+    "The shared helper adds only the attached 减/折 + 半 operation and the existing finite amount-noun lookahead. 減 already folds in the detection copy; no numeric evaluation is introduced.",
+    "The new branch reuses anchored wrapper/layout rules, without searching other clauses. Existing currency, qualifier, rate and source review remain in the pipeline.",
+    "The patch does not modify amounts, model representations, source blocks, quote codepoint positions, historical records, scorer or labels. Unavailable historical amounts do not upgrade."
+  ],
+  "actual_checks": {
+    "author75_node24": {
+      "executed_by": "v7_data",
+      "runtime": "Node24.22.0",
+      "pass": 75,
+      "fail": 0,
+      "execution": "author75-node24.execution.json"
+    },
+    "additional_four_initial": {
+      "pass": 3,
+      "fail": 1,
+      "execution": "independent4-node24.execution.json",
+      "classification": "REVIEW_FIXTURE_EXPECTATION_ERROR_RETAINED",
+      "details": "The fixture supplied subject 李乙 absent from the source and expected an accepted candidate. Existing literal-subject validation correctly rejected it; no product failure was shown."
+    },
+    "additional_four_final": {
+      "pass": 4,
+      "fail": 0,
+      "runtime": "Node24.22.0",
+      "execution": "independent4-final-node24.execution.json",
+      "changed_assertion": "Only the nonliteral-subject case now verifies rejection, retained raw and no due value. The original test and failure log remain separate."
+    },
+    "before_after_protection": {
+      "paths": 79,
+      "changed": 0,
+      "composition": "77 fixed-baseline lib files plus MONEY arithmetic and author test",
+      "result": "protection.result.json"
+    }
+  },
+  "additional_controls": [
+    "A scope-reviewed complete personal-total candidate using a halved base produces no due value or calculation.",
+    "A model-supplied subject absent from the literal source is rejected rather than being trusted to exempt the operation.",
+    "Explicit halving across LS/PS or a format-control character is detected without changing raw fields or CP spans.",
+    "A different-worker sentence and an expressly stated post-halving result retain their independent literal amount."
+  ],
+  "not_executed_here": [
+    "MONEY original 75-test red baseline",
+    "MONEY reported existing 173-test regression",
+    "HTTP",
+    "build",
+    "full check",
+    "historical CLI",
+    "scorer CLI",
+    "model calls",
+    "real-case human acceptance"
+  ],
+  "scope_limits": [
+    "75 and 4 are synthetic test containers; these results are technical module/runtime/read-time evidence, not expert, legal or user acceptance.",
+    "The dependency tree is the exact old commit plus one helper overlay, not the final integrated CODE tree or CI.",
+    "The 79-file protection does not claim validation of all original124/original60 or all historical archives.",
+    "The reviewer changed only OWN evidence/control files, not production, ROOT, CODE or MONEY files."
+  ],
+  "model_request": "gpt-6.1-sol / ultra; actual backend not independently verifiable"
+}

@@ -1,0 +1,25 @@
+from pathlib import Path
+import hashlib
+import json
+
+p = Path(__file__).resolve().parent
+original = (p / 'finalize-current-handoff.py').read_text()
+changed = original.replace("int(re.search(rf'^ℹ {key} (\\d+)\\s*$', out, re.M).group(1))",
+                           "int(re.findall(rf'^ℹ {key} (\\d+)\\s*$', out, re.M)[-1])")
+assert changed != original
+changed = changed.replace("def save(path, data):\n    with path.open('xb') as stream:\n        stream.write(data if isinstance(data, bytes) else data.encode())",
+                         "def save(path, data):\n    value = data if isinstance(data, bytes) else data.encode()\n    if path.exists():\n        assert path.read_bytes() == value, 'Never overwrite different existing evidence.'\n        return\n    with path.open('xb') as stream:\n        stream.write(value)")
+for name in ['finalize-current-handoff.py', 'finalize-current-handoff-v2.py']:
+    value = (p / name).read_bytes()
+    with (p / 'http464-readonly-review' / (name + '.snapshot')).open('xb') as stream:
+        stream.write(value)
+failure = {'stage': 'first evidence-index assembler only', 'exit': 1,
+           'exception': "AssertionError: counts == {'tests': 9486, 'pass': 9484, 'fail': 1, 'skipped': 1}",
+           'cause': 're.search selected an earlier child-suite summary; v2 selects the last runtime summary with re.findall[-1].',
+           'product_test_or_HTTP_failure': False, 'original_driver_preserved': True,
+           'original_driver_sha256': hashlib.sha256(original.encode()).hexdigest(),
+           'source': 'Recorded from actual functions.exec tool result; no fabricated subprocess log.'}
+with (p / 'http464-readonly-review' / 'first-index-assembly-failure.json').open('x') as stream:
+    json.dump(failure, stream, ensure_ascii=False, indent=2)
+    stream.write('\n')
+exec(compile(changed, str(p / 'finalize-current-handoff.py'), 'exec'))

@@ -1,0 +1,103 @@
+{
+  "schema": "material-facts-v7-round39-collective-author/1",
+  "status": "PASS_AUTHOR_TARGETED",
+  "reviewed_at_utc": "2026-10-18T19:30:43.599059+00:00",
+  "finding": {
+    "comment": 4308319336,
+    "thread": "PRRT_kwDOVApLyM6tthxb",
+    "base_commit": "66581e78f695cf4ed70e9b1bde2f1456814f8b05",
+    "actual_runtime_before": "王氏兄弟/双方: literal4000, issues=[], synthetic scopeReview permits due.values=[4000] without amount confirmation",
+    "actual_runtime_after": "same raw observations retain literal4000 plus relation warning; due.values=[]; no confirmations or calculation"
+  },
+  "files": {
+    "lib/material-fact-event-review.ts": "715f7f72d56afa77a6a16293d38cb0e635c3ac3de05d911e25419acd8dc3576d",
+    "scripts/material-facts-v7-round39-collective-author.test.mjs": "b4d41313f30229f44d72ca2cc0cc4dff01ac2a7f72ef4971d806e4e49d56d8f4"
+  },
+  "patch": {
+    "path": "fixed-66581e78-collective.patch",
+    "sha256": "db624c1a8db79950b91fecde775c0d38e9e797c9a2a9f241277b1c7215fe1205",
+    "changed_scope": "Only pluralOwnerLabel constant and collectiveSubject condition; no date vocabulary/layout changes",
+    "finite_labels": [
+      "兄弟",
+      "姐妹",
+      "夫妻",
+      "夫妇/夫婦",
+      "父子/父女",
+      "母子/母女",
+      "祖孙/祖孫",
+      "双方/雙方",
+      "各方",
+      "多方"
+    ]
+  },
+  "actual_checks": {
+    "exact_same_author35_baseline": {
+      "pass": 15,
+      "fail": 20,
+      "exitCode": 1
+    },
+    "patched_node24": {
+      "tests": 35,
+      "pass": 35,
+      "fail": 0
+    },
+    "patched_node26": {
+      "tests": 35,
+      "pass": 35,
+      "fail": 0
+    },
+    "related3_node24": {
+      "tests": 92,
+      "pass": 92,
+      "fail": 0
+    },
+    "eslint_changed_files": {
+      "count": 2,
+      "exitCodes": [
+        0,
+        0
+      ]
+    },
+    "new_test_syntax_exit": 0,
+    "real_runtime_before_after_probes": {
+      "observations_each": 2,
+      "no_unconfirmed_calculation": true
+    }
+  },
+  "coverage": [
+    "full and minimal quote",
+    "4000元 and full 4000元人民币 value",
+    "fresh and forced historical exact review",
+    "original null never upgrades",
+    "scope-reviewed buildFactView due/paid eligibility",
+    "literal raw/rejected/positions preserved",
+    "cropped subject cannot hide source plural phrase",
+    "same-page and page-separated unresolved plural headers remain unavailable",
+    "same amount different-owner source occurrence cannot be borrowed",
+    "pre-existing coordinator/group guards",
+    "positive bounded single-owner controls",
+    "date ownership rejects same explicit plural label without changing date grammar"
+  ],
+  "boundaries": [
+    "Finite lexical ambiguity guard, not NER or verified real-world identity.",
+    "Explicit plural kinship or party labels remain reviewable, including ambiguous use as a colloquial singular title; this safety choice may conservatively reduce availability.",
+    "Unregistered plural descriptions or complex prose remain subject to existing attribution rules; no claim of complete Chinese plural detection.",
+    "An unrelated group header on another page still retains the existing relation-review policy; page metadata does not establish single-worker attribution.",
+    "Literal amount is intentionally retained; exclusion from personal totals is through review issues and real field eligibility, not converting a group amount to zero or deleting raw."
+  ],
+  "no_date_verb_hunk_changes": true,
+  "no_shared_root_or_code_writes": true,
+  "not_executed": [
+    "HTTP",
+    "historical CLI",
+    "scorer CLI",
+    "build",
+    "full test suite",
+    "model calls"
+  ],
+  "configuration": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  }
+}

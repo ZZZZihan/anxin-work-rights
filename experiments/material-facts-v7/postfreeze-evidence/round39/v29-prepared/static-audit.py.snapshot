@@ -1,0 +1,20 @@
+from pathlib import Path
+import json,hashlib,re
+own=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money');root=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards');ev=own/'experiments/material-facts-v7/postfreeze-evidence/round39/v29-prepared';prep=own/'.scratch/round39-v29-prepared';e=Path('experiments/material-facts-v7')
+sha=lambda b:hashlib.sha256(b).hexdigest();p=json.loads((ev/'preparation.json').read_bytes());a=json.loads((prep/e/'correction-code-v28/manifest.json').read_bytes());v28=json.loads((prep/e/'corrections-v28/manifest.json').read_bytes());assert a['files']==v28['code_sha256'];assert len(a['files'])==103
+for path,h in a['files'].items():assert sha((prep/e/'correction-code-v28'/(path+'.snapshot')).read_bytes())==h
+policy=prep/e/'historical-execution-policy-v1.mjs';assert policy.read_bytes()==(root/e/'historical-execution-policy-v1.mjs').read_bytes();assert 'ROOT_BUDGET_MS = 15 * 60 * 1000' in policy.read_text();assert 'CLEANUP_RESERVE_MS = 2000' in policy.read_text()
+oldbridge_names=['historical-execution-v1.mjs','historical-execution-policy-v1.mjs']+[f'historical-v{i}-execution.mjs' for i in range(9,28)]
+for path in oldbridge_names:assert (prep/e/path).read_bytes()==(root/e/path).read_bytes(),path
+controllers=(prep/e/'corrective-assessment-v29.mjs').read_text();assert controllers.count('await computeCorrection(root)')==1;assert controllers.index('withCorrectionV28Code')<controllers.index('await computeCorrection(root)');assert 'first_run_and_corrections_'+'_'.join('v'+str(i) for i in range(1,29))+'_preserved' in controllers
+refs={'ORIGINAL':e/'result-manifest.json','V27':e/'corrections-v27/manifest.json','V28':e/'corrections-v28/manifest.json','V9_BRIDGE':e/'historical-v9-execution.mjs','V27_BRIDGE':e/'historical-v27-execution.mjs','POLICY':e/'historical-execution-policy-v1.mjs','ADAPTER':e/'historical-execution-v1.mjs'}
+constants=[]
+for path in p['files']:
+ s=(prep/path).read_text()
+ for name,h in re.findall(r"const ([A-Z0-9_]+) = '([0-9a-f]{64})';",s):
+  assert name in refs,(path,name);assert h==sha((root/refs[name]).read_bytes()),(path,name);constants.append({'file':path,'constant':name,'sha256':h,'source':str(refs[name])})
+for name,last in [('scripts/material-facts-v7-correction-v28-gates-independent.test.mjs',28),('scripts/material-facts-v7-correction-v29-gates-independent.test.mjs',29)]:
+ s=(prep/name).read_text();m=re.search(r'\.\.\.\[([^]]+)\]\.map',s);assert [int(n.strip()) for n in m[1].split(',')]==list(range(2,last+1));assert 'restores all 103' in s or last==28
+union=set(v28['code_sha256'])|{str(e/'historical-v28-execution.mjs'),str(e/'verify-correction-v28.mjs'),str(e/'corrective-assessment-v29.mjs')};assert len(union)==106
+b=json.loads((ev/'protected-root-before.json').read_bytes());changed=[path for path,h in b.items() if sha((root/path).read_bytes())!=h];assert not changed,changed
+result={'status':'PASS','archive_paths':103,'snapshot_files_plus_manifest':104,'expected_current_union':106,'named_constant_hash_bindings':constants,'old_policy_bridges_unchanged':oldbridge_names,'root_budget_ms':900000,'cleanup_reserve_ms':2000,'protected_root_paths_unchanged':len(b),'version_arrays':'2..28 and 2..29 complete','controller_current_compute_calls':1,'actual_historical_cli_executed':False,'write_check_executed':False,'currentgate_executed':False,'model_requests':0};(ev/'static-audit.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps({k:v for k,v in result.items() if k not in ['named_constant_hash_bindings','old_policy_bridges_unchanged']}))

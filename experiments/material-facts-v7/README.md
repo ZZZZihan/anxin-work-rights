@@ -1,16 +1,20 @@
 # v7：事件绑定修复与新公开材料首跑
 
+v29 冻结复评已完成：write 350.359 秒、check 351.420 秒均退出 0；manifest `d66b3c2ccb1897c08168fc16372d2aafc35ca75d3ced64debbe5fa6fd536c74c` 绑定106份当前代码、103份v28归档与60份原结果。三路逐案报告与v28逐字节相同，18指标及216分区不变。独立LIGHT实际重计12案43事实41锚点、116 raw/104 accepted/12 rejected、46条金额19 exact/25 approximate/2 unsupported，2214保护路径未变。详见[独立计数](ROUND39_V29_LIGHT_INDEPENDENT.md)。
+
+应用精确提交5374d667的[CI39159983288](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39159983288)已成功，27步骤全部通过，CI合并树与应用head树相同；Linux runtime9492通过、材料68通过、HTTP464通过、465 raw与463重启快照、OCR17通过。PR46的完整远端检查仍须独立核对。完整审查清单现有8项后续意见，正在ROUND40处理；此检查点不表示最终无阻塞或业务验收。原回答、冻结和失败记录保持，无新模型调用、训练或生产部署。
+
 Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的解析、事件绑定、金额可用性与评分修复在 [PR #45](https://github.com/ZZZZihan/anxin-work-rights/pull/45)；本目录和 [PR #46](https://github.com/ZZZZihan/anxin-work-rights/pull/46) 保存新公开材料、非专家标注协议、全部首次输出、失败、冻结版本及独立技术复核。两个PR尚未合并；未训练或部署生产，人工业务验收未完成。
 
 ## 先读的结论
 
 本次交付的精简入口见[Issue #42 技术验收与模型比较](ISSUE42_ACCEPTANCE.md)，以下保留逐轮证据与失败历史。
 
-当前应用`66581e78`在前序防护上补齐高达/低至金额界限、带数词的翻/加倍算式、后置人民币符号、发薪日期及唯一同源前置工资词去重。原始输出、材料位置、审计、人工核对和历史null不自动升级均保留；两笔同额事件不合并。详见[ROUND38](POSTRUN_ROUND38_APPLICATION.md)。
+当前应用`5374d667`在前序防护上补齐币种表头后的四位年份、减半/減半/折半操作数、到账/入账日期及显式复数亲属/当事人主体。原始输出、材料位置、审计、人工核对和历史null不自动升级均保留；两笔同额事件不合并。集体literal金额可留作核对，已确认范围也不能据此生成个人工资建议。详见[ROUND39](POSTRUN_ROUND39_APPLICATION.md)。
 
-本地完整检查104.704秒退出0：Vitest1789/46文件、runtime9304通过/1平台跳过、材料67通过/1平台跳过。HTTP447项旧429P18F→新447P0F，448份注入输出除顶层临时ID外字段字节不变，446份重启核对、cleanup通过。真实隔离Worker/D1/R2使用合成回答，不等于真实案件/OCR或人工业务验收。精确应用CI39157925394以PR检查为准；b0a9554与d963425两次CI失败及R38首次10个旧契约断言失败均完整保留，未用本地通过覆盖。
+本地完整检查106.520秒退出0：Vitest1789/46文件、runtime9491通过/1平台跳过、材料67通过/1平台跳过。HTTP464项旧448P16F→新464P0F，465份注入输出除顶层临时ID外字段字节不变，463份重启核对、cleanup通过；旧447中446项观察不变，仅重启数量增加。真实隔离Worker/D1/R2使用合成回答，不等于真实案件/OCR或人工业务验收。应用精确CI39159983288及实验PR46检查以各自精确提交终态为准。首轮新增独立测试的默认中文目录路径加载错误已修，108.459秒完整失败原日志保留，七套187项随后通过；未改产品迁就测试。
 
-v28 manifest`e223d58a86c6ae56aa5df36fb529ab5b6a66ad742f8f2c4a4c30def8aa4a2cbe`绑定103当前/100归档代码，write316.591秒、check318.398秒均退出0。独立LIGHT核对12案43事实41锚点、216分区18指标、103/100/60及2057保护字节通过，见[独立计数](ROUND38_V28_LIGHT_INDEPENDENT.md)。18指标与v27相同；Qwen/DeepSeek开平“高达1.2亿元”两条由精确转概数/null，DeepSeek新增金额上下文核对提示，不能称两个模型报告逐字不变。原始模型回答不改，无新增调用。46条协议接受金额中19精确、25概数null、2unsupported/null，全有关联警告，不能当作已确认金额。
+上版v28 manifest`e223d58a86c6ae56aa5df36fb529ab5b6a66ad742f8f2c4a4c30def8aa4a2cbe`绑定103当前/100归档代码，write316.591秒、check318.398秒均退出0。独立LIGHT核对12案43事实41锚点、216分区18指标、103/100/60及2057保护字节通过，见[独立计数](ROUND38_V28_LIGHT_INDEPENDENT.md)。18指标与v27相同；Qwen/DeepSeek开平“高达1.2亿元”两条由精确转概数/null，DeepSeek新增金额上下文核对提示，不能称两个模型报告逐字不变。原始模型回答不改，无新增调用。46条协议接受金额中19精确、25概数null、2unsupported/null，全有关联警告，不能当作已确认金额。
 
 v27检查点仍保留：manifest`37d4f9ae5f64d1dfe97d21a30a0a1d3f7ab4d7df0efa338e2a5f326b0a7cb49e`，100/97代码，write288.810秒/check290.874秒退出0；三路报告当时与v26逐字相同。[ROUND37](POSTRUN_ROUND37_APPLICATION.md)及[当轮独立计数](ROUND37_V27_LIGHT_INDEPENDENT.md)记录原完整证据和失败。所有后验修改仅另存相同首跑输出的复评，不能倒称预登记或新的独立盲测。
 

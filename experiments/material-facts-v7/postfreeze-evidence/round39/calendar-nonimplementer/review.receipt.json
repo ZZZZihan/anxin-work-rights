@@ -1,0 +1,81 @@
+{
+  "schema": "round39-calendar-nonimplementer-review/1",
+  "reviewed_at_utc": "2026-10-18T19:31:50.115703+00:00",
+  "status": "NO_BLOCKING_ISSUE_IN_REVIEWED_SCOPE",
+  "role": "Money/arithmetic module author in other repairs, nonimplementer of this root-authored calendar patch. Not a label/scorer implementer; synthetic technical review only.",
+  "model_request": "gpt-6.1-sol / ultra; actual backend not independently verified",
+  "baseline_commit": "66581e78f695cf4ed70e9b1bde2f1456814f8b05",
+  "reviewed_production": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/lib/material-money-v4.ts",
+    "sha256": "ed49901401959487a8507b8071c97cc39aecec91180c3417eab442b5fce27fc4"
+  },
+  "reviewed_author_test": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-facts-v7-round39-calendar-author.test.mjs",
+    "sha256": "47f291c3c7d5f729590ca668afcd41699ce84cc4de0f01a6852b7258da61c20d"
+  },
+  "static_findings": [
+    "The helper applies only when the complete anchored token, after one leading named/symbol RMB marker, is exactly four ASCII digits in the detection copy and the immediate continuation is optional layout then 年.",
+    "A real token containing 元/万元 is not unitless and cannot hit this helper. NFKC/Cf handling is detection-only; source raw text, returned evidence and codepoint indexing are not rewritten.",
+    "Unknown/masked/uncertain, explicit arithmetic, foreign conflicts, multiple monetary tokens and ranges retain their earlier decisions before this new single-token calendar branch.",
+    "The parser returns not_money, classifier maps this to definite not_monetary, and the existing whole-source continuation guard shares the same helper to prevent a quote clipped before 年 from creating a precise amount.",
+    "Source/read-time review remains downgrade-only and original quote start/end persists; the parent author suite exercises full/minimal quote, same-page layout, separate sentence and cross-page controls."
+  ],
+  "executed_checks": {
+    "root_author_suite": {
+      "pass_count": 32,
+      "fail_count": 0,
+      "exit_code": 0,
+      "reviewer_ran": true,
+      "independently_authored_cases": false,
+      "runtime": "Node26.11.0"
+    },
+    "reviewer_small_controls": {
+      "final_pass_count": 6,
+      "final_fail_count": 0,
+      "exit_code": 0,
+      "independently_authored_cases": true,
+      "initial": {
+        "pass_count": 5,
+        "fail_count": 1,
+        "reason": "Reviewer initially expected comma-plus-digits calendar prose to preserve the amount; exact baseline and patch both return identical unsupported/null under the old boundary guard.",
+        "original_failed_script_and_logs_preserved": true
+      },
+      "v2_correction": "Only that positive uses an explicit sentence period. No product change or root author test change."
+    },
+    "root_fixed_baseline_evidence": {
+      "valid_fixture_before": {
+        "pass_count": 9,
+        "fail_count": 23
+      },
+      "valid_fixture_after": {
+        "pass_count": 32,
+        "fail_count": 0
+      },
+      "root_initial_fixture": "The original source lacked the claimed subject; its 3P29F output and snapshot remain historical fixture evidence, not a product-red count."
+    }
+  },
+  "limits": [
+    "The four-digit-year decision is a bounded conservative calendar contract, not general natural-language currency/date inference.",
+    "This review ran the existing 32 author cases and six selected controls in a fixed dependency copy with only the reviewed money file overlaid; it did not run full integration, HTTP, CI, scorer or historical chains.",
+    "No newly discovered product regression in this scope. The initial comma positive failure is unchanged baseline behavior, not evidence of this patch failing.",
+    "Real-case/legal/user business acceptance remains pending and cannot be inferred from these synthetic checks."
+  ],
+  "side_effects": {
+    "root_code_product_writes": 0,
+    "scorer_imports": 0,
+    "historical_cli_calls": 0,
+    "model_calls": 0,
+    "http_calls": 0,
+    "full_checks": 0,
+    "commits": 0,
+    "pushes": 0
+  },
+  "reviewed_root_receipts_and_logs": {
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round39/calendar-before-valid-fixture.receipt.json": "873d8910f353901cd82f8cc76d480d3112394a5b2a228a7ec465fafb0b4eeddb",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round39/calendar-before-valid-fixture.stdout.log": "f66d5f23845ea2dd2b76c8c7be5d81b8bd1fb60d4820557838a695c15d91b89d",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round39/calendar-before-valid-fixture.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round39/calendar-after-valid-fixture.receipt.json": "101d369b13ffaec947bdb79e5885142609b05a8c859c83bf91e166a6800aa7a3",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round39/calendar-after-valid-fixture.stdout.log": "ef2949eedc3493e0987348f5763bdb0719281a1d03d36dcb223cf5a5937c300d",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round39/calendar-after-valid-fixture.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

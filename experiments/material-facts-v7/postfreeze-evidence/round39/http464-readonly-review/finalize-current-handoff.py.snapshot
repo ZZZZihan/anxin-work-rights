@@ -1,0 +1,86 @@
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import re
+
+P = Path(__file__).resolve().parent
+OWN = P.parents[1]
+CODE = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+sha = lambda data: hashlib.sha256(data).hexdigest()
+
+
+def save(path, data):
+    with path.open('xb') as stream:
+        stream.write(data if isinstance(data, bytes) else data.encode())
+
+
+def save_json(path, data):
+    save(path, json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+
+
+q = P / 'collective-default-path-closure'
+receipt_path = CODE / '.scratch/issue42/round39/full-check.receipt.json'
+receipt = json.loads(receipt_path.read_text())
+save(q / 'parent-full-check-before-path-fix.receipt.json', receipt_path.read_bytes())
+assert receipt['exitCode'] == 1
+for key, expected in receipt['logs'].items():
+    source = CODE / key
+    value = source.read_bytes()
+    assert sha(value) == expected
+    save(q / ('parent-before-path-fix-' + source.name), value)
+out = (q / 'parent-before-path-fix-full-check.stdout.log').read_text()
+assert "Cannot find module '/Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-code-review/lib/material-fact-runtime-ingest.ts'" in out
+counts = {key: int(re.search(rf'^ℹ {key} (\d+)\s*$', out, re.M).group(1)) for key in ['tests', 'pass', 'fail', 'skipped']}
+assert counts == {'tests': 9486, 'pass': 9484, 'fail': 1, 'skipped': 1}
+save_json(q / 'preserved-parent-full-failure.json', {'receipt_source': str(receipt_path), 'exit': receipt['exitCode'],
+    'durationSeconds': receipt['durationSeconds'], 'runtime_counts_include_module_load_failure': counts,
+    'failure': 'URL.pathname double-encodes a Chinese directory when subsequently passed to pathToFileURL.',
+    'business_assertions_in_this_module_executed_before_failure': 0,
+    'reviewer_ran_parent_full_check': False,
+    'all_original_parent_logs_copied_and_digest_matched': True})
+save(q / 'DEFAULT_PATH_CLOSURE.md', '''新测试默认路径的中文 URL 解码错误已闭合。原脚本 e192b8d2… 与此前显式环境路径的 7 项通过记录不覆盖、不撤回；它们不能证明默认路径可用。
+
+主 Agent 原完整检查实际退出 1，108.458968 秒：runtime 9486 项中 9484 通过、1 个模块加载失败、1 平台跳过。错误发生在本脚本断言执行前，路径出现 `%E5%9B%BD%E5%88%9B`，不应描述为金额业务断言失败。该次 stdout/stderr/receipt 已逐摘要复制保存；完整检查由主 Agent 执行。
+
+修复仅在 `node:url` 导入 `fileURLToPath` 并用它还原默认仓库路径，7 项断言逐字不变。修后脚本 SHA256 为 fc4568be85223d8cc3f18bb1f48be1c032a2a673daaefbee0f0ec4f2ec29186d。OWN 与实际 CODE 字节相同。
+
+本 Agent 在实际 CODE 工作目录运行同一脚本，明确移除 `V7_REVIEW_ROOT`：Node 24.22.0 与 Node 26.11.0 各 7/7 通过、退出 0，无跳过。所有 77 个 lib/*.ts 文件运行前后摘要相同。未跑完整检查、HTTP、评分器、历史链或模型；主侧再次完整检查状态不由本回执代报。
+
+请求配置为 GPT-6.1 Sol / ultra；实际 backend 未独立核验。这是模块级独立测试，不代表真实界面或人工业务验收。
+''')
+h = P / 'http464-readonly-review'
+save(h / 'HTTP464_READONLY_REVIEW_INDEPENDENT.md', '''对主 Agent 保存的同一 runner 报告进行只读复核：有效修前 448 通过、16 失败，修后 464/464 通过，退出分别为 1 与 0；两个版本 cleanup 均 PASS。主侧记录用时分别为 29.095085 秒、29.391434 秒。本 Agent 没有运行 HTTP、构建、服务、完整检查、评分器、历史链或模型。
+
+465 份 syntheticOutputs 只去掉各输出顶层 evidenceId、jobId 后完全相同；raw 字符串 UTF-8 字节、原始 JSON 中 raw/candidates/finish_reason 的值切片逐字相同，嵌套字段没有删除。原有 447 项场景名称全部保留，其中 446 项观察逐字段一致；唯一变化是重启保存检查 checkedCases 从 446 增至 463。原有 448 份输出仍为有序子序列。runner 删除唯一 ROUND39 新增块后，逐字恢复 exact 66581e78 的 runner。
+
+新增 17 项为：3 个主体建议门禁、6 个减半/減半/折半全值与裁剪及历史降级、4 个到账/入账日期关系、4 个币种年份不作金额。王氏兄弟和双方保留字面 4000.00，但 HTTP 模拟 confirm_scope 后 due.values=[]；王甲正向控制为 ['4000.00']。三者均断言 canCalculate=false、due/paid 确认均为空；未扩大金额计算授权。历史无关系警告的候选在只读 GET 中重新审查，持久化 raw/history 未重写。
+
+日期词补丁由本 Agent 实现，因此这四个日期观察属于作者交叉验证，不冒称非实现者审查；集体主体、减半和日历金额观察属于非实现者核对。日期关系支持也不证明实际银行到账或金额已获人工确认。
+
+修前首次 runner 语法错误的 receipt、原 stderr/stdout 和 snapshot 一并保留，明确它发生在 HTTP 启动前，不计入有效 16 个产品修前失败。主侧 build 原日志、有效前后报告及日志均按摘要复制。17 个输入文件与 77 个 lib/*.ts 文件在本次读取前后摘要不变。
+
+重启 463 项检查证明保存状态、raw 和审计历史读取一致，不是重启后再次执行全部派生金额断言。此证据只覆盖合成注入输出、隔离 D1/R2 和本地服务；不代表模型质量、真实案件、部署、法律正确性、真实 UI 或人工业务验收。当前远端 CI 与主侧再次全检另行记录。
+
+请求配置为 GPT-6.1 Sol / ultra；实际 backend 未独立核验。
+''')
+
+
+def index(directory, name):
+    rows = []
+    for path in sorted(directory.iterdir()):
+        if not path.is_file() or path.name == name:
+            continue
+        data = path.read_bytes()
+        relative = Path('experiments/material-facts-v7') / path.relative_to(OWN)
+        destination = str(relative) + ('.snapshot' if path.suffix in {'.py', '.mjs', '.ts'} else '')
+        rows.append({'source': str(path), 'destination': destination, 'bytes': len(data), 'sha256': sha(data)})
+    target = directory / name
+    save_json(target, {'self_excluded': True, 'files': rows})
+    return {'path': str(target), 'sha256': sha(target.read_bytes()), 'files': len(rows)}
+
+
+indexes = [index(q, 'copy-index.default-path-closure.json'), index(h, 'copy-index.http464-readonly.json')]
+save_json(P / 'current-handoff-indexes.json', {'observed_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                                           'indexes': indexes})
+print(json.dumps(indexes, ensure_ascii=False))

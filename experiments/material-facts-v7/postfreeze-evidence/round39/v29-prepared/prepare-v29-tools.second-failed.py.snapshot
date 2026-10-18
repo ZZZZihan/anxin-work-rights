@@ -1,0 +1,88 @@
+from pathlib import Path
+import hashlib,json,re,subprocess,tarfile,io,difflib,datetime
+OWN=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money')
+ROOT=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+E=Path('experiments/material-facts-v7')
+OUT=OWN/'.scratch/round39-v29-prepared'
+EV=OWN/E/'postfreeze-evidence/round39/v29-prepared'
+HEAD='baeee58b7dbafbeec903c4fcca7a2c0e6cd71e3d'
+sha=lambda x:hashlib.sha256(x).hexdigest()
+def write(p,b):
+ p.parent.mkdir(parents=True,exist_ok=True)
+ assert not p.exists(),str(p)
+ p.write_bytes(b if isinstance(b,bytes) else b.encode())
+def dump(p,v):write(p,json.dumps(v,ensure_ascii=False,indent=2)+'\n')
+assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()==HEAD
+assert not OUT.exists()
+OUT.mkdir(parents=True)
+tar=subprocess.check_output(['git','archive',HEAD,'lib','scripts','experiments','docs','package.json','eslint.config.mjs','.github/workflows/ci.yml'],cwd=ROOT)
+with tarfile.open(fileobj=io.BytesIO(tar)) as archive:archive.extractall(OUT,filter='data')
+manifest_bytes=(ROOT/E/'corrections-v28/manifest.json').read_bytes(); manifest=json.loads(manifest_bytes)
+assert sha(manifest_bytes)=='e223d58a86c6ae56aa5df36fb529ab5b6a66ad742f8f2c4a4c30def8aa4a2cbe'
+assert manifest['schema']=='material-facts-v7-postfreeze-correction-manifest/28'
+assert len(manifest['code_sha256'])==103
+archive=OUT/E/'correction-code-v28'
+for p,d in manifest['code_sha256'].items():
+ b=(ROOT/p).read_bytes();assert sha(b)==d,p
+ assert (OUT/p).read_bytes()==b,p
+ write(archive/(p+'.snapshot'),b)
+a={'schema':'material-facts-v7-correction-code/28','correction_directory':'corrections-v28','storage_suffix':'.snapshot','correction_manifest_sha256':sha(manifest_bytes),'files':manifest['code_sha256']}
+dump(archive/'manifest.json',a)
+# Change only syntactic version references, not decimal substrings in 64-hex digests.
+def versions(s,m):
+ s=re.sub(r'([vV])(26|27|28)(?=\D|$)',lambda x:x[1]+str(m.get(int(x[2]),int(x[2]))),s)
+ s=re.sub(r'(/)(26|27|28)(?=[\'\"])',lambda x:x[1]+str(m.get(int(x[2]),int(x[2]))),s)
+ return s
+files={}
+def generated(src,dst,m,edits=()):
+ s=(ROOT/src).read_text();t=versions(s,m)
+ for old,new in edits:
+  assert old in t,(str(dst),old)
+  t=t.replace(old,new)
+ write(OUT/dst,t);files[str(dst)]=sha(t.encode());return t
+bridge=E/'historical-v28-execution.mjs';verify=E/'verify-correction-v28.mjs';controller=E/'corrective-assessment-v29.mjs'
+generated(E/'historical-v27-execution.mjs',bridge,{27:28})
+generated(E/'verify-correction-v27.mjs',verify,{27:28},[('twenty-seventh','twenty-eighth')])
+s=generated(E/'corrective-assessment-v28.mjs',controller,{27:28,28:29},[('twenty-eighth','twenty-ninth')])
+reason='Apply finite ROUND39 safeguards: a named RMB marker cannot turn an immediately following four-digit calendar year into a monetary amount; directly attached 减半/減半/折半 operations retain an unsupported base amount instead of computing a result; finite plural-owner expressions cannot establish one worker\'s complete total, and explicit wage 到账/入账 receipt verbs can establish their bounded payment-date role. Preserve original literal evidence, code-point positions, event identity, historical no-upgrade behavior and all original model outputs; no new inference, label edits or training.'
+s=re.sub(r'    change_reason: ".*" };',lambda _: '    change_reason: '+json.dumps(reason,ensure_ascii=False)+' };',s,count=1)
+# The current status must protect every predecessor through v28.
+key='first_run_and_corrections_v1_v2_v3_v4_v5_v6_v7_v8_v9_v10_v11_v12_v13_v14_v15_v16_v17_v18_v19_v20_v21_v22_v23_v24_v25_v26_v27_preserved'
+s,n=re.subn(r'first_run_and_corrections_[a-z0-9_]+_preserved',key.replace('_preserved','_v28_preserved'),s);assert n==1
+(OUT/controller).write_text(s);files[str(controller)]=sha(s.encode())
+# Native seven use synthetic children only; bind the previous bridge to actual bytes.
+native=Path('scripts/material-facts-v7-historical-v28-execution.test.mjs')
+s=generated(Path('scripts/material-facts-v7-historical-v27-execution.test.mjs'),native,{26:27,27:28,28:29})
+s=re.sub(r"const V27_BRIDGE = '[0-9a-f]{64}';", "const V27_BRIDGE = '"+sha((ROOT/E/'historical-v27-execution.mjs').read_bytes())+"';",s)
+(OUT/native).write_text(s);files[str(native)]=sha(s.encode())
+oldgate=Path('scripts/material-facts-v7-correction-v28-gates-independent.test.mjs')
+s=versions((ROOT/'scripts/material-facts-v7-correction-v27-gates-independent.test.mjs').read_text(),{26:27,27:28})
+s=s.replace('100 exact dependencies','103 exact dependencies').replace('dependencies in the v7','dependencies in the v7').replace('.length, 100)', '.length, 103)')
+s=s.replace('26, 27].map','26, 27, 28].map')
+for name,path in [('ORIGINAL',E/'result-manifest.json'),('V27',E/'corrections-v27/manifest.json'),('V28',E/'corrections-v28/manifest.json')]:
+ s,n=re.subn(rf"const {name} = '[0-9a-f]{{64}}';",f"const {name} = '{sha((ROOT/path).read_bytes())}';",s);assert n==1,name
+write(OUT/oldgate,s);files[str(oldgate)]=sha(s.encode())
+newgate=Path('scripts/material-facts-v7-correction-v29-gates-independent.test.mjs')
+s=versions((ROOT/'scripts/material-facts-v7-correction-v28-gates-independent.test.mjs').read_text(),{27:28,28:29})
+s=s.replace('103 exact dependencies','106 exact dependencies').replace('.length, 103)', '.length, 106)')
+s=s.replace('all 100 historical dependencies','all 103 historical dependencies')
+s=s.replace('27, 28].map','27, 28, 29].map')
+s=s.replace('binds finite postfix-currency, bound, numeric multiplier and event-wrapper boundaries','binds finite calendar-year, halving and owner/date-receipt safeguards')
+for name,path in [('ORIGINAL',E/'result-manifest.json'),('V28',E/'corrections-v28/manifest.json'),('V9_BRIDGE',E/'historical-v9-execution.mjs'),('POLICY',E/'historical-execution-policy-v1.mjs')]:
+ s,n=re.subn(rf"const {name} = '[0-9a-f]{{64}}';",f"const {name} = '{sha((ROOT/path).read_bytes())}';",s);assert n==1,name
+write(OUT/newgate,s);files[str(newgate)]=sha(s.encode())
+# Current expected bindings are exactly the prior 103 paths plus three tools.
+union=set(manifest['code_sha256'])|{str(bridge),str(verify),str(controller)}
+assert len(union)==106
+# Avoid copying any intermediate R39 product into the prepared support tree.
+protected=set(manifest['code_sha256'])|{str(E/x) for x in ['freeze.json','result-manifest.json','corrections/manifest.json','correction-code-v27/manifest.json']}|{str(E/f'corrections-v{i}/manifest.json') for i in range(2,29)}|{'package.json','.github/workflows/ci.yml'}
+protected |= {str(E/p.relative_to(ROOT/E)) for p in (ROOT/E/'results').rglob('*') if p.is_file()}
+protection={p:sha((ROOT/p).read_bytes()) for p in sorted(protected)}
+dump(EV/'protected-root-before.json',protection)
+dump(EV/'preparation.json',{'status':'PREPARED_NOT_PUBLISHED','source_root':str(ROOT),'source_head':HEAD,'prepared_root':str(OUT),'previous_correction_manifest_sha256':sha(manifest_bytes),'archive_paths':103,'archive_manifest_sha256':sha((archive/'manifest.json').read_bytes()),'expected_current_dependency_union':106,'files':files,'previous_code_sha256':manifest['code_sha256'],'protected_source_paths':len(protection),'shared_root_writes':0,'published':False,'actual_historical_cli_executed':False,'scorer_executed':False,'model_requests':0,'product_R39_final_binding_pending':True,'requested_model':'gpt-6.1-sol','requested_reasoning':'ultra','actual_backend_independently_verified':False})
+patch=''
+for p in files:
+ b=(ROOT/p).read_text() if (ROOT/p).exists() else ''
+ patch+=''.join(difflib.unified_diff(b.splitlines(True),(OUT/p).read_text().splitlines(True),fromfile='a/'+p,tofile='b/'+p))
+write(EV/'v29-tooling.patch',patch)
+print(json.dumps({'prepared_root':str(OUT),'archive_paths':103,'archive_manifest_sha256':sha((archive/'manifest.json').read_bytes()),'expected_union':106,'files':files},indent=2))

@@ -1,0 +1,78 @@
+// Synthetic calendar/currency boundary checks, not model or business acceptance.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+const OWN = fileURLToPath(new URL('../', import.meta.url));
+const BASE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
+const PATCH = resolve(process.env.MATERIAL_FACT_PATCH_ROOT || OWN);
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-round39-calendar-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+await cp(resolve(BASE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+await cp(resolve(PATCH, 'lib/material-money-v4.ts'), resolve(temporary, 'lib/material-money-v4.ts'));
+const load = file => import(pathToFileURL(resolve(temporary, 'lib', file)).href);
+const { normalizeMoneyValueV4: parse, classifyMonetaryExpression: classify, canonicalMonetaryExpression: canonical } = await load('material-money-v4.ts');
+const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates } = await load('material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
+const AT = '2026-10-19T00:00:00.000Z';
+const length = value => Array.from(value).length;
+function fixture(text, value, fullQuote = false, next = null, page = 1) {
+  const source = { id: 'r39-calendar', name: '合成币种期间标签', sha256: 'c'.repeat(64), analysisRevision: 1, ready: true,
+    blocks: [{ id: 'b1', page: 1, text: '😀王甲记载：' + text, bbox: null, confidence: null }] };
+  if (next !== null) source.blocks.push({ id: 'b2', page, text: next, bbox: null, confidence: null });
+  const candidate = { kind: 'money', value, quote: fullQuote ? source.blocks[0].text : value, blockId: 'b1', subject: '王甲', scope: 'individual',
+    meaning: 'other_money', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' };
+  return { source, candidate, raw: JSON.stringify({ schemaVersion: 3, candidates: [candidate] }) };
+}
+function pipeline(f, amount, rejected = false) {
+  const original = structuredClone(f);
+  const fresh = ingestRuntimeCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'round39-calendar', AT);
+  assert.equal(fresh.materials[0].raw, f.raw);
+  if (rejected) { assert.equal(fresh.materials[0].candidates.length, 0); assert.equal(fresh.materials[0].rejected.length, 1); }
+  else check(fresh.materials[0].candidates[0]);
+  assert.equal(fresh.calculation, null);
+  assert.deepEqual(fresh.confirmations, { due: null, paid: null });
+  const history = ingestCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'round39-calendar', AT);
+  const fact = history.materials[0].candidates[0]; assert(fact);
+  fact.amount = amount ?? '2026.00'; fact.normalization = { rawValue: fact.value, status: 'exact', amount: fact.amount,
+    matchedText: fact.value, span: { start: 0, end: length(fact.value) }, reason: 'Synthetic old exact year.' };
+  const stored = structuredClone(history), reviewed = reviewFactsAgainstSources(history, [f.source]);
+  check(reviewed.materials[0].candidates[0]); assert.equal(reviewed.materials[0].raw, f.raw);
+  assert.deepEqual(history, stored); assert.deepEqual(reviewed.history, stored.history);
+  fact.amount = null; fact.normalization = { rawValue: fact.value, status: 'unsupported', amount: null, matchedText: null, span: null, reason: 'Stored null.' };
+  const oldNull = structuredClone(history), again = reviewFactsAgainstSources(history, [f.source]);
+  assert.equal(again.materials[0].candidates[0].amount, null); assert.deepEqual(history, oldNull); assert.deepEqual(f, original);
+  function check(item) {
+    assert(item); assert.equal(item.amount, amount); assert.deepEqual(item.representation, f.candidate);
+    assert.equal(item.value, f.candidate.value); assert.equal(item.quote, f.candidate.quote);
+    const text = f.source.blocks[0].text, start = length(text.slice(0, text.indexOf(f.candidate.quote)));
+    assert.deepEqual([item.start, item.end], [start, start + length(f.candidate.quote)]);
+  }
+}
+for (const currency of ['人民币', '人民幣', 'RMB', 'CNY', '￥', '¥']) {
+  const expression = `币种：${currency} 2026年1月工资`;
+  test('a named currency cannot supply yuan to a calendar year: ' + currency, () => {
+    assert.equal(parse(expression).amount, null); assert.equal(classify(expression).kind, 'not_monetary');
+    assert.equal(canonical(expression), null); pipeline(fixture(expression, expression), null, true);
+  });
+  for (const fullQuote of [false, true]) test('clipping the year keeps its source calendar continuation: ' + currency + '/' + fullQuote,
+    () => pipeline(fixture(expression, currency + ' 2026', fullQuote), null));
+}
+for (const text of ['币种：人民币 ２０２６年１月工资', '币种：人民币 2026\n年1月工资', '币种：人民币 2026\u200d年1月工资'])
+  test('calendar layout/detection folding never alters raw: ' + text, () => {
+    assert.equal(parse(text).amount, null); assert.equal(classify(text).kind, 'not_monetary'); pipeline(fixture(text, text), null, true);
+  });
+for (const value of ['人民币2026', '2026'])
+  test('adjacent same-page year continuation cannot create a cropped amount: ' + value,
+    () => pipeline(fixture('币种：人民币2026', value, false, '年1月工资'), null));
+for (const [value, amount] of [['人民币2026', '2026.00'], ['CNY2026', '2026.00'], ['￥2026元', '2026.00'], ['人民币2026万元', '20260000.00']])
+  test('an actual currency literal is preserved: ' + value, () => {
+    assert.equal(parse(value).amount, amount); assert.equal(classify(value).kind, 'monetary'); pipeline(fixture(value, value), amount);
+  });
+test('a separate year statement does not attach to the currency literal', () => pipeline(fixture('人民币2026。2027年发薪', '人民币2026'), '2026.00'));
+test('a different page cannot supply a year continuation', () => pipeline(fixture('币种：人民币2026', '人民币2026', false, '年1月工资', 2), '2026.00'));
+for (const text of ['人民币2026年1月工资未知', '人民币2026年1月工资待核', '人民币2026年1月工资4000元'])
+  test('unknown or another explicit amount is not rejected as an empty label: ' + text, () => assert.notEqual(classify(text).kind, 'not_monetary'));
