@@ -663,6 +663,60 @@ try {
       rawAndStoredHistoryUnchanged: true, automaticCalculation: false };
   });
   // End ROUND16 additions.
+
+  // ROUND17 additions: finite currency, lexical units, subject and occurrence boundaries.
+  for (const spec of [
+    { name: 'foreign-conversion-prefix', text: '测试王甲2026年1月工资以港币折合四万元。', value: '四万元', status: 'unsupported', amount: null, oldAmount: '40000.00' },
+    { name: 'foreign-conversion-suffix', text: '测试王甲2026年1月工资四万元折合港币。', value: '四万元', status: 'unsupported', amount: null, oldAmount: '40000.00' },
+    { name: 'tuple-cropped-unit', text: '测试王甲2026年1月记录三元组。', value: '三元', status: 'unsupported', amount: null, oldAmount: '3.00' },
+    { name: 'tuple-rmb-prefix', text: '测试王甲2026年1月记录人民币三元组。', value: '人民币三元', status: 'unsupported', amount: null, oldAmount: '3.00' },
+    { name: 'tuple-layout', text: '测试王甲2026年1月记录三元\n组。', value: '三元', status: 'unsupported', amount: null, oldAmount: '3.00', blocks: 2 },
+    { name: 'name-numeral-total', text: '王一月工资四万元。', value: '四万元', status: 'rate_unit_mismatch', amount: null, oldAmount: '40000.00', attributes: { subject: '王一', period: null } },
+    { name: 'name-numeral-month-rate', text: '王一月工资四万元。', value: '四万元', status: 'exact', amount: '40000.00', attributes: { subject: '王一', period: null, meaning: 'rate', completeness: 'not_applicable', rateUnit: 'month' } },
+    { name: 'name-with-real-calendar', text: '王一一月工资四万元。', value: '四万元', status: 'exact', amount: '40000.00', attributes: { subject: '王一', period: '一月' } },
+    { name: 'assembly-fee-unit-control', text: '测试王甲2026年1月工资5元组装费。', value: '5元', status: 'exact', amount: '5.00' },
+  ]) await scenario(`round17_${spec.name}_read_boundary`, async () => {
+    const [item] = await fixture(`round17-${spec.name}`, [{ text: spec.text, candidates: [money(spec.value, spec.value, spec.attributes)] }]);
+    if (spec.blocks) assert.equal(item.analysis.result.blocks.length, spec.blocks);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    assert.equal(material.candidates[0].amount, spec.amount); assert.equal(material.candidates[0].normalization.status, spec.status);
+    if (spec.amount === null) {
+      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
+      old.amount = spec.oldAmount;
+      old.normalization = { rawValue: spec.value, amount: spec.oldAmount, status: 'exact', matchedText: spec.value, span: { start: 0, end: Array.from(spec.value).length }, reason: 'Synthetic pre-fix round17 exact amount' };
+      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body).candidates[0];
+    assert.equal(checked.amount, spec.amount); assert.equal(checked.normalization.status, spec.status);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round17-${spec.name}`, item, state: before });
+    return { amount: spec.amount, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: spec.amount === null };
+  });
+  await scenario('round17_amount_free_arrears_reject_but_unknown_stays_reviewable', async () => {
+    const words = ['拖欠工资', '欠付工资', '未付工资', '本期应付工资', '拖欠工资未知'];
+    const candidates = words.map(value => money(value, value, { meaning: 'arrears', completeness: 'not_applicable', period: null }));
+    const [item] = await fixture('round17-noamount', [{ text: words.map(word => '测试王甲' + word + '。').join(''), candidates }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 4);
+    assert.equal(material.candidates[0].value, '拖欠工资未知'); assert.equal(material.candidates[0].amount, null);
+    assert(material.rejected.every(entry => /没有金额表达/u.test(entry.reason)));
+    assert.equal(JSON.parse(material.raw).candidates.length, 5);
+    durableSnapshots.push({ name: 'round17-noamount', item, state: stored(item.caseId) });
+    return { acceptedUnknownForReview: 1, rejectedDescriptions: 4, rawRetained: true };
+  });
+  for (const reverse of [false, true]) await scenario(`round17_traditional_rmb_single_occurrence_${reverse ? 'short' : 'long'}_first`, async () => {
+    const entries = [money('人民幣四万元', '人民幣四万元'), money('四万元', '四万元')];
+    if (reverse) entries.reverse();
+    const [item] = await fixture(`round17-traditional-${reverse}`, [{ text: '测试王甲2026年1月完整应付工资人民幣四万元。', candidates: entries }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 1);
+    assert.equal(JSON.parse(material.raw).candidates.length, 2); assert.equal(material.candidates[0].amount, '40000.00');
+    durableSnapshots.push({ name: `round17-traditional-${reverse}`, item, state: stored(item.caseId) });
+    return { acceptedOccurrence: 1, rawPredictions: 2, order: reverse ? 'short-first' : 'long-first' };
+  });
+  // End ROUND17 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

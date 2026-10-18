@@ -35,7 +35,7 @@ const SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}${FOREIGN_MARKER}`, 'iu');
 // These words can attribute the same anchored wage/payment to its currency even
 // when the model crops the marker out of both value and quote. No arbitrary text,
 // person name, numeral, clause delimiter or newline can join this finite bridge.
-const WAGE_CURRENCY_WORD = '(?:基本工资|工资|薪酬|薪资|薪金|劳动报酬|报酬|计价|计付|计发|计薪|计酬|计算|計算|折算|计|計|支付|发放|结算|标准|约定|共计|合计|金额|为|是|共|的)';
+const WAGE_CURRENCY_WORD = '(?:基本工资|工资|薪酬|薪资|薪金|劳动报酬|报酬|计价|计付|计发|计薪|计酬|计算|計算|折算|折合|计|計|支付|发放|结算|标准|约定|共计|合计|金额|为|是|共|的)';
 const WAGE_CURRENCY_PREFIX = new RegExp(`${FOREIGN_MARKER}${CURRENCY_BRIDGE}(?:${WAGE_CURRENCY_WORD}${CURRENCY_BRIDGE})+$`, 'iu');
 const WAGE_CURRENCY_SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}(?:(?:${WAGE_CURRENCY_WORD}|币种|幣種|以|按)${CURRENCY_BRIDGE})+${FOREIGN_MARKER}`, 'iu');
 const RMB_PREFIX = new RegExp(`(?:人民币|人民幣|(?<![A-Z])(?:CNY|RMB)(?![A-Z])|¥)${BRIDGE}$`, 'iu');
@@ -43,6 +43,10 @@ const RMB_PREFIX = new RegExp(`(?:人民币|人民幣|(?<![A-Z])(?:CNY|RMB)(?![A
 const RMB_UNIT = '(?:元(?!旦|宵|年|月|素|件|音)|[圆圓](?!满|滿|形|圈|周))';
 const RMB_SUFFIX = new RegExp(`^${BRIDGE}(?:人民币|人民幣|(?:CNY|RMB)(?![A-Z])|¥|${RMB_UNIT})`, 'iu');
 const TOKEN_UNIT = new RegExp(`^${RMB_UNIT}`, 'u');
+// A visible unit may actually begin a compound word. Keep this shared with
+// clipped source review; a preceding RMB marker cannot turn a tuple into money.
+// 元组装费 is a yuan amount followed by 组装费, not the compound 元组.
+const NON_CURRENCY_YUAN_WORD = /^(?:元(?:旦|宵|年|月|素|件|音|[组組](?![装裝])|[宝寶])|[圆圓](?:满|滿|形|圈|周|桌|柱|锥|錐|球|筒|盘|盤|弧|环|環))/u;
 
 // Detection copies may be folded, but callers keep their original text and
 // offsets. Format controls must not split a visible currency name or unit.
@@ -60,7 +64,18 @@ export function monetaryExpressionHasUnsupportedCurrency(value: string): boolean
 /** Test a unit at an original UTF-16 offset without treating the 元 in 元旦 or
  * the 圆 in 圆满 as currency. The same lexical boundary serves parsing/review. */
 export function isRmbCurrencyUnitAt(value: string, index: number): boolean {
-  return TOKEN_UNIT.test(currencyText(value.slice(index)));
+  const rest = currencyText(value.slice(index));
+  return TOKEN_UNIT.test(rest) && !NON_CURRENCY_YUAN_WORD.test(rest.replace(/\s/gu, ''));
+}
+
+/** Test the original token plus its immediate continuation on detection copies.
+ * Layout alone cannot make a cropped compound word become a yuan unit. */
+export function moneyTokenHasNonCurrencyYuan(token: string, after: string): boolean {
+  const part = currencyText(token).replace(/\s/gu, '');
+  const tail = currencyText(after).replace(/\s/gu, '');
+  const whole = part + tail;
+  return [...part.matchAll(/[元圆圓]/gu)].some(match => NON_CURRENCY_YUAN_WORD.test(whole.slice(match.index)))
+    || (!/[元圆圓]/u.test(part) && NON_CURRENCY_YUAN_WORD.test(tail));
 }
 
 function anchoredMoneyEdges(source: AnchoredMoneySource, normalized: CandidateNormalization) {
@@ -129,4 +144,9 @@ export function moneyTokenHasNonCurrencySubunit(token: string, after: string): b
 export function sourceMoneyHasNonCurrencySubunit(source: AnchoredMoneySource, normalized: CandidateNormalization): boolean {
   const edges = anchoredMoneyEdges(source, normalized);
   return edges !== null && moneyTokenHasNonCurrencySubunit(edges.token, edges.after);
+}
+
+export function sourceMoneyHasNonCurrencyYuan(source: AnchoredMoneySource, normalized: CandidateNormalization): boolean {
+  const edges = anchoredMoneyEdges(source, normalized);
+  return edges !== null && moneyTokenHasNonCurrencyYuan(edges.token, edges.after);
 }

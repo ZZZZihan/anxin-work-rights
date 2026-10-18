@@ -3,7 +3,7 @@ import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 
 import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from './material-facts-v3.ts';
 import { hasUnfinishedMoneyRangeAfter, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
-import { sourceMoneyHasNonCurrencySubunit, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
+import { sourceMoneyHasNonCurrencySubunit, sourceMoneyHasNonCurrencyYuan, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
 import { attachedMoneyQualifierStatus, isMoneyRangeEndpoint } from './material-fact-range-review.ts';
 import { reviewMaterialCoverage } from './material-fact-coverage-review.ts';
@@ -149,7 +149,8 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   // Only the naked 月/日/时工资 alternative can collide with a calendar token.
   const calendarPrefix = before.slice(0, prefix.index);
   const explicitStandard = prefix[0].includes('标准');
-  if (!explicitStandard && prefix[2] && /[0-9零〇一二三四五六七八九十百千万两正腊臘]$/u.test(calendarPrefix)) return null;
+  if (!explicitStandard && prefix[2] && /[0-9零〇一二三四五六七八九十百千万两正腊臘]$/u.test(calendarPrefix)
+    && !(subject && calendarPrefix.endsWith(detectionText(subject)))) return null;
   if (!explicitStandard && prefix[2] === '月' && /^月(?:基本)?工资/u.test(prefix[0])
     && /(?:上(?:一?个)?|下(?:一?个)?|本|当|该|这(?:个)?)$/u.test(calendarPrefix)
     && !(subject && calendarPrefix.endsWith(detectionText(subject)))) return null;
@@ -212,7 +213,10 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       // prose cannot attach, and stored quote/positions stay in their own block.
       const layout = sourceMoneyLayoutEdges(context, sourceNormalized.normalization, source!, candidate.blockId);
       const qualifierStatus = layout && attachedMoneyQualifierStatus(layout.before, layout.after);
-      if (sourceMoneyHasNonCurrencySubunit(subunitSource, sourceNormalized.normalization)) sourceNormalized = {
+      if (sourceMoneyHasNonCurrencyYuan(subunitSource, sourceNormalized.normalization)) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文中的元或圆属于普通复合词，未将裁剪片段作为人民币金额。', 'unsupported'),
+      };
+      else if (sourceMoneyHasNonCurrencySubunit(subunitSource, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文中的角或分属于时间、计量或普通词语，未将裁剪片段作为分币金额。', 'unsupported'),
       };
       else if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
