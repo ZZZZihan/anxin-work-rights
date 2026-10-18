@@ -10,6 +10,8 @@ const assertions: Record<Assertion, string> = { claimed: '一方主张', admitte
 const qualifiers: Record<Qualifier, string> = { wage_period: '工资期间', employment_period: '任职期间', contract_period: '合同期间', other_period: '其他期间', gross: '税前', net: '实发 / 税后', partial: '部分金额', unknown: '口径未明' };
 const emptyScope: FactScope = { worker: '', employer: '', start: '', end: '' };
 const emptyAmount = () => ({ amount: '', note: '', complete: false, verified: false });
+const isOlder = (body: MaterialFactsResponse | null, latest: MaterialFactsResponse | null) => !!body && !!latest
+  && (body.generation < latest.generation || (body.generation === latest.generation && body.revision < latest.revision));
 type Props = { caseId: string; evidenceVersion: string; onOpenSource: (id: string) => void; notify: (message: string, tone?: 'success' | 'error') => void };
 
 export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSource, notify }: Props) {
@@ -32,6 +34,9 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
 
   const accept = useCallback((body: MaterialFactsResponse, fromMutation = false) => {
     const previous = dataRef.current;
+    // A completed POST may arrive after a newer material refresh. Never restore
+    // an invalidated calculation or clear a draft using an older response.
+    if (isOlder(body, previous)) return false;
     if (previous && (body.generation !== previous.generation || JSON.stringify(body.state.scope) !== JSON.stringify(previous.state.scope) || (!fromMutation && dirty.current && body.revision !== previous.revision))) {
       setScopeVerified(false);
       setReviewed({});
@@ -41,6 +46,7 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
     if (!previous) setScope(body.state.scope ?? emptyScope);
     dataRef.current = body;
     setData(body);
+    return true;
   }, []);
 
   const request = useCallback(async (init?: RequestInit): Promise<MaterialFactsResponse> => {
@@ -52,11 +58,12 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
 
   const reload = useCallback(async (manual = false) => {
     const sequence = ++requestSequence.current;
+    const startedFrom = dataRef.current;
     if (manual || !dataRef.current) setLoading(true);
     try {
       const body = await request();
       if (!alive.current || sequence !== requestSequence.current) return;
-      accept(body);
+      if (!accept(body)) return;
       setError('');
       if (manual) {
         setConflict(false);
@@ -67,6 +74,7 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
       }
     } catch (failure) {
       if (!alive.current || sequence !== requestSequence.current) return;
+      if (isOlder(startedFrom, dataRef.current)) return;
       if ((failure as Error & { status?: number }).status === 409) setConflict(true);
       setError(failure instanceof Error ? failure.message : '读取事实确认状态失败。');
     } finally { if (alive.current && sequence === requestSequence.current) setLoading(false); }
@@ -102,7 +110,7 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
     try {
       const result = await request({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...action, revision: current.revision, generation: current.generation }) });
       if (!alive.current) return;
-      accept(result, true);
+      if (!accept(result, true)) return;
       if (action.action === 'confirm_scope') { setScopeVerified(false); setReviewed({}); setAmounts((values) => ({ due: { ...values.due, complete: false, verified: false }, paid: { ...values.paid, complete: false, verified: false } })); }
       if (action.action === 'confirm_amount') setAmounts((values) => ({ ...values, [action.field]: emptyAmount() }));
       if (action.action === 'extract' || action.action === 'exclude_source' || action.action === 'revoke') { setReviewed({}); setScopeVerified(false); setAmounts((values) => ({ due: { ...values.due, complete: false, verified: false }, paid: { ...values.paid, complete: false, verified: false } })); }
@@ -110,6 +118,7 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
       else notify(action.action === 'calculate' ? '已按当前确认记录生成计算结果。' : action.action === 'extract' ? '候选提取已开始，完成后会自动显示。' : '事实操作已保存。');
     } catch (failure) {
       if (!alive.current) return;
+      if (isOlder(current, dataRef.current)) return;
       if ((failure as Error & { status?: number }).status === 409) {
         setConflict(true);
         setError('材料或确认记录已更新。当前输入尚未保存且仍保留，请重新加载最新版本，再根据当前材料核对。');
