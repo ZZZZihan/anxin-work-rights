@@ -1,0 +1,44 @@
+--- a/scripts/material-facts-v7-http-regression.mjs
++++ b/scripts/material-facts-v7-http-regression.mjs
+@@ -587,6 +587,41 @@
+     return { acceptedUnknownForReview: 1, amount: null, rawRetained: true, automaticCalculation: false };
+   });
+   // End ROUND13 additions.
++  // ROUND15 additions: retain all 74 prior scenarios and lifecycle assertions.
++  // The candidates deliberately crop to an exact-looking operand; source context
++  // must keep bounds, qualified ranges and explicit proportions non-exact.
++  for (const spec of [
++    { name: 'bound-buman', text: '测试王甲2026年1月完整应付工资不满四万元。', value: '四万元', amount: null },
++    { name: 'bound-weiman', text: '测试王甲2026年1月完整应付工资未满四万元。', value: '四万元', amount: null },
++    { name: 'bound-diyu', text: '测试王甲2026年1月完整应付工资低于四万元。', value: '四万元', amount: null },
++    { name: 'bound-gaoyu', text: '测试王甲2026年1月完整应付工资高于四万元。', value: '四万元', amount: null },
++    { name: 'bound-duoda', text: '测试王甲2026年1月完整应付工资多达四万元。', value: '四万元', amount: null },
++    { name: 'range-left-yu', text: '测试王甲2026年1月工资三万余元至四万元。', value: '四万元', amount: null },
++    { name: 'range-right-zuoyou', text: '测试王甲2026年1月工资三万元至四万元左右。', value: '三万元', amount: null },
++    { name: 'range-left-yue', text: '测试王甲2026年1月工资约三万元至四万元。', value: '四万元', amount: null },
++    { name: 'attached-three-cheng', text: '测试王甲2026年1月工资四万元的三成。', value: '四万元', amount: null },
++    { name: 'attached-eight-zhe', text: '测试王甲2026年1月工资四万元打八折。', value: '四万元', amount: null },
++    { name: 'independent-proportion-control', text: '测试王甲2026年1月完整应付工资四万元。测试王乙奖金按业绩三成计算。', value: '四万元', amount: '40000.00' },
++    { name: 'until-calendar-date-control', text: '测试王甲2026年1月完整应付工资四万元至2026年5月支付。', value: '四万元', amount: '40000.00' },
++  ]) await scenario(`round15_${spec.name}_source_guard_and_raw_history`, async () => {
++    const [item] = await fixture(`round15-${spec.name}`, [{ text: spec.text, candidates: [money(spec.value, spec.value)] }]);
++    const material = rawAndLocations(item, await extract(item));
++    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
++    const candidate = material.candidates[0];
++    assert.equal(candidate.amount, spec.amount); assert.equal(candidate.normalization.amount, spec.amount);
++    if (spec.amount === null) assert.notEqual(candidate.normalization.status, 'exact');
++    else assert.equal(candidate.normalization.status, 'exact');
++    assert.equal(candidate.value, spec.value); assert.equal(candidate.quote, spec.value);
++    assert.equal(JSON.parse(material.raw).candidates[0].value, spec.value);
++    const before = stored(item.caseId), read = await request(item.path);
++    assert.equal(read.status, 200); unconfirmed(read.body);
++    const checked = rawAndLocations(item, read.body).candidates[0];
++    assert.equal(checked.amount, spec.amount); assert.equal(checked.normalization.amount, spec.amount);
++    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
++    durableSnapshots.push({ name: `round15-${spec.name}`, item, state: before });
++    return { amount: spec.amount, originalValue: spec.value, rawAndStoredHistoryUnchanged: true, automaticCalculation: false };
++  });
++  // End ROUND15 additions.
+   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
+     const quote = '测试王甲2026年1月完整应付工资四万元';
+     const [first, bad] = await fixture('raw-failure-history', [

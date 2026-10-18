@@ -1,0 +1,56 @@
+{
+  "schema": "material-facts-v7-round15-post-acceptance-blocker/1",
+  "status": "BLOCKING",
+  "scope": "Existing incomplete monetary endpoint safeguard bypassed by source layout; preserves previous scoped acceptance evidence and all frozen artifacts.",
+  "previous_scoped_receipt_sha256": "d0ebacbaccca647c6a3182954e192ad770e9a27af0994d537d359af7fa771b4d",
+  "v12_manifest_sha256": "d74fb4e43136d6c0a18739daa79065e8ceaef6519ce2d9ddf82de72650a1184e",
+  "current_code_sha256": {
+    "lib/material-money-v4.ts": "f7c2e936088985b631a77c17d63c86fec6dfcc4ef50d0c54d322b14dbdc3d148",
+    "lib/material-fact-range-review.ts": "7443d995944173c0cc43e080bba9d3f117778d79f999abf6463af41b0febe574",
+    "lib/material-fact-source-review.ts": "4f78ebce2afff0d9dd27500acbdb30c076f42345835b284bf7058486de1e26f1",
+    "lib/material-fact-arithmetic-review.ts": "1b3e95ee9e6feb2ef3d014bcc87d68ba222792233ccce669cbae81316446eb50"
+  },
+  "evidence_sha256": {
+    "scripts/material-fact-unfinished-range-layout.test.mjs": "55973ac226ceaecdbc2605b16b5ccadf3df85ea591d4ef8f092f0563e462e15a",
+    "postfreeze-evidence/round15/unfinished-range-layout-cross-review.json": "98f17f95ef9850593f4641024d50513381ca87af83f225720175bba4d1d2a22f",
+    "postfreeze-evidence/round15/unfinished-range-layout-original-before-red.txt": "77890acda03b3773c9282b9dc790f9979a91dbaed221bb438d17429e27ac5e7b",
+    "postfreeze-evidence/round15/unfinished-range-layout-v12-before-red.txt": "fbd3023c0ea7ea6622ed74c3aa8ca1c9c7dbf03fca6be1bfb52c7a9a7aab3f5b"
+  },
+  "native_tests": {
+    "exact_original_1c875b7": {
+      "passed": 4,
+      "failed": 3
+    },
+    "current_v12_code": {
+      "passed": 4,
+      "failed": 3
+    }
+  },
+  "finding": {
+    "input": [
+      "王甲工资3万元至",
+      "4。"
+    ],
+    "candidate_value": "3万元",
+    "candidate_quote": "3万元",
+    "fresh_amount": "30000.00",
+    "fresh_status": "exact",
+    "forced_historical_amount": "30000.00",
+    "expected_amount": null,
+    "same_line_control": "3万元至4 => uncertain/null",
+    "positive_controls": [
+      "至4个月 => 30000.00",
+      "至2024年5月 => 30000.00",
+      "separate person and sentence => 30000.00"
+    ],
+    "raw_preserved": true,
+    "accepted_is_not_calculation_authorized": true,
+    "cause": "sourceMoneyLayoutEdges crosses layout, but isMoneyRangeEndpoint recognizes only complete monetary endpoints; RANGE_NUMERIC_AFTER incomplete-endpoint safeguard remains local to candidate normalizer."
+  },
+  "review_limits": [
+    "No model request, service/build, deployment, commit or push.",
+    "No old frozen code, data, results, manifest or receipt was modified.",
+    "Current v12 artifacts remain valid evidence of their recorded code; this finding limits application acceptance and must not be concealed by their integrity pass.",
+    "Requested GPT-6.1 Sol ultra; actual backend configuration is not independently observable."
+  ]
+}

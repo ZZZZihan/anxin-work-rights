@@ -1,0 +1,109 @@
+{
+  "schema": "material-facts-v7-round15-application-independent-review/1",
+  "created_at": "2026-10-18T08:43:31.042306+00:00",
+  "status": "passed_with_documented_limits",
+  "scope": "Three ROUND15 findings only: finite amount bounds, qualified monetary range endpoints, and attached cheng/zhe proportional operations; includes directly introduced duration-bound and RMB-wrapper regressions. Not whole-PR/business/legal acceptance.",
+  "baseline_commit": "1c875b7ebd594c672eb6a3e294a6cb3118034feb",
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "e57eadf8fb391b752b05d80aece7d95fbc234c8636d315f06b6a70db19b3e277",
+    "lib/material-fact-range-review.ts": "ed159830416f11001a3d20f4ecacd5b33e2c9b463461d3aec5d0911fcbc5fc46",
+    "lib/material-fact-arithmetic-review.ts": "1b3e95ee9e6feb2ef3d014bcc87d68ba222792233ccce669cbae81316446eb50",
+    "lib/material-fact-source-review.ts": "7e353c0530841926a81d63b4f82a3d326f12bfda422795bf36dd334ce3a7eb26",
+    "lib/material-fact-runtime-ingest.ts": "a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f",
+    "experiments/material-facts-v7/assess.mjs": "d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"
+  },
+  "independent_script": {
+    "path": "scripts/material-facts-v7-round15-money-independent.test.mjs",
+    "sha256": "694b423ad102d9cddebc07366e05f17b5cdce13f7c2b0478324b79e12e93551c",
+    "same_final_script_baseline": {
+      "pass": 20,
+      "fail": 34,
+      "exit_code": 1,
+      "log": "independent-54-baseline-before-red.txt"
+    },
+    "final_code": {
+      "pass": 54,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "independent-54-final-code-green.txt"
+    },
+    "earlier_45_contract": {
+      "pass": 16,
+      "fail": 29,
+      "exit_code": 1,
+      "log": "independent-baseline-before-red.txt",
+      "note": "Preserved first scope before finite prefix-proportion closure/control additions; final red/green uses the identical 54-test file."
+    }
+  },
+  "cross_review_probes": {
+    "duration_scope": {
+      "tests": 3,
+      "original_baseline_pass": 3,
+      "intermediate_pass": 0,
+      "intermediate_fail": 3,
+      "final_pass": 3,
+      "note": "New global bound scan misread 不满/低于/高于三个月 as a money bound. Final guard checks attachment to the money token. Crop-only normalized amounts had remained exact throughout."
+    },
+    "rmb_wrappers": {
+      "tests": 8,
+      "original_baseline_pass": 8,
+      "intermediate_pass": 5,
+      "intermediate_fail": 3,
+      "final_pass": 8,
+      "note": "Existing range compatibility for suffix RMB markers and unit-plus-RMB wrappers; these failures are intermediate regressions, not original findings."
+    }
+  },
+  "verification_contracts": [
+    "Bounded money, range endpoints and proportional operands stay accepted for review with amount=null; original raw/value/quote and Unicode codepoint positions remain unchanged.",
+    "Full literal, complete quote, source-only cropped quote and forced-unsafe historical exact amounts are checked separately; a short quote alone cannot observe a missing modifier.",
+    "Explicit qualifiers/connectors/的/打 continue over line and adjacent-block layout through finite grammar; punctuation and other people or statements do not bridge.",
+    "Ordinary exact money, supported mixed cents, stated conversion results and following dates/durations retain precision. Bare cross-line proportions do not attach.",
+    "Six raw/accepted basic/relational/strict layers cannot borrow an equal exact amount from a distinct event; two real equal occurrences still give two matches.",
+    "Source review only reduces availability of stored history; unsupported history is not silently upgraded, confirmations/calculation remain absent."
+  ],
+  "nonimplementer_source_review": "Read all four actual implementation diffs. Detection-only normalization preserves raw spans; one shared anchored range/qualifier grammar is used by quote and complete-source paths; original source blocks remain authoritative. The finite arithmetic guard recognizes attached proportions without calculating. No unresolved blocking finding in this stated scope after the two intermediate regressions were fixed.",
+  "blocking_findings": [],
+  "evidence": {
+    "own_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round15",
+    "merged_relative_root": "experiments/material-facts-v7/postfreeze-evidence/round15/independent",
+    "files_sha256": {
+      "baseline.receipt.json": "3c0a84bc7d45915bb80e661b94fc4d05441e321fdffbdf012ae08958382067ad",
+      "independent-baseline-before-red.txt": "80067d534edb27c35e4d13337224e36f053b9807d7aa3e0acc2b33199dff7319",
+      "independent-45-before-closure.test.mjs.snapshot": "739d79c3063c45d1e8839f08999d0c418ff1091fd76865cc2054a05f1dda0489",
+      "independent-54-baseline-before-red.txt": "1641c38417972d304516d7b13a7c31c9ba041d1ca16f6ab51feb9a4b5a9d9fea",
+      "independent-54-final-code-green.txt": "d64d9d2a87e50a4e93da66b7d00b4b58cfa6d34f6811e7fcab488ebc8561d60d",
+      "qualifier-duration-cross-review.probe.mjs": "9f6ffcb867bbfce51468a4b405d95bd48bed581599f1a47c47f706e6e0754103",
+      "qualifier-duration-original-before-green.txt": "1242bc7f5474e8fef38efdb920bafb809754fd6743a1a74df9be9874616db695",
+      "qualifier-duration-intermediate-red.txt": "081413baac62edc4e998ace151a2edba5feea148925b5c5f093b411254fe1545",
+      "qualifier-duration-final-green.txt": "1242bc7f5474e8fef38efdb920bafb809754fd6743a1a74df9be9874616db695",
+      "rmb-range-cross-review.probe.mjs": "280d01f0d41565b1b33764dec8da00a14f985c1d2ac44da13b2cfa27c1a6bf8e",
+      "rmb-range-original-before-green.txt": "4b78ea20dc9e671ce98e419373e128c007d8d73c5c49246f98fba0f0ba4b26e9",
+      "rmb-range-intermediate-red.txt": "73f3e4bfbe7a219d11d16766ce287f08117a9d89e5bca8335dc3764e422a419c",
+      "rmb-range-final-green.txt": "4b78ea20dc9e671ce98e419373e128c007d8d73c5c49246f98fba0f0ba4b26e9",
+      "intermediate-overlay.receipt.json": "8868b15f7958aaa05ffb602d47ac13c3ac1b1b7979ef38f97640d638da7df7d3",
+      "material-money-v4.ts.intermediate-overlay.snapshot": "cbfae41cb45c3c8925843fca6f1a7380bc908b857e7c79a9ad97c5a90b5283e1",
+      "material-fact-range-review.ts.intermediate-overlay.snapshot": "0b4dcc2b2d8ba333b953b9d9cda509868f6113fcc5b689859e00925d1196c2f9",
+      "material-fact-arithmetic-review.ts.intermediate-overlay.snapshot": "1b3e95ee9e6feb2ef3d014bcc87d68ba222792233ccce669cbae81316446eb50",
+      "material-fact-source-review.ts.intermediate-overlay.snapshot": "7e353c0530841926a81d63b4f82a3d326f12bfda422795bf36dd334ce3a7eb26",
+      "final-independent-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "limits": [
+    "The original whole 成/折 literals were already unavailable; this repair closes cropped operand leakage and does not claim a new whole-literal failure.",
+    "Finite lexical guards do not establish legal roles, complete wages, person/period attribution, or general document understanding. Some pre-existing broad whole-value approximate checks remain outside this new-bound attachment change.",
+    "Accepted candidates, derived amount hints and calculation authorization are separate; no case was authorized for calculation by these checks.",
+    "This receipt does not claim execution of HTTP, full check, remote CI or the pending v12 experiment chain; those are reported separately. Frozen data/results/receipts are untouched."
+  ],
+  "reviewer_actions": {
+    "model_requests": 0,
+    "worker_services_started": 0,
+    "builds": 0,
+    "implementation_edits": 0,
+    "git_writes": 0
+  },
+  "requested_reviewer_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_configuration_independently_verified": false
+  }
+}

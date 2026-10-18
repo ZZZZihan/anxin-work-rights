@@ -24,6 +24,14 @@ const NAMED_OPERAND = `(?:(?:${OPERAND_MODIFIER})${LINE}*(?:的${LINE}*)?){0,2}(
 const SYMBOLIC_OPERAND = '(?:(?<![A-Za-z0-9_])[A-Za-z_][A-Za-z0-9_]{0,31}(?![A-Za-z0-9_])|(?<![α-ωΑ-Ω])[α-ωΑ-Ω](?![α-ωΑ-Ω]))';
 const UNKNOWN_OPERAND = `(?:${NAMED_OPERAND}|${SYMBOLIC_OPERAND})`;
 const OPERAND = `(?:${FACTOR}|${UNKNOWN_OPERAND})`;
+// 成/折 name proportions of the anchored base, never the payable result.
+// Keep their grammar finite and require attachment (的/打/operator, or the
+// same-line bare factor rule). Do not read 八成 in independent prose as math.
+const PROPORTION = `(?:${FACTOR}${LINE}*(?:成(?:${LINE}*[0-9零〇一二三四五六七八九半])?|折)|半${LINE}*[成折]|[对對]${LINE}*折)`;
+const SUFFIX_PROPORTION = new RegExp(`^(?:${PROPORTION})`, 'u');
+const SUFFIX_DISCOUNT = new RegExp(`^打${LINE}*(?:${PROPORTION})`, 'u');
+const PREFIX_PROPORTION = new RegExp(`(?:${PROPORTION})${CONTINUATION_BRIDGE}的${CONTINUATION_BRIDGE}$`, 'u');
+const PREFIX_PROPORTION_FACTOR = new RegExp(`(?:${PROPORTION})${CONTINUATION_BRIDGE}$`, 'u');
 const PREFIX_OPERATOR = new RegExp(`(?:倍${CONTINUATION_BRIDGE}(?:的${CONTINUATION_BRIDGE})?|${OPERATOR}${CONTINUATION_BRIDGE})$`, 'u');
 const PREFIX_FACTOR = new RegExp(`${FACTOR}${CONTINUATION_BRIDGE}$`, 'u');
 const PREFIX_UNKNOWN_OPERAND = new RegExp(`(?:${UNKNOWN_OPERAND})${CONTINUATION_BRIDGE}$`, 'u');
@@ -41,7 +49,7 @@ const LEADING_FACTOR_WRAPPERS = new RegExp(`^(?:${WRAPPER_ATOM}|${LINE})*`, 'u')
 const AMOUNT_NOUN = ['工资', '基本工资', '月工资', '工资款', '工资总额', '应发工资', '应付工资', '实发工资', '欠付工资', '拖欠工资',
   '薪资', '薪酬', '奖金', '津贴', '补贴', '劳务费', '劳动报酬', '加班费', '经济补偿金', '赔偿金']
   .map(noun => Array.from(noun).join(`${LINE}*`)).join('|');
-const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍)`, 'u');
+const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${PROPORTION})`, 'u');
 
 function detectionView(value: string): string {
   return value.normalize('NFKC').replace(/\p{Cf}/gu, '')
@@ -66,21 +74,23 @@ export function hasAttachedMoneyArithmetic(before: string, after: string): boole
   // A named coefficient or variable is meaningful only with the adjacent
   // operator or explicit 倍 construction, never as a bare name elsewhere.
   if (operator && PREFIX_UNKNOWN_OPERAND.test(left.slice(0, operator.index))) return true;
+  if (operator && PREFIX_PROPORTION_FACTOR.test(left.slice(0, operator.index))) return true;
+  if (PREFIX_PROPORTION.test(left)) return true;
   const bridge = right.match(LEADING_BRIDGE)![0];
   let suffix = right.slice(bridge.length);
   const noun = suffix.match(LEADING_AMOUNT_NOUN);
   if (noun) {
     suffix = suffix.slice(noun[0].length);
     if (!suffix.startsWith('的')) {
-      if (SUFFIX_OPERATOR.test(suffix)) return true;
-      const multiplier = suffix.match(SUFFIX_MULTIPLIER);
+      if (SUFFIX_OPERATOR.test(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
+      const multiplier = suffix.match(SUFFIX_MULTIPLIER) ?? suffix.match(SUFFIX_PROPORTION);
       return multiplier !== null && !/[\r\n\u2028\u2029]/u.test(bridge + noun[0] + multiplier[0]);
     }
   }
   if (suffix.startsWith('的')) {
     suffix = suffix.slice(1).replace(LEADING_FACTOR_WRAPPERS, '');
-    return SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix);
+    return SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix) || SUFFIX_PROPORTION.test(suffix);
   }
-  if (SUFFIX_OPERATOR.test(suffix)) return true;
-  return !/[\r\n\u2028\u2029]/u.test(bridge) && SUFFIX_MULTIPLIER.test(suffix);
+  if (SUFFIX_OPERATOR.test(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
+  return !/[\r\n\u2028\u2029]/u.test(bridge) && (SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_PROPORTION.test(suffix));
 }
