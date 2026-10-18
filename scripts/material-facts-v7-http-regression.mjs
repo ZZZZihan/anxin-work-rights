@@ -1516,6 +1516,76 @@ try {
     return {amount: null, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true};
   });
   // End ROUND35 additions.
+  // ROUND36: conjunction bounds stay unavailable; complete 个月 aliases retain
+  // their monthly rate role. Historical nulls are never silently upgraded.
+  for (const entry of [
+    ...['及以上', '或以下', '或以上', '及以下'].map((tail, index) => ({name: `bound-${tail}`, tail, full: index < 2, amount: null, status: 'approximate'})),
+    ...['每个月', '/个月', '每個月'].map(tail => ({name: `month-${tail}`, tail, rate: true, amount: '4000.00', status: 'exact'})),
+    ...['每个月亮', '/个月份'].map(tail => ({name: `compound-${tail}`, tail, rate: true, amount: null, status: 'unsupported'})),
+    {name: 'monthly-rate-not-total', tail: '每个月', amount: null, status: 'rate_unit_mismatch'},
+  ]) await scenario(`round36_${entry.name}`, async () => {
+    const value = entry.full ? `4000元${entry.tail}` : '4000元';
+    const attributes = entry.rate ? {meaning: 'rate', completeness: 'not_applicable', period: null, rateUnit: 'month'} : {period: null};
+    const [item] = await fixture(`round36-${entry.name}`, [{text: `测试王甲工资4000元${entry.tail}。`, exactSource: true, candidates: [money(value, value, attributes)]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1);
+    assert.equal(material.candidates[0].amount, entry.amount); assert.equal(material.candidates[0].normalization.status, entry.status);
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = entry.amount === null ? '4000.00' : null;
+    old.normalization = {rawValue: old.value, amount: old.amount, status: entry.amount === null ? 'exact' : 'unsupported', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic historical ROUND36 bound or monthly alias'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round36-${entry.name}`, item, state: before});
+    return {freshAmount: entry.amount, normalizationStatus: entry.status, historicalExactDowngraded: entry.amount === null, historicalNullNotUpgraded: entry.amount !== null, rawAndStoredHistoryUnchanged: true};
+  });
+  // End ROUND36 additions.
+  // ROUND36 companion review: bounded common spelling/layout repairs.
+  for (const [name, sourceValue, value] of [
+    ['fullwidth-wide-symbol', '￥４０００', '￥４０００'],
+    ['fullwidth-symbol', '¥４０００', '¥４０００'],
+    ['traditional-together', '4000元一並支付', '4000元'],
+    ['traditional-together-variant', '4000元一併給付', '4000元'],
+  ]) await scenario(`round36_spelling_${name}`, async () => {
+    const [item] = await fixture(`round36-spelling-${name}`, [{text: `测试王甲工资${sourceValue}。`, exactSource: true, candidates: [money(value, value, {period: null})]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, '4000.00');
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = null;
+    old.normalization = {rawValue: old.value, amount: null, status: 'unsupported', matchedText: null, span: null, reason: 'Synthetic historical ROUND36 spelling rejection'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round36-spelling-${name}`, item, state: before});
+    return {freshAmount: '4000.00', historicalNullNotUpgraded: true, rawAndStoredHistoryUnchanged: true};
+  });
+  for (const [value, text] of [
+    ['每個月十五號', '测试王甲工資每個月十五號發放。'],
+    ['每月第15日', '测试王甲工资每月第15日发放。'],
+    ['2026年1月15日', '测试王甲工资于2026年1月15日支付。'],
+  ]) await scenario(`round36_payment_date_${value}`, async () => {
+    const candidate = {kind: 'date', value, quote: value, subject: '测试王甲', scope: 'individual', meaning: 'payment_date', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated'};
+    const [item] = await fixture(`round36-date-${value}`, [{text, exactSource: true, candidates: [candidate]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert(!material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert(!rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved')); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round36-date-${value}`, item, state: before});
+    return {sourceRelationSupported: true, paymentNotReceiptProof: true, rawAndStoredHistoryUnchanged: true};
+  });
+  for (const [subject, noun, scope] of [['测试王甲', '经济补偿金', 'individual'], ['测试王甲', '赔偿金', 'individual'], ['甲公司', '材料款', 'organization']]) await scenario(`round36_other_money_${noun}`, async () => {
+    const [item] = await fixture(`round36-other-${noun}`, [{text: `${subject}收到${noun}4000元。`, exactSource: true, candidates: [money('4000元', '4000元', {subject, scope, meaning: 'other_money', completeness: 'not_applicable', period: null})]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, '4000.00'); assert.equal(material.candidates[0].representation.meaning, 'other_money'); assert(!material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert(!rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved')); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round36-other-${noun}`, item, state: before});
+    return {amount: '4000.00', role: 'other_money', sourceRelationSupported: true, rawAndStoredHistoryUnchanged: true};
+  });
+  // End ROUND36 companion additions.
+  for (const [name, tail, rate] of [['unfinished-month-layout', '每\n个月', false], ['unknown-month-rate', '每个月？', true]]) await scenario(`round36_safety_${name}`, async () => {
+    const attributes = rate ? {meaning: 'rate', completeness: 'not_applicable', period: null, rateUnit: 'month'} : {period: null};
+    const [item] = await fixture(`round36-safety-${name}`, [{text: `测试王甲工资4000元${tail}。`, exactSource: true, candidates: [money('4000元', '4000元', attributes)]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, null); assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round36-safety-${name}`, item, state: before});
+    return {amount: null, rawAndStoredHistoryUnchanged: true};
+  });
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

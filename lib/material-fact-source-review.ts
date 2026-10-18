@@ -275,8 +275,11 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   if (postposedUnit) return postposedUnit;
   // A bare 每月 on a later row is not attached to this amount. An explicit
   // slash still joins its denominator through layout, including adjacent blocks.
+  // A 每 already written on the amount's row likewise starts an explicit
+  // denominator; a later bare 每月 retains the detached-row contract.
   const layoutSuffix = detectionText(layoutAfter ?? edges.after);
   const suffixEdge = /^\s*(?:[元圆圓]\s*)?\//u.test(layoutSuffix)
+    || /^[^\S\r\n\u2028\u2029]*(?:[元圆圓][^\S\r\n\u2028\u2029]*)?每/u.test(layoutSuffix)
     ? layoutSuffix : edges.after.split(/[\n\r\u2028\u2029]/u)[0];
   const suffix = supportedMoneySuffixRateUnit(suffixEdge);
   // Only an explicit recurring day plus payment verb exempts 每月. The

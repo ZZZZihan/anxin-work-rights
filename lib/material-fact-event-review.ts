@@ -22,7 +22,7 @@ const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及�
 const compact = (text: string) => text.normalize('NFKC').replace(/\s+/gu, '');
 // Recurring payment days are explicit source dates, without an invented year or
 // month. Keep their finite valid day range separate from other calendar roles.
-const recurringPaymentDate = /^每月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)[日号號]$/u;
+const recurringPaymentDate = /^每(?:个|個)?月(?:第)?(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)[日号號]$/u;
 // Fold only detection copies of the existing money-role vocabulary, after raw
 // subject/period offsets are located. No source text or candidate is rewritten.
 const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总', 額: '额', 計: '计', 實: '实', 幣: '币', 圓: '圆', 稅: '税', 間: '间', 補: '补', 貼: '贴', 預: '预', 賠: '赔', 償: '偿', 決: '决', 給: '给', 單: '单', 標: '标', 準: '准', 費: '费', 時: '时', 領: '领', 為: '为' };
@@ -111,6 +111,11 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
   // fragment, negation or procedural command can be absorbed by these layouts.
   if (point.test(value) && new RegExp(`^(?:的)?${wage}(?:于|在)?$`, 'u').test(left)
     && /^(?:实际)?(?:收到|领取)$/u.test(right)) return true;
+  // An explicit wage payment date is supported without inferring that payment
+  // happened. The date role, located beneficiary and whole verb envelope stay
+  // separate from money receipt and complete paid-total authorization.
+  if (point.test(value) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)
+    && /^(?:支付|发放|给付|付清)$/u.test(right)) return true;
   const deadline = new RegExp(`^${calendarDate}(?:以前|之前|前)$`, 'u');
   if (deadline.test(value) && new RegExp(`^(?:的)?${wage}(?:应|须|需|必须)?(?:于|在)$`, 'u').test(left)
     && /^(?:支付|发放|给付|付清)(?:完毕)?$/u.test(right)) return true;
@@ -197,6 +202,10 @@ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: stri
     // This branch recognizes an explicitly declared rate in the same event;
     // it does not make that rate a complete total or accept arbitrary 按 prose.
     || (raw.meaning === 'rate' && /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*按(?:(?:小时|月|日|天|件)(?:计算|计酬|计[价價]|计薪|计)?|时(?:计算|计酬|计[价價]|计薪|计))[）)】\]]*$/iu.test(suffix.replace(/\p{Cf}/gu, '')));
+  // These explicit non-wage receipts keep their supplied other_money role.
+  // Never add their nouns to the generic wage envelope: receiving compensation
+  // or materials money does not establish a wage payment or complete total.
+  if (raw.meaning === 'other_money' && /^(?:的)?(?:实际)?(?:收到|领取)(?:(?:经|經)(?:济|濟)补偿金|补偿金|赔偿金|[奖獎]金|费用|押金|保[证證]金|[罚罰](?:款|金)|材料款)(?:为|是|计)?(?:人民币|RMB|CNY|[¥￥])?$/iu.test(role)) return supportedSuffix;
   return /^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|应得|补贴|交通补贴|人民币|RMB|CNY|[¥￥]|完整|全部|部分|总额|总计|合计|共计|累计|应付|已支付|已付|实付|支付|付款|收到|领取|拖欠|欠付|尚欠|欠薪|欠款|裁决|判决|判付|裁判|赔偿|补偿|给付|月薪|日薪|时薪|每月|每日|每天|每小时|每件|单价|标准|费率|本次|此次|该笔|单笔|一笔|先付|预付|预支|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)
     && supportedSuffix;
 }
