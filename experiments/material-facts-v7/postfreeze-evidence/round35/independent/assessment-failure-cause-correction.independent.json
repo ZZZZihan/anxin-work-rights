@@ -1,0 +1,23 @@
+{
+  "schema": "round35-assessment-failure-correction/1",
+  "created_at": "2026-10-18T17:23:39.794031+00:00",
+  "read_only": true,
+  "supersedes_interpretation_only": "The original 80-leaf classification and full-failure evidence stay unchanged.",
+  "observed_failure": {
+    "full_log_leaf": "identical words in another block cannot match the expected block event",
+    "original_accepted_fp": 1,
+    "first_candidate_accepted_fp": 0
+  },
+  "root_cause": "Missing optional bbox triggers TypeError in newly added sourceMoneySameRow; assessCase catches the runtime error and records invalid_protocol with empty accepted candidates. This is an implementation exception, not improved monetary classification or event matching.",
+  "independent_reproduction": {
+    "script": "scripts/material-facts-v7-round35-optional-layout-independent.test.mjs",
+    "script_sha256": "aff547939a4e18246998c65e0998a6810eb4baae616f721a8b0b6444091afb98",
+    "receipt": "node24-optional-layout-first-candidate-before.receipt.json",
+    "actual_tests": 1,
+    "pass": 0,
+    "fail": 1,
+    "exception": "Cannot read properties of undefined (reading '3')"
+  },
+  "final_source_sha256": "898bcaff875349ba15edae9019c3676fc90431381ae201e13619f8da09297b95",
+  "proposed_closure": "Array.isArray for optional OCR boxes; retain original six-layer expectations and candidate storage."
+}

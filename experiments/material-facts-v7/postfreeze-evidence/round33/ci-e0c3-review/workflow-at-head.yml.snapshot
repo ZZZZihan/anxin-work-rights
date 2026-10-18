@@ -1,0 +1,132 @@
+name: Check
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Require tracked frozen baseline artifacts before generation
+        run: python3 -B experiments/decision-baseline-v1/verification/verify.py --tracked-only
+      - name: Frozen decision baseline data and scorer checks (no models or API calls)
+        run: |
+          python3 experiments/decision-baseline-v1/data/validate_dataset.py
+          python3 experiments/decision-baseline-v1/prepare.py
+          python3 -m unittest discover -s experiments/decision-baseline-v1 -p 'test_*.py'
+          python3 -B -m unittest discover -s experiments/decision-baseline-v1/verification -p 'test_*.py'
+          python3 -B experiments/decision-baseline-v1/verification/verify.py
+          git diff --exit-code -- experiments/decision-baseline-v1/comparison.json
+      - name: Frozen protocol and tool-control comparison checks (no models or API calls)
+        run: |
+          python3 -B experiments/decision-baseline-v2/freeze.py
+          python3 -B experiments/decision-baseline-v2/data/validate_dataset.py
+          python3 -B -m unittest discover -s experiments/decision-baseline-v2 -p 'test_*.py'
+          python3 -B experiments/decision-baseline-v2/reporting/summarize.py --self-test
+          python3 -B experiments/decision-baseline-v2/reporting/summarize.py --check
+          git diff --exit-code -- experiments/decision-baseline-v2/comparison.json
+      - name: Frozen trusted facts and pre-calculation comparison checks (no models or API calls)
+        run: |
+          python3 -B experiments/decision-baseline-v3/freeze.py
+          python3 -B experiments/decision-baseline-v3/data/validate_dataset.py
+          python3 -B -m unittest discover -s experiments/decision-baseline-v3 -p 'test_*.py'
+          python3 -B experiments/decision-baseline-v3/reporting.py --check
+          python3 -B experiments/decision-baseline-v3/replication/reproduce.py --check
+          python3 -B experiments/decision-baseline-v3/review/REPLICATION_PROBE.py experiments/decision-baseline-v3
+          git diff --exit-code -- experiments/decision-baseline-v3/comparison.json experiments/decision-baseline-v3/replication/comparison.json
+      - run: npm ci
+      - name: Frozen public material candidate comparison (no model or API calls)
+        run: |
+          node experiments/material-facts-v4/verify.mjs
+          node experiments/material-facts-v4-replication-20261017/verify.mjs
+          node experiments/material-facts-v5/verify.mjs
+          node experiments/material-facts-v5/summarize.mjs --check
+          node experiments/material-facts-v6/verify-frozen.mjs
+          node experiments/material-facts-v7/verify-frozen.mjs
+          node experiments/material-facts-v7/verify-correction-v1.mjs
+          node experiments/material-facts-v7/verify-correction-v2.mjs
+          node experiments/material-facts-v7/verify-correction-v3.mjs
+          node experiments/material-facts-v7/verify-correction-v4.mjs
+          node experiments/material-facts-v7/verify-correction-v5.mjs
+          node experiments/material-facts-v7/verify-correction-v6.mjs
+          node experiments/material-facts-v7/verify-correction-v7.mjs
+          node experiments/material-facts-v7/verify-correction-v8.mjs
+          node experiments/material-facts-v7/verify-correction-v9.mjs
+          node experiments/material-facts-v7/verify-correction-v12.mjs
+          node experiments/material-facts-v7/verify-correction-v13.mjs
+          node experiments/material-facts-v7/verify-correction-v14.mjs
+          node experiments/material-facts-v7/verify-correction-v15.mjs
+          node experiments/material-facts-v7/verify-correction-v16.mjs
+          node experiments/material-facts-v7/verify-correction-v17.mjs
+          node experiments/material-facts-v7/verify-correction-v18.mjs
+          node experiments/material-facts-v7/verify-correction-v19.mjs
+          node experiments/material-facts-v7/verify-correction-v20.mjs
+          node experiments/material-facts-v7/verify-correction-v21.mjs
+          node experiments/material-facts-v7/verify-correction-v22.mjs
+          node experiments/material-facts-v7/verify-correction-v23.mjs
+          node experiments/material-facts-v7/verify-correction-v24.mjs
+          node experiments/material-facts-v7/corrective-assessment-v25.mjs --check
+      - name: Install Chinese OCR and PDF tools
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim poppler-utils
+      - run: npm run check
+      - name: HTTP persistence and failure regressions
+        shell: bash
+        run: |
+          state=/tmp/anxin-e2e-ci
+          node node_modules/wrangler/bin/wrangler.js d1 migrations apply DB --local --config dist/server/wrangler.json --persist-to "$state"
+          node node_modules/wrangler/bin/wrangler.js dev --local --config dist/server/wrangler.json --ip 127.0.0.1 --port 8798 --persist-to "$state" > /tmp/anxin-worker.log 2>&1 &
+          worker_pid=$!
+          trap 'kill "$worker_pid" || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl -s -o /dev/null http://127.0.0.1:8798/api/bootstrap; then break; fi
+            sleep 1
+          done
+          database=$(find "$state" -path '*/miniflare-D1DatabaseObject/*.sqlite' ! -name metadata.sqlite -print -quit)
+          node scripts/http-regression.mjs http://127.0.0.1:8798 "$database" /tmp/http-results.json
+      - name: Synthetic HTTP isolation and lifecycle regressions
+        run: node scripts/synthetic-http-regression.mjs /tmp/synthetic-http-results.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: base-http-regression
+          path: |
+            /tmp/http-results.json
+            /tmp/anxin-worker.log
+            /tmp/synthetic-http-results.json
+            /tmp/synthetic-http-results.worker.log
+      - name: Material extraction and public citations over production HTTP
+        run: node scripts/material-http-runner.mjs
+      - name: Material candidates and user-confirmed facts over production HTTP
+        run: ANXIN_MATERIAL_REPORT=output/materials/http-facts.json node scripts/material-http-runner.mjs --facts
+      - name: Durable fact-job cancellation and late-result isolation over production HTTP
+        run: node scripts/material-facts-cancel-http-regression.mjs
+      - name: Concurrent fact polling and stale-result isolation over production HTTP
+        run: node scripts/material-facts-poll-http-regression.mjs
+      - name: Fact task network recovery HTTP regression
+        run: node scripts/material-facts-recovery-http-regression.mjs
+      - name: Material v7 parsing, event identity and raw preservation over production HTTP
+        run: node scripts/material-facts-v7-http-regression.mjs output/materials/http-facts-v7.json
+      - name: Chinese image and PDF extraction over production HTTP
+        run: ANXIN_MATERIAL_REPORT=output/materials/http-images.json node scripts/material-http-runner.mjs --images --punctuation-equivalence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: material-http-regression
+          path: |
+            output/materials/http-production.json
+            output/materials/http-images.json
+            output/materials/http-facts.json
+            output/materials/http-fact-cancel.json
+            output/materials/http-fact-poll.json
+            output/materials/http-fact-recovery.json
+            output/materials/http-facts-v7.json

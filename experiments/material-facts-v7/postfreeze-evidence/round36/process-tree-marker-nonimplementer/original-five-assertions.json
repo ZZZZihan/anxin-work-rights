@@ -1,0 +1,13 @@
+{
+  "unchanged": true,
+  "assertions": [
+    "assert.deepEqual(await liveGroupMembers(f.child.pid), [], 'The owned POSIX group has no remaining non-zombie member.');",
+    "assert.equal(await portAlive(f.info.port), false, 'A workerd-like descendant must not retain its socket after stopChild returns.');",
+    "assert.deepEqual(await liveGroupMembers(f.child.pid), [], 'The owned POSIX group has no remaining non-zombie member.');",
+    "assert.equal(await portAlive(f.info.port), false);",
+    "assert.equal(await portAlive(info.port), true, 'Stopping the test Worker must preserve an unrelated process/socket.');"
+  ],
+  "baseline_test_sha256": "7323a90a924f44e7873732e7e5441f20ea3572d885f3897df364835a522df8d9",
+  "final_test_sha256": "a645b80033e58b010b87bb598a6b70048d9c8f47f956a55f97bec8627d540949",
+  "scope": "All assertion lines from original 4-mode loop plus unrelated-group test are identical; readiness barrier alone changed."
+}

@@ -1,0 +1,169 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// Append-only ROUND36 companion findings and newly introduced alias safety.
+// Independent synthetic module/runtime checks, not HTTP, human acceptance,
+// a scorer CLI, model inference, a build or a historical verification chain.
+const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const load = path => import(pathToFileURL(resolve(ROOT, path)));
+const { normalizeMoneyValueV4: money } = await load('lib/material-money-v4.ts');
+const { ingestRuntimeCandidates: fresh } = await load('lib/material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates: legacy, validateCandidateOutput, buildFactView } = await load('lib/material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('lib/material-fact-source-review.ts');
+const cp = text => Array.from(text).length;
+const rawFor = candidate => JSON.stringify({ schemaVersion: 3, candidates: [candidate] });
+const sourceFor = (texts, pages) => ({ id: 'round36-companion-independent', name: 'synthetic.txt', sha256: 'c'.repeat(64), ready: true, analysisRevision: 36,
+  blocks: (Array.isArray(texts) ? texts : [texts]).map((text, index) => ({ id: 'b' + (index + 1), page: pages?.[index] ?? 1,
+    text, bbox: null, confidence: null })) });
+const entry = (value, quote = value, extra = {}) => ({ kind: 'money', value, quote, blockId: 'b1', subject: '王甲', scope: 'individual',
+  meaning: 'other_money', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated', ...extra });
+const date = (value, quote = value, extra = {}) => entry(value, quote, { kind: 'date', meaning: 'payment_date', ...extra });
+for (const path of ['lib/material-money-v4.ts', 'lib/material-fact-source-review.ts', 'lib/material-fact-event-review.ts'])
+  console.log(JSON.stringify({ evidence: 'round36_companion_implementation', path,
+    sha256: createHash('sha256').update(await readFile(resolve(ROOT, path))).digest('hex') }));
+function factFor(source, candidate, state) {
+  assert.equal(state.materials[0].candidates.length, 1);
+  const fact = state.materials[0].candidates[0], text = source.blocks.find(block => block.id === candidate.blockId).text;
+  const at = text.indexOf(candidate.quote); assert(at >= 0); assert.equal(text.indexOf(candidate.quote, at + 1), -1);
+  assert.deepEqual(fact.representation, candidate);
+  assert.equal(fact.start, cp(text.slice(0, at))); assert.equal(fact.end, fact.start + cp(candidate.quote));
+  assert.deepEqual(state.confirmations, { due: null, paid: null }); assert.equal(state.calculation, null);
+  assert.equal(buildFactView(state, [source]).canCalculate, false);
+  return fact;
+}
+function stateFor(source, candidate, old = false) {
+  assert.equal(validateCandidateOutput(rawFor(candidate), source).rejected.length, 0, 'A semantic fixture must first pass the actual schema.');
+  const before = structuredClone(source), state = (old ? legacy : fresh)(emptyFactState(36), source, { raw: rawFor(candidate) },
+    'independent', 'synthetic', '2026-10-19T00:00:00.000Z', null);
+  assert.deepEqual(source, before); assert.equal(state.materials[0].raw, rawFor(candidate)); return state;
+}
+function reviewedOld(source, candidate, amount) {
+  const state = stateFor(source, candidate, true), fact = factFor(source, candidate, state);
+  if (candidate.kind === 'money') {
+    fact.amount = amount;
+    fact.normalization = { rawValue: candidate.value, status: amount === null ? 'unsupported' : 'exact', amount,
+      matchedText: candidate.value, span: { start: 0, end: cp(candidate.value) }, reason: 'Synthetic unconfirmed stored candidate.' };
+  }
+  const before = structuredClone(state), reviewed = reviewFactsAgainstSources(state, [source]);
+  assert.deepEqual(state, before); assert.equal(reviewed.materials[0].raw, rawFor(candidate));
+  return factFor(source, candidate, reviewed);
+}
+function observation(source, candidate) {
+  const rows = { fresh: factFor(source, candidate, stateFor(source, candidate)), oldExact: reviewedOld(source, candidate, '4000.00'),
+    oldUnavailable: reviewedOld(source, candidate, null) };
+  console.log(JSON.stringify({ evidence: 'round36_companion_observation', source, candidate, ...rows })); return rows;
+}
+function checkAmount(source, candidate, amount) {
+  const rows = observation(source, candidate);
+  assert.equal(rows.fresh.amount, amount); assert.equal(rows.oldExact.amount, amount);
+  assert.equal(rows.oldUnavailable.amount, null, 'Historical null is not upgraded by read-time review.'); return rows;
+}
+const relation = fact => fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved');
+function checkRelation(source, candidate, supported) {
+  const rows = observation(source, candidate);
+  for (const fact of [rows.fresh, rows.oldExact]) assert.equal(relation(fact), !supported);
+  if (candidate.kind === 'money') {
+    assert.equal(rows.fresh.amount, '4000.00'); assert.equal(rows.oldUnavailable.amount, null);
+  }
+}
+function variants(source, value, extra = {}, kind = 'money') {
+  const block = source.blocks.find(row => row.id === (extra.blockId ?? 'b1'));
+  return [...new Set([value, block.text])].map(quote => (kind === 'date' ? date : entry)(value, quote, extra));
+}
+
+for (const value of ['￥４０００', '¥４０００']) test('a complete symbol-marked fullwidth amount retains its literal evidence: ' + value, () => {
+  assert.equal(money(value).amount, '4000.00'); const source = sourceFor('😀王甲收到工资' + value + '。');
+  for (const candidate of variants(source, value)) checkAmount(source, candidate, '4000.00');
+});
+for (const suffix of ['一並支付', '一併給付', '一並發放']) test('a complete traditional payment instruction is not a numeral continuation: ' + suffix, () => {
+  const source = sourceFor('😀王甲工资4000元' + suffix + '。');
+  assert.equal(money('4000元' + suffix).amount, '4000.00');
+  for (const candidate of variants(source, '4000元')) checkAmount(source, candidate, '4000.00');
+});
+for (const value of ['每个月15日', '每個月十五號', '每月第15日']) test('a valid classifier or ordinal recurring date supports the finite owner schedule: ' + value, () => {
+  const source = sourceFor('😀王甲工资于' + value + '发放。');
+  for (const candidate of variants(source, value, {}, 'date')) checkRelation(source, candidate, true);
+});
+for (const [preposition, verb] of [['于', '支付'], ['在', '发放']]) test('a calendar wage-payment action identifies a date without proving actual receipt: ' + preposition + verb, () => {
+  const value = '2026年1月15日', source = sourceFor('😀王甲工资' + preposition + value + verb + '。');
+  for (const candidate of variants(source, value, {}, 'date')) checkRelation(source, candidate, true);
+});
+for (const [subject, noun, scope] of [['王甲', '经济补偿金', 'individual'], ['王甲', '赔偿金', 'individual'], ['甲公司', '材料款', 'organization']])
+  test('an explicitly located other-money receipt supports its bounded noun: ' + noun, () => {
+    const source = sourceFor('😀' + subject + '收到' + noun + '4000元。');
+    for (const candidate of variants(source, '4000元', { subject, scope })) checkRelation(source, candidate, true);
+  });
+
+test('invalid recurring days and cropped date fragments remain unresolved', () => {
+  for (const value of ['每个月0日', '每個月三十二號', '每月第32日']) {
+    const source = sourceFor('😀王甲工资于' + value + '发放。');
+    for (const candidate of variants(source, value, {}, 'date')) checkRelation(source, candidate, false);
+  }
+  const source = sourceFor('😀王甲工资于每个月15日发放。');
+  checkRelation(source, date('15日'), false);
+});
+test('negation, a payer and another owner cannot establish the claimed beneficiary payment date', () => {
+  for (const text of ['😀王甲工资并非于每个月15日发放。', '😀王甲于每个月15日给李乙支付工资。', '😀李乙工资于每个月15日发放。王甲尚未领取。']) {
+    const source = sourceFor(text); checkRelation(source, date('每个月15日'), false);
+  }
+  const source = sourceFor('😀王甲工资于2026年1月15日未支付。');
+  checkRelation(source, date('2026年1月15日'), false);
+});
+test('payment action or recurring dates do not borrow an employment or wage-period role', () => {
+  for (const [value, meaning] of [['每个月15日', 'wage_period'], ['2026年1月15日', 'employment_period']]) {
+    const source = sourceFor('😀王甲工资于' + value + '发放。');
+    for (const candidate of variants(source, value, { meaning }, 'date')) checkRelation(source, candidate, false);
+  }
+});
+test('unknown and question-mark payment continuations remain unavailable', () => {
+  for (const tail of ['一並支付？', '一併給付待定']) {
+    const source = sourceFor('😀王甲工资4000元' + tail + '。');
+    for (const candidate of variants(source, '4000元')) checkAmount(source, candidate, null);
+  }
+});
+test('an explicit foreign currency cannot be hidden by new fullwidth or payment aliases', () => {
+  for (const [text, value] of [['😀王甲工资￥４０００美元。', '￥４０００'], ['😀王甲工资4000元一並支付美元。', '4000元']]) {
+    const source = sourceFor(text); for (const candidate of variants(source, value)) checkAmount(source, candidate, null);
+  }
+});
+test('range or arithmetic contexts cannot turn a new symbol amount into an exact operand', () => {
+  for (const [text, value] of [['😀王甲工资￥４０００至￥５０００。', '￥４０００'], ['😀王甲工资￥４０００乘以2。', '￥４０００']]) {
+    const source = sourceFor(text); for (const candidate of variants(source, value)) checkAmount(source, candidate, null);
+  }
+});
+test('a compensation/material noun cannot borrow an absent owner or turn a payer into a recipient', () => {
+  for (const [text, subject, scope] of [['😀李乙收到经济补偿金4000元。王甲未领取。', '王甲', 'individual'],
+    ['😀甲公司支付材料款4000元。', '甲公司', 'organization']]) {
+    const source = sourceFor(text); checkRelation(source, entry('4000元', '4000元', { subject, scope }), false);
+  }
+});
+test('a compensation receipt does not become a complete wage total', () => {
+  const source = sourceFor('😀王甲2026年1月收到经济补偿金4000元。');
+  const rows = observation(source, entry('4000元', source.blocks[0].text, { meaning: 'due_total', completeness: 'complete', period: '2026年1月' }));
+  for (const fact of [rows.fresh, rows.oldExact]) assert(fact.reviewIssues.some(issue => issue.code === 'source_total_unresolved'));
+});
+
+test('a denominator whose 每 already follows the amount cannot be lost at a later layout boundary', () => {
+  const source = sourceFor(['😀王甲工资4000元每', '个月。']);
+  checkAmount(source, entry('4000元'), null);
+  const rows = observation(source, entry('4000元', '4000元', { meaning: 'rate', rateUnit: 'month' }));
+  // Conservative unavailability is permitted when the OCR attachment cannot be
+  // established; it must not be reclassified as a different supported unit.
+  assert([null, '4000.00'].includes(rows.fresh.amount)); assert.equal(rows.oldUnavailable.amount, null);
+});
+test('a detached new-row denominator or a separate-page fragment is not automatically attached', () => {
+  checkAmount(sourceFor(['😀王甲收到4000元', '每月。']), entry('4000元'), '4000.00');
+  checkAmount(sourceFor(['😀王甲收到4000元每', '个月。'], [1, 2]), entry('4000元'), null);
+  // A complete amount with no partial 每 before the page break is independent.
+  checkAmount(sourceFor(['😀王甲收到4000元', '每个月。'], [1, 2]), entry('4000元'), '4000.00');
+});
+test('monthly classifier aliases cannot hide attached unknown or question-mark tails', () => {
+  for (const tail of ['每个月待定', '每個月？', '/个月待核实']) {
+    const source = sourceFor('😀王甲工资4000元' + tail + '。');
+    for (const candidate of variants(source, '4000元', { meaning: 'rate', rateUnit: 'month' })) checkAmount(source, candidate, null);
+  }
+});

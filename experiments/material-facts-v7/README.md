@@ -1,16 +1,18 @@
 # v7：事件绑定修复与新公开材料首跑
 
-ROUND33产品修复、v25同输出复评和独立技术复核已完成。旧v6冻结入口造成的9fb CI失败已保留；4330提交以临时归档入口修复，未改变旧freeze或结果。PR45和PR46最终精确提交的CI状态与审查处理见对应PR，不把历史绿色检查当作当前检查。
-
-Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的工程修复由 [PR #45](https://github.com/ZZZZihan/anxin-work-rights/pull/45) 提供，本目录保存其后的新材料、运行协议、全部首次输出、失败和独立复核。没有训练、合并新 PR 或部署生产。标签是非专家暂定参考，技术检查与人工业务验收分开。
+Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的解析、事件绑定、金额可用性与评分修复在 [PR #45](https://github.com/ZZZZihan/anxin-work-rights/pull/45)；本目录和 [PR #46](https://github.com/ZZZZihan/anxin-work-rights/pull/46) 保存新公开材料、非专家标注协议、全部首次输出、失败、冻结版本及独立技术复核。两个PR尚未合并；未训练或部署生产，人工业务验收未完成。
 
 ## 先读的结论
 
-当前应用为 PR #45 的 `4330d5f33367f7f27b3ae5106ee20ab81cd76205`，其中产品修复提交为9fb：后置人民币不再误认人数；重复附着币种及裁剪值不再获得精确金额；跨页/明确新人物不再误拼成元角分普通词；已退出启动器的清理核对继承身份标记。原输出、位置、审计与人工核对保留。有限布局识别不能证明任意OCR连续性，进程身份检查与POSIX信号并非原子。见 [ROUND33记录](POSTRUN_ROUND33_APPLICATION.md) 与 [非实现者应用复核](ROUND33_APPLICATION_INDEPENDENT.md)。
+本次交付的精简入口见[Issue #42 技术验收与模型比较](ISSUE42_ACCEPTANCE.md)，以下保留逐轮证据与失败历史。
 
-主侧150作者项及21独立项整合通过；独立21项在Node24.22/26.11各通过，已有真实进程生命周期36项通过。同一HTTP352在实际8ac构建344P8F→修后352P0F；353份raw/candidates/finish_reason及341项旧非重启观察逐项未变；重启核对343→351份存储快照，cleanup通过。9fb的CI39144615912因旧v6哈希入口失败，完整check及全部HTTP/OCR未执行，不算通过；原日志与零artifact事实保存于 [失败核查](postfreeze-evidence/round33/ci-9fb-review/review.md)。
+当前应用提交为 `4c3a0cbfe60623695de5dda67d17339d5e827ac8`，包含ROUND34/35修复及ROUND36连接词界限、完整月费率、全角人民币和有限事件表达修复。跨页停止表达式拼接；同页可疑而无法证明连续的限定文字使金额保持null并提示核对。付款日期不证明到账，其他款项不提升为工资完整总额。原始输出、位置、审计、人工确认及历史null不自动升级均保留。见[ROUND34](POSTRUN_ROUND34_APPLICATION.md)、[ROUND35](POSTRUN_ROUND35_APPLICATION.md)、[ROUND36](POSTRUN_ROUND36_APPLICATION.md)。
 
-最新另存复评为 `corrections-v25/`，绑定94项当前代码，v24的91项代码另行归档。manifest SHA `4eef4eeeba7df54d6f40a67ff4cca3170de8788b1ab9578b45c29d06ed1cb8ca`。主侧write退出0（195.982秒），1690份保护字节未变，原60份结果与固定清单全部匹配，三路逐案报告均与v24逐字相同。只读check退出0（198.226秒），1690保护路径保持；非评分/标签实现者的[实际产物轻核](ROUND33_V25_LIGHT_INDEPENDENT.md)逐项核对94当前/91归档/60原结果/216评分分区及18指标，1747保护路径前后未变。没有修改输入、gold或原回答，零新增模型请求；这不是新一次盲测或模型能力提升。
+最终应用本地完整检查100.012秒退出0：Vitest1789项/46文件、材料67通过/1平台跳过、运行时8895通过/1平台跳过。隔离HTTP锁410项在e99基线392P18F→最终410P0F，411份raw/candidates除运行ID外相同，旧387项非重启观察不变，409份重启快照和清理通过；独立44项在Node24/26分别22P22F→43P1F→44P0F。独立中间失败是普通“以下内容”误拒，原断言保留。隔离真实Worker/D1/R2仍使用合成模型输出，不等于真实案件或OCR业务验收。精确提交CI终态以PR及归档收据为准。
+
+失败继续保留：旧9fb CI的v6入口、1cc CI的1787P2F、R35初版完整检查8564P80F1skip、中间币种遗漏与bbox异常、R36独立43P1F及各轮HTTP失败。6个旧夹具仅纠正明确同页续片的页码元数据，金额/评分断言未放宽；异常减少FP没有被算成评分改善。
+
+v26已另存并通过write/check（256.134秒/247.752秒），manifest `3046e7bf9318945e38d3c4de724563cd32fbf251629314aedaa419d81cf654cf`，97当前/94归档代码；1717保护路径未变，三路逐案报告与v25逐字相同。独立LIGHT重计216分区/18指标，97当前/94归档/60原结果全部匹配，本次1838保护路径不变；见[独立计数回执](ROUND36_V26_LIGHT_INDEPENDENT.md)。两个较早未发布writer因后续审查而取消，日志和取消状态保留，不计通过或产品失败。此前已冻结v25 manifest为 `4eef4eeeba7df54d6f40a67ff4cca3170de8788b1ab9578b45c29d06ed1cb8ca`，94当前/91归档代码，write195.982秒/check198.226秒退出0。原60结果和1690保护路径匹配，三路报告与v24逐字相同；独立LIGHT核对216分区/18指标且1747路径未变。所有后验修复仅对同一首跑输出另存复评，零新增模型请求，不称新一轮盲测或模型能力提升。
 
 v24检查点保留：应用8ac精确CI39142356614成功；v24 manifest86560d…、91当前/88归档，write181.910秒/check183.688秒退出0，379保护字节不变；独立轻核398路径及216评分分区通过。随后四项ROUND33审查触发本次修复，旧结果不覆盖。
 
@@ -124,15 +126,16 @@ node experiments/material-facts-v7/verify-correction-v18.mjs
 node experiments/material-facts-v7/verify-correction-v19.mjs
 # 用79项归档代码验证v20，不调用模型。
 node experiments/material-facts-v7/verify-correction-v20.mjs
-# 历史v21至v24按归档代码核对，当前v25零推理复算。
+# 历史v21至v25按归档代码核对，当前v26零推理复算。
 node experiments/material-facts-v7/verify-correction-v21.mjs
 node experiments/material-facts-v7/verify-correction-v22.mjs
 node experiments/material-facts-v7/verify-correction-v23.mjs
 node experiments/material-facts-v7/verify-correction-v24.mjs
-node experiments/material-facts-v7/corrective-assessment-v25.mjs --check
+node experiments/material-facts-v7/verify-correction-v25.mjs
+node experiments/material-facts-v7/corrective-assessment-v26.mjs --check
 ```
 
-以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1至v24的 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
+以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1至v25的 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
 
 诊断运行从检查尚未冻结到终态写完，与冻结的枚举至发布共用 `.experiment.lock`。锁在results之外；并发竞争直接拒绝，SIGKILL或所有权变化的遗留锁保留，恢复前须核查owner的主机/PID、worker和已有attempt。不能仅按锁年龄自动删除。生命周期与锁回归使用本地合成worker/临时文件系统，不调用真实模型；完整生产代码的数据和身份门禁另行校验。
 

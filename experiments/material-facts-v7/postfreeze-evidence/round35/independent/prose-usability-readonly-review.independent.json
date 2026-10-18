@@ -1,0 +1,206 @@
+{
+  "schema": "round35-prose-usability-static-review/1",
+  "actual_browser_executed": false,
+  "actual_scorer_executed": false,
+  "runtime_results": "node24/node26-prose-compat-baseline-control receipts each 2 pass / 0 fail; accepted1+unsupported amountnull with/without total attributes.",
+  "ui": "MaterialFactsPanel branches on normalization.status, so unsupported renders nonexact reason and original retained/no zero. Reading a candidate checkbox is not an amount authorization.",
+  "eligibility": "eligibleTotal requires amount !== null and no reviewIssues in addition to explicit scope/complete period; confirmed-scope buildFactView execution yields no due/paid values and canCalculate false.",
+  "canonical": "Unsupported prose gets canonicalMonetaryExpression=null, assessor falls back to literal:<original>. Actual pure key execution establishes inequality with exact:4000.00; basic canonical equality is required by all three modes before one-to-one event matching. No complete six-layer scorer result is claimed.",
+  "limitation": "A hypothetical identical unsupported literal in an expected label could still match as extraction evidence under existing scorer fallback. This review does not claim arbitrary unsupported literals can never earn extraction TP, nor does such TP authorize a calculation.",
+  "source_excerpts": [
+    {
+      "path": "components/MaterialFactsPanel.tsx",
+      "sha256": "9633c57c77be80abd763aadf30c3b62551d3fe0eb3ed30ef8e6fc86dfe84f78c",
+      "lines": [
+        {
+          "line": 179,
+          "text": "                  <p>{completeness[representation.completeness]}{representation.rateUnit ? ` · ${rateUnits[representation.rateUnit]}` : ''}</p>"
+        },
+        {
+          "line": 180,
+          "text": "                  {representation.scope === 'group' && <p className=\"fact-conflict-note\">这是群体范围的表述，不能将全部金额归给班组代表或某一个人。</p>}"
+        },
+        {
+          "line": 181,
+          "text": "                  {representation.meaning === 'contract_signing' && <p className=\"material-help\">签约时间不证明实际工作或工资所属期间。</p>}"
+        },
+        {
+          "line": 182,
+          "text": "                </> : <p>旧版候选：对象 {candidate.subject ?? '未明确'} · 期间 {candidate.period ?? '未明确'}。尚未区分个人与群体、完整与部分；请重新提取或对照原文核实。</p>}"
+        },
+        {
+          "line": 183,
+          "text": "                {(isV3Candidate(candidate) || isV2Candidate(candidate)) && candidate.reviewIssues.length > 0 && <div className=\"fact-conflict-note\"><strong>需要进一步核对</strong><ul>{candidate.reviewIssues.map((issue, index) => <li key={`${issue.code}-${index}`}>{issue.message}</li>)}</ul></div>}"
+        },
+        {
+          "line": 184,
+          "text": "                {isV3Candidate(candidate) && representation?.kind === 'money' && <p className={candidate.normalization.status === 'exact' ? 'material-help' : 'fact-conflict-note'}>{candidate.normalization.status === 'exact' ? `原文金额片段：${candidate.normalization.matchedText}；规范金额：${candidate.normalization.amount} 元，仍待核实。` : `未生成精确金额：${candidate.normalization.reason.replaceAll('value', '候选金额')}。原文已保留，不按 0 元处理。`}</p>}"
+        },
+        {
+          "line": 185,
+          "text": "                <blockquote>{candidate.quote}</blockquote>"
+        },
+        {
+          "line": 186,
+          "text": "                <p className=\"fact-source-meta\">第 {candidate.page} 页 · 原文块 {candidate.blockId} · 字符位置 {candidate.start}–{candidate.end}{candidate.amount ? ` · 金额规范值 ${candidate.amount} 元` : ''}</p>"
+        },
+        {
+          "line": 187,
+          "text": "                <label className=\"fact-check\"><input type=\"checkbox\" checked={reviewed[candidate.id] ?? false} disabled={disabled} onChange={(event) => { dirty.current = true; setReviewed((current) => ({ ...current, [candidate.id]: event.target.checked })); }} />我已阅读这条候选及其原文，理解其金额类型、主张身份与所属范围</label>"
+        },
+        {
+          "line": 188,
+          "text": "              </div>; })}"
+        }
+      ]
+    },
+    {
+      "path": "lib/material-facts-v3.ts",
+      "sha256": "77283a7b0677a43a9c3ff62bf78f353dfbfc6f359c63c1388ea81a7f2ccac779",
+      "lines": [
+        {
+          "line": 320,
+          "text": ""
+        },
+        {
+          "line": 321,
+          "text": "function eligibleTotal(candidate: FactCandidate, field: AmountField, scope: FactScope | null): boolean {"
+        },
+        {
+          "line": 322,
+          "text": "  if (!scope || !(isV3Candidate(candidate) || isV2Candidate(candidate))) return false;"
+        },
+        {
+          "line": 323,
+          "text": "  const raw = candidate.representation;"
+        },
+        {
+          "line": 324,
+          "text": "  return raw.kind === 'money' && raw.meaning === (field === 'due' ? 'due_total' : 'paid_total') && raw.scope === 'individual' && raw.subject === scope.worker"
+        },
+        {
+          "line": 325,
+          "text": "    && raw.completeness === 'complete' && matchesConfirmedPeriod(raw.period, scope) && candidate.amount !== null && candidate.reviewIssues.length === 0;"
+        },
+        {
+          "line": 326,
+          "text": "}"
+        },
+        {
+          "line": 327,
+          "text": "function fieldView(field: AmountField, state: FactState, candidates: FactCandidate[]): FactFieldView {"
+        },
+        {
+          "line": 328,
+          "text": "  const confirmation = state.scope ? state.confirmations[field] : null;"
+        },
+        {
+          "line": 329,
+          "text": "  const values = [...new Set(candidates.filter(candidate => eligibleTotal(candidate, field, state.scopeReview ? state.scope : null)).map(candidate => candidate.amount as string))];"
+        },
+        {
+          "line": 330,
+          "text": "  return { status: confirmation ? 'confirmed' : values.length > 1 ? 'conflict' : values.length ? 'candidate' : 'unknown', values, confirmation };"
+        },
+        {
+          "line": 331,
+          "text": "}"
+        },
+        {
+          "line": 332,
+          "text": "export function buildFactView(state: FactState, sources: FactSource[]): Pick<MaterialFactsResponse, 'candidates' | 'fields' | 'unresolved' | 'canCalculate'> {"
+        },
+        {
+          "line": 333,
+          "text": "  const base = buildLegacyFactView(state, sources);"
+        },
+        {
+          "line": 334,
+          "text": "  return { ...base, fields: { due: fieldView('due', state, base.candidates), paid: fieldView('paid', state, base.candidates) } };"
+        },
+        {
+          "line": 335,
+          "text": "}"
+        },
+        {
+          "line": 336,
+          "text": "export function prepareCalculation(state: FactState, sources: FactSource[]) {"
+        },
+        {
+          "line": 337,
+          "text": "  const view = buildFactView(state, sources);"
+        },
+        {
+          "line": 338,
+          "text": "  if (!view.canCalculate || !state.confirmations.due || !state.confirmations.paid) throw new Error(view.unresolved.join(' '));"
+        },
+        {
+          "line": 339,
+          "text": "  return { dueCents: state.confirmations.due.cents, paidCents: state.confirmations.paid.cents, generation: state.generation };"
+        },
+        {
+          "line": 340,
+          "text": "}"
+        }
+      ]
+    },
+    {
+      "path": "experiments/material-facts-v7/assess.mjs",
+      "sha256": "3cafbd4bbf51bedb7f8629fa0f4f4cdeb3220c6dfbf666747def192bcd311ca3",
+      "lines": [
+        {
+          "line": 33,
+          "text": ""
+        },
+        {
+          "line": 34,
+          "text": "function canonical(candidate) {"
+        },
+        {
+          "line": 35,
+          "text": "  if (!object(candidate) || !['money', 'date'].includes(candidate.kind) || typeof candidate.value !== 'string') return null;"
+        },
+        {
+          "line": 36,
+          "text": "  if (candidate.kind === 'date') return `date:${candidate.value}`;"
+        },
+        {
+          "line": 37,
+          "text": "  if (classifyMonetaryExpression(candidate.value).kind === 'not_monetary') return null;"
+        },
+        {
+          "line": 38,
+          "text": "  // Unsupported/complex literal equality is still observable extraction evidence;"
+        },
+        {
+          "line": 39,
+          "text": "  // it never creates a calculation amount or makes an approximate value exact."
+        },
+        {
+          "line": 40,
+          "text": "  return canonicalMonetaryExpression(candidate.value) ?? `literal:${candidate.value}`;"
+        },
+        {
+          "line": 41,
+          "text": "}"
+        },
+        {
+          "line": 42,
+          "text": "const basic = (a, b) => canonical(a) !== null && a.kind === b.kind && canonical(a) === canonical(b)"
+        },
+        {
+          "line": 43,
+          "text": "  && a.meaning === b.meaning && (a.meaning !== 'rate' || a.rateUnit === b.rateUnit);"
+        },
+        {
+          "line": 44,
+          "text": "const relational = (a, b) => basic(a, b) && semanticKeys.filter(key => key !== 'assertion').every(key => a[key] === b[key]);"
+        },
+        {
+          "line": 45,
+          "text": "const strict = (a, b) => relational(a, b) && a.assertion === b.assertion;"
+        }
+      ]
+    }
+  ]
+}

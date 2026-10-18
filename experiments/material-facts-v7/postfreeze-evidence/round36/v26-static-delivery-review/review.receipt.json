@@ -1,0 +1,164 @@
+{
+  "schema": "material-facts-v7/v26-static-delivery-review/1",
+  "captured_at_utc": "2026-10-18T18:04:43.816004+00:00",
+  "ROOT_head_at_capture": "5f9751ffed9a28e7ad59af7c00e049d6b83dc68c",
+  "review_type": "Read-only source/document/selected-hash review, no history CLI or assessment recomputation",
+  "requested_configuration": {
+    "model": "gpt-6.1-sol",
+    "effort": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "read_files": [
+    {
+      "path": "experiments/material-facts-v7/corrective-assessment-v26.mjs",
+      "sha256": "579a7d5fa4790ceac4432641dfe9775183490cf06a658b5002cfd6d37360b5dc"
+    },
+    {
+      "path": "experiments/material-facts-v7/verify-correction-v25.mjs",
+      "sha256": "50204706c0a2949f17f67299975aa6cc8b21c7bccadfb863c153a08be52eb269"
+    },
+    {
+      "path": "experiments/material-facts-v7/historical-v25-execution.mjs",
+      "sha256": "652d12eccb27d6b290fe36f0a0ddcc540a88ea3a1caa7fccbcf00a54a2e23ec4"
+    },
+    {
+      "path": "experiments/material-facts-v7/corrective-assessment.mjs",
+      "sha256": "07a8df7fdfb889dbf1d16f1f559b74a7115d2eb86fa1e08266771f8c1394c937"
+    },
+    {
+      "path": "experiments/material-facts-v7/assess.mjs",
+      "sha256": "3cafbd4bbf51bedb7f8629fa0f4f4cdeb3220c6dfbf666747def192bcd311ca3"
+    },
+    {
+      "path": "experiments/material-facts-v7/publish-artifacts.mjs",
+      "sha256": "fed30876cd481d0c76bf50c5fbf02a1e78a198a751b66f98c692dbccac347204"
+    },
+    {
+      "path": "experiments/material-facts-v7/historical-execution-policy-v1.mjs",
+      "sha256": "cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea"
+    },
+    {
+      "path": "experiments/material-facts-v7/historical-execution-v1.mjs",
+      "sha256": "0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c"
+    },
+    {
+      "path": "experiments/material-facts-v7/historical-v24-execution.mjs",
+      "sha256": "b4e7d8970080e830afc94d4bddeb36cb1d12b1d150353e8ca41335d0c709f424"
+    },
+    {
+      "path": "experiments/material-facts-v7/correction-code-v25/manifest.json",
+      "sha256": "b737da3de0710decda27f34351e51d86784a45b9f7c019a56b49f3960ca35c19"
+    },
+    {
+      "path": "experiments/material-facts-v7/corrections-v25/manifest.json",
+      "sha256": "4eef4eeeba7df54d6f40a67ff4cca3170de8788b1ab9578b45c29d06ed1cb8ca"
+    },
+    {
+      "path": "experiments/material-facts-v7/correction-code-v25/experiments/material-facts-v7/assess.mjs.snapshot",
+      "sha256": "04d16d173e4ab491d91e0a083f07c734b10591f9814296fa30d1464a9116c0c5"
+    },
+    {
+      "path": "experiments/material-facts-v7/README.md",
+      "sha256": "1b011b747d097d043406a6334d50262557f5ae093c827d69e5fe3f69caa5e599"
+    },
+    {
+      "path": "experiments/material-facts-v7/ERROR_REVIEW.md",
+      "sha256": "a41a6c645248fe8dcb592a2d19edd07d1151bea95398ca0b06b6d08197e963e4"
+    },
+    {
+      "path": "experiments/material-facts-v7/ANNOTATION.md",
+      "sha256": "9ae96f591e1f92a4e812f38326761c9a94b4a88f13154ff147861bb4d9dc761b"
+    },
+    {
+      "path": "scripts/material-facts-v7-correction-v25-gates-independent.test.mjs",
+      "sha256": "f8d978e87e61cb2ef4f508d3500866c36fb63a2db18400af493f2037cf54d200"
+    },
+    {
+      "path": "scripts/material-facts-v7-correction-v26-gates-independent.test.mjs",
+      "sha256": "709767c4b0968114bcc4965ea1e7eef8043153a7b2842182d1f0f5896fa7dbe1"
+    },
+    {
+      "path": "scripts/material-facts-v7-historical-v25-execution.test.mjs",
+      "sha256": "c5c2ccd4d47147a66b3b44ac4d2dc8daf3952da2081dc0be3b126145b76f6f50"
+    },
+    {
+      "path": "package.json",
+      "sha256": "74cd10c28bc9b7c3ef4dad8cef775ca64e7a1f2c96b9bb3dbe533ed28425eed9"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "b88b8d93c65172b59420005a3ad9fa3c7e1285eb95d3bf15668e67bd786f3fda"
+    }
+  ],
+  "findings": {
+    "blocking_code_issue_found": false,
+    "v25_archive": "Archive manifest binds exact4eef v25 manifest, with identical bound code path/hash dictionary. The wrapper verifies every archived byte against both dictionaries before restoring to an owned temporary tree, and removes that tree in finally. This review did not independently rehash all94 snapshots; LIGHT belongs to another reviewer.",
+    "v26_execution": "First restores archived v25 and calls only exact archived v25 --check through historical-v25 bridge; current computation happens once afterward. Controller publishes only a new corrections-v26 directory; old reports/raw/labels are read, not overwritten.",
+    "execution_policy": "Unchanged v1 policy and older bridge:900000ms shared root budget,2000ms reserve per level; exact read-only target only, original child error/options retained, owned receipt cleanup in finally.",
+    "gates": "Historical gate uses /25 schema and fixedv25 manifest; current gate uses /26 schema and97current/94archived assertions; native bridge test keeps fixed policy andv24 hashes and rejects write/current26 target. All3 tests appear once in package; CI verify25 andcurrent26 each appear once. No gates were executed by this reviewer.",
+    "scorer": "Only assess change against v25 is folding 從/後/間 in finite date-containment boundary copies. Raw literal date equality, all quote/value occurrence enumeration, ambiguous/unregistered-position refusal, unique event identity, expected-event constrained one-to-one matching and all6layers remain structurally unchanged. Earlier locked44 tests also exercised two direct scoring controls, but this review did not recompute v26 reports.",
+    "data_preservation": "Selected5 frozen inputs/labels/annotation and3 original holdout results.jsonl match original bindings. freeze hash matches result-manifest and original result-manifest retains fixed3733 bytes. This is not full124/60 verification.",
+    "business_scope": "README/ERROR_REVIEW/ANNOTATION distinguish provisional non-expert gold,12holdout43facts/7pages2cross-split publication pages, once-case first outputs vs posthoc same-output corrections, synthetic Worker/D1/R2 HTTP vs real-case/manual acceptance, and no training/production. No overclaim found in those boundaries."
+  },
+  "selected_hash_checks": [
+    {
+      "path": "experiments/material-facts-v7/data/dev.inputs.jsonl",
+      "sha256": "781be4a016c824be97704f2f901a4650b4b2ed4da816762e482465e82385f312",
+      "binding": "original freeze.files"
+    },
+    {
+      "path": "experiments/material-facts-v7/data/dev.labels.provisional.jsonl",
+      "sha256": "1d1edb85574a81808cb7b557b933f529d1b206e4a455b8943750db3526c431cd",
+      "binding": "original freeze.files"
+    },
+    {
+      "path": "experiments/material-facts-v7/data/holdout.inputs.jsonl",
+      "sha256": "9ec54411e9008434457ae59f68585f8fb7a6bc6d089cee4e87709bfddd6a2181",
+      "binding": "original freeze.files"
+    },
+    {
+      "path": "experiments/material-facts-v7/data/holdout.labels.provisional.jsonl",
+      "sha256": "abac05fa2c3de7d8e83e866345bf5edaec61c65f8f706bb7d5f0c0d98fa27b64",
+      "binding": "original freeze.files"
+    },
+    {
+      "path": "experiments/material-facts-v7/ANNOTATION.md",
+      "sha256": "9ae96f591e1f92a4e812f38326761c9a94b4a88f13154ff147861bb4d9dc761b",
+      "binding": "original freeze.files"
+    },
+    {
+      "path": "experiments/material-facts-v7/results/holdout-rules-1/results.jsonl",
+      "sha256": "c5984075bc672f2dd9a606a0add4bb61d7979ca2ca08b962dd0bfe93425b9579",
+      "binding": "original result-manifest.files"
+    },
+    {
+      "path": "experiments/material-facts-v7/results/holdout-qwen-1/results.jsonl",
+      "sha256": "b7eab68b250bf133dcccab4433913ae1ef5ddc137abf62660535c9b694efdafd",
+      "binding": "original result-manifest.files"
+    },
+    {
+      "path": "experiments/material-facts-v7/results/holdout-deepseek-1/results.jsonl",
+      "sha256": "f4bee08fa7e39770deada7bc6148e26d7a9840c195fcf6221ffb25d351784621",
+      "binding": "original result-manifest.files"
+    }
+  ],
+  "documentation_followups": [
+    {
+      "status": "parent notified and owns update",
+      "file": "experiments/material-facts-v7/README.md",
+      "detail": "Earlier read still showed e99/388/8666/27 headline; later capture is fa77/410/8891/44. Preserve exact captured bytes rather than treating stale draft as current error."
+    },
+    {
+      "status": "parent acknowledged, pending v26 publication",
+      "file": "experiments/material-facts-v7/README.md",
+      "detail": "Reproduction block still describes currentv25 and calls corrective-assessment-v25 --check against changed current sources. Final publication should point historicalv25 to verify-correction-v25 and currentv26 to corrective-assessment-v26 --check; latest table/version link wording should follow actual v26 result, not assume it."
+    }
+  ],
+  "limits": [
+    "No v26 --write/--check/history/scorer CLI/model/fullcheck/build/HTTP executed.",
+    "No ROOT/CODE/product/frozen file writes. Only this OWN evidence directory was created.",
+    "No claim that v26 writer or LIGHT already passed; owner will fill actual result later.",
+    "No full archive byte audit or18metric recount duplicated.",
+    "No human/legal/business acceptance, training, merge or deployment inference."
+  ]
+}

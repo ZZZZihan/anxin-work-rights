@@ -1,0 +1,127 @@
+{
+  "observed_at": "2026-10-18T17:39:59.557089+00:00",
+  "head_ref_oids": [
+    "e99df1d3061f60b07fd9fa3e0df39f896f97f695",
+    "e99df1d3061f60b07fd9fa3e0df39f896f97f695"
+  ],
+  "total": 120,
+  "unresolved": [
+    {
+      "id": "PRRT_kwDOVApLyM6tsQ37",
+      "outdated": true,
+      "path": "lib/material-fact-event-review.ts",
+      "comments": [
+        {
+          "databaseId": 4307788661,
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307788661",
+          "createdAt": "2026-10-18T16:29:28Z",
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Allow prepositions before recurring payment dates**\n\nFresh evidence beyond the repaired no-preposition layouts is that `王甲工资于每月15日发放` and `王甲工资在每月15日发放` still receive `source_relation_unresolved`: this recurring branch requires the left side to be exactly the wage noun, although the calendar-date branch below accepts the same bounded `于`/`在` bridge. These common recurring payment schedules should pass the same-worker attribution gate.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tsQ39",
+      "outdated": true,
+      "path": "lib/material-fact-event-review.ts",
+      "comments": [
+        {
+          "databaseId": 4307788664,
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307788664",
+          "createdAt": "2026-10-18T16:29:28Z",
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Fold traditional glyphs in payment deadlines**\n\nFresh evidence beyond the previously repaired traditional date cues is that valid deadlines such as `王甲工資應於2026年1月15日前給付` and `...支付完畢` still fail attribution while their `给付`/`完毕` equivalents pass. Because the date detection fold omits `給` and `畢`, the deadline layout adds `source_relation_unresolved`, preventing these traditional payment dates from being used.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tsQ4A",
+      "outdated": true,
+      "path": "lib/material-money-v4.ts",
+      "comments": [
+        {
+          "databaseId": 4307788667,
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307788667",
+          "createdAt": "2026-10-18T16:29:28Z",
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Exclude the anchored subject from qualifier detection**\n\nWhen a worker's name ends with a qualifier character, the full quote prefix is mistaken for an amount modifier: runtime validation of `王近工资4000元` with subject `王近`, or `王约工资4000元` with subject `王约`, changes the exact `4000.00` to `approximate` and adds `source_amount_context_mismatch`, while `王甲工资4000元` remains exact. Strip only the already anchored complete subject before applying the prefix qualifier grammar so characters inside a person's name cannot suppress a valid amount.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tsQ4C",
+      "outdated": true,
+      "path": "lib/material-money-v4.ts",
+      "comments": [
+        {
+          "databaseId": 4307788670,
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307788670",
+          "createdAt": "2026-10-18T16:29:28Z",
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Require complete slash denominators to match rate units**\n\nFor slash rates, `suffix[1]` captures the entire letter sequence, but this prefix match accepts only its beginning as the supported unit. Consequently `normalizeMoneyValueV4('4000元/月亮')`, `4000元/月份`, and `4000元/小时候` all return exact `4000.00` instead of rejecting the attached unsupported denominator; a rate candidate whose declared unit matches that prefix can likewise retain the amount. Require the captured denominator to equal a supported unit rather than merely start with one.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tsQ4D",
+      "outdated": true,
+      "path": "experiments/material-facts-v7/assess.mjs",
+      "comments": [
+        {
+          "databaseId": 4307788672,
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307788672",
+          "createdAt": "2026-10-18T16:29:28Z",
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Fold traditional date wrappers during event alignment**\n\nThe scorer allows simplified date boundaries around an inner event anchor but not their traditional equivalents. With an anchor on `2026年1月`, `從2026年1月起` resolves as `unregistered_position` while `从2026年1月起` aligns, and `2026年1月後` similarly fails while `...后` aligns. Production accepts these traditional date forms, so the experiment incorrectly records otherwise equivalent predictions as an FP plus FN; fold `從`/`後`/`間` only in this containment check.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tsWfZ",
+      "outdated": true,
+      "path": "lib/material-fact-source-review.ts",
+      "comments": [
+        {
+          "databaseId": 4307825277,
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307825277",
+          "createdAt": "2026-10-18T16:41:09Z",
+          "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Stop attaching layout guards across unrelated blocks**\n\nBeyond the separately bounded lexical-continuation path, this layout view still concatenates every earlier and later block, including different pages, before applying range, qualifier, arithmetic, and rate guards. I reproduced a valid `王甲收到工资4000元` on page 1 being downgraded to `approximate`, `range`, or `unsupported` when an unrelated page-2 block began with `以上事实无争议`, `至5000元为李乙工资`, or `×2是附件编号`. Restrict these continuations to a demonstrably contiguous OCR fragment or the same local event.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tsWfb",
+      "outdated": false,
+      "path": "lib/material-money-v4.ts",
+      "comments": [
+        {
+          "databaseId": 4307825279,
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307825279",
+          "createdAt": "2026-10-18T16:41:09Z",
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Reject currency-prefixed labels that contain no amount**\n\nAny occurrence of `人民币` or a currency symbol makes the whole value monetary before the complete no-amount wage-label grammar runs. Consequently `人民币工资`, `人民币薪资`, `人民币金额`, and `￥工资` are retained as accepted money candidates with `unsupported` normalization; I also reproduced `王甲人民币工资` being accepted with no review issue. Classify complete currency-plus-label phrases without a numeral or masked amount as `not_monetary`, while retaining genuinely unknown monetary expressions.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tsgfw",
+      "outdated": false,
+      "path": "lib/material-fact-range-review.ts",
+      "comments": [
+        {
+          "databaseId": 4307891613,
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307891613",
+          "createdAt": "2026-10-18T17:01:59Z",
+          "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Treat conjunction-linked suffixes as bounds**\n\nWhen `以上` or `以下` is introduced by the common conjunctions `及` or `或`, this suffix grammar no longer attaches the qualifier to the amount. Both `normalizeMoneyValueV4('4000元及以上')` and a cropped `4000元` candidate quoted from `王甲工资4000元或以下` return `exact` with `4000.00`, so a lower or upper bound can become an exact production amount. Allow the bounded conjunction before these suffixes while retaining the existing ordinary-prose continuation guards.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tsgfx",
+      "outdated": false,
+      "path": "lib/material-money-v4.ts",
+      "comments": [
+        {
+          "databaseId": 4307891618,
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307891618",
+          "createdAt": "2026-10-18T17:01:59Z",
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept 个月 as a monthly rate denominator**\n\nCommon monthly-rate forms using the explicit classifier `个`, such as `4000元每个月` and `4000元/个月` (and traditional `每個月`), are classified as unsupported because the captured denominator must begin directly with `月`. The otherwise equivalent `4000元每月` and `4000元/月` remain exact, so a valid candidate declared with `meaning: \"rate\"` and `rateUnit: \"month\"` loses its amount solely because of this ordinary unit spelling. Recognize the complete `个月`/`個月` alias without accepting longer words such as `月份` or `月亮`.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    }
+  ]
+}

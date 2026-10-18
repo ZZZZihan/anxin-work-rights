@@ -1,0 +1,76 @@
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+CODE = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+EVIDENCE = OWN / 'postfreeze-evidence/round35'
+SOURCE_SHA = sys.argv[1]
+MONEY_SHA = '13c852da181c401b6f1b55c7279ddcc3f25a1f52f3c4d6e0c8a89e1de9d10df8'
+SCRIPTS = [OWN / 'scripts' / name for name in [
+    'material-facts-v7-round35-independent.test.mjs',
+    'material-facts-v7-round35-prose-usability-independent.test.mjs',
+    'material-facts-v7-round35-continuation-independent.test.mjs',
+    'material-facts-v7-round35-optional-layout-independent.test.mjs',
+    'material-facts-v7-round35-currency-continuation-independent.test.mjs',
+]]
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def snapshot():
+    return {str(path.relative_to(CODE)): sha(path) for path in sorted((CODE / 'lib').rglob('*')) if path.is_file()}
+
+def save_new(path, value):
+    with path.open('x') as handle:
+        json.dump(value, handle, ensure_ascii=False, indent=2)
+        handle.write('\n')
+
+before = snapshot()
+assert len(before) == 78, len(before)
+assert before['lib/material-money-v4.ts'] == MONEY_SHA
+assert before['lib/material-fact-source-review.ts'] == SOURCE_SHA
+script_hashes = {str(path.relative_to(OWN)): sha(path) for path in SCRIPTS}
+runs = []
+for name, node in [('node24', '/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node'),
+                   ('node26', '/opt/homebrew/bin/node')]:
+    prefix = EVIDENCE / f'{name}-final-27-{SOURCE_SHA[:8]}'
+    for ending in ['.stdout.tap', '.stderr.log', '.receipt.json']:
+        assert not prefix.with_suffix(ending).exists(), prefix.with_suffix(ending)
+    command = [node, '--test', '--test-reporter=tap', *map(str, SCRIPTS)]
+    started = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    then = time.monotonic()
+    result = subprocess.run(command, cwd=OWN, env={**os.environ, 'V7_REVIEW_ROOT': str(CODE)}, capture_output=True)
+    elapsed = time.monotonic() - then
+    stdout, stderr = prefix.with_suffix('.stdout.tap'), prefix.with_suffix('.stderr.log')
+    stdout.write_bytes(result.stdout)
+    stderr.write_bytes(result.stderr)
+    after = snapshot()
+    script_after = {str(path.relative_to(OWN)): sha(path) for path in SCRIPTS}
+    counts = {key: int(value) for key, value in re.findall(r'^# (tests|pass|fail|cancelled|skipped) (\d+)$', result.stdout.decode(), re.M)}
+    receipt = {'schema': 'round35-final-27-runtime/1', 'started_at': started, 'duration_seconds': elapsed,
+               'command': command, 'cwd': str(OWN), 'source_root': str(CODE),
+               'runtime': subprocess.check_output([node, '--version'], text=True).strip(),
+               'exit_code': result.returncode, 'counts': counts,
+               'protected_before': before, 'protected_after': after, 'protected_files': len(before),
+               'all_protected_unchanged': before == after, 'script_hashes_before': script_hashes,
+               'script_hashes_after': script_after, 'all_scripts_unchanged': script_hashes == script_after,
+               'stdout_sha256': sha(stdout), 'stderr_sha256': sha(stderr)}
+    save_new(prefix.with_suffix('.receipt.json'), receipt)
+    print(json.dumps({key: receipt[key] for key in ['runtime', 'exit_code', 'counts', 'duration_seconds', 'all_protected_unchanged', 'all_scripts_unchanged']}))
+    runs.append(receipt)
+    assert before == after and script_hashes == script_after
+    if result.returncode != 0:
+        sys.exit(result.returncode)
+    assert counts == {'tests': 27, 'pass': 27, 'fail': 0, 'cancelled': 0, 'skipped': 0}, counts
+save_new(EVIDENCE / f'final-27-{SOURCE_SHA[:8]}-dual-runtime.json', {
+    'schema': 'round35-final-27-dual-runtime/1', 'source_sha256': SOURCE_SHA, 'money_sha256': MONEY_SHA,
+    'all_passed': True, 'runs': [str(EVIDENCE / f'{name}-final-27-{SOURCE_SHA[:8]}.receipt.json') for name in ['node24', 'node26']],
+    'no_heavy_execution': 'Only the five finite independent module/runtime/source scripts; no scorer, HTTP, build, full check or historical CLI.',
+})

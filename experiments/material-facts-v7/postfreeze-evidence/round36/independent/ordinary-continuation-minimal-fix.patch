@@ -1,0 +1,11 @@
+--- range-b88a.ts
++++ range-4523.ts
+@@ -7,7 +7,7 @@
+ const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;
+ // Explicit ordinary continuations keep their word boundary; other unknown prose
+ // remains conservative. Do not exempt genuine lower bounds such as 起价.
+-export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|(?:[及或]\\s*)?(?:以上(?!\\s*(?:海|述|文|表|班))|以下(?!\\s*(?:列|述|文|表)))|以内(?!\\s*(?:部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵))|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
++export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|(?:[及或]\\s*)?(?:以上(?!\\s*(?:海|述|文|表|班))|以下(?!\\s*(?:列|述|文|表|内容)))|以内(?!\\s*(?:部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵))|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
+ 
+ /** Fold a detection copy only; never use this text for source positions. */
+ export function moneyQualifierDetectionView(text: string): string {

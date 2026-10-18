@@ -1,0 +1,111 @@
+"""Audit downloaded evidence only; no project command or scorer is executed."""
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import re
+
+P = Path(__file__).resolve().parent
+HEAD = "fa77dbd5bd9942ed1a94d74293b35160aae1e91b"
+
+
+def read(name):
+    return json.loads((P / name).read_text())
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+rawlog = (P / "original-logs/0_check.txt").read_text()
+log = re.sub(r"\x1b\[[0-9;]*m", "", rawlog)
+run = read("terminal-run.json")
+jobs = read("terminal-jobs.json")["jobs"]
+assert run["head_sha"] == HEAD
+assert run["status"] == "completed" and run["conclusion"] == "success"
+assert len(jobs) == 1 and jobs[0]["conclusion"] == "success"
+steps = jobs[0]["steps"]
+assert all(s["conclusion"] == "success" for s in steps)
+identity = read("static-identity-at-start.json")
+merge = identity["pull_merge_sha_at_read"]
+assert f"HEAD is now at {merge[:7]} Merge {HEAD}" in rawlog
+merge_api = read("merge-commit-api-terminal.json")
+assert merge_api["tree"]["sha"] == identity["remote_head_tree"] == identity["local_head_tree"]
+assert HEAD in [p["sha"] for p in merge_api["parents"]]
+
+matches = re.findall(r"ℹ tests (\d+).*?ℹ pass (\d+).*?ℹ fail (\d+).*?ℹ cancelled (\d+).*?ℹ skipped (\d+).*?ℹ duration_ms ([0-9.]+)", log, re.S)
+assert len(matches) == 2, matches
+counters = [dict(zip(["tests", "pass", "fail", "cancelled", "skipped", "duration_ms"], [int(v) for v in row[:5]] + [float(row[5])])) for row in matches]
+assert all(c["fail"] == c["cancelled"] == 0 for c in counters)
+vitest_files = int(re.search(r"Test Files\s+(\d+) passed", log).group(1))
+vitest_tests = int(re.search(r"Tests\s+(\d+) passed", log).group(1))
+assert (vitest_files, vitest_tests) == (46, 1789)
+
+report_rows = []
+for file in sorted((P / "artifacts").rglob("*.json")):
+    report = json.loads(file.read_text())
+    observations = report.get("observations", [])
+    if "status" in report:
+        assert report["status"] == "PASS", file
+    else:
+        assert report["passed"] == len(observations), file
+    assert all(o.get("status", "PASS") == "PASS" for o in observations), file
+    if "cleanup" in report:
+        assert report["cleanup"] == {"status": "PASS", "failures": []}, file
+    report_rows.append({"file": str(file.relative_to(P)), "observations": len(observations), "status": "PASS", "cleanup": report.get("cleanup"), "sha256": digest(file)})
+assert len(report_rows) == 9, report_rows
+
+remote = read("artifacts/material-http-regression/http-facts-v7.json")
+local = read("parent-http410-final.json")
+def without_run_ids(item):
+    return {k: v for k, v in item.items() if k not in {"evidenceId", "jobId"}}
+
+assert len(remote["observations"]) == 410
+assert len(remote["syntheticOutputs"]) == len(local["syntheticOutputs"]) == 411
+assert [without_run_ids(x) for x in remote["syntheticOutputs"]] == [without_run_ids(x) for x in local["syntheticOutputs"]]
+assert remote["observations"][-1]["checkedCases"] == 409
+assert remote["observations"][-1]["storedRawAndHistoryUnchanged"] is True
+assert remote["actualModelInference"] is remote["holdoutRead"] is remote["historicalReportsOverwritten"] is False
+
+artifacts = read("downloaded-artifacts-manifest.json")
+assert len(artifacts) == 2
+for artifact in artifacts:
+    assert artifact["digest_matches"]
+    assert digest(P / artifact["file"]) == artifact["sha256"]
+    assert artifact["sha256"] in rawlog, "API, original ZIP, and upload log must bind the same bytes"
+
+historical = read("local-historical-manifests-hashes.json")
+historical_checks = []
+for version in [5, 6]:
+    row = next(x for x in historical if x["path"] == f"experiments/material-facts-v{version}/result-manifest.json")
+    assert row["sha256"] in rawlog
+    historical_checks.append(row)
+assert '"execution":"original_v6_verify_and_summary_in_temporary_tree"' in rawlog
+assert '"summary_checked":true' in rawlog
+
+review = read("review-thread-state-terminal.json")
+analysis = {
+    "schema": "exact-fa77-ci-downloaded-artifact-audit/1",
+    "audit_time": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    "run": run["id"], "head": HEAD,
+    "checkout_merge": merge, "head_and_checkout_tree": identity["remote_head_tree"],
+    "step_count": len(steps), "all_steps_success": True,
+    "node_version": re.search(r"node: (v[0-9.]+)", log).group(1),
+    "vitest": {"tests": vitest_tests, "files": vitest_files},
+    "materials": counters[0], "runtime": counters[1],
+    "reports": report_rows,
+    "artifact_zips": len(artifacts), "artifact_members": sum(len(a["entries"]) for a in artifacts),
+    "artifact_digests_match_original_zip_api_and_upload_log": True,
+    "v7": {"observations": 410, "raw_entries": 411, "raw_candidate_finish_reason_equal_parent_excluding_only_evidenceId_jobId": True, "restart_snapshots": 409, "stored_raw_and_history_unchanged": True, "cleanup": "PASS", "actualModelInference": False},
+    "historical_result_manifest_log_digests_equal_local": historical_checks,
+    "v6_original_verifier_and_summary_ran_in_owned_temporary_tree": True,
+    "github_deployments_exact_head": len(read("deployments-exact-head-terminal.json")),
+    "github_deployments_checkout_merge": len(read("deployments-merge-terminal.json")),
+    "review_head_at_read": review["head_at_review_read"], "review_threads": review["threads"],
+    "unresolved_review_threads": len(review["unresolved"]),
+    "boundaries": ["Downloaded CI evidence audit only; local HTTP/fullcheck were parent executions", "Synthetic HTTP/real OCR tools do not establish real-model or human business acceptance", "No workflow, deployment, rerun, comment, or project command was triggered by this audit", "No GitHub deployment records is limited to the two exact SHAs queried"],
+}
+with (P / "artifact-and-log-audit.json").open("x") as out:
+    json.dump(analysis, out, ensure_ascii=False, indent=2)
+    out.write("\n")
+print(json.dumps({"steps": len(steps), "runtime": counters[1], "materials": counters[0], "http": [r["observations"] for r in report_rows], "raw_equal": True, "unresolved": len(review["unresolved"])}))

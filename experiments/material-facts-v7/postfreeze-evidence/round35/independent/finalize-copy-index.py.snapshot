@@ -1,0 +1,19 @@
+from pathlib import Path
+import hashlib,json,datetime
+own=Path(__file__).resolve().parents[2]
+e=Path(__file__).resolve().parent
+names=["material-facts-v7-round35-independent.test.mjs","material-facts-v7-round35-prose-usability-independent.test.mjs","material-facts-v7-round35-continuation-independent.test.mjs","material-facts-v7-round35-optional-layout-independent.test.mjs","material-facts-v7-round35-currency-continuation-independent.test.mjs"]
+items=[]
+for p in sorted(e.rglob("*")):
+    if not p.is_file() or p.name=="copy-index.final.json":continue
+    rel=p.relative_to(e).as_posix()
+    target="experiments/material-facts-v7/postfreeze-evidence/round35/independent/"+rel
+    if p.suffix in {".ts",".mjs",".py"}:target+=".snapshot"
+    b=p.read_bytes();items.append({"source":str(p),"target":target,"sha256":hashlib.sha256(b).hexdigest(),"bytes":len(b),"kind":"append-only evidence"})
+for name in names:
+    p=own/"scripts"/name;b=p.read_bytes()
+    items.append({"source":str(p),"target":"scripts/"+name,"sha256":hashlib.sha256(b).hexdigest(),"bytes":len(b),"kind":"active independent test"})
+assert len({x["target"] for x in items})==len(items)
+result={"schema":"round35-independent-final-copy-index/1","created_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),"source_root":str(own),"append_only":True,"overwrite_existing_different_bytes":False,"archive_policy":"Historical .ts/.mjs/.py evidence receives .snapshot suffix at target to avoid application compiler/lint discovery; five active tests alone retain scripts paths.","evidence_entries":len(items)-len(names),"active_test_entries":len(names),"total_bytes":sum(x["bytes"] for x in items),"entries":items}
+with (e/"copy-index.final.json").open("x") as f:json.dump(result,f,ensure_ascii=False,indent=2);f.write("\n")
+print(json.dumps({k:result[k] for k in ("evidence_entries","active_test_entries","total_bytes")},ensure_ascii=False))

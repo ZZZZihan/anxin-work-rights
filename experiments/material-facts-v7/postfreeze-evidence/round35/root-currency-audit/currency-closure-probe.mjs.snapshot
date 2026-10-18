@@ -1,0 +1,7 @@
+import {ingestRuntimeCandidates} from './lib/material-fact-runtime-ingest.ts';
+import {emptyFactState} from './lib/material-facts-v3.ts';
+for(const tail of ['USD','港币','港元','美元','EUR','JPY','HKD']) {
+ const source={id:'currency-adjacent-probe',name:'synthetic.txt',sha256:'a'.repeat(64),analysisRevision:1,ready:true,blocks:[{id:'b1',page:1,text:'王甲工资4000元整',bbox:null,confidence:null},{id:'b2',page:1,text:tail+'。',bbox:null,confidence:null}]};
+ const c={kind:'money',value:'4000元',quote:'4000元',blockId:'b1',subject:'王甲',scope:'individual',meaning:'other_money',completeness:'not_applicable',period:null,rateUnit:null,assertion:'narrated'};
+ const raw=JSON.stringify({schemaVersion:3,candidates:[c]});const s=ingestRuntimeCandidates(emptyFactState(1),source,{raw},'synthetic','probe','2026-10-19T00:00:00Z',null);const f=s.materials[0].candidates[0];console.log(JSON.stringify({tail,amount:f.amount,status:f.normalization.status}));
+}

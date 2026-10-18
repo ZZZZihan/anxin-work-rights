@@ -1,0 +1,28 @@
+--- 1cc56d6bc52b67f5c53e7805a9bac0614dfaecd1/lib/material-money-v4.ts
++++ final-CODE/lib/material-money-v4.ts
+@@ -281,7 +281,7 @@
+     if (moneyTokenHasNonCurrencySubunit(text, after)) return result(rawValue, 'unsupported', '匹配到的角或分属于时间、计量或普通词语，未作为分币金额。');
+     const suffixRate = attachedSuffixRate(after);
+     if (suffixRate.present && !suffixRate.supported) return result(rawValue, 'unsupported', '金额直接附着不受支持的费率分母，未将分子当作总额。');
+-    const qualifierStatus = attachedQualifierStatus(moneyQualifierPrefixWithoutSubject(before, subject), after);
++    const qualifierStatus = attachedQualifierStatus(moneyQualifierPrefixWithoutSubject(before, subject), monetaryDetectionView(after));
+     if (qualifierStatus) return result(rawValue, qualifierStatus, '完整金额带有数量不定、概数界限或正负限定，未截取其中的精确正数。');
+     const yuanAt = text.search(/[元圆圓]/u);
+     if (yuanAt >= 0 && !isRmbCurrencyUnitAt(rawValue, index + yuanAt)) return result(rawValue, 'unsupported', '匹配到的元或圆属于普通词语，不能截成金额单位。');
+@@ -387,6 +387,7 @@
+   const unit = text?.match(/^(小时|月|日|天|时|件)/u);
+   const remainder = unit ? text!.slice(unit[0].length) : '';
+   const supported = unit && (remainder === '' || hasPostposedMoneyUncertainty(remainder)
++    || attachedQualifierStatus('', remainder) !== null
+     || /^(?:计算|计酬|计价|计薪|计|支付|发放|付清)$/u.test(remainder)) ? unit[1] : undefined;
+   return { present: suffix !== null, supported, postposedBy: false,
+     uncertain: supported !== undefined && hasPostposedMoneyUncertainty(detection) };
+@@ -472,7 +473,7 @@
+       const attachedPaymentInstruction = hasCompleteMoneyUnit(normalized.matchedText ?? '') && isPostposedMoneyPaymentInstruction(arithmeticAfter);
+       const sourceAnchor = { blockText: local.text, valueStart: offset };
+       const attachedCurrency = sourceMoneyHasExplicitRmbCurrency(sourceAnchor, normalized);
+-      const qualifierStatus = attachedQualifierStatus(moneyQualifierPrefixWithoutSubject(arithmeticBefore, candidate.subject), arithmeticAfter);
++      const qualifierStatus = attachedQualifierStatus(moneyQualifierPrefixWithoutSubject(arithmeticBefore, candidate.subject), monetaryDetectionView(arithmeticAfter));
+       const valueCharacters = Array.from(candidate.value), span = normalized.span;
+       const rangeBefore = arithmeticBefore + (span ? valueCharacters.slice(0, span.start).join('') : '');
+       const rangeToken = span ? valueCharacters.slice(span.start, span.end).join('') : candidate.value;

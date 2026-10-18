@@ -1,0 +1,88 @@
+from pathlib import Path
+import json, hashlib, re, datetime
+ROOT=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+OUT=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/experiments/material-facts-v7/postfreeze-evidence/round34/v26-prepared')
+E=Path('experiments/material-facts-v7')
+sha=lambda b:hashlib.sha256(b).hexdigest()
+V25='4eef4eeeba7df54d6f40a67ff4cca3170de8788b1ab9578b45c29d06ed1cb8ca'
+V24='86560d13902cba7458cae1d5c1b9175c01442c404a4d47bd17305950206e795e'
+BRIDGE24='b4e7d8970080e830afc94d4bddeb36cb1d12b1d150353e8ca41335d0c709f424'
+assert sha((ROOT/E/'corrections-v25/manifest.json').read_bytes())==V25
+assert sha((ROOT/E/'historical-v24-execution.mjs').read_bytes())==BRIDGE24
+prior=json.loads((ROOT/E/'corrections-v25/manifest.json').read_text())
+assert len(prior['code_sha256'])==94
+archive=json.loads((ROOT/E/'correction-code-v25/manifest.json').read_text())
+assert archive['correction_manifest_sha256']==V25
+assert archive['files']==prior['code_sha256']
+for p,h in archive['files'].items(): assert sha((ROOT/E/'correction-code-v25'/(p+'.snapshot')).read_bytes())==h,p
+protected={}
+for p in (ROOT/E).rglob('*'):
+    if not p.is_file():continue
+    rel=p.relative_to(ROOT/E)
+    if rel.parts[0].startswith(('correction-code-', 'frozen-code')) or (len(rel.parts)==1 and (p.name in ['freeze.json','result-manifest.json'] or p.name.startswith('historical-'))) or (p.name=='manifest.json' and rel.parts[0].startswith('corrections')):
+        protected[str(p.relative_to(ROOT))]=sha(p.read_bytes())
+(OUT/'protected-before.json').write_text(json.dumps(protected,ensure_ascii=False,indent=2)+'\n')
+
+def read(p):return (ROOT/p).read_text()
+def bump(t,m):return re.sub('|'.join(map(re.escape,sorted(m,key=len,reverse=True))),lambda x:m[x.group()],t)
+def create(p,t):
+    with (ROOT/p).open('x') as f:f.write(t)
+    return p
+new=[]
+t=read(E/'historical-v24-execution.mjs')
+new.append(create(E/'historical-v25-execution.mjs',bump(t,{'V24':'V25','v24':'v25'})))
+t=read(E/'verify-correction-v24.mjs')
+t=bump(t,{'V24':'V25','v24':'v25','twenty-fourth':'twenty-fifth','correction-code/24':'correction-code/25'})
+new.append(create(E/'verify-correction-v25.mjs',t))
+t=read(E/'corrective-assessment-v25.mjs')
+t=bump(t,{'V24':'V25','V25':'V26','v24':'v25','v25':'v26','twenty-fifth':'twenty-sixth','correction/25':'correction/26','manifest/25':'manifest/26'})
+old="Apply finite ROUND33 safeguards for postposed RMB group scope, repeated currency markers and original lexical block boundaries. Same original outputs; no inference or label changes."
+reason="Apply finite ROUND34 safeguards for recurring payment dates with prepositions, traditional date cues, uniquely anchored short subjects ending in near/approximately characters, complete slash/per rate units and traditional date-containment boundary cues. Preserve actual adjacent qualifiers and ambiguous event boundaries. Same original outputs; no inference, label, raw text or code-point changes."
+assert old in t
+t=t.replace(old,reason)
+t=t.replace('_v23_v25_preserved:', '_v23_v24_v25_preserved:')
+new.append(create(E/'corrective-assessment-v26.mjs',t))
+
+native=Path('scripts/material-facts-v7-historical-v25-execution.test.mjs')
+t=read(Path('scripts/material-facts-v7-historical-v24-execution.test.mjs'))
+t=bump(t,{'V23':'V24','V24':'V25','v23':'v24','v24':'v25','v25':'v26'})
+# Change the preceding bridge digest explicitly; never replace arbitrary digits.
+assert "const V24_BRIDGE = '38e1c99c2f6f7d102f4efb1e3b1ebedd9f3459a7bdf54e70f9c319b7e98d85f4';" in t
+t=t.replace("const V24_BRIDGE = '38e1c99c2f6f7d102f4efb1e3b1ebedd9f3459a7bdf54e70f9c319b7e98d85f4';",f"const V24_BRIDGE = '{BRIDGE24}';")
+new.append(create(native,t))
+
+current_gate=Path('scripts/material-facts-v7-correction-v25-gates-independent.test.mjs')
+current_bytes=(ROOT/current_gate).read_bytes()
+(OUT/'v25-current-gate-before-conversion.mjs.snapshot').write_bytes(current_bytes)
+t=current_bytes.decode()
+t=bump(t,{'V24':'V25','V24Code':'V25Code','v24':'v25','v25':'v26'})
+# V24Code is covered by the longest-first replacement and maps to V25Code.
+assert f"const V25 = '{V24}';" in t
+t=t.replace(f"const V25 = '{V24}';",f"const V25 = '{V25}';")
+t=t.replace('24, 25].map','24, 25, 26].map')
+t=t.replace('binds 94 exact','binds 97 exact').replace('.length, 94)', '.length, 97)')
+t=t.replace('all 91 historical','all 94 historical')
+t=t.replace('postposed RMB boundaries and source lexical context','finite date, complete rate-unit and subject qualifier boundaries')
+new.append(create(Path('scripts/material-facts-v7-correction-v26-gates-independent.test.mjs'),t))
+
+# Adapt the former current gate25 to historical-only checks using gate24's already-reviewed shape.
+t=read(Path('scripts/material-facts-v7-correction-v24-gates-independent.test.mjs'))
+t=bump(t,{'V23':'V24','V24':'V25','v23':'v24','v24':'v25'})
+assert "const V24 = 'e41acaf87e52dda27236aabbddd0c509c1d9762eaf46ef2e46314030e7f1b56c';" in t
+t=t.replace("const V24 = 'e41acaf87e52dda27236aabbddd0c509c1d9762eaf46ef2e46314030e7f1b56c';",f"const V24 = '{V24}';")
+t=t.replace(f"const V25 = '{V24}';",f"const V25 = '{V25}';")
+t=t.replace('23, 24].map','23, 24, 25].map')
+t=t.replace('91 exact dependencies','94 exact dependencies').replace('.length, 91)', '.length, 94)')
+(ROOT/current_gate).write_text(t)
+changed=new+[current_gate]
+# Exact immutable-byte preservation only; no historical checks or scoring are executed.
+after={p:sha((ROOT/p).read_bytes()) for p in protected}
+assert protected==after
+(OUT/'protected-after.json').write_text(json.dumps(after,ensure_ascii=False,indent=2)+'\n')
+code=set(prior['code_sha256'])|{str(E/'verify-correction-v25.mjs'),str(E/'historical-v25-execution.mjs'),str(E/'corrective-assessment-v26.mjs')}
+assert len(code)==97
+for p in code:assert (ROOT/p).is_file(),p
+assert not (ROOT/E/'corrections-v26').exists()
+files={str(p):sha((ROOT/p).read_bytes()) for p in changed}
+(OUT/'prepared-files.json').write_text(json.dumps({'new':list(map(str,new)),'modified':[str(current_gate)],'files_sha256':files,'future_code_count':len(code),'archive_code_count':94,'v25_manifest_sha256':V25,'old_protected_files':len(protected),'old_protected_unchanged':True,'actual_scoring_executed':False,'actual_v26_write_executed':False},ensure_ascii=False,indent=2)+'\n')
+print(json.dumps({'prepared_files':files,'protected_files':len(protected),'code_union':len(code),'archive':94},ensure_ascii=False))

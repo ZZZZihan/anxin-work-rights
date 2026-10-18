@@ -1,0 +1,91 @@
+{
+  "schema": "anxin.process-tree-ready-record-race-review/1",
+  "created_at": "2026-10-18T18:11:41.320112+00:00",
+  "request_model": "gpt-6.1-sol / ultra; actual backend not independently verified",
+  "status": "SCOPED_FIX_READY_FOR_PARENT_INTEGRATION",
+  "scope": {
+    "modified_source": [
+      "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-http-process-tree.test.mjs"
+    ],
+    "production_helper_modified": false,
+    "historical_or_frozen_files_modified": false,
+    "committed_or_pushed": false,
+    "local_full_check_or_HTTP_or_model_run": false
+  },
+  "ci_evidence": {
+    "url": "https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39152232243",
+    "head": "fa77dbd5bd9942ed1a94d74293b35160aae1e91b",
+    "runtime": {
+      "tests": 8892,
+      "pass": 8891,
+      "fail": 1,
+      "skipped": 0
+    },
+    "failure": "redirected-ignore-term fixture line69 JSON.parse(await readFile(marker)): Unexpected end of JSON input",
+    "log_sha256": "9483243b1758765e049eb22c00116cc88e17e197949e124f827b37831fe061d7",
+    "baseline_test_sha256": "7323a90a924f44e7873732e7e5441f20ea3572d885f3897df364835a522df8d9"
+  },
+  "mechanism": "The prior ready loop only proved readFile succeeded. Opening the final path preceded completion of writeFile, permitting an empty or partial JSON read. The leaf now writes a same-directory process-specific staged file with wx, awaits completion, then renames it to publish. readyRecord retries only ENOENT and propagates malformed JSON/read failures; a child exit before publication is explicit.",
+  "deterministic_red": {
+    "result": {
+      "tests": 2,
+      "pass": 0,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "exit_code": 1,
+    "kind": "Controlled real-filesystem write pause with old direct-to-final publication protocol; same new assertions, not an unchanged historical suite or exact Linux CI rerun.",
+    "empty_and_partial_values": [
+      "",
+      "{\"pid\":"
+    ],
+    "log": "deterministic-direct-red.tap"
+  },
+  "local_green": {
+    "runtime": "Node24.22.0",
+    "platform": "Darwin",
+    "result": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "exit_code": 0,
+    "original_lifecycle_tests": 5,
+    "new_tests": 4,
+    "native_process_and_socket_checks": true,
+    "cases": [
+      "empty staged write not published",
+      "partial staged write not published",
+      "malformed final JSON propagates SyntaxError",
+      "real child exit17 before publication propagates failure"
+    ],
+    "log": "final-node24.tap",
+    "syntax_exit_code": 0,
+    "scoped_eslint_exit_code": 0,
+    "eslint_note": "Non-failing React version detection warning recorded."
+  },
+  "preservation": {
+    "original_five_lifecycle_assertions_preserved": true,
+    "selected_CODE_product_and_lifecycle_hashes_unchanged": true,
+    "selected_hash_count": 6,
+    "v26_manifest_sha256_observed": "3046e7bf9318945e38d3c4de724563cd32fbf251629314aedaa419d81cf654cf",
+    "v26_code_binding_count": 97,
+    "test_is_v26_binding": false,
+    "not_full_immutable_asset_verification": true
+  },
+  "handoff": {
+    "file": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-http-process-tree.test.mjs",
+    "sha256": "a645b80033e58b010b87bb598a6b70048d9c8f47f956a55f97bec8627d540949",
+    "patch": "process-tree-marker-publication.patch",
+    "patch_sha256": "e02c2fbbf3463bbfd36d07d3abbca9e618c5545569ca92ec680b5e23829c30ed"
+  },
+  "limitations": [
+    "No claim that a local scheduling race reproduced the exact CI occurrence; deterministic injected pauses reproduce its publication contract violation.",
+    "Local original lifecycle cases used real macOS kernel processes/sockets and the existing production helper; no new Linux run or complete CI/full check was performed.",
+    "This synthetic fixture repair is not model, legal, expert-label, user, or production acceptance.",
+    "No assertion of power-loss durability or arbitrary cross-filesystem rename guarantees."
+  ]
+}

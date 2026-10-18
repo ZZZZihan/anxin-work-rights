@@ -1,0 +1,61 @@
+{
+  "schema": "material-facts-v7-round34-v26-schema-closure/1",
+  "created_utc": "2026-10-18T16:52:11.675407+00:00",
+  "finding": "Independent static review found four stale schema assertions in the prepared gates. Native7 executes the bridge contract and did not exercise these gate bodies.",
+  "changes": [
+    {
+      "path": "scripts/material-facts-v7-correction-v25-gates-independent.test.mjs",
+      "before_sha256": "5903fda65b57be4dac2912998c10589af94c97d4a33420a48c5fc3b934507d18",
+      "after_sha256": "f8d978e87e61cb2ef4f508d3500866c36fb63a2db18400af493f2037cf54d200",
+      "changes": "Exactly two schema assertions stepped to matching version; no digest/count/behavioral expectations changed"
+    },
+    {
+      "path": "scripts/material-facts-v7-correction-v26-gates-independent.test.mjs",
+      "before_sha256": "26ddd932c4048012e0ed25ba784ed43531bf0e9438d18a6f6d06ff1ba6fc5d9f",
+      "after_sha256": "709767c4b0968114bcc4965ea1e7eef8043153a7b2842182d1f0f5896fa7dbe1",
+      "changes": "Exactly two schema assertions stepped to matching version; no digest/count/behavioral expectations changed"
+    }
+  ],
+  "prior_receipt_retained": "v26-preparation.receipt.json",
+  "prior_index_retained": "copy-index.json",
+  "actual_checks": [
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/material-facts-v7-correction-v25-gates-independent.test.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/material-facts-v7-correction-v26-gates-independent.test.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "scripts/material-facts-v7-correction-v25-gates-independent.test.mjs",
+        "scripts/material-facts-v7-correction-v26-gates-independent.test.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "old_protected_hashes_checked": 1595,
+  "old_protected_unchanged": true,
+  "gates_executed": false,
+  "historical_CLI_or_scorer_executed": false,
+  "native7_repeated": false,
+  "model_requests": 0,
+  "claim": "Schema assertions now agree with actual v25 JSON and the v26 controller literals; actual historical/current gate execution remains pending parent integration."
+}

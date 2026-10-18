@@ -1,0 +1,47 @@
+from pathlib import Path
+import json,re,hashlib,datetime
+p=Path(__file__).resolve().parent
+text=(p/"original-logs/0_check.txt").read_text()
+plain=re.sub(r"\x1b\[[0-9;]*m","",text)
+run=json.loads((p/"terminal-run.json").read_text());job=json.loads((p/"terminal-jobs.json").read_text())["jobs"][0]
+assert run["status"]=="completed" and run["conclusion"]=="success"
+assert run["head_sha"]=="e99df1d3061f60b07fd9fa3e0df39f896f97f695"
+assert all(s["conclusion"]=="success" for s in job["steps"])
+groups=re.findall(r"ℹ tests (\d+).*?ℹ pass (\d+).*?ℹ fail (\d+).*?ℹ cancelled (\d+).*?ℹ skipped (\d+).*?ℹ duration_ms ([0-9.]+)",plain,re.S)
+assert len(groups)==2,groups
+counts=[dict(zip(["tests","pass","fail","cancelled","skipped","duration_ms"],[int(x) for x in a[:5]]+[float(a[5])])) for a in groups]
+assert counts[0]["pass"]==68 and counts[1]["pass"]==8667
+assert all(x["fail"]==x["cancelled"]==x["skipped"]==0 for x in counts)
+assert re.search(r"Test Files\s+46 passed",plain) and re.search(r"Tests\s+1789 passed",plain)
+reports=[]
+for f in sorted((p/"artifacts").rglob("*.json")):
+    j=json.loads(f.read_text());observations=j.get("observations",[])
+    if "status" in j:assert j["status"]=="PASS",f
+    else:assert j["passed"] is True,f
+    for o in observations:
+        if "status" in o:assert o["status"]=="PASS",(f,o)
+    if "cleanup" in j:assert j["cleanup"]=={"status":"PASS","failures":[]},f
+    reports.append({"file":str(f.relative_to(p)),"observations":len(observations),"status":"PASS","cleanup":j.get("cleanup"),"sha256":hashlib.sha256(f.read_bytes()).hexdigest()})
+assert len(reports)==9
+r=json.loads((p/"artifacts/material-http-regression/http-facts-v7.json").read_text());l=json.loads((p/"parent-http388-final.json").read_text())
+def stable(x):return {k:v for k,v in x.items() if k not in {"evidenceId","jobId"}}
+assert [stable(x) for x in r["syntheticOutputs"]]==[stable(x) for x in l["syntheticOutputs"]]
+assert len(r["syntheticOutputs"])==389 and r["observations"][-1]["checkedCases"]==387
+assert r["observations"][-1]["storedRawAndHistoryUnchanged"] is True
+assert r["actualModelInference"] is r["holdoutRead"] is r["historicalReportsOverwritten"] is False
+arts=json.loads((p/"downloaded-artifacts-manifest.json").read_text())
+assert len(arts)==2 and all(a["digest_matches"] for a in arts)
+for a in arts:
+    assert hashlib.sha256((p/a["file"]).read_bytes()).hexdigest()==a["sha256"]
+    assert a["sha256"] in text
+identity=json.loads((p/"static-identity-at-start.json").read_text())
+assert identity["merge_tree_equal_head_tree"]
+checkout=identity["pull_merge_sha_at_read"]
+assert f"HEAD is now at {checkout[:7]} Merge {run['head_sha']}" in text
+for version,sha in [(5,"980ce7d3d470a956ebcf46f4ff2998619d790359218937184fca1cefd77dcd9c"),(6,"41882c5c653576fce3fb737028217d35476abcc3f9dd0a041ceda47ceca35913")]:
+    local=next(x for x in json.loads((p/"local-historical-manifests-hashes.json").read_text()) if x["path"]==f"experiments/material-facts-v{version}/result-manifest.json")
+    assert local["sha256"]==sha and sha in text
+assert '"execution":"original_v6_verify_and_summary_in_temporary_tree"' in text and '"summary_checked":true' in text
+analysis={"schema":"exact-e99-ci-downloaded-artifact-audit/1","audit_time":datetime.datetime.now(datetime.timezone.utc).isoformat(),"run":run["id"],"head":run["head_sha"],"checkout_merge":checkout,"tree":identity["remote_head_tree"],"all_27_steps_success":True,"node_version":re.search(r"node: (v[0-9.]+)",plain).group(1),"vitest":{"tests":1789,"files":46},"materials":counts[0],"runtime":counts[1],"python_in_npm_check":[9,11,16],"earlier_frozen_baseline_python_groups":[37,11,68,79],"reports":reports,"artifact_zips":len(arts),"artifact_members":sum(len(a["entries"]) for a in arts),"artifact_digests_all_match_api_and_upload_log":True,"v7":{"observations":388,"raw_candidates_finish_reason_equal_local_excluding_only_evidenceId_jobId":True,"raw_entries":389,"restart_snapshots":387,"raw_and_history_unchanged":True,"actualModelInference":False,"cleanup":"PASS"},"historical_public_step":"v4 original+replication; v5 verify+summary; v6 owned-temporary archived verify+summary; no new inference","v5_v6_manifest_digests_equal_local":True,"github_deployments_exact_head":len(json.loads((p/"deployments-exact-head-terminal.json").read_text())),"github_deployments_checkout_merge":len(json.loads((p/"deployments-merge-terminal.json").read_text()))}
+with (p/"artifact-and-log-audit.json").open("x") as f:json.dump(analysis,f,ensure_ascii=False,indent=2);f.write("\n")
+print(json.dumps({"runtime":counts[1]["pass"],"materials":counts[0]["pass"],"reports":len(reports),"artifact_digests":True,"raw_equal":True}))
