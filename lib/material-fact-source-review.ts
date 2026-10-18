@@ -119,10 +119,16 @@ function sourceMoneyLayoutEdges(context: AnchoredSourceEvent, normalized: Candid
 }
 
 /** Inspect the original block: a grouping comma may already be outside the local clause. */
-function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: CandidateNormalization, layoutAfter?: string): boolean {
+function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: CandidateNormalization, layoutAfter?: string, layoutBefore?: string): boolean {
   const edges = monetaryEdges(context, normalized);
   if (!edges) return false;
   const numerals = '0-9０-９零〇一二三四五六七八九十百千万萬亿億两兩壹贰貳叁參肆伍陆陸柒捌玖拾佰仟';
+  // A newly supported RMB cents fragment can be the tail of the preceding
+  // layout block's amount (5角 / 2分RMB). Do not expose that tail as 0.02.
+  // Only directly attached numeric monetary units bridge whitespace/Cf;
+  // punctuation, ordinary unit words and another owner break this guard.
+  const leading = (layoutBefore ?? edges.before).normalize('NFKC').replace(/\p{Cf}/gu, '');
+  if (new RegExp(`[${numerals}]+\\s*[元圆圓角分]\\s*$`, 'u').test(leading)) return true;
   if (new RegExp(`[${numerals}.．]$`, 'u').test(edges.before)
     || new RegExp(`[${numerals}][^\\S\\r\\n]*[,，]$`, 'u').test(edges.before)) return true;
   if (!/[元圆圓角分](?:整|正)?$/u.test(edges.matched)) {
@@ -192,6 +198,20 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   // Only the naked 月/日/时工资 alternative can collide with a calendar token.
   const calendarPrefix = before.slice(0, prefix.index);
   const explicitStandard = prefix[0].includes('标准');
+  // A bare 月/日/时工资 token can start inside a complete short worker name.
+  // Require its literal unique owner at the clause heading, rather than letting
+  // an arbitrary model subject swallow a real rate (e.g. 王甲月/李王月).
+  if (!explicitStandard && prefix[2] && /^(?:月|日|时)(?:基本)?工资/u.test(prefix[0]) && subject
+    && /^[王李张張刘劉陈陳杨楊黄黃赵趙吴吳周徐孙孫马馬朱胡郭何高林罗羅郑鄭梁谢謝宋唐许許韩韓冯馮邓鄧曹彭曾肖萧蕭田董袁潘于蒋蔣蔡余杜叶葉程苏蘇魏吕呂丁任沈姚卢盧姜崔钟鍾谭譚陆陸汪范金石廖贾賈夏韦韋方白邹鄒孟熊秦邱侯江尹薛阎閻段雷龙龍黎史陶贺賀顾顧毛郝龚龔邵万萬钱錢严嚴武戴莫孔向汤湯][月日时時]$/u.test(subject)) {
+    const literalBefore = edges.before.split(/[，,。！？!?；;\n\r\u2028\u2029]/u).at(-1)!;
+    const owner = literalBefore.indexOf(subject);
+    if (owner >= 0 && literalBefore.indexOf(subject, owner + 1) < 0) {
+      const heading = literalBefore.slice(0, owner).replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, '').trim();
+      const nameEnd = detectionText(literalBefore.slice(0, owner + subject.length)).length;
+      if (/^(?:(?:劳动者|员工|工人|原告|被告|申请人|被申请人)\s*[:：]?\s*)?$/u.test(heading)
+        && prefix.index! + prefix[2].length === nameEnd) return null;
+    }
+  }
   if (!explicitStandard && prefix[2] && /[0-9零〇一二三四五六七八九十百千万两正腊臘]$/u.test(calendarPrefix)
     && !(subject && calendarPrefix.endsWith(detectionText(subject)))) return null;
   if (!explicitStandard && prefix[2] === '月' && /^月(?:基本)?工资/u.test(prefix[0])
@@ -291,7 +311,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       else if (layout && (hasPostposedMoneyUncertainty(layout.after) || postposedRate?.uncertain)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额后直接附着问号、待核或未知标记；保留原文，不将裁剪金额作为确定值。'),
       };
-      else if (truncatedMoneyToken(context, sourceNormalized.normalization, layout?.after)) sourceNormalized = {
+      else if (truncatedMoneyToken(context, sourceNormalized.normalization, layout?.after, layout?.before)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
       };
       else if (layout && (sourceHasUnsupportedRate(layout.before) || postposedRate?.unit === null)) sourceNormalized = {
