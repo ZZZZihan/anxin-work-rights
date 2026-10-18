@@ -23,7 +23,7 @@ function permittedContainment(kind, position, anchor, text) {
   const before = points.slice(outer.start, inner.start).join('');
   const after = points.slice(inner.end, outer.end).join('');
   if (kind === 'money') return /^\s*(?:(?:人民[币幣]|RMB|CNY|[¥￥])\s*)?$/iu.test(before)
-    && /^\s*(?:整|正)?\s*(?:(?:工资|劳务费|劳动报酬)\s*)?$/u.test(after);
+    && /^\s*(?:整|正)?\s*(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/u.test(after);
   return /^\s*(?:自|从|截至)?\s*$/u.test(before)
     && /^\s*(?:起|止|前|后|间|期间)?\s*$/u.test(after);
 }

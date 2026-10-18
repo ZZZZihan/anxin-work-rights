@@ -838,6 +838,22 @@ try {
     return { amount: spec.amount, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: spec.amount === null };
   });
   // End ROUND21 additions.
+  // ROUND22: traditional numeral aliases and explicit weekday wage periods.
+  for (const spec of [
+    ...[['人民幣兩萬圓', '20000.00'], ['人民幣四億圓', '400000000.00'], ['4億圓', '400000000.00']].map(([value, amount]) => ({ name: `traditional-alias-${value}`, text: `测试王甲工资${value}。`, value, amount })),
+    ...['周日', '星期日', '礼拜日'].map(day => ({ name: `weekday-${day}`, text: `测试王甲${day}工资400元。`, value: '400元', amount: '400.00' })),
+  ]) await scenario(`round22_${spec.name}`, async () => {
+    const [item] = await fixture(`round22-${spec.name}`, [{ text: spec.text, candidates: [money(spec.value, spec.value, { period: null })] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    assert.equal(material.candidates[0].amount, spec.amount); assert.equal(material.candidates[0].normalization.status, 'exact');
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, spec.amount);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round22-${spec.name}`, item, state: before });
+    return { amount: spec.amount, rawAndStoredHistoryUnchanged: true };
+  });
+  // End ROUND22 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
