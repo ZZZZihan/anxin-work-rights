@@ -1,7 +1,7 @@
 import type { FactCandidate, FactSource, FactState } from './material-fact-types';
 import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 } from './material-fact-types-v3';
 import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from './material-facts-v3.ts';
-import { normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
+import { hasUnfinishedMoneyRangeAfter, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
 import { sourceMoneyHasNonCurrencySubunit, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
@@ -220,6 +220,9 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       };
       else if (layout && isMoneyRangeEndpoint(layout.before, layout.matched, layout.after)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文明确给出金额区间，未将裁剪后的任一端点作为精确金额。', 'range'),
+      };
+      else if (layout && hasUnfinishedMoneyRangeAfter(layout.after)) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额后仍有未完成的区间端点，未将裁剪后的起始金额作为精确金额。', 'uncertain'),
       };
       else if (qualifierStatus) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着符号、数量不定或上下界限定，未将裁剪后的数值作为精确金额。', qualifierStatus),

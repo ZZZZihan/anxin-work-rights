@@ -1,0 +1,59 @@
+{
+  "scope": "Existing numeric fallback export only; no regex/token/parse changes. Source wiring belongs to root.",
+  "baseline_money_sha256": "f7c2e936088985b631a77c17d63c86fec6dfcc4ef50d0c54d322b14dbdc3d148",
+  "final_money_sha256": "b12b3d2c75b704f1f29ad8124edf0d0b99212d5c591e15a51e3fa5e91b7666c0",
+  "author_test_sha256": "d82c625a2cb99d1df1d1f8148df5ed5d2df416ca8b8d1471dc997bced2c03190",
+  "api": "hasUnfinishedMoneyRangeAfter(after: string): boolean",
+  "ordering": "Call after complete range endpoint detection. The fallback is exactly RANGE_NUMERIC_AFTER && !RANGE_TIME_AFTER after monetaryDetectionView.",
+  "checks": {
+    "shared-api.before-red.txt": {
+      "kind": "fixture setup error",
+      "detail": "Default own dependencies are old; missing isNonCurrencySubunitMeasure export. Not counted as behavioral red.",
+      "sha256": "61288a230c5de1605e1457d8266874cfbb8858176e16c3cfcc37f482ac1e0e36"
+    },
+    "shared-api.fixed-base-before-red.txt": {
+      "tests": 39,
+      "pass": 10,
+      "fail": 29,
+      "detail": "28 missing new API failures plus one initially incorrect test expectation: RMB4 already has an explicit currency and is a complete range endpoint.",
+      "sha256": "4043245b64075fa2e27cade462266e35c2109dc8b3da7edc944d4ad3ecaa0ca1"
+    },
+    "shared-api.corrected-expectation-before-red.txt": {
+      "tests": 39,
+      "pass": 11,
+      "fail": 28,
+      "detail": "Corrected RMB4 expectation before product modification; failures are unavailable shared API.",
+      "sha256": "ff735f96aeab2ef20801c6cea1e34aa8be98f514a1376219149c7aaa519dee5f"
+    },
+    "shared-api.after-green.txt": {
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "sha256": "521dbf214959c9e617b9d8098688dd8992bb063cc92857ca0e613520f4d09029"
+    },
+    "prior-qualified-bounds.regression-green.txt": {
+      "tests": 262,
+      "pass": 262,
+      "fail": 0,
+      "sha256": "07c622a520e265ce50d8ee7ade69ce84036ff37835b1e18ca3b38cc86bee9f87"
+    },
+    "scoped-lint.txt": {
+      "exit": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "source-layout.before-red.txt": {
+      "kind": "command invocation error",
+      "detail": "An extra positional fixture directory was interpreted by node --test as a second test path. Import failures are not behavioral evidence; corrected invocation is separate.",
+      "sha256": "9fc3724901aa5e9fc345f649bf58a5a216012c9b2049ff9e1ea2cc4c6119042e"
+    },
+    "source-layout.corrected-command-before-red.txt": {
+      "tests": 6,
+      "pass": 2,
+      "fail": 4,
+      "detail": "Actual pre-fix source behavior: same-line fresh/history null; newline and adjacent-block fresh/history wrongly remain 30000.00.",
+      "sha256": "6efa98e8abb29546061b4b50bc0abe7affcee4247d4e43e0dede5b86dfd3f1d3"
+    }
+  },
+  "pending": "Parent source layout.after wiring plus final integration review; no source fix claim from the author-only 39 test pass.",
+  "no_models_or_mutations": "No model/API/training/deployment/commit/push; source and frozen artifacts read-only."
+}

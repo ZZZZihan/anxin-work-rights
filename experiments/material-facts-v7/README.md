@@ -4,6 +4,8 @@ Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的工程�
 
 ## 先读的结论
 
+当前应用为 PR #45 的 `eb867361742bff21f9d724fb4b212afbe6123c6d`；最新冻结复算为 `corrections-v13/`，绑定58项当前代码，原首跑至v12全部保留。第十五轮补齐明确界限、带限定词的区间端点、成/折算式和符号跨版面约束；随后又实际发现未完成区间跨文本块漏口，以第十六轮单独修复。不能用此前绿检查覆盖后来发现的问题。详见 `POSTRUN_ROUND15_APPLICATION.md`、`POSTRUN_ROUND16_APPLICATION.md`；最新完整检查及独立门禁见第十六轮完成回执。
+
 三路均完成12/12份留出材料，固定43条参考事实、含2份自然空材料。DeepSeek 在本批样本的事件与属性匹配高于 Qwen 和窄规则，但仍有工程款误当完整已付工资、受益主体混淆和范围外日期；Qwen 还有同额资产处置/法院缴款误当工资实收，以及两处数量级错误。不能据本轮评分启动训练或自动使用模型金额。
 
 首跑应用代码对应 `24c8015d97391ca55e9e0b1d2ba23bf204ead74d`；完整实验环境由原freeze的124项文件哈希绑定，其中部分实验脚本当时未提交，后续归档按哈希核验并注明真实来源。模型运行期间，第二轮代码审查发现了区间端点裁剪、任意长 value 借事件锚点得分和相对月份被误判费率三个问题。原始运行仍完成并封存，之后修复代码，对**相同原始输出**另做修正复算。原分数没有被覆盖；修正结果不是第二轮独立模型实验，不能称预登记的修正版首跑或改善效果。
@@ -45,7 +47,7 @@ v10的49份代码另封存，v11绑定52份代码。新v10只读执行桥继续�
 | Qwen3-32B-4bit | 30.19 | 34.04 | 18.87 | 21.28 | 15.09 | 17.02 |
 | DeepSeek-v4-pro | 72.34 | 72.34 | 57.45 | 57.45 | 53.19 | 53.19 |
 
-Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；十一版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/`、`corrections-v3/`、`corrections-v4/`、`corrections-v5/`、`corrections-v6/`、`corrections-v7/`、`corrections-v8/`、`corrections-v9/`、`corrections-v10/` 与 `corrections-v11/`。v1至v3三路报告逐字相同；v4的规则与DeepSeek报告逐字相同，Qwen仅一条通用核对提示增加“倍数算式”，其余逐案结果及全部六层计数不变。v5三路报告与v4逐字相同；v6与v7三路报告也分别与前版逐字相同；v8三路报告与v7也逐字相同；v9三路报告也与v8逐字相同；v10三路报告与v9也逐字相同；v11三路报告与v10也逐字相同；上表采用最新v11，不是模型能力提升。
+Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；十三版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/`、`corrections-v3/`、`corrections-v4/`、`corrections-v5/`、`corrections-v6/`、`corrections-v7/`、`corrections-v8/`、`corrections-v9/`、`corrections-v10/`、`corrections-v11/`、`corrections-v12/` 与 `corrections-v13/`。v1至v3三路报告逐字相同；v4的规则与DeepSeek报告逐字相同，Qwen仅一条通用核对提示增加“倍数算式”，其余逐案结果及全部六层计数不变。v5三路报告与v4逐字相同；v6与v7三路报告也分别与前版逐字相同；v8三路报告与v7也逐字相同；v9三路报告也与v8逐字相同；v10三路报告与v9也逐字相同；v11三路报告与v10也逐字相同；v12与v13三路报告也分别与前版逐字相同；上表采用最新v13，不是模型能力提升。
 
 收紧 value 边界使 Qwen 3个基本、3个关联、2个严格 TP 失效，DeepSeek 1个基本 TP 失效。有些损失来自“月工资16000元”“150万元执行款”超出有限金额包装，而实际金额、角色本来正确，应解释为严格值边界损失，不能全部称金额理解错误。修正允许完整币种前缀、有限工资对象后缀及“整/正”货币终止词；后者是在首跑后的审查中确定，不能倒称事前登记。没有新增 gold 别名。
 
@@ -85,11 +87,15 @@ node experiments/material-facts-v7/verify-correction-v8.mjs
 node experiments/material-facts-v7/verify-correction-v9.mjs
 # 用49份第十版代码快照验证v10。
 node experiments/material-facts-v7/verify-correction-v10.mjs
-# 依据当前代码核对另存的v11；同一原始输出，不调用模型。
-node experiments/material-facts-v7/corrective-assessment-v11.mjs --check
+# 用52份第十一版代码快照验证v11。
+node experiments/material-facts-v7/verify-correction-v11.mjs
+# 用55份第十二版代码快照验证v12。
+node experiments/material-facts-v7/verify-correction-v12.mjs
+# 依据当前58项代码绑定核对另存的v13；同一原始输出，不调用模型。
+node experiments/material-facts-v7/corrective-assessment-v13.mjs --check
 ```
 
-以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1/v2/v3/v4/v5/v6/v7/v8/v9/v10 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
+以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1至v12的 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
 
 诊断运行从检查尚未冻结到终态写完，与冻结的枚举至发布共用 `.experiment.lock`。锁在results之外；并发竞争直接拒绝，SIGKILL或所有权变化的遗留锁保留，恢复前须核查owner的主机/PID、worker和已有attempt。不能仅按锁年龄自动删除。生命周期与锁回归使用本地合成worker/临时文件系统，不调用真实模型；完整生产代码的数据和身份门禁另行校验。
 
@@ -109,6 +115,8 @@ node experiments/material-facts-v7/corrective-assessment-v11.mjs --check
 | 修正v9 manifest | `ccb4dce9e91f74fd24f5115133db468288b9c988f76ce28136bfd61e00bce764` |
 | 修正v10 manifest | `c403c8c44146e78b4b15d775d0701cbb94455f0f33a3ebecce939092596f1718` |
 | 修正v11 manifest | `42f13c238e7f88c044de27c858327b92ffd20a576970c836b1a52654421b1345` |
+| 修正v12 manifest | `d74fb4e43136d6c0a18739daa79065e8ceaef6519ce2d9ddf82de72650a1184e` |
+| 修正v13 manifest | `7d65625d6dd48f1319eec1ca86066fcc4bfaeed0d5f23c7195157d5e7a3fc04c` |
 | 原结果 manifest | `3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee` |
 | 留出材料 | `9ec54411e9008434457ae59f68585f8fb7a6bc6d089cee4e87709bfddd6a2181` |
 | 留出标签 | `abac05fa2c3de7d8e83e866345bf5edaec61c65f8f706bb7d5f0c0d98fa27b64` |

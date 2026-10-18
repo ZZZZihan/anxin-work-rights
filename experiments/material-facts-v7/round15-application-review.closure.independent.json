@@ -1,0 +1,60 @@
+{
+  "schema": "material-facts-v7-round15-application-closure-review/1",
+  "status": "PASS_WITHIN_REVIEWED_SCOPE",
+  "scope": "Close source-layout bypass of the existing unfinished monetary range endpoint predicate; review without implementing product changes.",
+  "reviewed_code_sha256": {
+    "lib/material-money-v4.ts": "b12b3d2c75b704f1f29ad8124edf0d0b99212d5c591e15a51e3fa5e91b7666c0",
+    "lib/material-fact-source-review.ts": "a737f6e9aa0285787601f8983d4d835ce40b4dfa54dc9b53f5f2676b83721cce",
+    "lib/material-fact-range-review.ts": "7443d995944173c0cc43e080bba9d3f117778d79f999abf6463af41b0febe574",
+    "lib/material-fact-arithmetic-review.ts": "1b3e95ee9e6feb2ef3d014bcc87d68ba222792233ccce669cbae81316446eb50"
+  },
+  "test_script_sha256": "a6b67f218861f9aff08391041a95dec63a1b20daae97f6a0aa99873e5828e886",
+  "exact_baseline": "1c875b7ebd594c672eb6a3e294a6cb3118034feb",
+  "native_closure_tests": {
+    "baseline_pass": 11,
+    "baseline_fail": 7,
+    "final_pass": 18,
+    "final_fail": 0
+  },
+  "final_regression_execution": {
+    "locked_main_pass": 54,
+    "sign_indefinite_layout_pass": 10,
+    "unfinished_range_layout_pass": 18,
+    "duration_positive_pass": 3,
+    "currency_wrapper_range_pass": 8,
+    "total_pass": 93,
+    "failed": 0
+  },
+  "technical_review": [
+    "The exported helper retains the existing RANGE_NUMERIC_AFTER && !RANGE_TIME_AFTER regex and detection copy; candidate normalizer now calls that identical predicate.",
+    "Source review invokes the predicate with original layout-after edges only after the complete monetary range endpoint guard. It reduces an existing exact amount to uncertain/null; it cannot upgrade history.",
+    "The source and quote keep original bytes and code-point positions. All matrix candidates remain accepted for review, raw is preserved, confirmations remain null.",
+    "Matrix includes bare 4, qualified 约4 and RMB4 over inline, newline and adjacent blocks, full quote where applicable, fresh runtime and unsafe historical exact restoration.",
+    "Explicit 4个月 and 2024年5月 remain exact over all three layouts. Sentence punctuation and a new subject prevent attachment.",
+    "No new blocker found in this finite closure and its integration with the locked round15 suites."
+  ],
+  "preservation": {
+    "v12_manifest_sha256": "d74fb4e43136d6c0a18739daa79065e8ceaef6519ce2d9ddf82de72650a1184e",
+    "v12_and_prior_artifacts_unchanged": true,
+    "historical_v12_blocker_receipt": "postfreeze-evidence/round15/post-acceptance-unfinished-range-blocker.independent.json",
+    "previous_reports_unchanged": true,
+    "new_corrective_version_required_for_new_code": true
+  },
+  "evidence_base": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+  "evidence_sha256": {
+    "scripts/material-fact-unfinished-range-layout.test.mjs": "a6b67f218861f9aff08391041a95dec63a1b20daae97f6a0aa99873e5828e886",
+    "postfreeze-evidence/round15/unfinished-range-layout-7-before-closure.test.mjs.snapshot": "55973ac226ceaecdbc2605b16b5ccadf3df85ea591d4ef8f092f0563e462e15a",
+    "postfreeze-evidence/round15/unfinished-range-layout-18-original-before-red.txt": "f2e1f84d4060c21d0ab8c4c67dc8b7da07a941c987fc082b041f897ef8b8f7d3",
+    "postfreeze-evidence/round15/unfinished-range-layout-18-code-after-green.txt": "cffd9b2ad825caaefcc7086c4f6f31ef12467b39fd1f3219b4b7fec539d4c740",
+    "postfreeze-evidence/round15/unfinished-range-closure-final-application-green.txt": "adc52180772ffdd8c4e924db2c0c56333e0dca47bc528ef7f96e9ee6cdbaafa7",
+    "postfreeze-evidence/round15/unfinished-range-layout-original-before-red.txt": "77890acda03b3773c9282b9dc790f9979a91dbaed221bb438d17429e27ac5e7b",
+    "postfreeze-evidence/round15/unfinished-range-layout-v12-before-red.txt": "fbd3023c0ea7ea6622ed74c3aa8ca1c9c7dbf03fca6be1bfb52c7a9a7aab3f5b",
+    "postfreeze-evidence/round15/post-acceptance-unfinished-range-blocker.independent.json": "b337fd7730740a2a25e5e841d4a5ecdf2b9f045e53a6f897ba272debaf4590c1"
+  },
+  "limits": [
+    "No model, service/HTTP, build, commit, push, merge or deployment executed by this reviewer.",
+    "No old result, freeze, label, snapshot or receipt modified.",
+    "A passing amount guard does not authorize calculation or resolve semantic attribution; accepted remains a review candidate.",
+    "Requested GPT-6.1 Sol ultra; actual backend configuration not independently observable."
+  ]
+}
