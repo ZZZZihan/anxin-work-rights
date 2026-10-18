@@ -814,6 +814,30 @@ try {
     return { amount: spec.amount, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: spec.amount === null };
   });
   // End ROUND20 additions.
+  // ROUND21: keep prior scenarios intact; inspect original qualifiers and subject spans.
+  for (const spec of [
+    ...['起诉至法院', '多次催讨'].map(prose => ({ name: `bound-prose-${prose}`, text: `测试王甲欠薪四万元${prose}。`, value: '四万元', amount: '40000.00', status: 'exact' })),
+    ...['每周', '每季度'].map(rate => ({ name: `unsupported-preposed-rate-${rate}`, text: `测试王甲${rate}工资四万元。`, value: '四万元', amount: null, status: 'unsupported', oldAmount: '40000.00' })),
+    ...['年终奖', '年假补偿'].map(noun => ({ name: `yuan-payment-noun-${noun}`, text: `测试王甲收到4000元${noun}。`, value: '4000元', amount: '4000.00', status: 'exact' })),
+  ]) await scenario(`round21_${spec.name}`, async () => {
+    const [item] = await fixture(`round21-${spec.name}`, [{ text: spec.text, candidates: [money(spec.value, spec.quote || spec.value, { period: null, ...spec.attributes })] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    assert.equal(material.candidates[0].amount, spec.amount); assert.equal(material.candidates[0].normalization.status, spec.status);
+    if (spec.amount === null) {
+      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
+      old.amount = spec.oldAmount;
+      old.normalization = { rawValue: spec.value, amount: spec.oldAmount, status: 'exact', matchedText: spec.value, span: { start: 0, end: Array.from(spec.value).length }, reason: 'Synthetic pre-fix round21 exact amount' };
+      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body).candidates[0];
+    assert.equal(checked.amount, spec.amount); assert.equal(checked.normalization.status, spec.status);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round21-${spec.name}`, item, state: before });
+    return { amount: spec.amount, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: spec.amount === null };
+  });
+  // End ROUND21 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

@@ -19,7 +19,7 @@ for (const path of ['lib/material-money-v4.ts', 'lib/material-fact-currency-revi
 
 function check(text, subject, expected) {
   const source = { id: 'round20-subject', name: 'synthetic.txt', sha256: 'e'.repeat(64), analysisRevision: 20,
-    ready: true, blocks: [{ id: 'b1', page: 1, text: '😀𠮷' + text, bbox: null, confidence: null }] };
+    ready: true, blocks: [{ id: 'b1', page: 1, text: '😀𠮷。' + text, bbox: null, confidence: null }] };
   for (const quote of ['四万元', source.blocks[0].text]) {
     const candidate = { kind: 'money', value: '四万元', quote, blockId: 'b1', subject, scope: 'individual',
       meaning: 'due_total', completeness: 'complete', period: null, rateUnit: null, assertion: 'narrated' };

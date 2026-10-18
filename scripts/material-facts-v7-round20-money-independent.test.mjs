@@ -16,7 +16,7 @@ const { reviewFactsAgainstSources } = await load('lib/material-fact-source-revie
 const { assessCase } = await load('experiments/material-facts-v7/assess.mjs');
 const cp = text => Array.from(text).length;
 const sourceFor = text => ({ id: 'round20-independent', name: 'synthetic-round20.txt', sha256: 'd'.repeat(64), analysisRevision: 20,
-  ready: true, blocks: [{ id: 'b1', page: 1, text: '😀𠮷' + text, bbox: null, confidence: null }] });
+  ready: true, blocks: [{ id: 'b1', page: 1, text: '😀𠮷。' + text, bbox: null, confidence: null }] });
 const entry = (value, quote = value, changes = {}) => ({ kind: 'money', value, quote, blockId: 'b1', subject: '王甲',
   scope: 'individual', meaning: 'due_total', completeness: 'complete', period: null, rateUnit: null, assertion: 'narrated', ...changes });
 const raw = candidates => JSON.stringify({ schemaVersion: 3, candidates });

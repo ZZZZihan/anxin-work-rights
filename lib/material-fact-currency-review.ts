@@ -43,13 +43,16 @@ const WAGE_CURRENCY_PREFIX = new RegExp(`${FOREIGN_MARKER}${CURRENCY_BRIDGE}(?:$
 const WAGE_CURRENCY_SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}(?:(?:${WAGE_CURRENCY_WORD}|币种|幣種|以|按)${CURRENCY_BRIDGE})+${FOREIGN_MARKER}`, 'iu');
 const RMB_PREFIX = new RegExp(`(?:人民币|人民幣|(?<![A-Z])(?:CNY|RMB)(?![A-Z])|¥)${BRIDGE}$`, 'iu');
 // A cropped 元 in 元旦 (or 圆 in 圆满) is part of a word, not a unit.
-const RMB_UNIT = '(?:元(?!旦|宵|年|月|素|件|音)|[圆圓](?!满|滿|形|圈|周))';
+// Explicit payment purposes follow the yuan unit: 4000元 + 年终奖/年假补偿.
+// This exception does not make 元年 itself, 元月 or arbitrary 年… text money.
+const NON_CURRENCY_YUAN_YEAR = '年(?![终終][奖獎]|假(?:[补補][偿償]|工[资資]))';
+const RMB_UNIT = `(?:元(?!旦|宵|${NON_CURRENCY_YUAN_YEAR}|月|素|件|音)|[圆圓](?!满|滿|形|圈|周))`;
 const RMB_SUFFIX = new RegExp(`^${BRIDGE}(?:人民币|人民幣|(?:CNY|RMB)(?![A-Z])|¥|${RMB_UNIT})`, 'iu');
 const TOKEN_UNIT = new RegExp(`^${RMB_UNIT}`, 'u');
 // A visible unit may actually begin a compound word. Keep this shared with
 // clipped source review; a preceding RMB marker cannot turn a tuple into money.
 // 元组装费 is a yuan amount followed by 组装费, not the compound 元组.
-const NON_CURRENCY_YUAN_WORD = /^(?:元(?:旦|宵|年|月|素|件|音|[组組](?![装裝])|[宝寶])|[圆圓](?:满|滿|形|圈|周|桌|柱|锥|錐|球|筒|盘|盤|弧|环|環))/u;
+const NON_CURRENCY_YUAN_WORD = new RegExp(`^(?:元(?:旦|宵|${NON_CURRENCY_YUAN_YEAR}|月|素|件|音|[组組](?![装裝])|[宝寶])|[圆圓](?:满|滿|形|圈|周|桌|柱|锥|錐|球|筒|盘|盤|弧|环|環))`, 'u');
 const NUMERIC_CHARACTER = /[0-9零〇一二三四五六七八九十百千万萬亿億两兩壹贰叁肆伍陆柒捌玖拾佰仟]/u;
 
 // These complete lexical compounds use 元 as a word component. Do not ban
@@ -115,7 +118,9 @@ function beforeWithoutAnchoredSubject(text: string, start: number, end: number, 
   const preceding = currencyText(text.slice(left, subjectStart));
   // Do not trim a supplied substring out of a larger person's name. A finite
   // role label can introduce the complete subject; arbitrary prose cannot.
-  if (/[\p{L}\p{N}]$/u.test(preceding)
+  // Separate property alternatives retain supplementary letters/numbers on
+  // hosts whose regexp class-plus-end-anchor optimization mishandles them.
+  if (/(?:\p{L}|\p{N})$/u.test(preceding)
     && !/(?:员工|員工|工人|劳动者|勞動者|原告|被告|申请人|申請人|向|给|給)$/u.test(preceding)) return before;
   const following = currencyText(text.slice(subjectEnd, start));
   if (!new RegExp(`^${BRIDGE}(?:的${BRIDGE})?(?:${WAGE_CURRENCY_WORD}|人民币|人民幣|${FOREIGN_MARKER}|[0-9零〇一二三四五六七八九十])`, 'iu').test(following)) return before;

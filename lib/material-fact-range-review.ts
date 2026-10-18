@@ -4,7 +4,9 @@ export const MONEY_BOUND_PREFIX = '(?:不得少于|不得低于|不得超过|不
 // A following explicit duration or occurrence count belongs to its own number,
 // e.g. 四万元不到三天付清. Do not treat that temporal bound as a money bound.
 const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;
-export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|以上|以下|以内|以外|封顶|出头|有余|多|余|起|许)`;
+// Explicit ordinary continuations keep their word boundary; other unknown prose
+// remains conservative. Do not exempt genuine lower bounds such as 起价.
+export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|以上|以下|以内|以外|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
 
 /** Fold a detection copy only; never use this text for source positions. */
 export function moneyQualifierDetectionView(text: string): string {
