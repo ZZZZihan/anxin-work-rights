@@ -3,7 +3,8 @@ import { getDatabase } from './server';
 import { callMaterialService, materialServiceConfigured } from './material-service-client';
 import { validateMaterialResult } from './material-validation';
 import { applyFactAction, buildFactView, emptyFactState, ingestCandidates, prepareCalculation, synchronizeFacts, validateCandidateOutput } from './material-facts';
-import type { FactAction, FactSource, FactState, MaterialFactsResponse } from './material-fact-types';
+import type { FactAction, FactSource } from './material-fact-types';
+import type { RuntimeFactState as FactState, RuntimeMaterialFactsResponse as MaterialFactsResponse } from './material-fact-runtime-types';
 
 type SessionRow = { case_id: string; user_id: string; revision: number; state_json: string };
 type SourceRow = { id: string; name: string; content_hash: string | null; mime_type: string; status: string; object_key: string | null; analysis_hash: string | null; analysis_status: string | null; revision: number | null; result_json: string | null };

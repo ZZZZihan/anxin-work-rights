@@ -3,7 +3,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { convertV4MiniflareOptions, Miniflare } from 'miniflare';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { MaterialFactsResponse } from './material-fact-types';
+import type { RuntimeMaterialFactsResponse as MaterialFactsResponse } from './material-fact-runtime-types';
 
 const bindings = vi.hoisted(() => ({ DB: undefined as unknown as D1Database, service: vi.fn() }));
 vi.mock('cloudflare:workers', () => ({ env: bindings }));
