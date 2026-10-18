@@ -1,0 +1,133 @@
+{
+  "schema": "anxin.material-facts-v7.round26-http204-precheck.v1",
+  "recorded_at": "2026-10-18T12:32:29.272896+00:00",
+  "review_role": "Read-only HTTP fixture/evidence review. Reviewer implemented source/event product changes, so this is not independent review of that implementation.",
+  "reviewer_launched_http_build_or_fullcheck": false,
+  "synthetic_model_fixture_only": true,
+  "runner": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-facts-v7-http-regression.mjs",
+    "sha256": "7954186c40cd4fe8754a1bd8cdfeeda47b4e0fb4d8981284440b34be08371f4e"
+  },
+  "scope": "Static fixture review and three existing old-build reports; final new-build HTTP result remains pending.",
+  "inheritance": {
+    "old190_snapshot_sha256": "01228709098c689bdf6025dcbb3563cc9959eee51839159c37612fec44bf3b3a",
+    "remove_round26_block_restores_old190_exact_bytes": true,
+    "old189_nonrestart_observations_unchanged_in_effective_baseline": true,
+    "raw_outputs_old": 191,
+    "raw_outputs_new": 205,
+    "new_zero_based_output_range": [
+      186,
+      200
+    ],
+    "remove_new14_outputs_restores_old_raw_candidates_finish_reason_exactly": true
+  },
+  "new_scenarios": {
+    "total": 14,
+    "symbol_bounds": 6,
+    "amount_label_unknown": 2,
+    "postposed_rate_as_total": 2,
+    "supported_rate_attribution": 2,
+    "no_amount_batches": 2,
+    "no_amount_batch_candidates": [
+      3,
+      7
+    ]
+  },
+  "effective_baseline_failures": {
+    "total": 14,
+    "wrong_exact_4000_instead_of_null": 10,
+    "same_event_supported_rate_generic_warning": 2,
+    "no_amount_not_rejected_batch_counts": [
+      3,
+      7
+    ]
+  },
+  "contract_checks": [
+    "Two correct-rate cases use completeness=not_applicable, period=null and explicit subject测试王甲; quote contains only the same event.",
+    "exactSource:true affects actual uploaded bytes, not a mocked source object. Fixture checks analysis SHA, joined TXT blocks and downloaded source bytes.",
+    "Ten unavailable cases assert accepted raw monetary candidate remains but amount is null, then force a historical exact stored amount, GET downgrade and unchanged persisted state/history.",
+    "Two no-amount batches require no accepted candidates, exact rejection counts, raw candidate preservation, and explicit monetary rejection reasons rather than arbitrary schema failure.",
+    "All accepted candidates use shared raw/representation/CP/source-SHA checks; shared unconfirmed checks forbid calculation or implicit confirmation.",
+    "Restart assertions compare stored state/raw/history; they do not independently repeat every derived money assertion."
+  ],
+  "earlier_fixture_evidence": {
+    "initial_runner": {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round26/http204-initial-invalid-fixture.snapshot",
+      "sha256": "92d85fc677dac89e1c8fd73795a7adda59e7ded4c5026e7eec6b15ca41cf2dd0"
+    },
+    "protocol_valid_prefixed_runner": {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round26/http204-before-source-prefix-correction.snapshot",
+      "sha256": "c0cb018d8d750c77456b90fd58aecf2337cdf2b24993b45eab847f38381ee0c3"
+    },
+    "correction_receipts": [
+      "http204-fixture-correction.json",
+      "http204-source-prefix-correction.json"
+    ]
+  },
+  "reports": [
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round26/http204-before-ec8.json",
+      "sha256": "bc42c65b73b23029f2e982b7aed690c6ad09f304cff5a5e14cef84cd2e2154fb",
+      "interpretation": "Retained initial fixture-invalid stage; protocol rejection falsely satisfied both no-amount batch acceptance counts; four rate scenarios did not reach valid product assertions.",
+      "counts": {
+        "PASS": 192,
+        "FAIL": 12
+      },
+      "raw_outputs": 205,
+      "cleanup": {
+        "status": "PASS",
+        "failures": []
+      },
+      "restart_stored_snapshot_count": 191,
+      "all_recorded_service_calls_authenticated": true,
+      "service_calls": 1025,
+      "retired_service_jobs": 410,
+      "all_retirements_recorded_persisted_before": true
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round26/http204-before-ec8-valid.json",
+      "sha256": "9b5011f9c7e07175b3a0c17227af2a506b044ba57d635951495e0d4a7005d19d",
+      "interpretation": "Protocol/period/subject corrected; two supported-rate sources still contain the default unrelated 𠮷 prefix, so their generic attribution warning is correct and not unique product evidence.",
+      "counts": {
+        "PASS": 190,
+        "FAIL": 14
+      },
+      "raw_outputs": 205,
+      "cleanup": {
+        "status": "PASS",
+        "failures": []
+      },
+      "restart_stored_snapshot_count": 189,
+      "all_recorded_service_calls_authenticated": true,
+      "service_calls": 1025,
+      "retired_service_jobs": 410,
+      "all_retirements_recorded_persisted_before": true
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round26/http204-before-ec8-final.json",
+      "sha256": "9f8c9813540bd278343a6cfa0ca5efd001fd819f130aa57af4a04869afd26576",
+      "interpretation": "Effective baseline: supported rates upload exact single-event TXT via exactSource:true; original relation protection is unchanged.",
+      "counts": {
+        "PASS": 190,
+        "FAIL": 14
+      },
+      "raw_outputs": 205,
+      "cleanup": {
+        "status": "PASS",
+        "failures": []
+      },
+      "restart_stored_snapshot_count": 189,
+      "all_recorded_service_calls_authenticated": true,
+      "service_calls": 1025,
+      "retired_service_jobs": 410,
+      "all_retirements_recorded_persisted_before": true
+    }
+  ],
+  "baseline_build_evidence": {
+    "parent_receipt": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round26/http204-before-ec8-final.receipt.json",
+    "sha256": "07066babd8e92b4662c29ba9a92c9062bf46af712641ffb3faca92cf869211cd",
+    "four_saved_product_source_files_match_ec8_commit_bytes": true,
+    "independently_rebuilt_by_this_reviewer": false
+  },
+  "final_http_status": "PENDING; do not report the new build as passed from this precheck."
+}

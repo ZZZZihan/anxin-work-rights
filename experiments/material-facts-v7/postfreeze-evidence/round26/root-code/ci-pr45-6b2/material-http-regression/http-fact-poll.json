@@ -1,0 +1,61 @@
+{
+  "status": "PASS",
+  "mode": "fact-poll",
+  "boundary": "production Worker HTTP + disposable on-disk D1 SQLite + real rules jobs + controlled concurrent ready replies",
+  "actualModelInference": false,
+  "syntheticInputs": true,
+  "recordedAt": "2026-10-18T12:37:51.325Z",
+  "observations": [
+    {
+      "name": "two_real_http_polls_for_same_ready_job",
+      "status": "PASS",
+      "responseStatuses": [
+        200,
+        200
+      ],
+      "responseRevisions": [
+        4,
+        4
+      ],
+      "errors": [],
+      "storedRevision": 4,
+      "extractionAuditCount": 1,
+      "materials": 1,
+      "generation": 6,
+      "cancellationCalls": 1
+    },
+    {
+      "name": "old_poll_does_not_overwrite_new_extraction",
+      "status": "PASS",
+      "responseStatus": 409,
+      "newestJobPreserved": true
+    },
+    {
+      "name": "material_generation_change_keeps_conflict",
+      "status": "PASS",
+      "responseStatus": 409
+    },
+    {
+      "name": "foreign_and_unauthenticated_reads_remain_rejected",
+      "status": "PASS",
+      "foreign": 404,
+      "unauthenticated": 401
+    }
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "failures": []
+  },
+  "calls": [
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/4ed69c72-adea-4efc-a91c-49c1d6fb690c",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/73c1f92f-a8e7-4d30-b9b5-3266521f19f1",
+      "authenticated": true
+    }
+  ]
+}

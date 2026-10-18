@@ -4,9 +4,13 @@ Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的工程�
 
 ## 先读的结论
 
-当前应用为 PR #45 的 `ec8dc649f3857771003eeafe0d87df1645635ded`；最新另存复评为 `corrections-v18/`，绑定73项当前代码，v17的70项代码另行归档，首跑及历版结果全部保留。整正裁剪、人民币同源包装及有限续文边界修复后，本机应用完整检查通过：1789 Vitest、5636运行时通过/1平台跳过、材料67通过/1平台跳过、Python9+11+16；590项定向检查通过，非实现者27项在Node24/26各通过。同190项隔离HTTP固定f16为185通过5失败→最终190通过，cleanup均通过；中间2953的188通过2失败及更早186/188/182组均保留。详见 [ROUND25记录](POSTRUN_ROUND25_APPLICATION.md) 与 [独立应用复核](ROUND25_APPLICATION_REVIEW_FINAL_INDEPENDENT.md)。
+当前检查点：v19产物核对通过，但应用仍有新发现待修复。独立核对76项当前代码、73项归档、60项原结果和216评分分区通过，实际5门禁全部通过（233.263秒，含两次真正CLI篡改拒绝）；主侧write/check也通过，三路报告与v18逐字相同。随后新审查提出繁体财务数字、后置不支持单位、繁体日期角色、显式工资组成算式和无关概数词五项P2。固定6b24536同219项HTTP为204通过15失败，220份合成原始输出保留且cleanup通过，其中六项暴露不可靠金额仍为精确值。ROUND27正在修复，v20仅准备工具、尚未发布。当前不建议合并；实验分支完整检查及人工业务验收仍未完成。无新增模型推理、训练或生产部署。
 
-v18清单SHA为 `67cfc9e3746d5de87492bebe903da1d773fa39e50da056978104b0b8a32c99aa`。规则和DeepSeek report与v17逐字相同；Qwen一条年假金额804.60恢复精确归一化并少一个金额上下文不匹配提示，主体/期间关联警告仍保留，三路六层TP/FP/FN不变。零新增模型请求，不改输入、gold或原回答。v17与v16的ARTIFACT_PASS_APPLICATION_BLOCKED检查点、各次CI/完整检查失败、中间错误与后续修复全部继续保留，不能用后来的通过改写旧失败。应用精确提交[CI39125905377](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39125905377) SUCCESS，Linux运行时5637/材料68全部通过，含190项HTTP及OCR。v18主侧write/check均通过，独立73当前/70历史/原60/216评分分区及实际5门禁通过（214.096秒，含两个真实CLI负测）。其后ec8又出现五条审查问题，其中比较符号误当精确金额为P1，故本版状态为 **ARTIFACT_PASS_APPLICATION_BLOCKED**；ROUND26继续修复，实验整合完整检查尚未完成。不能将绿色CI作为合并或人工业务验收结论。
+当前应用为 PR #45 的 `6b24536b9d0c6b536d7132d9d8deab1dce005e11`；最新另存复评为 `corrections-v19/`，绑定76项当前代码，v18的73项代码另行归档。ROUND26针对比较符号界限（P1）、金额标签未知、后置按单位费率、繁体无金额工资名词及纯币种五项新增审查修复。完整应用检查退出0：1789 Vitest、6091运行时通过/1平台跳过、材料67通过/1平台跳过、Python9+11+16；455项定向通过，非实现者30项在Node24/26各通过，固定ec8同测试各7通过23失败。
+
+同204项隔离HTTP固定ec8为190通过14失败→最终204通过，205份raw/candidates/finish_reason前后相同，203份持久化快照重启不变，cleanup通过。早期无效协议及未知前缀夹具日志保留并另行说明，不能计入产品红绿。详见 [ROUND26记录](POSTRUN_ROUND26_APPLICATION.md)、[独立应用复核](ROUND26_APPLICATION_REVIEW_FINAL_INDEPENDENT.md) 与 [HTTP证据复核](postfreeze-evidence/round26/http204-review/http204-final-review.md)。
+
+v19清单SHA为 `5f39f3870bf50c03bb8d202a021c6643c5000f770259005ebd6cfe4ac64033c7`。主侧write通过，三路report均与v18逐字相同，六层TP/FP/FN及逐案匹配均未改变；零新增模型请求，不改输入、gold或原回答。v18的ARTIFACT_PASS_APPLICATION_BLOCKED检查点继续保留：当时产物、独立73/70/60/216核对、实际5门禁和ec8 CI通过，随后五项应用问题仍阻塞，不能用后续修复改写旧状态。精确6b24536 [CI39127711078](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39127711078) SUCCESS，Linux运行时6092/材料68全部通过，含204项HTTP及OCR；v19主侧write/check均退出0。独立五门禁现已全部通过，原始执行记录见 POSTRUN_ROUND26_INDEPENDENT.md；实验整合完整检查仍待完成，技术检查不等同人工业务验收。
 
 三路均完成12/12份留出材料，固定43条参考事实、含2份自然空材料。DeepSeek 在本批样本的事件与属性匹配高于 Qwen 和窄规则，但仍有工程款误当完整已付工资、受益主体混淆和范围外日期；Qwen 还有同额资产处置/法院缴款误当工资实收，以及两处数量级错误。不能据本轮评分启动训练或自动使用模型金额。
 
@@ -49,7 +53,7 @@ v10的49份代码另封存，v11绑定52份代码。新v10只读执行桥继续�
 | Qwen3-32B-4bit | 30.19 | 34.04 | 18.87 | 21.28 | 15.09 | 17.02 |
 | DeepSeek-v4-pro | 72.34 | 72.34 | 57.45 | 57.45 | 53.19 | 53.19 |
 
-Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；十八版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/`、`corrections-v3/`、`corrections-v4/`、`corrections-v5/`、`corrections-v6/`、`corrections-v7/`、`corrections-v8/`、`corrections-v9/`、`corrections-v10/`、`corrections-v11/`、`corrections-v12/`、`corrections-v13/` 、`corrections-v14/` 、`corrections-v15/` 、`corrections-v16/` 、`corrections-v17/` 与 `corrections-v18/`。v1至v3三路报告逐字相同；v4的规则与DeepSeek报告逐字相同，Qwen仅一条通用核对提示增加“倍数算式”，其余逐案结果及全部六层计数不变。v5三路报告与v4逐字相同；v6与v7三路报告也分别与前版逐字相同；v8三路报告与v7也逐字相同；v9三路报告也与v8逐字相同；v10三路报告与v9也逐字相同；v11三路报告与v10也逐字相同；v12至v17三路报告也分别与前版逐字相同；v18仅Qwen一条年假金额可用性及一条核对提示变化，六层计数不变；上表采用最新v18，不是模型能力提升。
+Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；十九版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/`、`corrections-v3/`、`corrections-v4/`、`corrections-v5/`、`corrections-v6/`、`corrections-v7/`、`corrections-v8/`、`corrections-v9/`、`corrections-v10/`、`corrections-v11/`、`corrections-v12/`、`corrections-v13/` 、`corrections-v14/` 、`corrections-v15/` 、`corrections-v16/` 、`corrections-v17/` 、`corrections-v18/` 与 `corrections-v19/`。v1至v3三路报告逐字相同；v4的规则与DeepSeek报告逐字相同，Qwen仅一条通用核对提示增加“倍数算式”，其余逐案结果及全部六层计数不变。v5三路报告与v4逐字相同；v6与v7三路报告也分别与前版逐字相同；v8三路报告与v7也逐字相同；v9三路报告也与v8逐字相同；v10三路报告与v9也逐字相同；v11三路报告与v10也逐字相同；v12至v17三路报告也分别与前版逐字相同；v18仅Qwen一条年假金额可用性及一条核对提示变化，六层计数不变；v19三路报告与v18逐字相同；上表采用最新v19，不是模型能力提升。
 
 收紧 value 边界使 Qwen 3个基本、3个关联、2个严格 TP 失效，DeepSeek 1个基本 TP 失效。有些损失来自“月工资16000元”“150万元执行款”超出有限金额包装，而实际金额、角色本来正确，应解释为严格值边界损失，不能全部称金额理解错误。修正允许完整币种前缀、有限工资对象后缀及“整/正”货币终止词；后者是在首跑后的审查中确定，不能倒称事前登记。没有新增 gold 别名。
 
@@ -102,11 +106,13 @@ node experiments/material-facts-v7/verify-correction-v15.mjs
 node experiments/material-facts-v7/verify-correction-v16.mjs
 # 依据70项归档代码核对v17；历史链实际校验，零模型请求。
 node experiments/material-facts-v7/verify-correction-v17.mjs
-# 用73项当前代码验证v18，同一原始输出。
-node experiments/material-facts-v7/corrective-assessment-v18.mjs --check
+# 用73项归档代码验证v18，同一原始输出。
+node experiments/material-facts-v7/verify-correction-v18.mjs
+# 用76项当前代码验证v19，不调用模型。
+node experiments/material-facts-v7/corrective-assessment-v19.mjs --check
 ```
 
-以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1至v17的 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
+以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1至v18的 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
 
 诊断运行从检查尚未冻结到终态写完，与冻结的枚举至发布共用 `.experiment.lock`。锁在results之外；并发竞争直接拒绝，SIGKILL或所有权变化的遗留锁保留，恢复前须核查owner的主机/PID、worker和已有attempt。不能仅按锁年龄自动删除。生命周期与锁回归使用本地合成worker/临时文件系统，不调用真实模型；完整生产代码的数据和身份门禁另行校验。
 
@@ -133,6 +139,7 @@ node experiments/material-facts-v7/corrective-assessment-v18.mjs --check
 | 修正v16 manifest | `5e229a33ed6e71f26b4fb01c92e9f28da66122bffde84d23e8e82c1fb6dbca69` |
 | 修正v17 manifest | `55ec4fd2dae91d3b0512b3bc0e75284a44008c6388e479d553896abf0db9badd` |
 | 修正v18 manifest | `67cfc9e3746d5de87492bebe903da1d773fa39e50da056978104b0b8a32c99aa` |
+| 修正v19 manifest | `5f39f3870bf50c03bb8d202a021c6643c5000f770259005ebd6cfe4ac64033c7` |
 | 原结果 manifest | `3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee` |
 | 留出材料 | `9ec54411e9008434457ae59f68585f8fb7a6bc6d089cee4e87709bfddd6a2181` |
 | 留出标签 | `abac05fa2c3de7d8e83e866345bf5edaec61c65f8f706bb7d5f0c0d98fa27b64` |
