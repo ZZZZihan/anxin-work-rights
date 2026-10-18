@@ -487,6 +487,50 @@ try {
     durableSnapshots.push({ name: 'historical-range', item, state: before });
     return { rangeEndpointDowngraded: true, storedRawAndHistoryUnchanged: true };
   });
+  for (const spec of [
+    { name: 'modified-factor', text: '测试王甲2026年1月工资四万元乘以实际出勤系数', value: '四万元', amount: null },
+    { name: 'duration-fen-full', text: '测试王甲收到工资1000元5分钟后离开', value: '1000元5分钟后离开', amount: null },
+    { name: 'duration-fen-crop', text: '测试王甲收到工资1000元5分钟后离开', value: '1000元5分', amount: null },
+    { name: 'fraction-as-fen', text: '测试王甲应付工资1000元5分之一', value: '1000元5分', amount: null },
+    { name: 'traditional-approximation', text: '测试王甲工资約四千圓', value: '四千圓', amount: null },
+    { name: 'duration-fen-layout', text: '测试王甲收到工资1000元5分\n钟后离开', value: '1000元5分', amount: null },
+    { name: 'real-cents', text: '测试王甲2026年1月完整应付工资1000元5分', value: '1000元5分', amount: '1000.05' },
+    { name: 'until-date', text: '测试王甲拖欠工资3万元至2024年5月仍未支付', value: '3万元', amount: '30000.00' },
+    { name: 'within-months', text: '测试王甲拖欠工资3万元至4个月内付清', value: '3万元', amount: '30000.00' },
+    { name: 'traditional-yuan', text: '测试王甲2026年1月完整应付工资人民幣四千圓', value: '人民幣四千圓', amount: '4000.00' },
+    { name: 'traditional-cropped-cents', text: '测试王甲工资4000圓5角', value: '4000', amount: null },
+    { name: 'traditional-cropped-rate', text: '测试王甲工资4000圓/月', value: '4000', amount: null },
+  ]) await scenario(`round12_${spec.name}_source_and_raw`, async () => {
+    const [item] = await fixture(spec.name, [{ text: spec.text, candidates: [money(spec.value, spec.value, { period: spec.text.includes('2026年1月') ? '2026年1月' : null })] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, spec.amount);
+    if (spec.amount === null) assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    durableSnapshots.push({ name: spec.name, item, state: stored(item.caseId) });
+    return { amount: spec.amount, rawRetained: true, automaticCalculation: false };
+  });
+  await scenario('round12_wage_standard_without_an_amount_is_rejected_but_raw_retained', async () => {
+    const [item] = await fixture('no-amount-standard', [{ text: '测试王甲工资标准', candidates: [money('工资标准', '工资标准', { period: null })] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 0);
+    assert.equal(material.rejected.length, 1);
+    durableSnapshots.push({ name: 'no-amount-standard', item, state: stored(item.caseId) });
+    return { rejectedNonMoney: true, rawRetained: true };
+  });
+  await scenario('round12_historical_clock_as_cents_is_downgraded_without_storage_rewrite', async () => {
+    const [item] = await fixture('historical-clock-cents', [{ text: '测试王甲收到工资1000元5分钟后离开', candidates: [money('1000元5分', '1000元5分', { period: null })] }]);
+    await extract(item);
+    const legacy = stored(item.caseId), candidate = legacy.state.materials[0].candidates[0];
+    candidate.amount = '1000.05';
+    candidate.normalization = { rawValue: '1000元5分', amount: '1000.05', status: 'exact', matchedText: '1000元5分', span: { start: 0, end: 7 }, reason: 'Synthetic pre-fix clock interpreted as cents' };
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path);
+    assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body).candidates[0];
+    assert.equal(checked.amount, null); assert.notEqual(checked.normalization.status, 'exact');
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: 'historical-clock-cents', item, state: before });
+    return { clockAsCentsDowngraded: true, storedRawAndHistoryUnchanged: true };
+  });
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

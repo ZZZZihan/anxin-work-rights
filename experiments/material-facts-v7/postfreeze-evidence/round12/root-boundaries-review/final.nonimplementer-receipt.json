@@ -1,0 +1,82 @@
+{
+  "review_type": "non_implementer_read_only_root_subunit_time_range_review",
+  "status": "passed_scoped_non_implementer_review",
+  "created_at_utc": "2026-10-18T07:26:20.683708+00:00",
+  "final_source_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "final_source_sha256": {
+    "lib/material-money-v4.ts": "128319f7bc7415c4e46aa1e70ab4135437a6f74d97f3275db3aa1b1793176f45",
+    "lib/material-fact-currency-review.ts": "83291d8fd26b76b05f455ac7094dc6e8622f246c48182cd0f0f1680715cf1ff4",
+    "lib/material-fact-source-review.ts": "d7fd4f6508a1158721b27c3cc3b4e7014cf35ade48b2695e0b47ec748cf97210",
+    "lib/material-fact-arithmetic-review.ts": "09e91a8462dfffb1bd2e0ea2f3ec3fb7dea57cca1f4fdd18260ef8c53ace1ba1",
+    "lib/material-fact-range-review.ts": "d58c9d2a23688578db34d01318a840e04ebc1bed7dbfbe1dec178391321e8f57"
+  },
+  "author_arithmetic_scope_excluded_from_independent_claim": "I implemented the unchanged arithmetic helper; this review is independent of the ROOT money/time/range and currency/source subunit changes only.",
+  "probe_sha256": "bf948e7fb195d690b23c98c026c6bc9e6c020edb0aa6e0c1f581de79f590307a",
+  "before": {
+    "tests": 107,
+    "pass": 82,
+    "fail": 25,
+    "exit_code": 1,
+    "log": "probe.before-red.txt"
+  },
+  "after": {
+    "tests": 107,
+    "pass": 107,
+    "fail": 0,
+    "exit_code": 0,
+    "log": "probe.final-green.txt",
+    "command": "V7_REVIEW_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review node --test scripts/material-fact-round12-root-boundaries.probe.mjs"
+  },
+  "finding_resolution": {
+    "original_finding": "Fen token swallowed the 分 of a 分之 numeric/symbolic/unfinished fraction; full/cropped/source/history could keep 1000.05.",
+    "root_fix": "The shared token boundary now recognizes 分之 followed by a numeric/symbolic operand or end. It continues to distinguish genuine cents followed by 之后支付.",
+    "scoped_blocking_findings": [],
+    "resolution_evidence": "All same 25 before failures pass without changing the probe after the before run."
+  },
+  "confirmed": [
+    "Minute words across whitespace, Cf, LS/PS and next OCR block stay unavailable.",
+    "Complete legal Arabic/Chinese/traditional-yuan cents remain exact through payment prose and explicit punctuation before a new event.",
+    "Finite date/duration tails after 至/到 bypass the overly broad frozen legacy range result without becoming a monetary endpoint.",
+    "Incomplete numeric endpoints, ordinary 元-word endpoints and true money ranges remain unavailable.",
+    "Cropped traditional 圓 with /月 /日 每天 and format/fullwidth variations cannot hide a rate; a fully declared monthly rate stays exact.",
+    "Original raw JSON, representations and code-point offsets preserved; read-time review leaves stored history untouched.",
+    "All numeric/symbolic/unfinished fraction leak cases are now unavailable in the full value, full quote, fresh source and forced historical tests.",
+    "Final source hashes match the root handoff both in executed log and post-execution files."
+  ],
+  "static_review": [
+    "RANGE_AFTER requires a monetary second endpoint; RANGE_NUMERIC_AFTER conservatively rejects incomplete numeric links. TIME_AFTER can skip only the legacy range status and leaves the other candidate guards ordered ahead of fallback.",
+    "moneyTokenHasNonCurrencySubunit inspects subunit characters actually inside the anchored token and uses normalized copies only. Source review can expose a word completed across OCR layout without changing source offsets.",
+    "Traditional 圓 and 人民幣 are parse aliases only after anchoring the raw token; bare source rates and extra subunits still pass through source guards.",
+    "Final monetaryDetectionView maps 約/餘 on detection copies only; this alias addition was inspected statically, not counted as an independent new test set here."
+  ],
+  "limits": [
+    "This review did not implement the root money/currency/source changes.",
+    "Root is independently investigating new traditional-yuan 約/餘 qualifiers; not counted here.",
+    "The word list and finite time grammar are not comprehensive natural-language interpretation.",
+    "Across OCR blocks, a 分 immediately followed by 钟 with only layout whitespace is conservatively unavailable; semantic distinction from an unrelated person named 钟 without punctuation is not proven.",
+    "Synthetic parser/source/runtime/history tests are not live HTTP, model, browser, confirmation-flow or production calculation acceptance.",
+    "No training, model calls, deployment, commits, frozen-data access or root-file mutations."
+  ],
+  "parent_reported_not_reexecuted": {
+    "npm_fullcheck": "Root reports exit0; not performed by this review agent.",
+    "HTTP": "Root reports64 pass and63 restart checks; not performed by this review agent."
+  },
+  "evidence_sha256": {
+    "initial-review.md": "f72d537b263b906032e7fceeada3ea391f08bd9d542cfd5f4d382cf109bbe517",
+    "initial.nonimplementer-receipt.json": "45ea7348fd1f5fadcdb314f0d7b3fdf78d058b2533006e6d603f8b9dfabca75d",
+    "material-fact-arithmetic-review.ts.final-reviewed.snapshot": "09e91a8462dfffb1bd2e0ea2f3ec3fb7dea57cca1f4fdd18260ef8c53ace1ba1",
+    "material-fact-arithmetic-review.ts.reviewed.snapshot": "09e91a8462dfffb1bd2e0ea2f3ec3fb7dea57cca1f4fdd18260ef8c53ace1ba1",
+    "material-fact-currency-review.ts.final-reviewed.snapshot": "83291d8fd26b76b05f455ac7094dc6e8622f246c48182cd0f0f1680715cf1ff4",
+    "material-fact-currency-review.ts.reviewed.snapshot": "6312f26441948087a662e61fd630a2463cfdd575c9c586134999a61af8aac79f",
+    "material-fact-range-review.ts.final-reviewed.snapshot": "d58c9d2a23688578db34d01318a840e04ebc1bed7dbfbe1dec178391321e8f57",
+    "material-fact-range-review.ts.reviewed.snapshot": "d58c9d2a23688578db34d01318a840e04ebc1bed7dbfbe1dec178391321e8f57",
+    "material-fact-source-review.ts.final-reviewed.snapshot": "d7fd4f6508a1158721b27c3cc3b4e7014cf35ade48b2695e0b47ec748cf97210",
+    "material-fact-source-review.ts.reviewed.snapshot": "d7fd4f6508a1158721b27c3cc3b4e7014cf35ade48b2695e0b47ec748cf97210",
+    "material-money-v4.ts.final-reviewed.snapshot": "128319f7bc7415c4e46aa1e70ab4135437a6f74d97f3275db3aa1b1793176f45",
+    "material-money-v4.ts.reviewed.snapshot": "a4ec1b5359ce459573251edcd7952c45404b2db16c10144bee978560132752b4",
+    "probe.before-findings.txt": "d461fd1ded9ff6572a39124bb0307b3ef053e6f6d4287db1e94c0ff29f6776c3",
+    "probe.before-red.txt": "c5ee884f2b540b57713aed1bbe6003866ab39d63a1640189f0c5eae502e8d06b",
+    "probe.final-green.txt": "29745a154ecaae8aa8ef1b034724776e8147e39ce81fcafdd12f13760bb0eb91",
+    "reviewed-source-snapshot.json": "70b69dc0039cb54c878159bf57dcd92e3f533ada7917894591866a0e505765c3"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "baseline_commit": "7f3a79bf8b01a5982e9039b1b83e4c428d7197a5",
+  "review_ids": [
+    4306120471,
+    4306120479
+  ],
+  "owned_files": {
+    "lib/material-money-v4.ts": "215414bd3bb54a5b3b5ce281c55f60ebc6abd0db9009cb6363e4903da0d8159f",
+    "scripts/material-fact-wage-standard-traditional-review.test.mjs": "9a8fedcd3d6b83e6c09f594503a2e6ef9110b01041adf16666c732f26661ad8b"
+  },
+  "patch": "money-standard-traditional-hunks.patch",
+  "patch_sha256": "9c6ea40a9d948b5af2d9523f35059fda6aa29895c6ff24c415ce7ee1c844290d",
+  "delivery_instruction": "Apply only owned hunks to ROOT, not the complete material-money-v4.ts, because ROOT owns concurrent normalizeCandidateValueV4 changes.",
+  "scope": [
+    "TOKEN currency spelling aliases 人民幣/圓",
+    "complete-token RMB lexical boundary including 圓",
+    "parse-only aliases retain raw/matchedText/spans",
+    "whole amount-free wage-standard classification; unknown/masked values retained"
+  ],
+  "same_final_test": {
+    "tests": 122,
+    "baseline_pass": 37,
+    "baseline_fail": 85,
+    "final_pass": 122,
+    "final_fail": 0
+  },
+  "initial_fix": {
+    "pass": 121,
+    "fail": 1,
+    "remaining_issue": "Bare 月工资标准 did not match existing relative-month grammar; added finite 月 label stage. Original log preserved."
+  },
+  "compatibility": {
+    "existing_author": 260,
+    "vitest": 724,
+    "failed": 0,
+    "eslint_exit_code": 0,
+    "eslint_output_empty": true
+  },
+  "outside_owned_scope_findings": {
+    "status": "Sent to ROOT and independent reviewer for source/candidate correction and final integration verification",
+    "synthetic_runtime_failures": [
+      {
+        "source_suffix": "圓5角",
+        "value": "4000",
+        "quote": "4000",
+        "expected_amount": null,
+        "actual_amount": "4000.00"
+      },
+      {
+        "source_suffix": "圓/月",
+        "value": "4000",
+        "quote": "4000",
+        "expected_amount": null,
+        "actual_amount": "4000.00"
+      },
+      {
+        "source_suffix": "圓每天",
+        "value": "4000",
+        "quote": "4000",
+        "expected_amount": null,
+        "actual_amount": "4000.00"
+      }
+    ],
+    "reason": "Candidate/source truncation and rate regexes still omit 圓 in CODE baseline; this author did not modify those concurrently-owned paths."
+  },
+  "logs": {
+    "standard-traditional-before-red.log": "c29b4408cff0936fe91f22d473636f37c3cb9159ba577da92516e63cd6c04e79",
+    "standard-traditional-initial-fix.log": "acf77ab3cf37bbb58d4d7af832271b1b0f132799e04fa393c62fbb27ba16ee63",
+    "standard-traditional-after-green.log": "45fadcba9e909ae9f6751e5938c7e049324a06ad60f7deffb3d4bcd70c0cc71c",
+    "standard-traditional-compatibility.log": "f210d23d372cf4bcabeab97704957d44c3241b741c1b5f61136051c9d4ba474f",
+    "standard-traditional-existing-vitest.log": "eefe8bac2744491088c186e4467b4fccec4c7caf43937400a1bce270722dfcd5",
+    "standard-traditional-eslint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "traditional-bare-source-guard-probe.mjs": "47afb8ef8bc3d0357932a1b2b865862e780f1028ea8b550624878cbee548cc6b",
+    "traditional-bare-source-guard-probe.log": "8c3d0ff1c5cddaa229f71d50786f7dcbda433db23b229956fea42d5e494bdbd6"
+  },
+  "models": 0,
+  "builds": 0,
+  "http": 0,
+  "immutable_artifact_writes": 0,
+  "commits": 0,
+  "pushes": 0
+}
