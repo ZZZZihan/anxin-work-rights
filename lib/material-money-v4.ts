@@ -46,7 +46,7 @@ const SUBUNITS = `(?:[${ARABIC_DIGITS}${SINGLE_DIGIT}]角(?:[${ARABIC_DIGITS}${S
 const YUAN_TAIL = `[元圆圓](?:[${ARABIC_DIGITS}${SINGLE_DIGIT}]角)?(?:零?[${ARABIC_DIGITS}${SINGLE_DIGIT}]分)?(?:整|正)?`;
 // New alternatives require an explicit named RMB currency. A bare 5角/2分
 // remains unsupported; no time/measure unit is inferred to be money.
-const TOKEN = new RegExp(`(?:${RMB_NAME}\\s*${SUBUNITS}(?:整|正)?|${SUBUNITS}(?:整|正)?\\s*${RMB_NAME}|${RMB_NAME}\\s*${LITERAL_NUMBER}(?:\\s*${YUAN_TAIL})?|${LITERAL_NUMBER}\\s*(?:${YUAN_TAIL}\\s*)?${RMB_NAME}|(?:人民[币幣]\\s*)?[¥￥]?\\s*${LITERAL_NUMBER}\\s*${YUAN_TAIL})`, 'giu');
+const TOKEN = new RegExp(`(?:${RMB_NAME}\\s*${SUBUNITS}(?:整|正)?|${SUBUNITS}(?:整|正)?\\s*${RMB_NAME}|(?:${RMB_NAME}|[¥￥])\\s*${LITERAL_NUMBER}(?:\\s*${YUAN_TAIL})?|${LITERAL_NUMBER}\\s*(?:${YUAN_TAIL}\\s*)?${RMB_NAME}|(?:人民[币幣]\\s*)?[¥￥]?\\s*${LITERAL_NUMBER}\\s*${YUAN_TAIL})`, 'giu');
 
 function result(rawValue: string, status: CandidateNormalization['status'], reason: string, match?: { text: string; index: number; amount: string }): CandidateNormalization {
   return { rawValue, status, amount: match?.amount ?? null, matchedText: match?.text ?? null,
@@ -57,8 +57,8 @@ function result(rawValue: string, status: CandidateNormalization['status'], reas
 // the numeric token. It cannot silently turn 数十万 or 负数四万 into its tail.
 function monetaryDetectionView(value: string): string {
   // Fold only detection copies; keep line boundaries and every raw offset.
-  return moneyQualifierDetectionView(value).replace(/[兩億詳無確認載記註實補暫計給發號時]/gu,
-    glyph => ({ 兩: '两', 億: '亿', 詳: '详', 無: '无', 確: '确', 認: '认', 載: '载', 記: '记', 註: '注', 實: '实', 補: '补', 暫: '暂', 計: '计', 給: '给', 發: '发', 號: '号', 時: '时' })[glyph]!);
+  return moneyQualifierDetectionView(value).replace(/[兩億詳無確認載記註實補暫計給發號時並併]/gu,
+    glyph => ({ 兩: '两', 億: '亿', 詳: '详', 無: '无', 確: '确', 認: '认', 載: '载', 記: '记', 註: '注', 實: '实', 補: '补', 暫: '暂', 計: '计', 給: '给', 發: '发', 號: '号', 時: '时', 並: '并', 併: '并' })[glyph]!);
 }
 
 // Only uncertainty matching joins layout inside its finite existing words;
@@ -219,6 +219,10 @@ function hasCompleteMoneyUnit(token: string): boolean {
 function hasRepeatedRmbCurrency(before: string, token: string, after: string): boolean {
   const beforeView = monetaryDetectionView(before), tokenView = monetaryDetectionView(token);
   let count = [...tokenView.matchAll(new RegExp(RMB_NAME, 'giu'))].length;
+  // A newly supported bare symbol already supplies its omitted yuan unit.
+  // It cannot borrow another named prefix/suffix after cropping that marker;
+  // existing symbol + explicit-yuan spellings retain their original contract.
+  if (/^[¥￥]/u.test(tokenView) && !/[元圆圓角分]/u.test(tokenView)) count++;
   if (new RegExp(`${RMB_NAME}\\s*$`, 'iu').test(beforeView)) count++;
   // A bare Arabic value may omit its one yuan unit; an explicit whole-amount
   // ending can also precede the first named suffix. Neither adds a currency.
@@ -289,7 +293,7 @@ function normalizeMoneyValueWithSubject(rawValue: string, subject: string | null
       || (new RegExp(`^[${NUMERALS}０-９元圆圓角分整正]|^[,.，]\\s*[${NUMERALS}０-９]`, 'u').test(after)
         && !(hasCompleteMoneyUnit(text) && isPostposedMoneyPaymentInstruction(after)))) return result(rawValue, 'unsupported', '完整金额的数字、单位或符号边界不合法，未截取其中有效片段。');
     const rest = remainingNumbers(rawValue, index, text)
-      .replace(/(?:一共|一次性|一并|同一|唯一|统一|另一笔|一笔)/gu, '')
+      .replace(/(?:一共|一次性|一[并並併]|同一|唯一|统一|另一笔|一笔)/gu, '')
       .replace(new RegExp(`第[${NUMERALS}]+(?:笔|次|项|条|人)`, 'gu'), '');
     if (new RegExp(`[${NUMERALS}０-９]`, 'u').test(rest)) return result(rawValue, 'multiple_amounts', '原文仍有无法解释为日期、计数或倍数的数字，可能存在省略币种的另一笔金额或复杂中文数表达。');
     if (hasRepeatedRmbCurrency(before, text, after)) return result(rawValue, 'unsupported', '金额重复附着币种标记，未截取其中一个完整片段。');
@@ -333,7 +337,7 @@ export function hasPostposedMoneyUncertainty(after: string): boolean {
   // A supported slash/每 denominator cannot hide the same directly attached
   // unknown marker. Consume one finite rate wrapper only; clause punctuation
   // and another person's prose remain barriers in the existing predicate.
-  const rate = detection.match(/^(?:[元圆圓])?(?:\/|每)(?:小时|月|日|天|时|件)(?:计算|计酬|计价|计薪|计)?/u);
+  const rate = detection.match(/^(?:[元圆圓])?(?:\/|每)(?:小时|[个個]?月|日|天|时|件)(?:计算|计酬|计价|计薪|计)?/u);
   const text = rate ? detection.slice(rate[0].length) : detection;
   if (rate && hasAttachedMoneyArithmetic('', text)) return false;
   return new RegExp(`^\\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\\s*[()[\\]{}【】]*\\s*(?:(?:金[额額]|[数數][额額])\\s*(?:为|為|是|[:=])?\\s*)?(?:${MASKED.source}|${UNCERTAIN.source})`, 'iu').test(text);
@@ -347,7 +351,7 @@ const RATE_UNITS: Record<string, RawCandidateV3['rateUnit']> = { 小时: 'hour',
 export function isPostposedMoneyPaymentSchedule(after: string): boolean {
   const day = '(?:[12][0-9]|3[01]|[1-9]|二十[一二三四五六七八九]?|三十一?|十[一二三四五六七八九]?|[一二三四五六七八九])';
   const detection = monetaryDetectionView(after);
-  const calendar = detection.match(new RegExp(`^\\s*(?:[元圆圓]\\s*)?每\\s*月\\s*(?:第\\s*)?${day}\\s*(?:日|号)\\s*(?:支付|发放|给付|付清|发薪)`, 'u'));
+  const calendar = detection.match(new RegExp(`^\\s*(?:[元圆圓]\\s*)?每\\s*[个個]?月\\s*(?:第\\s*)?${day}\\s*(?:日|号)\\s*(?:支付|发放|给付|付清|发薪)`, 'u'));
   if (!calendar) return false;
   const tail = detection.slice(calendar[0].length);
   return /^\s*(?:$|[，,。；;！!）)】\]])/u.test(tail) && !hasPostposedMoneyUncertainty(tail);
@@ -384,11 +388,11 @@ function attachedSuffixRate(after: string) {
   // A denominator is a complete lexical unit. 月亮/月份/小时候 cannot
   // borrow the enum from a valid prefix. Keep the existing finite pricing or
   // payment prose, and attached uncertainty, after a complete supported unit.
-  const unit = text?.match(/^(小时|月|日|天|时|件)/u);
+  const unit = text?.match(/^(小时|[个個]?月|日|天|时|件)/u);
   const remainder = unit ? text!.slice(unit[0].length) : '';
   const supported = unit && (remainder === '' || hasPostposedMoneyUncertainty(remainder)
     || attachedQualifierStatus('', remainder) !== null
-    || /^(?:计算|计酬|计价|计薪|计|支付|发放|付清)$/u.test(remainder)) ? unit[1] : undefined;
+    || /^(?:计算|计酬|计价|计薪|计|支付|发放|付清)$/u.test(remainder)) ? unit[1].replace(/^[个個](?=月$)/u, '') : undefined;
   return { present: suffix !== null, supported, postposedBy: false,
     uncertain: supported !== undefined && hasPostposedMoneyUncertainty(detection) };
 }
@@ -396,7 +400,11 @@ function attachedSuffixRate(after: string) {
 /** Source layout uses the same complete suffix-unit classification. */
 export function hasUnsupportedMoneySuffixRate(after: string): boolean {
   const rate = attachedSuffixRate(after);
-  return rate.present && rate.supported === undefined;
+  // Source layout can stop at a dangling 每 when the next fragment is not
+  // safely attached. It cannot turn this explicitly begun denominator into a
+  // total; local quote parsing still lets a complete source resolve the unit.
+  return rate.present && rate.supported === undefined
+    || /^[^\S\r\n\u2028\u2029]*(?:[元圆圓][^\S\r\n\u2028\u2029]*)?每\s*$/u.test(monetaryDetectionView(after));
 }
 
 export function supportedMoneySuffixRateUnit(after: string): RawCandidateV3['rateUnit'] | null {

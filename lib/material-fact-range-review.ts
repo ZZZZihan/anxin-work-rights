@@ -7,7 +7,7 @@ export const MONEY_BOUND_PREFIX = `(?:不得少于|不得低于|不得超过|不
 const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;
 // Explicit ordinary continuations keep their word boundary; other unknown prose
 // remains conservative. Do not exempt genuine lower bounds such as 起价.
-export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|以上(?!\\s*(?:海|述|文|表|班))|以下(?!\\s*(?:列|述|文|表))|以内(?!\\s*(?:部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵))|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
+export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未达)(?!${FOLLOWING_DURATION_OR_COUNT})|开外|左右|上下|(?:[及或]\\s*)?(?:以上(?!\\s*(?:海|述|文|表|班))|以下(?!\\s*(?:列|述|文|表|内容)))|以内(?!\\s*(?:部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵))|以外|之内|内(?!部|容|控|含|地|陆|陸|勤|资|資|销|銷|涵)|封顶|出头|有余|多(?!次|方|名|人|件|份|个|個|种|種|样|樣|数|數|年|月|天|日)|余(?!额|額|款|项|項|下|剩|量|地)|起(?!诉|訴|草|因|初|源)|许(?!可|诺|諾))`;
 
 /** Fold a detection copy only; never use this text for source positions. */
 export function moneyQualifierDetectionView(text: string): string {
@@ -56,7 +56,7 @@ const ATTACHED_SIGNED = new RegExp(`(?:负数|負數|负值|負值|正数|正數
 const NEGATIVE_ANNOTATION_TAIL = `(?:记${SPACE}录|記${SPACE}錄|金${SPACE}[额額])`;
 const ATTACHED_NEGATIVE_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[(]${SPACE})?(?:(?:金额|金額|数值|數值)${SPACE})?(?:(?:为|為|是)${SPACE})?[负負]${SPACE}(?:[数數]|值)(?:(?!\\p{L}|\\p{N})|(?=${NEGATIVE_ANNOTATION_TAIL}))`, 'iu');
 const ATTACHED_INDEFINITE = new RegExp(`(?:数|數|几|幾)${CURRENCY_BRIDGE}$`, 'iu');
-const ATTACHED_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[/／]${SPACE}(?:小时|月|日|天|时|件)${SPACE})?${MONEY_BOUND_SUFFIX}`, 'iu');
+const ATTACHED_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:(?:[/／]|每)${SPACE}(?:小时|[个個]?月|日|天|时|件)${SPACE})?${MONEY_BOUND_SUFFIX}`, 'iu');
 // A comparison's left operand is no more an exact total than its right one.
 // The same finite unit/currency wrappers may intervene; punctuation cannot.
 const ATTACHED_COMPARISON_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}${COMPARISON_BOUND}`, 'iu');
