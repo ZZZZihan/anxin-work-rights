@@ -5,7 +5,7 @@ import { normalizeCandidateValueV4 as normalizeCandidateValue } from './material
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
 import { sourceMoneyHasNonCurrencySubunit, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
-import { isConjunctionMoneyRangeEndpoint } from './material-fact-range-review.ts';
+import { attachedMoneyQualifierStatus, isMoneyRangeEndpoint } from './material-fact-range-review.ts';
 import { reviewMaterialCoverage } from './material-fact-coverage-review.ts';
 
 /** Runtime source review is deliberately separate from the frozen extraction/evaluation contract. */
@@ -106,13 +106,13 @@ function sourceMoneyHasAttachedArithmetic(context: AnchoredSourceEvent, normaliz
   return hasAttachedMoneyArithmetic(before, after);
 }
 
-function sourceMoneyIsConjunctionRange(context: AnchoredSourceEvent, normalized: CandidateNormalization, source: FactSource, blockId: string): boolean {
+function sourceMoneyLayoutEdges(context: AnchoredSourceEvent, normalized: CandidateNormalization, source: FactSource, blockId: string) {
   const edges = monetaryEdges(context, normalized, true);
-  if (!edges) return false;
+  if (!edges) return null;
   const blockIndex = source.blocks.findIndex(block => block.id === blockId);
   const before = [...source.blocks.slice(0, blockIndex).map(block => block.text), edges.before].join('\n');
   const after = [edges.after, ...source.blocks.slice(blockIndex + 1).map(block => block.text)].join('\n');
-  return isConjunctionMoneyRangeEndpoint(before, edges.matched, after);
+  return { before, after, matched: edges.matched };
 }
 
 /** Inspect the original block: a grouping comma may already be outside the local clause. */
@@ -207,14 +207,22 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
     if (sourceNormalized.amount !== null) {
       const blockIndex = source!.blocks.findIndex(block => block.id === candidate.blockId);
       const subunitSource = { blockText: [context.blockText, ...source!.blocks.slice(blockIndex + 1).map(block => block.text)].join('\n'), valueStart: context.valueStart };
+      // Layout boundaries do not erase an explicitly attached bound or range.
+      // Shared finite grammars alone inspect these edges; arbitrary neighboring
+      // prose cannot attach, and stored quote/positions stay in their own block.
+      const layout = sourceMoneyLayoutEdges(context, sourceNormalized.normalization, source!, candidate.blockId);
+      const qualifierStatus = layout && attachedMoneyQualifierStatus(layout.before, layout.after);
       if (sourceMoneyHasNonCurrencySubunit(subunitSource, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文中的角或分属于时间、计量或普通词语，未将裁剪片段作为分币金额。', 'unsupported'),
       };
       else if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着外币或不支持的币种标记，当前规范化不进行币种转换。', 'unsupported'),
       };
-      else if (sourceMoneyIsConjunctionRange(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {
+      else if (layout && isMoneyRangeEndpoint(layout.before, layout.matched, layout.after)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文明确给出金额区间，未将裁剪后的任一端点作为精确金额。', 'range'),
+      };
+      else if (qualifierStatus) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着符号、数量不定或上下界限定，未将裁剪后的数值作为精确金额。', qualifierStatus),
       };
       else if (sourceMoneyHasAttachedArithmetic(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。', 'unsupported'),
