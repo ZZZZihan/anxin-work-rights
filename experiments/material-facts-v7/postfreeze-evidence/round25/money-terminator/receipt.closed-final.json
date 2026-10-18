@@ -1,0 +1,116 @@
+{
+  "task": "ROUND25 final bounded whole-money terminator closure",
+  "supersedes_only_as_current_delivery": "receipt.json is preserved as an intermediate delivery; no old artifact was edited.",
+  "baseline_revision": "f16c59bc08c823538df00d6fa1fd2dbc139cd5a2",
+  "final_products": {
+    "lib/material-money-v4.ts": "d571894efd596fdf1ed8e28aac1bd4e367e3c8ce0b6ba59428b8b9905be8c390",
+    "lib/material-fact-source-review.ts": "b214b4e47fad22463970f0989d5b1b3ebeba487d4a07290bb39c34af03f1c5a5"
+  },
+  "final_author": {
+    "path": "scripts/material-fact-whole-money-terminator.test.mjs",
+    "sha256": "82c4954c0d509a3cce3ee79bf88813fef3761d5fd22b301553c413a7aa22838a"
+  },
+  "original_22_artifacts_unchanged": true,
+  "original_index_sha256": "c13b54e80663ddcb3c73467a140cfe862469ac269a6b10f6d0f4a3972042ea76",
+  "guard_contract": [
+    "The token must already end in a complete yuan/jiao/fen unit or contain its original ending; a bare token can only borrow its immediately following explicit yuan+ending.",
+    "At most one 整/正 terminator is recognized on the detection edge.",
+    "At most one explicit RMB suffix marker is removed from the detection edge; an immediately repeated marker is rejected, not recursively parsed.",
+    "Digits, cents, scale/unit continuation, another terminator and decimal/group separator followed by digits remain unavailable. Standalone sentence punctuation is retained.",
+    "Only the already existing finite currency/rate/range/qualifier/arithmetic/uncertainty guards inspect the remaining tail. Correct month/day/hour/piece rates retain their old distinction.",
+    "Source review supplies original block and layout edges; raw/value/quote/spans and storage/history are never replaced, and old unavailable values never auto-upgrade."
+  ],
+  "author_runs": [
+    {
+      "log": "before-f16.final526.actual.log",
+      "script_snapshot": "author.final526.snapshot",
+      "tests": 526,
+      "pass": 430,
+      "fail": 96,
+      "exit_code": 1,
+      "role": "Exact f16 semantic baseline for the same 526 pipeline assertions."
+    },
+    {
+      "log": "after-final526.actual.log",
+      "script_snapshot": "author.final526.snapshot",
+      "tests": 526,
+      "pass": 526,
+      "fail": 0,
+      "exit_code": 0,
+      "role": "Final d571 products against the same 526 pipeline assertions."
+    },
+    {
+      "log": "after-final529.actual.log",
+      "script_snapshot": "author.final529.snapshot",
+      "tests": 529,
+      "pass": 529,
+      "fail": 0,
+      "exit_code": 0,
+      "role": "Final script adds three new-API composition assertions containing 1212 guard cells; these three are final-only property checks, not counted as additional old-f16 semantic failures or independent material cases."
+    },
+    {
+      "log": "key-guards.d571.actual.log",
+      "tests": 706,
+      "pass": 706,
+      "fail": 0,
+      "exit_code": 0,
+      "role": "Six old related suites; exact f16 lib/scripts/assess plus only final money/source overlays. Suite list remains key-guards.command.json."
+    },
+    {
+      "log": "lint.d571.actual.log",
+      "exit_code": 0,
+      "role": "ESLint on the two final product files and final author script."
+    }
+  ],
+  "retained_intermediate_evidence": [
+    {
+      "log": "after-first.actual.log",
+      "pass": 148,
+      "fail": 14,
+      "meaning": "Actual 14 unsafe question/layout continuations introduced by the first minimal fix. Not final acceptance."
+    },
+    {
+      "log": "punctuation-intermediate.actual.log",
+      "tests": 378,
+      "pass": 370,
+      "fail": 8,
+      "meaning": "Actual eight standalone ASCII/fullwidth sentence-dot availability regressions in 2953. Fixed by requiring digits after a decimal/group separator."
+    },
+    {
+      "log": "after-final522.actual.log",
+      "tests": 522,
+      "pass": 514,
+      "fail": 8,
+      "meaning": "Author fixture over-asserted unseparated RMBUSD/CNYUSD as two currency codes. Those are one alphabetic token under existing strict boundaries; fixed only the fixture by adding a visible separator. Not counted as product failures."
+    },
+    {
+      "log": "second-wrapper-before.actual.log",
+      "tests": 526,
+      "pass": 522,
+      "fail": 4,
+      "meaning": "Actual 2e0 repeated RMB-marker leak. d571 rejects the second marker instead of recursively consuming wrappers."
+    }
+  ],
+  "environment": {
+    "actual_node": "v26.11.0",
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "nonimplementer_boundary": "Peer independently read d571 and reported no static blocker. Final peer-owned 27 tests and Node24 integration/HTTP are parent/peer responsibilities and are not claimed as my execution.",
+  "not_executed": [
+    "HTTP",
+    "full npm check",
+    "CI",
+    "deep historical gates",
+    "model generation",
+    "training",
+    "deployment",
+    "commit/push"
+  ],
+  "limitations": [
+    "Finite lexical detection is not a proof of all possible natural-language continuations.",
+    "Original extra prose after a cropped ending retains prior conservative availability behavior; this patch does not generally reinterpret prose as amount syntax.",
+    "Synthetic author and old-regression success do not establish legal/real-case correctness, confirmed production calculations or human acceptance."
+  ]
+}

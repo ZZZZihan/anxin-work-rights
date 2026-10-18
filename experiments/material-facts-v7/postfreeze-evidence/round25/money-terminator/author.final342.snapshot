@@ -1,0 +1,99 @@
+// Author-only synthetic checks. No HTTP, inference, FX math or frozen artifacts.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const OWN = fileURLToPath(new URL('../', import.meta.url));
+const SOURCE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
+const PATCH = resolve(process.env.MATERIAL_FACT_MONEY_ROOT || OWN);
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-whole-money-terminator-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+if (process.env.MATERIAL_FACT_TEST_REVISION) {
+  const archive = execFileSync('git', ['archive', '--format=tar', process.env.MATERIAL_FACT_TEST_REVISION, 'lib'], { cwd: SOURCE, maxBuffer: 30 * 1024 * 1024 });
+  execFileSync('tar', ['-xf', '-', '-C', temporary], { input: archive });
+} else await cp(resolve(SOURCE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+await cp(resolve(PATCH, 'lib/material-money-v4.ts'), resolve(temporary, 'lib/material-money-v4.ts'));
+if (process.env.MATERIAL_FACT_SOURCE_FILE) await cp(process.env.MATERIAL_FACT_SOURCE_FILE, resolve(temporary, 'lib/material-fact-source-review.ts'));
+const load = file => import(pathToFileURL(resolve(temporary, 'lib', file)).href);
+const { normalizeCandidateValueV4: normalize } = await load('material-money-v4.ts');
+const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates } = await load('material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
+const AT = '2026-10-18T00:00:00.000Z';
+const cpLength = value => Array.from(value).length;
+
+function fixture(expression, value, fullQuote = false, nextBlock = null) {
+  const text = '😀𠮷王甲工资为' + expression + '。';
+  const source = { id: 'whole-money-author', name: '合成完整金额终止词', sha256: 'e'.repeat(64), analysisRevision: 1, ready: true,
+    blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }] };
+  if (nextBlock !== null) { source.blocks[0].text = text.slice(0, -1); source.blocks.push({ id: 'b2', page: 1, text: nextBlock + '。', bbox: null, confidence: null }); }
+  const candidate = { kind: 'money', value, quote: fullQuote ? source.blocks[0].text : value, blockId: 'b1', subject: '王甲', scope: 'individual',
+    meaning: 'arrears', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' };
+  return { source, candidate, raw: JSON.stringify({ schemaVersion: 3, candidates: [candidate] }) };
+}
+
+function check(f, expected, originalAmount = expected ?? '4000.00') {
+  const snapshot = structuredClone(f);
+  const ingest = fn => fn(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'whole-money-author', AT);
+  const immutable = fact => {
+    const text = f.source.blocks[0].text;
+    assert.deepEqual(fact.representation, f.candidate); assert.equal(fact.value, f.candidate.value); assert.equal(fact.quote, f.candidate.quote);
+    assert.equal(fact.sourceSha256, f.source.sha256); assert.equal(fact.start, cpLength(text.slice(0, text.indexOf(f.candidate.quote))));
+    assert.equal(fact.end, fact.start + cpLength(f.candidate.quote)); assert.equal(Array.from(text).slice(fact.start, fact.end).join(''), fact.quote);
+  };
+  const fresh = ingest(ingestRuntimeCandidates); assert.equal(fresh.materials[0].raw, f.raw); assert.equal(fresh.materials[0].candidates.length, 1);
+  assert.equal(fresh.materials[0].candidates[0].amount, expected, 'fresh whole-source review'); immutable(fresh.materials[0].candidates[0]);
+  assert.deepEqual(fresh.confirmations, { due: null, paid: null }); assert.equal(fresh.calculation, null);
+  const stored = ingest(ingestCandidates), old = stored.materials[0].candidates[0]; assert(old);
+  old.amount = originalAmount; old.normalization = { rawValue: old.value, amount: originalAmount, status: 'exact', matchedText: old.value,
+    span: { start: 0, end: cpLength(old.value) }, reason: 'Synthetic existing exact history.' };
+  const before = structuredClone(stored), reviewed = reviewFactsAgainstSources(stored, [f.source]);
+  assert.equal(reviewed.materials[0].candidates[0].amount, expected, 'old exact source review'); immutable(reviewed.materials[0].candidates[0]);
+  assert.equal(reviewed.materials[0].raw, f.raw); assert.deepEqual(reviewed.history, stored.history); assert.deepEqual(stored, before);
+  old.amount = null; old.normalization = { rawValue: old.value, amount: null, status: 'unsupported', matchedText: null, span: null, reason: 'Synthetic unavailable history.' };
+  const unavailable = structuredClone(stored); assert.equal(reviewFactsAgainstSources(stored, [f.source]).materials[0].candidates[0].amount, null, 'old unavailable must not auto-upgrade');
+  assert.deepEqual(stored, unavailable); assert.deepEqual(f, snapshot);
+}
+
+for (const terminal of ['整', '正']) for (const fullQuote of [false, true]) test('minimal cropped whole-amount ending: ' + JSON.stringify({ terminal, fullQuote }), () => {
+  const f = fixture('4000元' + terminal, '4000元', fullQuote);
+  assert.equal(normalize({ ...f.candidate, quote: f.source.blocks[0].text }).amount, '4000.00'); check(f, '4000.00');
+});
+for (const [value, amount] of [['4000元', '4000.00'], ['四千元', '4000.00'], ['人民幣四千圓', '4000.00'], ['4000元5角2分', '4000.52'], ['五元5角', '5.50'], ['人民币5角2分', '0.52']])
+  for (const terminal of ['整', '正']) for (const fullQuote of [false, true]) test('finite complete amount ending retains exact raw/CP: ' + JSON.stringify({ value, terminal, fullQuote }), () => check(fixture(value + terminal, value, fullQuote), amount));
+for (const terminal of [' 整', ' 正', '\u200d整', '\u2060正']) for (const fullQuote of [false, true])
+  test('terminal detection copy handles horizontal space/Cf: ' + JSON.stringify({ terminal, fullQuote }), () => check(fixture('4000元' + terminal, '4000元', fullQuote), '4000.00'));
+for (const terminal of ['整', '正']) for (const fullQuote of [false, true]) test('existing bare number plus original yuan ending stays compatible: ' + JSON.stringify({ terminal, fullQuote }), () => check(fixture('4000元' + terminal, '4000', fullQuote), '4000.00'));
+for (const terminal of ['整', '正']) for (const fullQuote of [false, true]) test('full original ending in value remains exact: ' + JSON.stringify({ terminal, fullQuote }), () => check(fixture('4000元' + terminal, '4000元' + terminal, fullQuote), '4000.00'));
+
+const unsafe = ['5角', '五分', '5000', '万', '萬元', '亿', '元', '角', '分', '整', '正', '.5', '至5000元', '到五千元', '至4', '的2倍', '×2', '乘以出勤率', '美元', '港幣', '未知', '待定', '？', '/月', '/年'];
+for (const terminal of ['整', '正']) for (const tail of unsafe) for (const fullQuote of [false, true])
+  test('ending cannot hide attached continuation: ' + JSON.stringify({ terminal, tail, fullQuote }), () => check(fixture('4000元' + terminal + tail, '4000元', fullQuote), null));
+for (const terminal of ['整', '正']) for (const tail of ['5角', '五分', '万元', '至5000元', '至4', '×2', '待定'])
+  test('ending cannot hide an explicit layout continuation: ' + JSON.stringify({ terminal, tail }), () => check(fixture('4000元' + terminal, '4000元', false, tail), null));
+for (const tail of ['。王乙2026年2月工资5000元', '，王乙2026年2月工资5000元']) for (const fullQuote of [false, true])
+  test('a completed amount in a separate event remains available: ' + JSON.stringify({ tail, fullQuote }), () => check(fixture('4000元整' + tail, '4000元', fullQuote), '4000.00'));
+
+// Additional guard controls requested after the first 162 were already frozen
+// as author evidence. These cases do not add currency/qualifier vocabulary.
+for (const terminal of ['整', '正']) for (const tail of ['USD', '港币', '/月', '/年', '的2倍', '×2', '左右', '以上', '待确认', '？', '5角', '万元'])
+  for (const layout of ['same', 'newline', 'block']) for (const fullQuote of [false, true])
+    test('single terminal preserves the existing attached guard: ' + JSON.stringify({ terminal, tail, layout, fullQuote }), () => {
+      const f = fixture('4000元' + terminal + (layout === 'newline' ? '\n' : '') + (layout === 'block' ? '' : tail), '4000元', fullQuote, layout === 'block' ? tail : null);
+      check(f, null);
+    });
+for (const terminal of ['整', '正']) for (const [unit, rateUnit] of [['月', 'month'], ['日', 'day'], ['小时', 'hour'], ['件', 'piece']])
+  for (const fullQuote of [false, true]) for (const asRate of [false, true])
+    test('a complete original ending preserves supported rate/total distinction: ' + JSON.stringify({ terminal, unit, fullQuote, asRate }), () => {
+      const f = fixture('4000元' + terminal + '/' + unit, '4000元' + terminal, fullQuote);
+      Object.assign(f.candidate, { meaning: asRate ? 'rate' : 'arrears', rateUnit: asRate ? rateUnit : null });
+      f.raw = JSON.stringify({ schemaVersion: 3, candidates: [f.candidate] });
+      check(f, asRate ? '4000.00' : null);
+    });
+for (const terminal of ['整', '正']) for (const fullQuote of [false, true])
+  test('a new block with an explicitly different subject stays independent: ' + JSON.stringify({ terminal, fullQuote }), () =>
+    check(fixture('4000元' + terminal, '4000元', fullQuote, '王乙2026年2月工资5000元'), '4000.00'));

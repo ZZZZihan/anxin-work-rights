@@ -9,3 +9,8 @@
 实验整合的首次完整检查在typecheck因两个不完整历史源码快照目录失败，原日志保存于round24/root-code/integrated-root-full-check-final.log。仅将round21/source-author/nonimplementer-review-snapshots与round22/source-author/assess-http160-nonimplementer-snapshots从应用TS/ESLint入口排除；档案原字节、路径与哈希保留，真实应用和可执行实验工具不排除。修后限定typecheck和lint退出0，独立列集复核另留回执。该调整不改评分、代码绑定或历史执行政策。
 
 未新增模型请求、训练、合并或生产部署；自然材料覆盖和非专家标注限制保持。最终回归、整合、v18与CI结果完成后追加。
+
+
+追加中间证据（不覆盖前述检查点）：固定 f16 的同190项隔离HTTP为185通过5失败、cleanup通过；新增失败为相邻块“整人民币5角”仍返回4000.00。2953中间版本同190项188通过2失败，除了该原有漏，还误拒完整4000元整后的英文句点。188初始及186初始报告继续单独保留，不能与190项混作同一对照。
+
+主侧2953完整检查实际退出0：1789 Vitest、5448运行时通过/1平台跳过、材料67通过/1平台跳过、Python9+11+16；其后2e0中间版本完整检查退出0，运行时5629通过/1跳过。两版均因随后发现有限包装组合边界而未作为最终交付版本。日志分别保存在round25/root-code/app-full-check-intermediate-2953.log与app-full-check-intermediate-2e0d.log。中间绿色测试不能替代后续实际反例或最终整合检查。
