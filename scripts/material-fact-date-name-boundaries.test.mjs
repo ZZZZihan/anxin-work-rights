@@ -34,7 +34,7 @@ const { assessCase } = await import(pathToFileURL(resolve(temporary, 'experiment
 const AT = '2026-10-18T00:00:00.000Z';
 
 function check({ text, texts = [text], value = '4000元', subject = '王甲', kind = 'money', meaning = 'due_total',
-  period = null, rateUnit = null, full = false, supported, literalAmount = '4000.00', amount = kind === 'date' ? null : '4000.00' }) {
+  period = null, rateUnit = null, full = false, supported, literalAmount = '4000.00', amount = kind === 'date' ? null : '4000.00', samePage = false }) {
   const index = texts.findIndex(item => item.includes(value));
   assert.ok(index >= 0);
   const quote = full ? texts[index] : value;
@@ -42,7 +42,7 @@ function check({ text, texts = [text], value = '4000元', subject = '王甲', ki
     completeness: kind === 'money' && ['due_total', 'paid_total'].includes(meaning) ? 'complete' : 'not_applicable',
     period, rateUnit, assertion: 'narrated' };
   const source = { id: 'round28-date-name', name: '合成日期与姓名边界', sha256: '8'.repeat(64), analysisRevision: 28, ready: true,
-    blocks: texts.map((text, i) => ({ id: `b${i + 1}`, page: i + 1, text, bbox: null, confidence: null })) };
+    blocks: texts.map((text, i) => ({ id: `b${i + 1}`, page: samePage ? 1 : i + 1, text, bbox: null, confidence: null })) };
   const raw = JSON.stringify({ schemaVersion: 3, candidates: [representation] });
   const history = ingestCandidates(emptyFactState(28), source, { raw }, 'synthetic', 'owner', AT);
   const old = history.materials[0].candidates[0];
@@ -169,7 +169,7 @@ test('two equal amounts remain two separately anchored events', () => {
 
 for (const texts of [['😀王甲工资5角', '2分RMB。'], ['😀王甲工资5元', '2分RMB。'], ['😀王甲工资5角\u200b \t', ' 2分RMB。']])
   for (const full of [false, true]) test(`a new RMB cents fragment cannot crop the preceding amount ${JSON.stringify(texts)} full=${full}`,
-    () => check({ texts, value: '2分RMB', meaning: 'other_money', literalAmount: '0.02', amount: null, full }));
+    () => check({ texts, samePage: true, value: '2分RMB', meaning: 'other_money', literalAmount: '0.02', amount: null, full }));
 for (const [texts, subject] of [[['😀王甲工资5角。', '2分RMB。'], '王甲'],
   [['😀王甲工资5角', '王乙收到2分RMB。'], '王乙'], [['😀王甲工作5分钟', '2分RMB。'], '王甲']])
   test(`punctuation, another owner or a nonmoney unit stops the cents bridge ${JSON.stringify(texts)}`,
@@ -177,7 +177,7 @@ for (const [texts, subject] of [[['😀王甲工资5角。', '2分RMB。'], '王
 
 test('a cropped cents tail cannot borrow another equal-amount event in any of the six scores', () => {
   const source = { id: 'round28-cents-events', name: '合成分币事件', sha256: '7'.repeat(64), analysisRevision: 28, ready: true,
-    blocks: ['😀王甲工资5角', '2分RMB。', '王乙收到2分RMB。'].map((text, i) => ({ id: `b${i + 1}`, page: i + 1, text, bbox: null, confidence: null })) };
+    blocks: ['😀王甲工资5角', '2分RMB。', '王乙收到2分RMB。'].map((text, i) => ({ id: `b${i + 1}`, page: i < 2 ? 1 : 2, text, bbox: null, confidence: null })) };
   const expected = { kind: 'money', value: '2分RMB', quote: '2分RMB', blockId: 'b3', subject: '王乙', scope: 'individual',
     meaning: 'paid_total', completeness: 'complete', period: null, rateUnit: null, assertion: 'narrated' };
   const label = { id: 'round28-cents-events', expected: [expected], expected_event_ids: ['payment'], events: [

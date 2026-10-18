@@ -30,16 +30,16 @@ const { assessCase } = await load('experiments/material-facts-v7/assess.mjs');
 const cpLength = text => Array.from(text).length;
 const AT = '2026-10-18T00:00:00.000Z';
 const modes = ['raw_basic', 'accepted_basic', 'raw_relational', 'accepted_relational', 'raw_strict', 'accepted_strict'];
-function sourceFor(texts) {
+function sourceFor(texts, samePage = false) {
   return { id: 'round29-author', name: '合成传统字形边界.txt', sha256: '9'.repeat(64), analysisRevision: 29, ready: true,
-    blocks: texts.map((text, i) => ({ id: `b${i + 1}`, text, page: i + 1, bbox: null, confidence: null })) };
+    blocks: texts.map((text, i) => ({ id: `b${i + 1}`, text, page: samePage ? 1 : i + 1, bbox: null, confidence: null })) };
 }
 function itemFor(value, quote = value, blockId = 'b1') {
   return { kind: 'money', value, quote, blockId, subject: '王甲', scope: 'individual', meaning: 'other_money', completeness: 'not_applicable',
     period: null, rateUnit: null, assertion: 'narrated' };
 }
-function pipeline({ texts, value = '4000元', quote = value, block = 0, amount = null, storedAmount = '4000.00', meaning = 'other_money', rateUnit = null, status = null }) {
-  const source = sourceFor(texts), item = { ...itemFor(value, quote, `b${block + 1}`), meaning, rateUnit }, raw = JSON.stringify({ schemaVersion: 3, candidates: [item] });
+function pipeline({ texts, value = '4000元', quote = value, block = 0, amount = null, storedAmount = '4000.00', meaning = 'other_money', rateUnit = null, status = null, samePage = false }) {
+  const source = sourceFor(texts, samePage), item = { ...itemFor(value, quote, `b${block + 1}`), meaning, rateUnit }, raw = JSON.stringify({ schemaVersion: 3, candidates: [item] });
   const fresh = ingestRuntimeCandidates(emptyFactState(29), source, { raw }, 'synthetic', 'author', AT);
   const history = ingestCandidates(emptyFactState(29), source, { raw }, 'synthetic', 'author', AT);
   assert.equal(history.materials[0].candidates.length, 1, 'Historical fixture really enters candidate storage');
@@ -89,7 +89,7 @@ for (const layout of ['same-line', 'newline', 'next-block']) for (const prefix o
       if (layout === 'next-block') { texts = ['😀王甲工资出勤係數乘以', '4000元。']; block = 1; }
       else texts = [`😀王甲工资出勤係數乘以${layout === 'newline' ? '\n' : ''}4000元。`];
     } else texts = layout === 'next-block' ? ['😀王甲工资4000元', '乘以出勤係數。'] : [`😀王甲工资4000元${layout === 'newline' ? '\n' : ''}乘以出勤係數。`];
-    pipeline({ texts, block, quote: fullQuote ? texts[block] : '4000元' });
+    pipeline({ texts, samePage: layout === 'next-block', block, quote: fullQuote ? texts[block] : '4000元' });
   });
 
 // Every existing prefix/suffix whose customary traditional spelling differs.
@@ -120,7 +120,7 @@ for (const bound of ['超過', '不超過', '不得超過', '將近']) for (cons
 for (const bound of ['超過', '不超過', '不得超過', '將近']) for (const layout of ['newline', 'next-block', 'format'])
   test(`bound stays attached through permitted layout ${bound} ${layout}`, () => {
     const texts = layout === 'next-block' ? [`😀王甲工资${bound}`, '4000元。'] : [`😀王甲工资${bound}${layout === 'newline' ? '\n' : '\u200b'}4000元。`];
-    pipeline({ texts, block: layout === 'next-block' ? 1 : 0 });
+    pipeline({ texts, samePage: layout === 'next-block', block: layout === 'next-block' ? 1 : 0 });
   });
 for (const [simple, traditional] of [['不超过', '不超過'], ['超过', '超過'], ['将近', '將近']])
   test(`bound-spelled range endpoints remain ranges ${traditional}`, () => {
@@ -171,7 +171,7 @@ for (const suffix of ['每月15日支付', '每月第十五日发放', '每月31
   });
 for (const texts of [['😀王甲工资4000元', '每月15日支付。'], ['😀王甲工资4000元每月', '15日支付。'],
   ['😀王甲工资4000元每月\n15日支付。'], ['😀王甲工资4000元每\n月15日支付。']])
-  test(`payment schedule source-layout boundary ${JSON.stringify(texts)}`, () => pipeline({ texts, amount: '4000.00' }));
+  test(`payment schedule source-layout boundary ${JSON.stringify(texts)}`, () => pipeline({ texts, samePage: true, amount: '4000.00' }));
 for (const suffix of ['每月计', '每月32日支付', '每月0日支付', '每月15日', '每月15日王乙支付', '/月15日支付'])
   test(`a true rate or unproved date cannot use the schedule exception ${suffix}`, () => pipeline({ texts: [`😀王甲工资4000元${suffix}。`] }));
 for (const [text, rateUnit] of [['😀王甲月工资4000元每月15日支付。', null], ['😀王甲工资4000元/月。', 'month'],
@@ -183,7 +183,7 @@ for (const texts of [['😀王甲工资4000元每月15日支付5000元。'], ['�
   ['😀王甲工资4000元每月', '15日发票。'], ['😀王甲工资4000元每月', '15日支付?。'],
   ['😀王甲工资4000元每月', '15日支付待確認。'], ['😀王甲工资4000元每月', '15日支付（金额待核实）。'],
   ['😀王甲月工资4000元每月', '15日支付。'], ['😀王甲工资4000元/月', '15日支付。']])
-  test(`schedule closure cannot hide another amount, owner, uncertainty or real rate ${JSON.stringify(texts)}`, () => pipeline({ texts }));
+  test(`schedule closure cannot hide another amount, owner, uncertainty or real rate ${JSON.stringify(texts)}`, () => pipeline({ texts, samePage: true }));
 
 // ROUND29 classification closure: a local clause ending at × must not erase
 // the operand on the next line/block. A bare mask stays uncertain, not a formula.
@@ -191,11 +191,11 @@ for (const texts of [['😀王甲工资4000元×\n2。'], ['😀王甲工资4000
   ['😀王甲工资4000元x\n2。'], ['😀王甲工资4000元＊', '２。']])
   for (const quote of ['4000元', '4000元' + texts[0].split('4000元')[1]])
     test(`proven source-layout arithmetic keeps unsupported classification ${JSON.stringify(texts)} quote=${JSON.stringify(quote)}`, () =>
-      pipeline({ texts, quote, status: 'unsupported' }));
+      pipeline({ texts, samePage: true, quote, status: 'unsupported' }));
 for (const texts of [['😀王甲工资4000元×。'], ['😀王甲工资4000元×', '王乙2日收到工资。'],
   ['😀王甲工资4000元不詳。'], ['😀王甲工资4000元暫', '定。']])
   test(`a bare mask or actual unknown is not exempted as arithmetic ${JSON.stringify(texts)}`, () =>
-    pipeline({ texts, status: 'uncertain' }));
+    pipeline({ texts, samePage: true, status: 'uncertain' }));
 
 // Keep the pre-existing HTTP range/incomplete-endpoint contract. These are not
 // the multiplication-mask truncation that permits the source classification fix.

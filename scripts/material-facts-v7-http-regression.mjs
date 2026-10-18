@@ -1469,6 +1469,53 @@ try {
     return {freshAmount: entry.amount, normalizationStatus: entry.status, historicalExactDowngraded: entry.amount === null, historicalNullNotUpgraded: entry.amount !== null, rawAndStoredHistoryUnchanged: true};
   });
   // End ROUND34 CI closure additions.
+  // ROUND35: currency-prefixed empty labels are rejected; unknown prose remains
+  // visible but never authorizes an amount. TXT fixtures do not prove page OCR.
+  for (const value of ['人民币工资', '人民币薪资', '人民币金额', '￥工资']) await scenario(`round35_empty_currency_label_${value}`, async () => {
+    const [item] = await fixture(`round35-label-${value}`, [{text: value + '。', exactSource: true, candidates: [money(value, value, {subject: null, scope: 'unknown', meaning: 'other_money', completeness: 'not_applicable', period: null})]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 0); assert.equal(material.rejected.length, 1); assert.match(material.rejected[0].reason, /没有金额表达/u);
+    assert.equal(JSON.parse(material.raw).candidates[0].value, value);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates.length, 0); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round35-label-${value}`, item, state: before});
+    return {accepted: 0, rejected: 1, rawAndStoredHistoryUnchanged: true};
+  });
+  for (const value of ['人民币工资不详', '测试王甲人民币工资']) await scenario(`round35_unresolved_currency_prose_${value}`, async () => {
+    const [item] = await fixture(`round35-unresolved-${value}`, [{text: value + '。', exactSource: true, candidates: [money(value, value, {subject: value.startsWith('测试王甲') ? '测试王甲' : null, scope: 'unknown', meaning: 'other_money', completeness: 'not_applicable', period: null})]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, null); assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round35-unresolved-${value}`, item, state: before});
+    return {accepted: 1, amount: null, usable: false, rawAndStoredHistoryUnchanged: true};
+  });
+  for (const [name, continuation] of [['qualifier', '以上事实无争议'], ['range', '至5000元为李乙工资'], ['arithmetic', '×2是附件编号']]) await scenario(`round35_unknown_block_boundary_${name}`, async () => {
+    const text = `测试王甲收到工资4000元\n${continuation}`;
+    const [item] = await fixture(`round35-block-${name}`, [{text, exactSource: true, candidates: [money('4000元', '4000元', {meaning: 'paid_total', completeness: 'unknown', period: null})]}]);
+    assert.equal(item.analysis.result.blocks.length, 2);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, null); assert.equal(material.candidates[0].normalization.status, 'uncertain');
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '4000.00';
+    old.normalization = {rawValue: old.value, amount: old.amount, status: 'exact', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic historical unconfirmed layout boundary'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.equal(read.body.state.materials[0].candidates[0].normalization.status, 'uncertain'); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round35-block-${name}`, item, state: before});
+    return {amount: null, normalizationStatus: 'uncertain', samePageTxtBlocks: 2, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true};
+  });
+  // Actual same-page safety regressions found by the full integration check.
+  for (const tail of ['USD', '港币', 'EUR', '？']) await scenario(`round35_terminal_continuation_${tail}`, async () => {
+    const text = `测试王甲工资4000元整\n${tail}。`;
+    const [item] = await fixture(`round35-terminal-${tail}`, [{text, exactSource: true, candidates: [money('4000元', '4000元', {meaning: 'other_money', completeness: 'not_applicable', period: null})]}]);
+    assert.equal(item.analysis.result.blocks.length, 2);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, null); assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '4000.00';
+    old.normalization = {rawValue: old.value, amount: old.amount, status: 'exact', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic historical terminal continuation regression'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round35-terminal-${tail}`, item, state: before});
+    return {amount: null, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true};
+  });
+  // End ROUND35 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

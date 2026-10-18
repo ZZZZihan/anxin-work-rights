@@ -27,14 +27,14 @@ const { normalizeMoneyValueV4 } = await load('material-money-v4.ts');
 const AT = '2026-10-18T00:00:00.000Z';
 
 function check({ text, texts = [text], full = false, quote, value = '4000元', meaning = 'due_total', rateUnit = null,
-  subject = '王甲', period = null, expected = null, relation, mismatch = expected === null, status, direct = false }) {
+  subject = '王甲', period = null, expected = null, relation, mismatch = expected === null, status, direct = false, samePage = false }) {
   const block = texts.findIndex(part => part.includes(value));
   assert.ok(block >= 0);
   const representation = { kind: 'money', value, quote: quote ?? (full ? texts[block] : value), blockId: `b${block + 1}`,
     subject, scope: 'individual', meaning, completeness: ['due_total', 'paid_total'].includes(meaning) ? 'complete' : 'not_applicable',
     rateUnit, period, assertion: 'narrated' };
   const source = { id: 'postposed-unit-source', name: '合成金额后置按单位费率', sha256: '6'.repeat(64), analysisRevision: 26, ready: true,
-    blocks: texts.map((text, index) => ({ id: `b${index + 1}`, page: index + 1, text, bbox: null, confidence: null })) };
+    blocks: texts.map((text, index) => ({ id: `b${index + 1}`, page: samePage ? 1 : index + 1, text, bbox: null, confidence: null })) };
   const raw = JSON.stringify({ schemaVersion: 3, candidates: [representation] });
   const fresh = ingestRuntimeCandidates(emptyFactState(26), source, { raw }, 'synthetic', 'owner', AT);
   assert.equal(fresh.materials[0].candidates.length, 1, 'The monetary fixture must enter the actual candidate store');
@@ -112,7 +112,7 @@ for (const tail of ['按\n月计', '按\u2028小时计', '按\u2029件计酬', '
 }
 for (const texts of [
   ['😀王甲工资4000元按', '月计。'], ['😀王甲工资4000元', '按小时计。'], ['😀王甲工资4000元按件', '计酬。'],
-]) test(`explicit continuation across source blocks ${JSON.stringify(texts)}`, () => check({ texts }));
+]) test(`explicit continuation across source blocks ${JSON.stringify(texts)}`, () => check({ texts, samePage: true }));
 for (const texts of [
   ['😀王甲工资4000元。', '按月计。'], ['😀王甲工资4000元', '王乙工资5000元按月计。'],
   ['😀王甲工资4000元', '每月15日发放。'],
@@ -128,7 +128,7 @@ for (const [tail, rateUnit] of [['按月计', 'month'], ['按小时计', 'hour']
 for (const texts of [
   ['😀王甲工资4000元按月计\n未知。'], ['😀王甲工资4000元按月计', '未知。'],
   ['😀王甲工资4000元按件计酬\n（待核实）。'], ['😀王甲工资4000元按件计酬', '（待核实）。'],
-]) test(`a rate cannot discard its attached unknown layout tail ${JSON.stringify(texts)}`, () => check({ texts,
+]) test(`a rate cannot discard its attached unknown layout tail ${JSON.stringify(texts)}`, () => check({ texts, samePage: true,
   meaning: 'rate', rateUnit: texts[0].includes('按月') ? 'month' : 'piece', status: 'uncertain', mismatch: false }));
 
 // Integration cases need the co-developed normalizer's finite 整/正+按 branch.
@@ -142,6 +142,6 @@ if (process.env.MATERIAL_FACT_RATE_COMBINED === '1') {
     }
   }
   for (const texts of [['😀王甲工资4000元按月计', '金额未知。'], ['😀王甲工资4000元按小时计\n（数额待核实）。']])
-    test(`combined unknown-label detection stays unavailable ${JSON.stringify(texts)}`, () => check({ texts,
+    test(`combined unknown-label detection stays unavailable ${JSON.stringify(texts)}`, () => check({ texts, samePage: true,
       meaning: 'rate', rateUnit: texts[0].includes('按月') ? 'month' : 'hour', status: 'uncertain', mismatch: false }));
 }
