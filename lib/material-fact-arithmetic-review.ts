@@ -73,6 +73,10 @@ const PREFIX_PAY_COMPONENT = new RegExp(`(?<!\\p{L}|\\p{N})${PAY_COMPONENT_OPERA
 // Reuse the strict numeric factor; never infer the resulting payable amount.
 const DOUBLING = `(?:翻|加)${LINE}*(?:${FACTOR}${LINE}*)?倍`;
 const SUFFIX_DOUBLING = new RegExp(`^${DOUBLING}`, 'u');
+// These attached verbs state a half-base operation, never its payable result.
+// 減 is folded only in the detection copy; no amount is evaluated or rewritten.
+const HALVING = `(?:减|折)${LINE}*半`;
+const SUFFIX_HALVING = new RegExp(`^${HALVING}`, 'u');
 // A presentation hyphen can introduce a payment date or duration. Require a
 // complete time unit: a bare -2000, -200元 or -50% remains subtraction. This
 // exception does not apply to an explicit 减/减去 or the mathematical minus −.
@@ -83,7 +87,7 @@ const TIME_INTEGER = `[${NUMERALS}]+`;
 const HYPHEN_TIME = new RegExp(`^-${LINE}*(?:[0-9]{4}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12][0-9]|3[01])|${TIME_INTEGER}年(?:${LINE}*${TIME_INTEGER}月(?:${LINE}*${TIME_INTEGER}日)?)?|${NUMBER}(?:个?月|日|天|小时|分钟|秒))(?![${NUMERALS}点.元圆圓角分%/×*xX÷+−-])`, 'u');
 
 function suffixIsOperation(suffix: string): boolean {
-  return (SUFFIX_DOUBLING.test(suffix) || SUFFIX_OPERATOR.test(suffix) || SUFFIX_PROPORTION_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
+  return (SUFFIX_DOUBLING.test(suffix) || SUFFIX_HALVING.test(suffix) || SUFFIX_OPERATOR.test(suffix) || SUFFIX_PROPORTION_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
 }
 const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
 // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
@@ -96,7 +100,7 @@ const LEADING_FACTOR_WRAPPERS = new RegExp(`^(?:${WRAPPER_ATOM}|${LINE})*`, 'u')
 const AMOUNT_NOUN = ['工资', '基本工资', '月工资', '工资款', '工资总额', '应发工资', '应付工资', '实发工资', '欠付工资', '拖欠工资',
   '薪资', '薪酬', '奖金', '津贴', '补贴', '劳务费', '劳动报酬', '加班费', '经济补偿金', '赔偿金']
   .map(noun => Array.from(noun).join(`${LINE}*`)).join('|');
-const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${DOUBLING}|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${PROPORTION})`, 'u');
+const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${DOUBLING}|${HALVING}|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${PROPORTION})`, 'u');
 
 function detectionView(value: string): string {
   const glyphs: Record<string, string> = { 貳: '贰', 參: '叁', 陸: '陆', 獎: '奖', 終: '终', 費: '费', 資: '资', 績: '绩', 貼: '贴', 補: '补', 勞: '劳', 務: '务', 動: '动', 報: '报', 經: '经', 濟: '济', 償: '偿', 賠: '赔', 減: '减', 當: '当', 實: '实', 應: '应', 約: '约', 適: '适', 計: '计', 發: '发', 齡: '龄', 數: '数', 係: '系' };

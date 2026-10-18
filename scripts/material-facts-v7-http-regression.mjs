@@ -1682,6 +1682,75 @@ try {
     const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert.equal(rawAndLocations(item, read.body).candidates.length, 2); assert.deepEqual(stored(item.caseId), before);
     durableSnapshots.push({name: 'round38-prefix-two-events', item, state: before}); return {accepted: 2, separateOccurrences: true, rawAndStoredHistoryUnchanged: true};
   });
+  // ROUND39: calendar labels, halving operands and plural owners cannot supply personal money.
+  for (const subject of ['王氏兄弟', '双方', '王甲']) await scenario(`round39_plural_owner_${subject}`, async () => {
+    const ambiguous = subject !== '王甲';
+    const text = `${subject}2026年1月全部应付工资合计4000元。`;
+    const [item] = await fixture(`round39-owner-${subject}`, [{text, exactSource: true, candidates: [money('4000元', '4000元', {subject})]}]);
+    const extracted = await extract(item), material = rawAndLocations(item, extracted);
+    assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, '4000.00');
+    assert.equal(material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), ambiguous);
+    const legacy = stored(item.caseId); legacy.state.materials[0].candidates[0].reviewIssues = [];
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), ambiguous);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    // A synthetic human scope confirmation alone cannot authorize ambiguous
+    // model totals. An unambiguous worker is the positive control for this gate.
+    const scoped = await request(item.path, 'POST', {action: 'confirm_scope', revision: read.body.revision, generation: read.body.generation,
+      scope: {worker: subject, employer: '合成测试单位', start: '2026-01-01', end: '2026-01-31'}, note: '仅用于软件测试的模拟人工范围核对，不是业务验收。', verified: true});
+    assert.equal(scoped.status, 200); assert.deepEqual(scoped.body.fields.due.values, ambiguous ? [] : ['4000.00']);
+    assert.equal(scoped.body.canCalculate, false); assert.deepEqual(scoped.body.state.confirmations, {due: null, paid: null});
+    assert.equal(rawAndLocations(item, scoped.body).raw, material.raw);
+    const revoked = await request(item.path, 'POST', {action: 'revoke', field: 'scope', revision: scoped.body.revision, generation: scoped.body.generation});
+    assert.equal(revoked.status, 200); unconfirmed(revoked.body);
+    durableSnapshots.push({name: `round39-owner-${subject}`, item, state: stored(item.caseId)});
+    return {amount: '4000.00', ambiguousSubjectNotUsable: ambiguous, confirmedScopeSuggestedAmounts: scoped.body.fields.due.values,
+      historicalCleanCandidateRechecked: true, rawAndStoredHistoryUnchangedOnRead: true};
+  });
+  for (const [expression, clipped] of [
+    ['4000元减半', '4000元'], ['4000元減半', '4000元'], ['4000元折半', '4000元'],
+  ]) for (const full of [true, false]) await scenario(`round39_money_${expression}_${full}`, async () => {
+    const value = full ? expression : clipped;
+    const [item] = await fixture(`round39-money-${expression}-${full}`, [{text: `测试王甲2026年1月全部应付工资合计${expression}。`, exactSource: true, candidates: [money(value, value)]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1);
+    assert.equal(material.candidates[0].amount, null); assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '4000.00';
+    old.normalization = {rawValue: old.value, amount: old.amount, status: 'exact', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic historical ROUND39 invalid exact value'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round39-money-${expression}-${full}`, item, state: before});
+    return {amount: null, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true};
+  });
+  for (const verb of ['到账', '入账', '到帳', '入賬']) await scenario(`round39_recurring_${verb}`, async () => {
+    const value = '2026年1月15日', text = `测试王甲工资于${value}${verb}。`;
+    const candidate = {kind: 'date', value, quote: value, subject: '测试王甲', scope: 'individual', meaning: 'payment_date', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated'};
+    const [item] = await fixture(`round39-date-${verb}`, [{text, exactSource: true, candidates: [candidate]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert(!material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert(!rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved')); assert.deepEqual(stored(item.caseId), before);
+    durableSnapshots.push({name: `round39-date-${verb}`, item, state: before}); return {sourceRelationSupported: true, dateDoesNotConfirmAmount: true, rawUnchanged: true};
+  });
+  for (const currency of ['人民币', 'RMB']) for (const full of [true, false]) await scenario(`round39_calendar_currency_${currency}_${full}`, async () => {
+    const expression = `币种：${currency} 2026年1月工资`, value = full ? expression : `${currency} 2026`;
+    const [item] = await fixture(`round39-calendar-${currency}-${full}`, [{text: `测试王甲记载：${expression}。`, exactSource: true, candidates: [money(value, value, {meaning: 'other_money', completeness: 'not_applicable', period: null})]}]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, full ? 0 : 1); assert.equal(material.rejected.length, full ? 1 : 0);
+    if (!full) {
+      assert.equal(material.candidates[0].amount, null);
+      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '2026.00';
+      old.normalization = {rawValue: old.value, amount: old.amount, status: 'exact', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic old calendar year mistaken for yuan'};
+      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    const seen = rawAndLocations(item, read.body); assert.equal(seen.candidates.length, full ? 0 : 1);
+    if (!full) assert.equal(seen.candidates[0].amount, null);
+    assert.equal(seen.raw, material.raw); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round39-calendar-${currency}-${full}`, item, state: before});
+    return {rejectedEmptyLabel: full, preciseYearAmount: null, rawAndStoredHistoryUnchanged: true};
+  });
+  // End ROUND39 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
