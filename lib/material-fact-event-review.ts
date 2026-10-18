@@ -29,29 +29,25 @@ const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总',
 const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
 // Date-only cue/bridge aliases, after literal owner/value positions are found.
 // Folding never changes the subject, date literal, quote or source offsets.
-const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须', 給: '给', 畢: '毕' };
-const dateRole = (text: string) => compact(text).replace(/[於職資歸屬間簽訂勞動關終開廠離約發計領實際係該時為調傷並與結後從應須給畢]/gu, glyph => dateGlyphs[glyph]);
+const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 辭: '辞', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须', 給: '给', 畢: '毕' };
+const dateRole = (text: string) => compact(text).replace(/[於職辭資歸屬間簽訂勞動關終開廠離約發計領實際係該時為調傷並與結後從應須給畢]/gu, glyph => dateGlyphs[glyph]);
 const groupLabel = /[、，,]|班[组組]|公司|[单單]位|集[团團]|工人|[员員]工|[劳勞][动動]者|群[体體]|集[体體]|[众眾]人/u;
-// Single surnames and placeholder people can form coordinated short subjects
-// (张和李/甲和乙). These are ambiguity cues, not a whitelist proving identity.
+// The existing terminal-name exception below has no second person fragment.
+// Surname shapes never prove that two nonempty coordinated parts are one worker.
 const commonSurname = '王李张張刘劉陈陳杨楊黄黃赵趙吴吳周徐孙孫马馬朱胡郭何高林罗羅郑鄭梁谢謝宋唐许許韩韓冯馮邓鄧曹彭曾肖萧蕭田董袁潘于蒋蔣蔡余杜叶葉程苏蘇魏吕呂丁任沈姚卢盧姜崔钟鍾谭譚陆陸汪范金石廖贾賈夏韦韋方白邹鄒孟熊秦邱侯江尹薛阎閻段雷龙龍黎史陶贺賀顾顧毛郝龚龔邵万萬钱錢严嚴武戴莫孔向汤湯';
 const surname = new RegExp(`^[${commonSurname}]$`, 'u');
-const shortPerson = new RegExp(`^[甲乙丙丁戊己庚辛壬癸某我你您他她一二三四五六七八九${commonSurname}]$`, 'u');
 function collectiveSubject(subject: string): boolean {
   const text = compact(subject);
   if (groupLabel.test(text) || /等(?:人)?$/u.test(text)
     || /^(?:[他她我你][们們]|大家|各位|[诸諸]位)$/u.test(text)) return true;
-  const parts = text.split(/[和与與及]/u);
+  const parts = text.split(/[和与與及跟暨或同&/]/u);
   if (parts.length === 1) return false;
   // A terminal conjunction in a two-codepoint name has no second person (何和,
   // 周及). Longer incomplete labels and multiple coordinators stay uncertain.
-  if (parts.some(part => !part)) return !(parts.length === 2 && Array.from(text).length === 2 && surname.test(parts[0]) && !parts[1]);
-  if (parts.length > 2) return true;
-  if (parts.some(part => Array.from(part).length >= 2)) return true;
-  // Only the ordinary surname + two-character given-name shape can resolve
-  // an embedded coordinator; two person fragments or unknown short labels stay
-  // ambiguous. The surrounding literal owner/role gates must still pass.
-  return !surname.test(parts[0]) || shortPerson.test(parts[1]);
+  if (parts.some(part => !part)) return !(parts.length === 2 && Array.from(text).length === 2 && surname.test(parts[0]) && !parts[1] && /[和与與及]$/u.test(text));
+  // Every nonempty part may denote a different person. The model's individual
+  // label and a name-shaped literal cannot resolve that source ambiguity.
+  return true;
 }
 
 function dateSide(text: string): { meanings: DateMeaning[]; joins: number } | null {

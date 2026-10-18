@@ -1134,7 +1134,8 @@ try {
     return { amount: '4000.00', subjectSuffixNotRate: true, incompleteTotalStillUnresolved: true, rawAndStoredHistoryUnchanged: true };
   });
   for (const subject of ['王和平', '何和', '周及', '甲和乙']) await scenario(`round28_subject_conjunction_${subject}`, async () => {
-    const text = `${subject}2026年1月全部应付工资合计4000元。`, coordinated = subject === '甲和乙';
+    // ROUND37: a three-character spelling alone cannot prove a single owner.
+    const text = `${subject}2026年1月全部应付工资合计4000元。`, coordinated = ['甲和乙', '王和平'].includes(subject);
     const [item] = await fixture(`round28-name-conjunction-${subject}`, [{ text, exactSource: true, candidates: [money('4000元', '4000元', { subject })] }]);
     const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1);
     assert.equal(material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), coordinated);
@@ -1585,6 +1586,60 @@ try {
     assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
     durableSnapshots.push({name: `round36-safety-${name}`, item, state: before});
     return {amount: null, rawAndStoredHistoryUnchanged: true};
+  });
+  // ROUND37: review candidates remain intact while ambiguous owners and
+  // arithmetic operands are excluded from usable totals on fresh and old reads.
+  for (const subject of ['王和欧', '王与南', '王及区', '王跟欧', '王暨欧', '王或欧', '王同欧', '王&欧', '王／欧', '王甲']) await scenario(`round37_ambiguous_owner_${subject}`, async () => {
+    const ambiguous = subject !== '王甲';
+    const text = `${subject}2026年1月全部应付工资合计4000元。`;
+    const [item] = await fixture(`round37-owner-${subject}`, [{text, exactSource: true, candidates: [money('4000元', '4000元', {subject})]}]);
+    const extracted = await extract(item), material = rawAndLocations(item, extracted);
+    assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, '4000.00');
+    assert.equal(material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), ambiguous);
+    const legacy = stored(item.caseId); legacy.state.materials[0].candidates[0].reviewIssues = [];
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), ambiguous);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    // A synthetic human scope confirmation alone cannot authorize ambiguous
+    // model totals. An unambiguous worker is the positive control for this gate.
+    const scoped = await request(item.path, 'POST', {action: 'confirm_scope', revision: read.body.revision, generation: read.body.generation,
+      scope: {worker: subject, employer: '合成测试单位', start: '2026-01-01', end: '2026-01-31'}, note: '仅用于软件测试的模拟人工范围核对，不是业务验收。', verified: true});
+    assert.equal(scoped.status, 200); assert.deepEqual(scoped.body.fields.due.values, ambiguous ? [] : ['4000.00']);
+    assert.equal(scoped.body.canCalculate, false); assert.deepEqual(scoped.body.state.confirmations, {due: null, paid: null});
+    assert.equal(rawAndLocations(item, scoped.body).raw, material.raw);
+    const revoked = await request(item.path, 'POST', {action: 'revoke', field: 'scope', revision: scoped.body.revision, generation: scoped.body.generation});
+    assert.equal(revoked.status, 200); unconfirmed(revoked.body);
+    durableSnapshots.push({name: `round37-owner-${subject}`, item, state: stored(item.caseId)});
+    return {amount: '4000.00', ambiguousSubjectNotUsable: ambiguous, confirmedScopeSuggestedAmounts: scoped.body.fields.due.values,
+      historicalCleanCandidateRechecked: true, rawAndStoredHistoryUnchangedOnRead: true};
+  });
+  for (const suffix of ['翻倍', '加倍']) for (const shape of ['full', 'cropped', 'layout']) await scenario(`round37_arithmetic_${suffix}_${shape}`, async () => {
+    const value = shape === 'full' ? `4000元${suffix}` : '4000元';
+    const text = `测试王甲工资4000元${shape === 'layout' ? '\n' : ''}${suffix}。`;
+    const [item] = await fixture(`round37-arithmetic-${suffix}-${shape}`, [{text, exactSource: true, candidates: [money(value, value, {period: null})]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1);
+    assert.equal(material.candidates[0].amount, null); assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '4000.00';
+    old.normalization = {rawValue: old.value, amount: old.amount, status: 'exact', matchedText: '4000元', span: {start: 0, end: 5}, reason: 'Synthetic historical ROUND37 lexical operand'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round37-arithmetic-${suffix}-${shape}`, item, state: before});
+    return {amount: null, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true};
+  });
+  for (const glyph of ['辞职', '辭職']) await scenario(`round37_employment_date_${glyph}`, async () => {
+    const value = '2026年1月', text = `测试王甲於${value}${glyph}。`;
+    const candidate = {kind: 'date', value, quote: value, subject: '测试王甲', scope: 'individual', meaning: 'employment_period', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated'};
+    const [item] = await fixture(`round37-date-${glyph}`, [{text, exactSource: true, candidates: [candidate]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1);
+    assert(!material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert(!rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round37-date-${glyph}`, item, state: before});
+    return {sourceRelationSupported: true, rawAndStoredHistoryUnchanged: true};
   });
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';

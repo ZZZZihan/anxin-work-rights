@@ -126,8 +126,8 @@ for (const text of ['王甲2026年1月工资4000元', '王甲今日工资合计4
   test(`ordinary calendar period stays exact ${text}`, () => check({ text: `😀${text}。` }));
 
 for (const subject of ['王和平', '何和', '周及', '李与诚', '张及春', '王等明']) for (const full of [false, true])
-  test(`conjunction in an anchored single name ${subject} full=${full}`, () => check({ text: `😀${subject}2026年1月全部应付工资合计4000元。`,
-    subject, period: '2026年1月', full, supported: true }));
+  test(`ROUND37 coordinated fragments remain unresolved while terminal name glyphs survive ${subject} full=${full}`, () => check({ text: `😀${subject}2026年1月全部应付工资合计4000元。`,
+    subject, period: '2026年1月', full, supported: !['王和平', '李与诚', '张及春'].includes(subject) }));
 for (const subject of ['甲和乙', '张和李', '王甲和王乙', '王甲及乙', '王与李', '王甲等', '王甲、王乙', '王甲班组', '某单位',
   '明和亮', '一和二', '你和我', '甲和', 'A和B']) {
   test(`a coordinated or collective subject cannot be individual ${subject}`, () => check({ text: `😀${subject}2026年1月全部应付工资合计4000元。`,
