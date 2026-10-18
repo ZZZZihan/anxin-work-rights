@@ -1,0 +1,221 @@
+diff --git a/lib/material-fact-arithmetic-review.ts b/lib/material-fact-arithmetic-review.ts
+index 542e319..4479533 100644
+--- a/lib/material-fact-arithmetic-review.ts
++++ b/lib/material-fact-arithmetic-review.ts
+@@ -25,9 +25,10 @@ const SYMBOLIC_OPERAND = '(?:(?<![A-Za-z0-9_])[A-Za-z_][A-Za-z0-9_]{0,31}(?![A-Z
+ const UNKNOWN_OPERAND = `(?:${NAMED_OPERAND}|${SYMBOLIC_OPERAND})`;
+ const OPERAND = `(?:${FACTOR}|${UNKNOWN_OPERAND})`;
+ // Coefficients and ratios can have names unknown to this parser. Bound the
+-// complete Han name to 16 characters and require its coefficient suffix, then
+-// use it only on explicit arithmetic paths. This is not arbitrary prose.
+-const COEFFICIENT_OPERAND = `(?:[\\p{Script=Han}]${LINE}*){0,14}(?:系${LINE}*[数數]|比${LINE}*例)`;
++// complete Han name to 16 characters and require its coefficient/rate suffix,
++// then use it only on explicit arithmetic paths. This is not arbitrary prose
++// or an ordinary /月 rate. A one-character 率 suffix has one more name slot.
++const COEFFICIENT_OPERAND = `(?:(?:[\\p{Script=Han}]${LINE}*){0,14}(?:系${LINE}*[数數]|比${LINE}*例)|(?:[\\p{Script=Han}]${LINE}*){0,15}率)`;
+ const EXPLICIT_OPERAND = `(?:${OPERAND}|${COEFFICIENT_OPERAND})`;
+ // Single-character operators must not cut ordinary words such as 加班费 or
+ // 除外. Multi-character operator words and symbols already state the operation.
+diff --git a/lib/material-fact-currency-review.ts b/lib/material-fact-currency-review.ts
+index c292186..6ebaaec 100644
+--- a/lib/material-fact-currency-review.ts
++++ b/lib/material-fact-currency-review.ts
+@@ -42,6 +42,10 @@ const WAGE_CURRENCY_WORD = '(?:(?:基本)?工[资資]|薪酬|薪[资資]|薪金|
+ const WAGE_CURRENCY_PREFIX = new RegExp(`${FOREIGN_MARKER}${CURRENCY_BRIDGE}(?:${WAGE_CURRENCY_WORD}${CURRENCY_BRIDGE})+$`, 'iu');
+ const WAGE_CURRENCY_SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}(?:(?:${WAGE_CURRENCY_WORD}|币种|幣種|以|按)${CURRENCY_BRIDGE})+${FOREIGN_MARKER}`, 'iu');
+ const RMB_PREFIX = new RegExp(`(?:人民币|人民幣|(?<![A-Z])(?:CNY|RMB)(?![A-Z])|¥)${BRIDGE}$`, 'iu');
++const EXPLICIT_RMB_MARKER = '(?:人民币|人民幣|(?<![A-Z])(?:CNY|RMB)(?![A-Z])|¥)';
++const EXPLICIT_RMB_IN_TOKEN = new RegExp(EXPLICIT_RMB_MARKER, 'iu');
++const EXPLICIT_RMB_AFTER = new RegExp(`^${BRIDGE}${EXPLICIT_RMB_MARKER}`, 'iu');
++const EXPLICIT_RMB_CONVERSION = new RegExp(`${FOREIGN_MARKER}${BRIDGE}(?:折合|折算[为為])${BRIDGE}$`, 'iu');
+ // A cropped 元 in 元旦 (or 圆 in 圆满) is part of a word, not a unit.
+ // Explicit payment purposes follow the yuan unit: 4000元 + 年终奖/年假补偿.
+ // This exception does not make 元年 itself, 元月 or arbitrary 年… text money.
+@@ -141,6 +145,19 @@ function anchoredMoneyEdges(source: AnchoredMoneySource, normalized: CandidateNo
+   };
+ }
+ 
++// A stated RMB conversion result is already denominated; do not infer an FX
++// rate. Remove only its immediately preceding foreign+conversion operator from
++// this detection edge. Other prefix markers and every suffix still get checked.
++// A plain 元 unit or a detached RMB mention is insufficient for this exception.
++function beforeExplicitRmbConversion(before: string, token: string, after: string): string {
++  const target = before.match(RMB_PREFIX);
++  const conversionBefore = target ? before.slice(0, target.index) : before;
++  if (!target && !EXPLICIT_RMB_IN_TOKEN.test(token) && !EXPLICIT_RMB_AFTER.test(after)) return before;
++  const conversion = conversionBefore.match(EXPLICIT_RMB_CONVERSION);
++  if (!conversion) return before;
++  return before.slice(0, conversion.index) + '()' + (target ? before.slice(target.index) : '');
++}
++
+ /**
+  * Refuse a foreign currency marker attached to the anchored monetary token,
+  * directly or through finite same-event wage/payment wording, including a marker
+@@ -151,11 +168,12 @@ function anchoredMoneyEdges(source: AnchoredMoneySource, normalized: CandidateNo
+ export function sourceMoneyHasUnsupportedCurrency(source: AnchoredMoneySource, normalized: CandidateNormalization, subject: string | null = null): boolean {
+   const edges = anchoredMoneyEdges(source, normalized, subject);
+   if (!edges) return false;
++  const before = beforeExplicitRmbConversion(edges.before, edges.token, edges.after);
+   // A model can retain the yen sign inside value while cropping its JP prefix.
+   // Include the token's leading currency characters when checking that edge.
+   const leadingMarker = edges.token.match(/^(?:人民币|人民幣)?[^\S\r\n\u2028\u2029]*¥/u)?.[0] ?? '';
+-  return PREFIX.test(edges.before) || PREFIX.test(edges.before + leadingMarker)
+-    || WAGE_CURRENCY_PREFIX.test(edges.before.replace(/[^\S\r\n\u2028\u2029]/gu, '')) || SUFFIX.test(edges.after)
++  return PREFIX.test(before) || PREFIX.test(before + leadingMarker)
++    || WAGE_CURRENCY_PREFIX.test(before.replace(/[^\S\r\n\u2028\u2029]/gu, '')) || SUFFIX.test(edges.after)
+     || WAGE_CURRENCY_SUFFIX.test(edges.after.replace(/[^\S\r\n\u2028\u2029]/gu, ''));
+ }
+ 
+diff --git a/lib/material-fact-event-review.ts b/lib/material-fact-event-review.ts
+index feb70f2..ae1f6e4 100644
+--- a/lib/material-fact-event-review.ts
++++ b/lib/material-fact-event-review.ts
+@@ -20,6 +20,14 @@ const completeDate = new RegExp(`^${dateInterval(calendarDate)}$`, 'u');
+ // retain the complete list instead of accepting a cropped first month/range.
+ const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及和]${dateInterval(`(?:${calendarDate}|${shortDate})`)})+$`, 'u');
+ const compact = (text: string) => text.normalize('NFKC').replace(/\s+/gu, '');
++// Recurring payment days are explicit source dates, without an invented year or
++// month. Keep their finite valid day range separate from other calendar roles.
++const recurringPaymentDate = /^每月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)日$/u;
++// Fold only detection copies of the existing money-role vocabulary, after raw
++// subject/period offsets are located. No source text or candidate is rewritten.
++const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总', 額: '额', 計: '计', 實: '实', 幣: '币', 圓: '圆', 稅: '税', 間: '间', 補: '补', 貼: '贴', 預: '预', 賠: '赔', 償: '偿', 決: '决', 給: '给', 單: '单', 標: '标', 準: '准', 費: '费', 時: '时', 領: '领', 為: '为' };
++const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
++const collectiveSubject = /[、和与與及等]|班[组組]|公司|[单單]位|集[团團]|工人|[员員]工|[劳勞][动動]者|群[体體]|集[体體]|[众眾]人/u;
+ 
+ function dateSide(text: string): { meanings: DateMeaning[]; joins: number } | null {
+   let remaining = compact(text), needsCue = false, joins = 0;
+@@ -47,7 +55,8 @@ function hasSupportedDateMeaning(raw: RawCandidateV3, before: string, after: str
+   // A cropped year/month/day, a second date outside the candidate, or event prose
+   // hidden inside value must not acquire a role merely because a verb matches.
+   const value = compact(raw.value);
+-  if (!completeDate.test(value) && !(raw.meaning === 'wage_period' && completeWageDates.test(value))) return false;
++  if (!completeDate.test(value) && !(raw.meaning === 'wage_period' && completeWageDates.test(value))
++    && !(raw.meaning === 'payment_date' && recurringPaymentDate.test(value))) return false;
+   const left = dateSide(before), right = dateSide(after);
+   if (!left || !right) return false;
+   const cues = [...left.meanings, ...right.meanings];
+@@ -67,7 +76,7 @@ export function hasSupportedTotalRelationship(raw: RawCandidateV3, text: string,
+   if (!raw.subject || !raw.period || !normalized.span) return false;
+   // A model may put the entire coordinated/group label into subject while still
+   // declaring individual. Preserve it for review; it is not a single worker anchor.
+-  if (/[、和与及等]|班组|公司|单位|集团|工人|员工|劳动者|群体|集体|众人/u.test(raw.subject)) return false;
++  if (collectiveSubject.test(raw.subject)) return false;
+   const valueStart = text.indexOf(raw.value);
+   if (valueStart < 0) return false;
+   const chars = Array.from(normalized.rawValue);
+@@ -82,7 +91,7 @@ export function hasSupportedTotalRelationship(raw: RawCandidateV3, text: string,
+   if (!/^(?:(?:劳动者|员工|工人|原告|被告|申请人|被申请人|第三[0-9一二三四五六七八九十百千万零两]*人)\s*[:：]?\s*)?$/u.test(heading)) return false;
+   const bridge = before.slice(subjectStart + raw.subject.length, periodStart).trim();
+   if (!/^(?:(?:一人|本人|个人|的|于|自|从|在)|(?:在[\p{L}\p{N}（）()·]{1,60}(?:公司|单位|工厂|工地|项目部|厂|店))|\s)*$/u.test(bridge)) return false;
+-  const role = before.slice(periodStart + raw.period.length).normalize('NFKC').replace(/\s+/gu, '');
++  const role = moneyRole(before.slice(periodStart + raw.period.length));
+   // Matching just a month inside a longer interval, or borrowing another worker/amount,
+   // leaves unrecognized text here. Completeness must also be explicit in this same event.
+   if (!/(?:完整|全部|总额|总计|合计|共计|累计)/u.test(role)) return false;
+@@ -90,7 +99,7 @@ export function hasSupportedTotalRelationship(raw: RawCandidateV3, text: string,
+   if (!/^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|人民币|RMB|CNY|[¥￥]|完整|全部|总额|总计|合计|共计|累计|应付|已支付|已付|实付|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)) return false;
+   // Do not silently ignore a second event, a missing wage component or a qualification
+   // following the number inside this clause. Currency precision is reviewed separately.
+-  return /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*$/iu.test(after);
++  return /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*$/iu.test(moneyRole(after));
+ }
+ 
+ /** Every displayed role needs attribution, even when it can never suggest a total.
+@@ -99,7 +108,7 @@ export function hasSupportedTotalRelationship(raw: RawCandidateV3, text: string,
+  */
+ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: string, normalized: CandidateNormalization): boolean {
+   if (!raw.subject) return false;
+-  if (raw.scope === 'individual' && /[、和与及等]|班组|公司|单位|集团|工人|员工|劳动者|群体|集体|众人/u.test(raw.subject)) return false;
++  if (raw.scope === 'individual' && collectiveSubject.test(raw.subject)) return false;
+   const valueStart = text.indexOf(raw.value);
+   if (valueStart < 0) return false;
+   const chars = Array.from(normalized.rawValue);
+@@ -118,7 +127,7 @@ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: stri
+     if (!/^(?:(?:一人|本人|个人|的|于|自|从|在)|(?:在[\p{L}\p{N}（）()·]{1,60}(?:公司|单位|工厂|工地|项目部|厂|店))|\s)*$/u.test(bridge)) return false;
+     role = role.slice(periodStart + raw.period.length);
+   }
+-  role = role.normalize('NFKC').replace(/\s+/gu, '');
++  role = raw.kind === 'date' ? compact(role) : moneyRole(role);
+   const attributionText = raw.kind === 'date' ? `${role}${after}` : role;
+   const receipt = /收到|领取/u.test(attributionText);
+   // A payment verb establishes a payer, not the wage beneficiary requested by
+@@ -133,5 +142,5 @@ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: stri
+   // Finite non-total vocabulary cannot absorb another name, date or amount.
+   // This validates attribution only; the stricter complete-total gate is separate.
+   return /^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|应得|补贴|交通补贴|人民币|RMB|CNY|[¥￥]|完整|全部|部分|总额|总计|合计|共计|累计|应付|已支付|已付|实付|支付|付款|收到|领取|拖欠|欠付|尚欠|欠薪|欠款|裁决|判决|判付|裁判|赔偿|补偿|给付|月薪|日薪|时薪|每月|每日|每天|每小时|每件|单价|标准|费率|本次|此次|该笔|单笔|一笔|先付|预付|预支|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)
+-    && /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*(?:(?:[/／]|每)(?:月|日|天|小时|时|件))?$/iu.test(after);
++    && /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*(?:(?:[/／]|每)(?:月|日|天|小时|时|件))?$/iu.test(moneyRole(after));
+ }
+diff --git a/lib/material-fact-runtime-ingest.ts b/lib/material-fact-runtime-ingest.ts
+index e07ba7b..e0ad84a 100644
+--- a/lib/material-fact-runtime-ingest.ts
++++ b/lib/material-fact-runtime-ingest.ts
+@@ -66,7 +66,7 @@ export function validateRuntimeCandidateOutput(raw: string, source: FactSource):
+       // Sharing an exact parsed amount does not make an arbitrary narrative a
+       // duplicate of its minimal literal. Only these finite wrappers may nest.
+       return /^\s*(?:(?:人民[币幣]|RMB|CNY|[¥￥])\s*)?$/iu.test(before)
+-        && /^\s*(?:整|正)?\s*(?:(?:工资|劳务费|劳动报酬)\s*)?$/u.test(after);
++        && /^\s*(?:整|正)?\s*(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/u.test(after);
+     });
+     // A non-unique quote/value has no proven occurrence identity. Retain every
+     // such observation for review instead of deduplicating a fallback position.
+diff --git a/lib/material-fact-source-review.ts b/lib/material-fact-source-review.ts
+index 8efb030..edd1c08 100644
+--- a/lib/material-fact-source-review.ts
++++ b/lib/material-fact-source-review.ts
+@@ -1,7 +1,7 @@
+ import type { FactCandidate, FactSource, FactState } from './material-fact-types';
+ import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 } from './material-fact-types-v3';
+ import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from './material-facts-v3.ts';
+-import { hasUnfinishedMoneyRangeAfter, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
++import { hasPostposedMoneyUncertainty, hasUnfinishedMoneyRangeAfter, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
+ import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
+ import { sourceMoneyHasNonCurrencySubunit, sourceMoneyHasNonCurrencyYuan, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
+ import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
+@@ -74,6 +74,9 @@ function sourceEvent(candidate: FactCandidate, source: FactSource | undefined):
+ }
+ 
+ function hasGroupText(text: string): boolean {
++  // Detection-only spellings: a traditional group header must keep the same
++  // individual-scope warning when traditional amount roles are recognized.
++  text = text.replace(/[組體員勞動農兩萬]/gu, glyph => ({ 組: '组', 體: '体', 員: '员', 勞: '劳', 動: '动', 農: '农', 兩: '两', 萬: '万' })[glyph]!);
+   if (/(?:班组|全组|全体(?:工人|员工|劳动者|农民工)?|多人|多名(?:工人|员工|劳动者|农民工))/u.test(text)) return true;
+   return [...text.matchAll(/(?<![第0-9一二三四五六七八九十百千万零两])([0-9一二三四五六七八九十百千万零两]+)\s*(?:名|位|人)(?!民[币幣])(?:工人|员工|劳动者|农民工)?/gu)]
+     .some(match => /^\d+$/u.test(match[1]) ? BigInt(match[1]) > 1n : !['一', '零'].includes(match[1]));
+@@ -258,6 +261,9 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
+       else if (sourceMoneyHasAttachedArithmetic(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。', 'unsupported'),
+       };
++      else if (layout && hasPostposedMoneyUncertainty(layout.after)) sourceNormalized = {
++        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额后直接附着问号、待核或未知标记；保留原文，不将裁剪金额作为确定值。'),
++      };
+       else if (truncatedMoneyToken(context, sourceNormalized.normalization, layout?.after)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
+       };
+diff --git a/lib/material-money-v4.ts b/lib/material-money-v4.ts
+index abeeb2e..02ccc30 100644
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -238,6 +238,13 @@ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization
+ }
+ 
+ /** Adds source-bound qualifier checks without modifying source text or frozen representations. */
++/** An immediately following uncertainty marker can be cropped out of value
++ * and quote. Inspect a detection copy, retaining punctuation as evidence. */
++export function hasPostposedMoneyUncertainty(after: string): boolean {
++  const text = after.normalize('NFKC').replace(/\p{Cf}/gu, '');
++  return /^\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\s*[()[\]{}【】]*\s*(?:[?□_]|待核(?:实)?|待(?:定|确认|补充)|未知|不详|不明|无法确定|未(?:提供|明确|载明|记载|披露|列明|注明|约定|确定)|\.{2,}|…)/iu.test(text);
++}
++
+ export function normalizeCandidateValueV4(candidate: RawCandidateV3): NormalizedCandidateValue {
+   if (candidate.kind === 'money' && (candidate.value.length > MAX_INPUT || candidate.quote.length > MAX_INPUT)) {
+     const normalization = result(candidate.value, 'unsupported', '金额或引用原文超过4000字符上限，未截断解析。');
+@@ -281,6 +288,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
+       else if (suffixRate && !supportedRate) normalized = result(candidate.value, 'unsupported', '原文金额直接附着不受支持的费率单位，保留原文且未换算为总额或现有费率单位。');
+       else if (supportedRate && (candidate.meaning !== 'rate' || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== rateUnits[supportedRate]))) normalized = result(candidate.value, 'rate_unit_mismatch', '原文紧贴的费率单位与金额角色或候选费率单位冲突。');
+       else if (isMoneyRangeEndpoint(monetaryDetectionView(rangeBefore), monetaryDetectionView(rangeToken), monetaryDetectionView(rangeAfter))) normalized = result(candidate.value, 'range', '当前金额在原文中直接属于区间端点。');
++      else if (hasPostposedMoneyUncertainty(rangeAfter)) normalized = result(candidate.value, 'uncertain', '当前金额后直接附着问号、待核或未知标记，未将裁剪值作为精确金额。');
+       else if (hasUnfinishedMoneyRangeAfter(arithmeticAfter)) normalized = result(candidate.value, 'uncertain', '连接词后的数字未形成完整金额或明确时间，不能确认被截取的数值可用。');
+       else if (hasAttachedMoneyArithmetic(arithmeticBefore, arithmeticAfter)) normalized = result(candidate.value, 'unsupported', '当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。');
+       else if (qualifierStatus) normalized = result(candidate.value, qualifierStatus, '当前金额在原文中直接附着数量不定、概数界限或正负限定，未截取为精确正数。');

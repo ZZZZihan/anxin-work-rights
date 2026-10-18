@@ -1,0 +1,26 @@
+[
+  {
+    "databaseId": 4306767908,
+    "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Downgrade postposed uncertainty markers**\n\nWhen the model follows the prompt and emits the minimal value `4000元` from source text such as `王甲2026年1月全部应付工资合计4000元？`, this source-context check recognizes only preposed uncertainty and `或` alternatives. The question mark is excluded as a clause delimiter, so runtime ingestion retains `amount: \"4000.00\"`, `status: \"exact\"`, and no review issue, even though normalizing the complete expression would classify it as masked. Postposed markers such as `？`, `待核实`, `待定`, and `未知` need to downgrade a cropped amount as well.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+    "path": "lib/material-money-v4.ts",
+    "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306767908"
+  },
+  {
+    "databaseId": 4306767911,
+    "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Fold traditional role words in source attribution**\n\nThe new traditional numeral folding makes `四萬圓` exact, but the downstream attribution grammar still accepts only simplified role words. For example, `王甲2026年1月全部應付工資合計四萬圓` parses to `40000.00` and then receives `source_relation_unresolved`, whereas the otherwise identical simplified sentence has no issue; because candidates with review issues are excluded from fact fields, traditional records cannot use the exact amounts enabled here. Extend the source-attribution/complete-total vocabulary or its detection view to fold `應付`, `工資`, `合計`, and related traditional forms.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+    "path": "lib/material-money-v4.ts",
+    "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306767911"
+  },
+  {
+    "databaseId": 4306767916,
+    "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Preserve explicit RMB conversion results**\n\nWhen the source explicitly states the RMB result of a conversion, such as `王甲工资美元折合人民币4000元` or `美元折算为人民币4000元`, this prefix bridge still treats the earlier foreign marker as the denomination of `4000元` and runtime review changes the amount to `unsupported`. The source already supplies an explicit RMB result, so no exchange-rate inference is required; avoid propagating the foreign marker across `折合`/`折算` when an explicit RMB denomination occurs between that operation and the anchored amount.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+    "path": "lib/material-fact-currency-review.ts",
+    "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306767916"
+  },
+  {
+    "databaseId": 4306767921,
+    "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept the recurring payment dates requested by the prompt**\n\nThe new prompt explicitly requires expressions such as `每月15日` to be emitted as `payment_date`, but runtime source attribution only regards a value as a complete date when it starts with a calendar year. Even with an otherwise recognized cue—for example `王甲工资收到日每月15日`—the accepted candidate is assigned `source_relation_unresolved`, while replacing the value with `2026年1月15日` clears the issue. Add a bounded recurring-day form to the date attribution grammar so compliant model output is not rendered unusable.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+    "path": "lib/material-fact-extraction-v4.ts",
+    "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306767921"
+  }
+]

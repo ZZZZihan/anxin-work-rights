@@ -1,0 +1,48 @@
+--- a/lib/material-fact-currency-review.ts
++++ b/lib/material-fact-currency-review.ts
+@@ -42,6 +42,10 @@
+ const WAGE_CURRENCY_PREFIX = new RegExp(`${FOREIGN_MARKER}${CURRENCY_BRIDGE}(?:${WAGE_CURRENCY_WORD}${CURRENCY_BRIDGE})+$`, 'iu');
+ const WAGE_CURRENCY_SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}(?:(?:${WAGE_CURRENCY_WORD}|币种|幣種|以|按)${CURRENCY_BRIDGE})+${FOREIGN_MARKER}`, 'iu');
+ const RMB_PREFIX = new RegExp(`(?:人民币|人民幣|(?<![A-Z])(?:CNY|RMB)(?![A-Z])|¥)${BRIDGE}$`, 'iu');
++const EXPLICIT_RMB_MARKER = '(?:人民币|人民幣|(?<![A-Z])(?:CNY|RMB)(?![A-Z])|¥)';
++const EXPLICIT_RMB_IN_TOKEN = new RegExp(EXPLICIT_RMB_MARKER, 'iu');
++const EXPLICIT_RMB_AFTER = new RegExp(`^${BRIDGE}${EXPLICIT_RMB_MARKER}`, 'iu');
++const EXPLICIT_RMB_CONVERSION = new RegExp(`${FOREIGN_MARKER}${BRIDGE}(?:折合|折算[为為])${BRIDGE}$`, 'iu');
+ // A cropped 元 in 元旦 (or 圆 in 圆满) is part of a word, not a unit.
+ // Explicit payment purposes follow the yuan unit: 4000元 + 年终奖/年假补偿.
+ // This exception does not make 元年 itself, 元月 or arbitrary 年… text money.
+@@ -141,6 +145,19 @@
+   };
+ }
+ 
++// A stated RMB conversion result is already denominated; do not infer an FX
++// rate. Remove only its immediately preceding foreign+conversion operator from
++// this detection edge. Other prefix markers and every suffix still get checked.
++// A plain 元 unit or a detached RMB mention is insufficient for this exception.
++function beforeExplicitRmbConversion(before: string, token: string, after: string): string {
++  const target = before.match(RMB_PREFIX);
++  const conversionBefore = target ? before.slice(0, target.index) : before;
++  if (!target && !EXPLICIT_RMB_IN_TOKEN.test(token) && !EXPLICIT_RMB_AFTER.test(after)) return before;
++  const conversion = conversionBefore.match(EXPLICIT_RMB_CONVERSION);
++  if (!conversion) return before;
++  return before.slice(0, conversion.index) + '()' + (target ? before.slice(target.index) : '');
++}
++
+ /**
+  * Refuse a foreign currency marker attached to the anchored monetary token,
+  * directly or through finite same-event wage/payment wording, including a marker
+@@ -151,11 +168,12 @@
+ export function sourceMoneyHasUnsupportedCurrency(source: AnchoredMoneySource, normalized: CandidateNormalization, subject: string | null = null): boolean {
+   const edges = anchoredMoneyEdges(source, normalized, subject);
+   if (!edges) return false;
++  const before = beforeExplicitRmbConversion(edges.before, edges.token, edges.after);
+   // A model can retain the yen sign inside value while cropping its JP prefix.
+   // Include the token's leading currency characters when checking that edge.
+   const leadingMarker = edges.token.match(/^(?:人民币|人民幣)?[^\S\r\n\u2028\u2029]*¥/u)?.[0] ?? '';
+-  return PREFIX.test(edges.before) || PREFIX.test(edges.before + leadingMarker)
+-    || WAGE_CURRENCY_PREFIX.test(edges.before.replace(/[^\S\r\n\u2028\u2029]/gu, '')) || SUFFIX.test(edges.after)
++  return PREFIX.test(before) || PREFIX.test(before + leadingMarker)
++    || WAGE_CURRENCY_PREFIX.test(before.replace(/[^\S\r\n\u2028\u2029]/gu, '')) || SUFFIX.test(edges.after)
+     || WAGE_CURRENCY_SUFFIX.test(edges.after.replace(/[^\S\r\n\u2028\u2029]/gu, ''));
+ }
+ 

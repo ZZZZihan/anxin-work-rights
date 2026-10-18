@@ -1,0 +1,678 @@
+{"evidence":"round24_implementation_hash","path":"lib/material-money-v4.ts","sha256":"7aac6f8e52cd95ca77a71f443f10450c8f27d9bcafeb9d7cb3a0cf2450d5cbad"}
+{"evidence":"round24_implementation_hash","path":"lib/material-fact-source-review.ts","sha256":"8921edbb32e0a8d3b9370d1e9672096675e8e7b613f212b156114fdcf889893e"}
+{"evidence":"round24_implementation_hash","path":"lib/material-fact-event-review.ts","sha256":"6266aa769459619181aeba3cda262efdf8912f8a94a0edc3bccea2254fe4a181"}
+{"evidence":"round24_implementation_hash","path":"lib/material-fact-currency-review.ts","sha256":"a64cb87596597f8f40f4e923992a0b4d05c596ed9ca5cfc0f79570677e2f1ffb"}
+{"evidence":"round24_implementation_hash","path":"experiments/material-facts-v7/assess.mjs","sha256":"04d16d173e4ab491d91e0a083f07c734b10591f9814296fa30d1464a9116c0c5"}
+✔ the complete uncertain expressions already contain no exact amount (23.473291ms)
+✖ a minimal value and either quote cannot remove its postposed uncertainty: ？ (19.043875ms)
+✖ explicit layout whitespace does not detach the uncertainty: ？ (2.028666ms)
+✖ the next source block can continue this amount uncertainty: ？ (1.642708ms)
+✖ a minimal value and either quote cannot remove its postposed uncertainty: 待核实 (5.237417ms)
+✖ explicit layout whitespace does not detach the uncertainty: 待核实 (1.9795ms)
+✖ the next source block can continue this amount uncertainty: 待核实 (1.379167ms)
+✖ a minimal value and either quote cannot remove its postposed uncertainty: 待定 (1.54ms)
+✖ explicit layout whitespace does not detach the uncertainty: 待定 (1.361292ms)
+✖ the next source block can continue this amount uncertainty: 待定 (1.333625ms)
+✖ a minimal value and either quote cannot remove its postposed uncertainty: 未知 (1.317167ms)
+✖ explicit layout whitespace does not detach the uncertainty: 未知 (1.158625ms)
+✖ the next source block can continue this amount uncertainty: 未知 (1.144042ms)
+✔ another complete clause does not become an attached monetary uncertainty: 王甲2026年1月全部应付工资合计4000元。李乙是否到岗？ (1.563542ms)
+✔ another complete clause does not become an attached monetary uncertainty: 王甲2026年1月全部应付工资合计4000元。是否已经收到？ (1.215083ms)
+✔ another complete clause does not become an attached monetary uncertainty: 王甲2026年1月全部应付工资合计4000元。李乙工资待核实。 (1.102833ms)
+✖ a complete one-owner traditional total is attributed like the simplified equivalent: 王甲2026年1月全部應付工資合計四萬圓。 (3.570375ms)
+✖ a complete one-owner traditional total is attributed like the simplified equivalent: 王甲2026年1月全部已付工資合計四萬圓。 (1.384625ms)
+✖ a complete one-owner traditional total is attributed like the simplified equivalent: 王甲2026年1月全部应付工资合计四万元。 (1.217125ms)
+✔ traditional folding cannot invent completeness or source ownership: 王甲2026年1月應付工資四萬圓。{} (0.3425ms)
+✖ traditional folding cannot invent completeness or source ownership: 王甲2026年1月全部應付工資合計四萬圓。{"subject":"李乙"} (0.177125ms)
+✖ an explicitly written RMB conversion result is retained without computing an exchange rate: 王甲工资美元折合人民币4000元。 (1.168667ms)
+✖ an explicitly written RMB conversion result is retained without computing an exchange rate: 王甲工资美元折算为人民币4000元。 (0.7515ms)
+✖ an explicitly written RMB conversion result is retained without computing an exchange rate: 王甲工资港币折合人民幣4000元。 (1.027334ms)
+✔ a conversion word alone or a conflicting denomination cannot authorize RMB: 王甲工资美元折合4000元。 (0.759958ms)
+✔ a conversion word alone or a conflicting denomination cannot authorize RMB: 王甲工资以港币折合4000元。 (0.714125ms)
+✔ a conversion word alone or a conflicting denomination cannot authorize RMB: 王甲工资美元折合人民币4000元港币。 (0.745583ms)
+✔ a stored unavailable conversion result is never silently upgraded (0.18375ms)
+✖ an explicit wage receipt date is retained literally without inventing a calendar year: 每月15日 (0.250583ms)
+✖ an explicit wage receipt date is retained literally without inventing a calendar year: 每月十五日 (0.163667ms)
+✖ an explicit wage receipt date is retained literally without inventing a calendar year: 2026年1月15日 (0.174417ms)
+✔ recurrence is not a license to crop its semantics, change its role, or use an invalid day: 15日payment_date (0.158458ms)
+✔ recurrence is not a license to crop its semantics, change its role, or use an invalid day: 每月15日wage_period (0.159375ms)
+✔ recurrence is not a license to crop its semantics, change its role, or use an invalid day: 每月32日payment_date (0.1165ms)
+✔ a cropped precise value cannot score as the complete uncertain event in any of six layers (1.473167ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 13
+ℹ fail 22
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 179.301833
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:68:3
+✖ a minimal value and either quote cannot remove its postposed uncertainty: ？ (19.043875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:69:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:70:3
+✖ explicit layout whitespace does not detach the uncertainty: ？ (2.028666ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:71:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:72:3
+✖ the next source block can continue this amount uncertainty: ？ (1.642708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:75:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:68:3
+✖ a minimal value and either quote cannot remove its postposed uncertainty: 待核实 (5.237417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:69:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:70:3
+✖ explicit layout whitespace does not detach the uncertainty: 待核实 (1.9795ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:71:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:72:3
+✖ the next source block can continue this amount uncertainty: 待核实 (1.379167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:75:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:68:3
+✖ a minimal value and either quote cannot remove its postposed uncertainty: 待定 (1.54ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:69:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:70:3
+✖ explicit layout whitespace does not detach the uncertainty: 待定 (1.361292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:71:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:72:3
+✖ the next source block can continue this amount uncertainty: 待定 (1.333625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:75:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:68:3
+✖ a minimal value and either quote cannot remove its postposed uncertainty: 未知 (1.317167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:69:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:70:3
+✖ explicit layout whitespace does not detach the uncertainty: 未知 (1.158625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:71:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:72:3
+✖ the next source block can continue this amount uncertainty: 未知 (1.144042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '4000.00',
+  +   fresh_short: '4000.00',
+  +   history_full: '4000.00',
+  +   history_short: '4000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:75:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:85:3
+✖ a complete one-owner traditional total is attributed like the simplified equivalent: 王甲2026年1月全部應付工資合計四萬圓。 (3.570375ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(!fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:88:46)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:85:3
+✖ a complete one-owner traditional total is attributed like the simplified equivalent: 王甲2026年1月全部已付工資合計四萬圓。 (1.384625ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(!fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:88:46)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:85:3
+✖ a complete one-owner traditional total is attributed like the simplified equivalent: 王甲2026年1月全部应付工资合计四万元。 (1.217125ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(!fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:88:46)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:91:3
+✖ traditional folding cannot invent completeness or source ownership: 王甲2026年1月全部應付工資合計四萬圓。{"subject":"李乙"} (0.177125ms)
+  AssertionError [ERR_ASSERTION]: Candidate retention is distinct from a usable derived amount.
+  
+  0 !== 1
+  
+      at stored (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:31:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:92:84)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:97:3
+✖ an explicitly written RMB conversion result is retained without computing an exchange rate: 王甲工资美元折合人民币4000元。 (1.168667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: null,
+  +   fresh_short: null,
+  +   history_full: null,
+  +   history_short: null
+  -   fresh_full: '4000.00',
+  -   fresh_short: '4000.00',
+  -   history_full: '4000.00',
+  -   history_short: '4000.00'
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:98:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    expected: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:97:3
+✖ an explicitly written RMB conversion result is retained without computing an exchange rate: 王甲工资美元折算为人民币4000元。 (0.7515ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: null,
+  +   fresh_short: null,
+  +   history_full: null,
+  +   history_short: null
+  -   fresh_full: '4000.00',
+  -   fresh_short: '4000.00',
+  -   history_full: '4000.00',
+  -   history_short: '4000.00'
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:98:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    expected: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:97:3
+✖ an explicitly written RMB conversion result is retained without computing an exchange rate: 王甲工资港币折合人民幣4000元。 (1.027334ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: null,
+  +   fresh_short: null,
+  +   history_full: null,
+  +   history_short: null
+  -   fresh_full: '4000.00',
+  -   fresh_short: '4000.00',
+  -   history_full: '4000.00',
+  -   history_short: '4000.00'
+    }
+  
+      at assertAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:56:10)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:98:5)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    expected: { fresh_short: '4000.00', history_short: '4000.00', fresh_full: '4000.00', history_full: '4000.00' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:108:3
+✖ an explicit wage receipt date is retained literally without inventing a calendar year: 每月15日 (0.250583ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(!fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:114:7)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:108:3
+✖ an explicit wage receipt date is retained literally without inventing a calendar year: 每月十五日 (0.163667ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(!fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:114:7)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round24-independent.test.mjs:108:3
+✖ an explicit wage receipt date is retained literally without inventing a calendar year: 2026年1月15日 (0.174417ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(!fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'))
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round24-independent.test.mjs:114:7)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

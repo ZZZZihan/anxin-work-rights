@@ -1,0 +1,86 @@
+{
+  "schema": "material-fact-explicit-rmb-conversion-author/1",
+  "status": "passed_author_targeted_and_legacy_currency_regression",
+  "at_utc": "2026-10-18T11:19:47.534186+00:00",
+  "baseline_commit": "95c21aa27615ef575510e5c136034e35e539023a",
+  "baseline_currency_sha256": "a64cb87596597f8f40f4e923992a0b4d05c596ed9ca5cfc0f79570677e2f1ffb",
+  "final_currency_sha256": "be4f151b5e588dc6cf1c35d30948d836a380a24ab6bb6497cc860abf7b68fde5",
+  "author_test_sha256": "9d302a304e063bfb9d81f6d4dc46ecd8f9e126f571c4d7f6c51bcf90bf785fce",
+  "patch_sha256": "16714f995e172eb5be964feefafa95ca4406c8d3b5cc468dd65e50ae9a0c2669",
+  "node": "v26.11.0",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "actual_backend_independently_verified": false,
+  "allowed_production_scope": "Only lib/material-fact-currency-review.ts was changed in OWN, byte-copied first from CODE exact95; no source/money/event module changes.",
+  "fixed_dependency_method": "Both red and green reconstruct lib from git archive of exact95 and overlay only the selected currency file; the five old script suites use the same exact95 lib/scripts plus only the new currency overlay.",
+  "grammar": {
+    "operation": "An anchored foreign marker immediately followed by horizontal/neutral punctuation bridge, then 折合 or 折算为/折算為, then an explicit RMB result marker.",
+    "explicit_target_markers": "人民币 / 人民幣 / RMB / CNY / ¥ / ￥(NFKC), attached in before, inside the parsed token, or immediately after the token.",
+    "scope": "Remove one contiguous source-currency+conversion prefix on the already folded detection edge; preserve all other prefix markers and all suffix tests. A bare 元 does not authorize the exception. No sentence/newline/person/numeral prose is allowed inside this finite conversion bridge.",
+    "positions": "All folding and removal affect a derived detection string only. Original raw, candidate value/quote, representation, source and Unicode codepoint spans stay unchanged.",
+    "not_performed": "No FX rate calculation or numeric conversion; the RMB amount must already appear in the source."
+  },
+  "checks": [
+    {
+      "kind": "fixed95_author_before",
+      "tests": 107,
+      "pass": 67,
+      "fail": 40,
+      "exit_code": 1,
+      "log": "before-95.actual.log"
+    },
+    {
+      "kind": "same_author_after",
+      "tests": 107,
+      "pass": 107,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "after-first.actual.log"
+    },
+    {
+      "kind": "legacy_targeted_currency_suites",
+      "tests": 591,
+      "pass": 591,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "old-suites-after.actual.log",
+      "suites": [
+        "material-fact-currency-computation-review",
+        "material-fact-currency-rate-source-review",
+        "material-fact-currency-names-ordinary-words",
+        "material-fact-currency-name-boundary",
+        "material-fact-currency-payment-purpose"
+      ]
+    },
+    {
+      "kind": "eslint",
+      "exit_code": 0,
+      "log": "lint-first.actual.log"
+    }
+  ],
+  "positive_coverage": [
+    "美元折合人民币4000元 and 美元折算为人民币4000元, direct anchor and full/cropped quotes through fresh runtime and source review.",
+    "Traditional markers/numerals, fullwidth currency codes, Cf controls, horizontal spaces and neutral parentheses use detection copies only.",
+    "Explicit RMB appears outside or inside the value; postfix named RMB and a bare Arabic crop can use an immediately attached explicit target marker.",
+    "A source500美元 and explicit target人民币4000元 retain separate anchor meanings; target4000 stays exact, source500 remains unavailable.",
+    "Known historical exact reads preserve the explicitly stated RMB result; historical unsupported/null is never auto-upgraded; original source/state/raw/history remain unchanged."
+  ],
+  "negative_controls": [
+    "RMB marker without a conversion operator does not wash away USD; 计价/折算 without 为 are outside the new exception.",
+    "Bare 元 without named RMB, reverse RMB-to-foreign, trailing foreign markers, an additional prefix foreign marker and conflicting currency after the same wage noun all remain null.",
+    "Another event, subject, clause boundary or newline cannot lend its conversion to the original USD amount. Existing separated-event RMB remains exact.",
+    "Full values still containing a foreign literal remain conservative unsupported under the literal parser; no long mixed-currency value syntax was broadened."
+  ],
+  "limits": [
+    "This author test is synthetic local runtime/source/history execution, not HTTP, model inference, new independent materials, a full project check, CI, legal classification or production calculation authorization.",
+    "No exception crosses newline or a clause; source review retains existing event-local policies. Ordinary newline-separated RMB can still be usable under the pre-existing independent-event policy, not this conversion exception.",
+    "Only the listed finite words 折合 and 折算为/為 are added. Other descriptions are not claimed to be completely recognized.",
+    "The real currency conversion outcome is read from the source; its economic correctness or rate is not verified by this guard."
+  ],
+  "log_sha256": {
+    "before-95.actual.log": "b601c169c17406e491d87351380d396c30a9d8296421d3f9ea9cfa0e60a6991f",
+    "after-first.actual.log": "61abeb7f8bb6663b377d5c3629f6d95d262052853f1dea4de1a9a8a45b77eb4a",
+    "old-suites-after.actual.log": "b95e92d9a625d30d94a22b36cba2dd3aba2687bf0e4cd8910b66cc1fec376b5c",
+    "lint-first.actual.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

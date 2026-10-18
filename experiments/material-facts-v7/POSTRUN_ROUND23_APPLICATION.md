@@ -9,3 +9,5 @@
 主侧 Node24.22 完整 `npm run check` 退出0：1789 Vitest，运行时4587通过/1项平台跳过，材料67通过/1项平台跳过，Python9+11+16通过。同一170项隔离HTTP：旧409构建160通过10失败→新构建170通过，cleanup通过。原160项保留；新增10项覆盖四种裁剪界限、两种无金额描述与四种明确RMB写法。它使用真实应用Worker、临时D1/R2和TXT服务及合成模型回答，并非真实新模型或人工业务验收。原raw/位置/历史只读复核另外记录。
 
 原始红、中间失败、作者/独立回执和最终绿日志保存于postfreeze-evidence/round23；第十七版尚未发布时的此记录不替代后续冻结和远端CI证据。未训练或部署生产。
+
+后续远端证据：95c21aa完整SHA为95c21aa27615ef575510e5c136034e35e539023a，GitHub Check运行[39122254787](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39122254787)成功，Linux运行时4588项、材料68项、HTTP170项通过；9份CI制品与日志保存于本轮root-code/ci-pr45-95。非实现者对同170前后报告的raw、持久化历史和重启继承另作只读核查，见source-author/http170-nonimplementer-review.json。该轮7个线程已用此证据回复解决；随后发现的六项ROUND24问题另列，不回写本轮原结论。
