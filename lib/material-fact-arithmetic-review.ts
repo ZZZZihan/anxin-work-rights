@@ -25,9 +25,10 @@ const SYMBOLIC_OPERAND = '(?:(?<![A-Za-z0-9_])[A-Za-z_][A-Za-z0-9_]{0,31}(?![A-Z
 const UNKNOWN_OPERAND = `(?:${NAMED_OPERAND}|${SYMBOLIC_OPERAND})`;
 const OPERAND = `(?:${FACTOR}|${UNKNOWN_OPERAND})`;
 // Coefficients and ratios can have names unknown to this parser. Bound the
-// complete Han name to 16 characters and require its coefficient suffix, then
-// use it only on explicit arithmetic paths. This is not arbitrary prose.
-const COEFFICIENT_OPERAND = `(?:[\\p{Script=Han}]${LINE}*){0,14}(?:系${LINE}*[数數]|比${LINE}*例)`;
+// complete Han name to 16 characters and require its coefficient/rate suffix,
+// then use it only on explicit arithmetic paths. This is not arbitrary prose
+// or an ordinary /月 rate. A one-character 率 suffix has one more name slot.
+const COEFFICIENT_OPERAND = `(?:(?:[\\p{Script=Han}]${LINE}*){0,14}(?:系${LINE}*[数數]|比${LINE}*例)|(?:[\\p{Script=Han}]${LINE}*){0,15}率)`;
 const EXPLICIT_OPERAND = `(?:${OPERAND}|${COEFFICIENT_OPERAND})`;
 // Single-character operators must not cut ordinary words such as 加班费 or
 // 除外. Multi-character operator words and symbols already state the operation.

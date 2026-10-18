@@ -113,7 +113,7 @@ async function fixture(name, specifications) {
   // Upload every source before extraction so a later source upload cannot hide
   // whether a failed extraction preserves an already stored material/history.
   for (const spec of specifications) {
-    const bytes = Buffer.from(`合成软件测试材料（非真实案件）。😀𠮷 ${spec.text}`, 'utf8');
+    const bytes = Buffer.from(spec.exactSource ? spec.text : `合成软件测试材料（非真实案件）。😀𠮷 ${spec.text}`, 'utf8');
     const form = new FormData(); form.set('caseId', caseId); form.set('operationId', randomUUID());
     form.set('file', new File([bytes], `synthetic-v7-${name}-${items.length}.txt`, { type: 'text/plain' }));
     const uploaded = await request('/api/evidence', 'POST', form); assert.equal(uploaded.status, 201);
@@ -887,6 +887,51 @@ try {
     return { amount: spec.amount ?? null, rejected: !!spec.rejected, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: !spec.rejected && spec.amount === null };
   });
   // End ROUND23 additions.
+  // ROUND24: uncertainty after cropped values and finite supported source forms.
+  for (const spec of [
+    ...['？', '待核实', '待定', '未知'].map(marker => ({ name: `postposed-${marker}`, text: `。测试王甲2026年1月全部应付工资合计4000元${marker}`, value: '4000元', amount: null, status: 'uncertain', oldAmount: '4000.00' })),
+    ...[['應付', 'due_total'], ['已付', 'paid_total']].map(([role, meaning]) => ({ name: `traditional-role-${role}`, text: `。测试王甲2026年1月全部${role}工資合計四萬圓。`, value: '四萬圓', amount: '40000.00', status: 'exact', attributed: true, attributes: { meaning } })),
+    ...['美元折合人民币', '美元折算为人民币'].map(conversion => ({ name: `explicit-conversion-${conversion}`, text: `。测试王甲工资${conversion}4000元。`, value: '4000元', amount: '4000.00', status: 'exact', attributes: { period: null } })),
+    ...['每月15日', '每月三十一日'].map(value => ({ name: `recurring-payment-${value}`, text: `。测试王甲工资收到日${value}。`, value, date: true, attributed: true })),
+  ]) await scenario(`round24_${spec.name}`, async () => {
+    const candidate = spec.date ? { kind: 'date', value: spec.value, quote: spec.value, subject: '测试王甲', scope: 'individual', meaning: 'payment_date', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' } : money(spec.value, spec.value, spec.attributes);
+    const [item] = await fixture(`round24-${spec.name}`, [{ text: spec.text, exactSource: !!spec.attributed, candidates: [candidate] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    const fact = material.candidates[0];
+    if (!spec.date) { assert.equal(fact.amount, spec.amount); assert.equal(fact.normalization.status, spec.status); }
+    if (spec.attributed) assert(!fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), JSON.stringify({fact, blocks: item.analysis.result.blocks}));
+    if (spec.oldAmount) {
+      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
+      old.amount = spec.oldAmount;
+      old.normalization = { rawValue: spec.value, amount: spec.oldAmount, status: 'exact', matchedText: spec.value, span: { start: 0, end: Array.from(spec.value).length }, reason: 'Synthetic pre-fix round24 exact amount' };
+      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    }
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body).candidates[0];
+    if (!spec.date) { assert.equal(checked.amount, spec.amount); assert.equal(checked.normalization.status, spec.status); }
+    if (spec.attributed) assert(!checked.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round24-${spec.name}`, item, state: before });
+    return { amount: checked.amount, date: !!spec.date, attributed: !!spec.attributed, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: !!spec.oldAmount };
+  });
+  // End ROUND24 additions.
+  await scenario('round24_named_rate_operand_stays_unavailable', async () => {
+    const [item] = await fixture('round24-named-rate', [{ text: '测试王甲工资四万元乘以出勤率。', candidates: [money('四万元', '四万元', { period: null })] }]);
+    const material = rawAndLocations(item, await extract(item));assert.equal(material.candidates.length, 1);assert.equal(material.candidates[0].amount, null);assert.equal(material.candidates[0].normalization.status, 'unsupported');
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
+    old.amount = '40000.00'; old.normalization = { rawValue: '四万元', amount: '40000.00', status: 'exact', matchedText: '四万元', span: {start: 0, end: 3}, reason: 'Synthetic old formula operand' };
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path);assert.equal(read.status, 200);unconfirmed(read.body);assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null);assert.deepEqual(stored(item.caseId), before);assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: 'round24-named-rate', item, state: before});return {amount: null, rawAndStoredHistoryUnchanged: true, historicalExactDowngraded: true};
+  });
+  await scenario('round24_same_occurrence_traditional_wrapper_is_one_candidate', async () => {
+    const quote = '测试王甲收到四萬圓工資';
+    const [item] = await fixture('round24-traditional-duplicate', [{ text: quote + '。', candidates: ['四萬圓', '四萬圓工資'].map(value => money(value, quote, {meaning: 'payment', completeness: 'unknown', period: null})) }]);
+    const material = rawAndLocations(item, await extract(item));assert.equal(material.candidates.length, 1);assert.equal(JSON.parse(material.raw).candidates.length, 2);assert.equal(material.candidates[0].amount, '40000.00');
+    const before = stored(item.caseId), read = await request(item.path);assert.equal(read.status, 200);unconfirmed(read.body);assert.equal(rawAndLocations(item, read.body).candidates.length, 1);assert.deepEqual(stored(item.caseId), before);assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: 'round24-traditional-duplicate', item, state: before});return {accepted: 1, rawCandidates: 2, rawAndStoredHistoryUnchanged: true};
+  });
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
