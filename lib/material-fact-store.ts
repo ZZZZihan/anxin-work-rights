@@ -4,7 +4,8 @@ import { callMaterialService, materialServiceConfigured } from './material-servi
 import { enqueueMaterialFactCleanup, retryMaterialFactCleanup } from './material-fact-cleanup';
 import { reviewFactsAgainstSources } from './material-fact-source-review';
 import { validateMaterialResult } from './material-validation';
-import { applyFactAction, buildFactView, emptyFactState, ingestCandidates, prepareCalculation, synchronizeFacts, validateCandidateOutput, validateFactSource } from './material-facts-v3';
+import { applyFactAction, buildFactView, emptyFactState, prepareCalculation, synchronizeFacts, validateFactSource } from './material-facts-v3';
+import { ingestRuntimeCandidates } from './material-fact-runtime-ingest';
 import type { FactAction, FactSource, FactState, MaterialFactsResponse } from './material-fact-types';
 
 type SessionRow = { case_id: string; user_id: string; revision: number; state_json: string };
@@ -141,8 +142,7 @@ async function poll(user: RequestUser, id: string, current: Snapshot): Promise<S
     if (result.finish_reason !== undefined && result.finish_reason !== 'stop') throw new Error(`模型回答未完整结束（${String(result.finish_reason).slice(0, 80)}），本次原回答仅供复查，请重新提取。`);
     const source = current.sources.find((item) => item.id === active.evidenceId && item.ready);
     if (!source) throw conflict();
-    const batch = validateCandidateOutput(result.raw, source);
-    state = ingestCandidates(current.state, source, batch, result.backend, user.userId, now(), result.model as string | null);
+    state = ingestRuntimeCandidates(current.state, source, { raw: result.raw }, result.backend, user.userId, now(), result.model as string | null);
     state = reviewFactsAgainstSources({ ...state, job: null }, current.sources);
   } catch (error) {
     state = { ...current.state, job: { ...active, ...failedOutput, status: 'failed', error: error instanceof Error ? error.message.slice(0, 500) : '候选提取服务暂不可用，请重试。' } };

@@ -104,6 +104,41 @@ describe('material facts API and transactional persistence', () => {
     expect((await read()).state.materials[0]).toEqual(current.state.materials[0]);
   });
 
+  it('keeps an exact observation after an approximate duplicate through the real polling store without rewriting historical results', async () => {
+    const clauses = ['张三2026年1月完整应付工资约1000元', '张三2026年1月完整应付工资1000元'];
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`).bind(clauses.join('。') + '。').run();
+    const template = JSON.parse(raw).candidates[0];
+    const answer = JSON.stringify({ schemaVersion: 3, candidates: [
+      { ...template, quote: clauses[0] }, { ...template, quote: '原文不存在' }, { ...template, quote: clauses[1] },
+    ] });
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => path === '/health' ? { capabilities: { factConfigured: true } }
+      : init?.method === 'DELETE' ? { ok: true } : path === '/fact-jobs' ? { jobId: 'modifier-job' }
+        : { status: 'ready', result: { raw: answer, backend: 'controlled-test-fixture', model: null } });
+    const before = await read();
+    expect((await act(before, { action: 'extract', evidenceId: 'source-1' })).status).toBe(202);
+    const current = await read(), material = current.state.materials[0];
+    expect(material.raw).toBe(answer);
+    expect(material.candidates.map(candidate => [candidate.id, candidate.amount])).toEqual([['source-1:1:0', null], ['source-1:1:2', '1000.00']]);
+    expect(material.rejected).toEqual([{ index: 1, reason: '引用不存在，或引用不包含候选原文值' }]);
+    expect(current.state.confirmations).toEqual({ due: null, paid: null });
+    expect(current.canCalculate).toBe(false);
+    expect((await read()).state.materials[0].candidates).toEqual(material.candidates);
+
+    // Previously stored acceptance/rejection records retain their historical meaning.
+    // A new extraction uses the runtime fix; GET does not silently reparse old raw.
+    const row = await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>();
+    const historical = JSON.parse(row!.state_json);
+    historical.materials[0].candidates = historical.materials[0].candidates.slice(0, 1);
+    historical.materials[0].rejected.push({ index: 2, reason: 'historical frozen duplicate rejection' });
+    const historicalJson = JSON.stringify(historical);
+    await bindings.DB.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=?').bind(historicalJson, 'fact-case').run();
+    const reread = await read();
+    expect(reread.state.materials[0].candidates).toHaveLength(1);
+    expect(reread.state.materials[0].raw).toBe(answer);
+    expect(reread.state.materials[0].rejected.at(-1)).toEqual({ index: 2, reason: 'historical frozen duplicate rejection' });
+    expect((await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>())!.state_json).toBe(historicalJson);
+  });
+
   it('returns current coverage for a nonempty historical v2 record without storing a derived display diagnostic', async () => {
     await extracted();
     const row = await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>();

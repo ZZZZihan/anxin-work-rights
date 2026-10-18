@@ -1,0 +1,25 @@
+async (page) => {
+  const card = page.locator('.fact-source-card').filter({ hasText: '合成同段重复金额与月份.txt' });
+  if (await card.count() !== 1) throw new Error('Expected one synthetic source card');
+  if (!(await card.innerText()).includes('2 条候选 · 可能有遗漏')) throw new Error('Missing repeated-occurrence warning');
+  if (!(await card.innerText()).includes('相同文字在另一处出现，不代表当前原文位置已经提取')) throw new Error('Missing occurrence explanation');
+  const candidateCount = await card.locator('.fact-candidate').count();
+  if (candidateCount !== 2) throw new Error('Raw candidates were added or removed');
+  const raw = await card.locator('.fact-raw pre').textContent();
+  const rawCandidates = JSON.parse(raw).candidates;
+  if (rawCandidates.length !== 2 || rawCandidates.some(item => item.subject !== '王甲')) throw new Error('Original two Wang candidates changed');
+  const omittedSignals = await card.getByRole('status').getByRole('listitem').allTextContents();
+  if (!omittedSignals.includes('8000元') || !omittedSignals.includes('2024年7月')) throw new Error('Missing second occurrence details');
+  await page.setViewportSize({ width: 1200, height: 1800 });
+  await card.evaluate(el => window.scrollBy(0, el.getBoundingClientRect().top - 125));
+  await card.screenshot({ path: '/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/output/playwright/pr40-third-occurrence/01-duplicate-occurrence-coverage-and-raw.png' });
+  const due = await page.getByRole('textbox', { name: '本期完整应付总额（元）', exact: true }).inputValue();
+  const paid = await page.getByRole('textbox', { name: '本期完整已付总额（元）', exact: true }).inputValue();
+  const checked = await page.locator('input[type="checkbox"]:checked').count();
+  const calculateDisabled = await page.getByRole('button', { name: '按已确认事实计算差额', exact: true }).isDisabled();
+  if (due !== '' || paid !== '' || checked !== 0 || !calculateDisabled) throw new Error('UI automatically confirmed or enabled calculation');
+  await page.setViewportSize({ width: 1200, height: 1400 });
+  await page.getByRole('region', { name: '完整金额确认', exact: true }).evaluate(el => window.scrollBy(0, el.getBoundingClientRect().top - 125));
+  await page.screenshot({ path: '/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/output/playwright/pr40-third-occurrence/02-no-automatic-confirmation.png' });
+  return { status: 'PASS', candidateCount, rawCandidateCount: rawCandidates.length, rawSubjects: rawCandidates.map(item => item.subject), omittedSignals, dueInput: due, paidInput: paid, checkedCheckboxes: checked, calculateDisabled };
+}

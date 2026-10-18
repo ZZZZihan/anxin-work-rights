@@ -1,0 +1,113 @@
+{
+  "status": "FAIL",
+  "mode": "fact-cancellation",
+  "boundary": "production Worker HTTP + disposable on-disk D1 SQLite + real material service rules jobs + loopback timeout/503 injection",
+  "actualModelInference": false,
+  "syntheticInputs": true,
+  "recordedAt": "2026-10-18T01:00:36.494Z",
+  "observations": [
+    {
+      "name": "real_15s_http_timeout_erases_fact_text_but_retains_job_id",
+      "status": "PASS",
+      "milliseconds": 15025,
+      "jobRetained": true,
+      "factRowRemoved": true
+    },
+    {
+      "name": "same_owner_noop_after_worker_restart_retries_saved_id_and_deletes_journal",
+      "status": "PASS"
+    },
+    {
+      "name": "company_status_noop_and_ordinary_step_do_not_cancel_active_job",
+      "status": "PASS"
+    },
+    {
+      "name": "real_503_keeps_journal_while_owner_and_case_isolation_preserve_foreign_jobs",
+      "status": "PASS"
+    },
+    {
+      "name": "old_job_journal_retry_cannot_cancel_or_overwrite_new_active_job",
+      "status": "PASS"
+    },
+    {
+      "name": "late_real_http_ready_poll_loses_revision_cas_and_cannot_overwrite_new_extraction",
+      "status": "PASS"
+    },
+    {
+      "name": "sqlite_transaction_rolls_back_case_invalidation_fact_delete_and_journal_together",
+      "status": "PASS"
+    },
+    {
+      "name": "evidence_success_acknowledges_journal_so_later_offline_request_has_no_false_pending",
+      "status": "FAIL",
+      "deleteStatus": 200,
+      "deletePending": false,
+      "remoteStatusAfterDelete": 404,
+      "remainingJournalJobs": [
+        "7be39230-e66d-4807-b4d5-ff72daa65046"
+      ],
+      "subsequentRequestStatus": 200,
+      "subsequentPending": true,
+      "unnecessaryDeleteCalls": 1
+    }
+  ],
+  "failure": {
+    "phase": "evidence_success_then_service_offline",
+    "name": "AssertionError",
+    "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   '7be39230-e66d-4807-b4d5-ff72daa65046'\n+ ]\n- []\n"
+  },
+  "cleanup": {
+    "status": "PASS",
+    "failures": []
+  },
+  "calls": [
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/af3ec877-b7a9-4413-9673-247a32a68e48",
+      "mode": "timeout",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/af3ec877-b7a9-4413-9673-247a32a68e48",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/891ea8ae-3177-4424-a06e-be3275bb5f09",
+      "mode": "503",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/891ea8ae-3177-4424-a06e-be3275bb5f09",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/5438b94a-33a4-4d9d-a6aa-61118f98f4de",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/4e1b57e9-8f1a-416f-b662-690aa9f2c1ff",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/7be39230-e66d-4807-b4d5-ff72daa65046",
+      "mode": "normal",
+      "authenticated": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/7be39230-e66d-4807-b4d5-ff72daa65046",
+      "mode": "503",
+      "authenticated": true
+    }
+  ]
+}

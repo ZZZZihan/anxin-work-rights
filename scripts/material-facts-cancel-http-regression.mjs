@@ -82,6 +82,18 @@ async function createCase(company) {
   return response.body.case.id;
 }
 
+async function uploadEvidence(caseId) {
+  const form = new FormData();
+  form.set('caseId', caseId);
+  form.set('operationId', randomUUID());
+  form.set('file', new File(['合成删除回归材料：本期工资1000元。'], 'synthetic-delete.txt', { type: 'text/plain' }));
+  const response = await jsonRequest(`${base}/api/evidence`, { method: 'POST', headers: headers(), body: form });
+  assert.equal(response.status, 201, JSON.stringify(response.body));
+  return response.body.evidence.id;
+}
+
+const deleteEvidence = (id, user) => jsonRequest(`${base}/api/evidence?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: headers(user) });
+
 async function createJob() {
   const source = {
     id: 'synthetic-source', name: 'synthetic.txt', sha256: 'a'.repeat(64), analysisRevision: 1, ready: true,
@@ -368,6 +380,125 @@ try {
   assert.equal(caseQueue(atomicCase).length, 0);
   assert.equal(db.prepare('SELECT company FROM cases WHERE id=?').get(atomicCase).company, '合成原子回滚案件');
   observe('sqlite_transaction_rolls_back_case_invalidation_fact_delete_and_journal_together');
+
+  phase = 'evidence_success_then_service_offline';
+  const evidenceCase = await createCase('合成证据删除成功案件');
+  const deletedEvidence = await uploadEvidence(evidenceCase);
+  const evidenceJob = await createJob();
+  seed(evidenceCase, evidenceJob);
+  const removedEvidence = await deleteEvidence(deletedEvidence);
+  assert.equal(removedEvidence.status, 200);
+  assert.equal(removedEvidence.body.processingCleanupPending, false);
+  assert.equal(await remoteStatus(evidenceJob), 404);
+  assert.equal(row(evidenceCase), undefined);
+  assert.equal(db.prepare('SELECT id FROM evidence_files WHERE id=?').get(deletedEvidence), undefined);
+  const remainingAfterSuccess = caseQueue(evidenceCase).map(item => item.job_id);
+  const beforeOfflineRequest = calls.length;
+  mode = '503';
+  const offlineAfterSuccess = await request('/api/cases', { id: evidenceCase, nextAction: '成功删除后的后续本人请求' });
+  observations.push({
+    name: 'evidence_success_acknowledges_journal_so_later_offline_request_has_no_false_pending',
+    status: remainingAfterSuccess.length === 0 && offlineAfterSuccess.body.processingCleanupPending === false ? 'PASS' : 'FAIL',
+    deleteStatus: removedEvidence.status, deletePending: removedEvidence.body.processingCleanupPending,
+    remoteStatusAfterDelete: 404, remainingJournalJobs: remainingAfterSuccess,
+    subsequentRequestStatus: offlineAfterSuccess.status, subsequentPending: offlineAfterSuccess.body.processingCleanupPending,
+    unnecessaryDeleteCalls: calls.length - beforeOfflineRequest,
+  });
+  assert.deepEqual(remainingAfterSuccess, []);
+  assert.equal(offlineAfterSuccess.status, 200);
+  assert.equal(offlineAfterSuccess.body.processingCleanupPending, false);
+  assert.equal(calls.length, beforeOfflineRequest);
+  mode = 'normal';
+
+  phase = 'evidence_failed_cancellation_retries_after_row_removal';
+  const failedEvidenceCase = await createCase('合成证据取消失败案件');
+  const failedEvidence = await uploadEvidence(failedEvidenceCase);
+  const failedEvidenceJob = await createJob();
+  seed(failedEvidenceCase, failedEvidenceJob);
+  mode = '503';
+  const unavailableEvidence = await deleteEvidence(failedEvidence);
+  assert.equal(unavailableEvidence.status, 200);
+  assert.equal(unavailableEvidence.body.processingCleanupPending, true);
+  assert.equal(db.prepare('SELECT id FROM evidence_files WHERE id=?').get(failedEvidence), undefined);
+  assert.deepEqual(caseQueue(failedEvidenceCase).map(item => item.job_id), [failedEvidenceJob]);
+  assert.equal(await remoteStatus(failedEvidenceJob), 200);
+  mode = 'normal';
+  const failedEvidenceRetry = await request('/api/cases', { id: failedEvidenceCase, nextAction: '重试已删除证据的旧任务' });
+  assert.equal(failedEvidenceRetry.status, 200);
+  assert.equal(failedEvidenceRetry.body.processingCleanupPending, false);
+  assert.deepEqual(caseQueue(failedEvidenceCase), []);
+  assert.equal(await remoteStatus(failedEvidenceJob), 404);
+  observe('evidence_failed_cancel_retains_id_after_evidence_removal_and_owned_request_retries');
+
+  phase = 'evidence_exact_ack_isolation';
+  const isolatedCase = await createCase('合成证据精确确认案件');
+  const isolatedEvidence = await uploadEvidence(isolatedCase);
+  const isolatedJob = await createJob(), queuedOtherJob = await createJob();
+  seed(isolatedCase, isolatedJob);
+  insert.run('different-owner', isolatedCase, isolatedJob, new Date().toISOString());
+  insert.run(owner, 'different-evidence-case', isolatedJob, new Date().toISOString());
+  insert.run(owner, isolatedCase, queuedOtherJob, new Date().toISOString());
+  assert.equal((await deleteEvidence(isolatedEvidence)).status, 200);
+  assert.equal(await remoteStatus(isolatedJob), 404);
+  assert.equal(await remoteStatus(queuedOtherJob), 200);
+  assert.deepEqual(caseQueue(isolatedCase).map(item => item.job_id), [queuedOtherJob]);
+  assert(queue().some(item => item.user_id === 'different-owner' && item.case_id === isolatedCase && item.job_id === isolatedJob));
+  assert(queue().some(item => item.user_id === owner && item.case_id === 'different-evidence-case' && item.job_id === isolatedJob));
+  observe('evidence_ack_deletes_only_captured_owner_case_job_and_preserves_other_queued_tasks');
+
+  phase = 'evidence_retry_missing_and_owner_isolation';
+  const newEvidenceJob = await createJob();
+  seed(evidenceCase, newEvidenceJob);
+  const beforeEvidenceNoop = calls.length;
+  assert.equal((await deleteEvidence('missing-synthetic-evidence')).status, 404);
+  assert.equal((await deleteEvidence(deletedEvidence, 'intruder')).status, 404);
+  assert.equal((await deleteEvidence(deletedEvidence)).status, 200);
+  assert.equal(calls.length, beforeEvidenceNoop);
+  assert.equal(JSON.parse(row(evidenceCase).state_json).job.id, newEvidenceJob);
+  assert.equal(await remoteStatus(newEvidenceJob), 200);
+  assert.deepEqual(caseQueue(evidenceCase), []);
+  observe('missing_foreign_and_repeated_evidence_delete_do_not_cancel_new_active_job');
+
+  phase = 'evidence_transaction_rollback';
+  const rollbackCase = await createCase('合成证据事务回滚案件');
+  const rollbackEvidence = await uploadEvidence(rollbackCase);
+  const rollbackJob = await createJob();
+  seed(rollbackCase, rollbackJob);
+  // AFTER UPDATE executes after the real invalidation trigger or alongside it;
+  // the transaction must roll back both trigger writes in either order.
+  db.exec(`CREATE TRIGGER synthetic_abort_evidence_status AFTER UPDATE ON evidence_files
+    WHEN NEW.status='deleting' BEGIN SELECT RAISE(ABORT,'synthetic evidence rollback'); END`);
+  const beforeEvidenceRollback = calls.length;
+  const rolledBackEvidence = await deleteEvidence(rollbackEvidence);
+  assert.equal(rolledBackEvidence.status, 503);
+  assert.equal(calls.length, beforeEvidenceRollback);
+  assert.equal(db.prepare('SELECT status FROM evidence_files WHERE id=?').get(rollbackEvidence).status, 'uploaded');
+  assert.equal(db.prepare('SELECT id FROM evidence_upload_cancellations WHERE id=?').get(rollbackEvidence), undefined);
+  assert.equal(JSON.parse(row(rollbackCase).state_json).job.id, rollbackJob);
+  assert.deepEqual(caseQueue(rollbackCase), []);
+  assert.equal(await remoteStatus(rollbackJob), 200);
+  const preservedDownload = await fetch(`${base}/api/evidence/${rollbackEvidence}/download`, { headers: headers() });
+  assert.equal(preservedDownload.status, 200);
+  assert((await preservedDownload.text()).includes('合成删除回归材料'));
+  db.exec('DROP TRIGGER synthetic_abort_evidence_status');
+  observe('evidence_transaction_rollback_preserves_facts_file_and_journal_and_never_cancels_remote_job');
+
+  phase = 'evidence_ack_database_failure';
+  db.exec(`CREATE TRIGGER synthetic_abort_evidence_ack BEFORE DELETE ON case_material_fact_cleanup
+    BEGIN SELECT RAISE(ABORT,'synthetic journal acknowledgement failure'); END`);
+  const ackFailure = await deleteEvidence(rollbackEvidence);
+  assert.equal(ackFailure.status, 200);
+  assert.equal(ackFailure.body.processingCleanupPending, true);
+  assert.equal(await remoteStatus(rollbackJob), 404);
+  assert.equal(db.prepare('SELECT id FROM evidence_files WHERE id=?').get(rollbackEvidence), undefined);
+  assert.deepEqual(caseQueue(rollbackCase).map(item => item.job_id), [rollbackJob]);
+  db.exec('DROP TRIGGER synthetic_abort_evidence_ack');
+  const ackRetry = await request('/api/cases', { id: rollbackCase, nextAction: '远端已取消后的幂等确认重试' });
+  assert.equal(ackRetry.status, 200);
+  assert.equal(ackRetry.body.processingCleanupPending, false);
+  assert.deepEqual(caseQueue(rollbackCase), []);
+  assert.equal(await remoteStatus(rollbackJob), 404);
+  observe('successful_remote_cancel_with_failed_ack_keeps_pending_and_retries_idempotently');
 
   phase = 'service_authentication';
   assert(calls.length >= 6);
