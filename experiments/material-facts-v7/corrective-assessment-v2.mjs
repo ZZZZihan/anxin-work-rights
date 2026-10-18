@@ -1,8 +1,9 @@
 // A second, explicitly post-freeze assessment of the SAME original outputs.
 // Preserve correction v1 and verify its exact archived code before proceeding.
 import assert from 'node:assert/strict';
+import { publishArtifacts } from './publish-artifacts.mjs';
 import { execFileSync } from 'node:child_process';
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { computeCorrection } from './corrective-assessment.mjs';
 import { EXPERIMENT, ROOT, isMainModule, sha, same } from './freeze.mjs';
@@ -31,9 +32,7 @@ if (await isMainModule(import.meta.url)) {
   const { artifacts, manifest } = await computeCorrectionV2();
   const directory = resolve(ROOT, EXPERIMENT, 'corrections-v2');
   if (args[0] === '--write') {
-    await mkdir(directory);
-    for (const [path, value] of Object.entries({ ...artifacts, 'manifest.json': manifest }))
-      await writeFile(resolve(directory, path), JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
+    await publishArtifacts(directory, { ...artifacts, 'manifest.json': manifest });
   } else {
     same((await readdir(directory)).sort(), [...Object.keys(artifacts), 'manifest.json'].sort(), 'Correction v2 file set changed');
     same(JSON.parse(await readFile(resolve(directory, 'manifest.json'), 'utf8')), manifest, 'Correction v2 manifest changed');

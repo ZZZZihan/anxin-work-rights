@@ -1,0 +1,236 @@
+{
+  "schema": "material-facts-v7-round4-independent-review/1",
+  "status": "passed_independent_round4_experiment_integrity_review",
+  "reviewed_at": "2026-10-18T05:05:52.630601+00:00",
+  "reviewer_role": "independent technical reviewer; did not implement the four fixes or scorer",
+  "requested_model": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_runtime_configuration_independently_verified": false
+  },
+  "blocking_findings": [],
+  "scope": "backend prerequisites, development completion, exact historical executable restoration, atomic correction publication, and saved-output v3 verification",
+  "constraints": {
+    "model_requests_made": 0,
+    "training_or_deployment": false,
+    "new_http_or_worker_started": false,
+    "heavy_build_run": false,
+    "frozen_files_or_old_receipts_modified": false,
+    "formal_results_written_by_reviewer": false
+  },
+  "findings_review": [
+    {
+      "finding": "backend prerequisites can consume the single formal attempt before rejection",
+      "result": "fixed",
+      "evidence": "Missing/unreadable Qwen paths, missing/unreadable DeepSeek key, missing interpreter, and malformed/zero/out-of-range port reject before final attempt creation or worker launch. Rules remain usable without model arguments. Python probe is no-model only."
+    },
+    {
+      "finding": "matching protocol and code hashes alone can incorrectly establish development readiness",
+      "result": "fixed",
+      "evidence": "Missing/false outcome, missing/empty/partial/truncated/duplicate/wrong-backend/non-stop terminal rows and failed process attempt cannot contribute readiness. Complete stop rows with raw_output=[] are valid. Failed history remains intact and does not disqualify a separate successful current-code attempt."
+    },
+    {
+      "finding": "historical restoration omitted four frozen v7 executables",
+      "result": "fixed",
+      "evidence": "The new separately versioned 36-file archive restores run/freeze/verify/summarize in addition to the old 32-file range. Changed live versions are replaced with bytes bound to the original fixed freeze; missing/corrupt snapshots reject before callback. Old archive stays unchanged; callback failure cleans temporary code."
+    },
+    {
+      "finding": "partial correction writes occupy the immutable final directory and block safe retry",
+      "result": "fixed",
+      "evidence": "Safe basename validation and JSON serialization precede staging; complete sibling staging directory is atomically renamed. Injected write fault and real SIGKILL preserve an unpublished stage, leave final absent and permit retry. Existing empty directory/history/symlink, a target created during staging, and two concurrent complete publishers cannot overwrite prior content."
+    }
+  ],
+  "actual_checks": {
+    "initial_independent_baseline": {
+      "tests": 29,
+      "passed": 13,
+      "failed": 16,
+      "description": "Five invalid backend configurations consumed the attempt, ten incomplete/failed development receipts were wrongly ready, and one combined four-script restoration test failed. Publication helper was already implemented and its seven cases passed."
+    },
+    "final_main_tree": {
+      "tests": 54,
+      "passed": 54,
+      "failed": 0,
+      "independent_integrity_cases": 38,
+      "adapted_existing_gate_cases": 16,
+      "existing_assertions_preserved": true
+    },
+    "lint": {
+      "method": "repository ESLint through stdin for both independent scripts",
+      "status": "PASS"
+    },
+    "v3_published_check": {
+      "status": "PASS",
+      "exact_five_file_set": true,
+      "manifest_and_all_artifact_bytes_equal_recomputation": true,
+      "report_v2_v3_byte_identity": {
+        "rules": "0553db2f6eb0801c6311021f16ce67268a165cd8198afe66fa4821ee737dbaf7",
+        "qwen": "38eefe88b7cbdd047e20f6cc160cbd4290dfcb16ef599522881a597d06613c41",
+        "deepseek": "32937a32ce0f8af3ce61845cf05f8edc3d07f0e0200c623581014b5f3c117f7d"
+      },
+      "new_independent_metric_reimplementation_this_round": false,
+      "reason": "This round changes experiment integrity only. All three entire report byte streams equal v2; prior independent six-layer recomputation remains preserved in round3 and POSTRUN reports."
+    }
+  },
+  "fixed_denominators": {
+    "documents_per_backend": 12,
+    "facts_per_backend": 43,
+    "natural_empty_documents": 2
+  },
+  "unchanged_metrics_tp_fp_fn": {
+    "rules": {
+      "raw_basic": [
+        2,
+        0,
+        41
+      ],
+      "accepted_basic": [
+        2,
+        0,
+        41
+      ],
+      "raw_relational": [
+        0,
+        2,
+        43
+      ],
+      "accepted_relational": [
+        0,
+        2,
+        43
+      ],
+      "raw_strict": [
+        0,
+        2,
+        43
+      ],
+      "accepted_strict": [
+        0,
+        2,
+        43
+      ]
+    },
+    "qwen": {
+      "raw_basic": [
+        16,
+        47,
+        27
+      ],
+      "accepted_basic": [
+        16,
+        35,
+        27
+      ],
+      "raw_relational": [
+        10,
+        53,
+        33
+      ],
+      "accepted_relational": [
+        10,
+        41,
+        33
+      ],
+      "raw_strict": [
+        8,
+        55,
+        35
+      ],
+      "accepted_strict": [
+        8,
+        43,
+        35
+      ]
+    },
+    "deepseek": {
+      "raw_basic": [
+        34,
+        17,
+        9
+      ],
+      "accepted_basic": [
+        34,
+        17,
+        9
+      ],
+      "raw_relational": [
+        27,
+        24,
+        16
+      ],
+      "accepted_relational": [
+        27,
+        24,
+        16
+      ],
+      "raw_strict": [
+        25,
+        26,
+        18
+      ],
+      "accepted_strict": [
+        25,
+        26,
+        18
+      ]
+    }
+  },
+  "immutable_sha256": {
+    "freeze.json": "0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2",
+    "result-manifest.json": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+    "corrections/manifest.json": "eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de",
+    "corrections-v2/manifest.json": "1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80",
+    "frozen-code/manifest.json": "26ff66ddf4ab1e73420507fc1a9e5d76f40191bddd90968d3f375878a421d815"
+  },
+  "v3_manifest_sha256": "72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841",
+  "new_complete_archive_manifest_sha256": "a0f5103e20bfc971fcb585e6fc5ceb26b4aaeab20cd1cde6a16458457cf02aaf",
+  "reviewed_sha256": {
+    "lib/material-facts.ts": "c7ca5ea8892142ceb08b4b9a74ec8fa829be3c921d5f32d5ff91e9b69df779b9",
+    "lib/material-fact-types.ts": "482bfd611104c213358b0ff194969df6926fa96847d30e531bab40a21fff476f",
+    "lib/material-facts-v2.ts": "0a7e93a3a15393bf2479e8e37fa6000f87266d8a01836c4c7487acee2c97aeec",
+    "lib/material-fact-types-v2.ts": "1e2c55415334bf0b7d84e85937eb09b45bc1ef4eb8b7bc809db8932e2923d339",
+    "lib/material-facts-v3.ts": "b1e5fbe9829cd677c98315070fd3406dfadd6305a3291dfa601a3df64874cbdd",
+    "lib/material-fact-types-v3.ts": "0a3ba7fac7223c1a7d5856f324171e29f7a54c41539392baa719307eaf02442f",
+    "lib/material-money-v4.ts": "0cb4948c106dbf4522ea7deec8e3c4f0fe141bd3260869813a3cb7c9b2a14ff8",
+    "lib/material-fact-extraction-v4.ts": "319f4f94073f6d5e18a307e5498c2704cac3639586a24f1e48b7da14301f26d2",
+    "lib/material-fact-source-review.ts": "97c3ed0e0f24fa67ff3369a9732261811caba224dddbf63a87b54b3cb8115ae0",
+    "lib/material-fact-runtime-ingest.ts": "a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f",
+    "lib/material-fact-event-review.ts": "6266aa769459619181aeba3cda262efdf8912f8a94a0edc3bccea2254fe4a181",
+    "lib/material-fact-currency-review.ts": "a34e9381fa3454f6c735f08c94864f8a3663433d71e81ecce940f7c12d5d3200",
+    "lib/material-fact-coverage-review.ts": "ab4b4ee52126b204327b6930a0675a1e5b43db3fedce06d0ec752feb833b47c4",
+    "scripts/fact-runtime-v2.py": "2fa950cdde02156aab7f676efcbf3c1abf89e3ed734286f0a9e8437b325c1cc3",
+    "scripts/fact_memory_runtime.py": "9b0fab42e910736998cf54a9cfc63315f33624dce758ce15deccca1c67c8b51b",
+    "scripts/fact_api_transport.py": "958cfade7e59c08dc0397c448775b98c30cd9c5c1b689106c0fe6a4c82be5600",
+    "experiments/material-facts-v7/run.mjs": "fb79d6d1772a1180e5a9ce563fd5ee87f2a0a96c3d322dc1db8caf3c18101f1d",
+    "experiments/material-facts-v7/assess.mjs": "d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1",
+    "experiments/material-facts-v7/freeze.mjs": "108f1434e1d62d257d95d6a500c9218f3ce8dcb22426a258afe8a22657d7b28c",
+    "experiments/material-facts-v7/verify.mjs": "eb7d7e274d9cf1c9fdbed2585e0843b4637116a4b33f4d43dca460f179645c40",
+    "experiments/material-facts-v7/summarize.mjs": "4590768f0c42a2d5ea1d4b0fb812c8d2fc9068642d82bc0661daaf44b2eaa63d",
+    "experiments/material-facts-v7/runtime-policy.json": "e17cbcfc38ca71c328b093d9493f1ba90809afa4fd8def8d23ab1cc62673b4a8",
+    "experiments/material-facts-v7/verify-frozen.mjs": "e1ba00a1fdbeac88dca0ca03b28da761d6c815ee036655d3e2df87253e5401f3",
+    "experiments/material-facts-v7/corrective-assessment.mjs": "628742ed21e55dbf225313b46b361de8f098f6d2fc8c69ef22669324d13db0b1",
+    "experiments/material-facts-v7/publish-artifacts.mjs": "fed30876cd481d0c76bf50c5fbf02a1e78a198a751b66f98c692dbccac347204",
+    "experiments/material-facts-v7/verify-correction-v1.mjs": "c064038697087ef882ac581c5cebc7389098074a685f8bbb6d5299c61a68bc09",
+    "experiments/material-facts-v7/corrective-assessment-v2.mjs": "4f5b856829ea26ba5ee68a21afa1d5a33b37801192147f7a963d04c48a2d7423",
+    "experiments/material-facts-v7/verify-correction-v2.mjs": "44f318b62e3c3e66609e1a84e32919bc77df4dab23368c01df1daa042ef21ed0",
+    "experiments/material-facts-v7/corrective-assessment-v3.mjs": "c293b0ed093fc316900375774f9372ed6118aca2c92187181555a28a67ef25f5",
+    "scripts/material-facts-v7-experiment-integrity-independent.test.mjs": "59fec9bd449d2e904cc97ed1270d56ac66b6ede8d2628256faeb97f8c395b112",
+    "scripts/material-facts-v7-freeze-independent.test.mjs": "30c360492a519dbd621e5d221069b16853608778457028cb2a22c0cba2c07c15",
+    "scripts/material-facts-v7-run-readiness.test.mjs": "34baf2b7d1f04cc5c945e6ed096919c17adb4b166baae2e6433d0da1b5dfd44a",
+    "scripts/material-facts-v7-full-archive.test.mjs": "6cbb1468dfacbdd143db880f05c9928cb73357c26df419922445cb70f4be07ac",
+    "experiments/material-facts-v7/frozen-code-v2/manifest.json": "a0f5103e20bfc971fcb585e6fc5ceb26b4aaeab20cd1cde6a16458457cf02aaf"
+  },
+  "evidence_sha256": {
+    "experiments/material-facts-v7/postfreeze-evidence/round4/integrity-before-red.txt": "e59c5b11f5ef5751308557eb14778b0e72368a0fdefa51b910e123ed31aad4a0",
+    "experiments/material-facts-v7/postfreeze-evidence/round4/integrity-main-delivery-green.txt": "cb958b74f06bdf72c8d3418dc13d3778ff2639654e31b86d25b0c32b74cbcc05",
+    "experiments/material-facts-v7/postfreeze-evidence/round4/v3-independent-dry-comparison.json": "45b1069ed9fd7274c410010ca2df2d1495ad172a1c052573ee75a72cafdc1605",
+    "experiments/material-facts-v7/postfreeze-evidence/round4/v3-published-independent-check.json": "edbafffefa7721915444a33a2f6de9019626c639fd2489cc594137888b2f1135"
+  },
+  "limits": [
+    "No additional Qwen or DeepSeek request, fresh model load, remote availability check, HTTP acceptance, heavy build, CI run, merge or deployment was performed by this reviewer. Parent-reported full npm check is separate evidence.",
+    "Backend preflight proves basic argument/path/JSON/interpreter readiness only. Worker model/package/memory/transport checks still determine actual execution and must preserve later failure attempts.",
+    "Atomic publication was tested for process-level exceptions, concurrent complete publishers and SIGKILL. It is not a power-loss durability or storage-device fsync certification. Killed stages deliberately remain evidence.",
+    "Completion checks do not score answer quality. A valid empty candidate answer is distinct from an absent terminal stream.",
+    "Accepted candidates, derived amounts and calculation authorization remain separate. Earlier source-guard false positives and provisional non-expert label limits remain as documented; no real-case/legal accuracy or training readiness is inferred."
+  ]
+}

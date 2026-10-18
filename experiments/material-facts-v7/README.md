@@ -6,9 +6,11 @@ Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的工程�
 
 三路均完成12/12份留出材料，固定43条参考事实、含2份自然空材料。DeepSeek 在本批样本的事件与属性匹配高于 Qwen 和窄规则，但仍有工程款误当完整已付工资、受益主体混淆和范围外日期；Qwen 还有同额资产处置/法院缴款误当工资实收，以及两处数量级错误。不能据本轮评分启动训练或自动使用模型金额。
 
-首跑采用冻结提交 `24c8015d97391ca55e9e0b1d2ba23bf204ead74d`。模型运行期间，第二轮代码审查发现了区间端点裁剪、任意长 value 借事件锚点得分和相对月份被误判费率三个问题。原始运行仍完成并封存，之后修复代码，对**相同原始输出**另做修正复算。原分数没有被覆盖；修正结果不是第二轮独立模型实验，不能称预登记的修正版首跑或改善效果。
+首跑应用代码对应 `24c8015d97391ca55e9e0b1d2ba23bf204ead74d`；完整实验环境由原freeze的124项文件哈希绑定，其中部分实验脚本当时未提交，后续归档按哈希核验并注明真实来源。模型运行期间，第二轮代码审查发现了区间端点裁剪、任意长 value 借事件锚点得分和相对月份被误判费率三个问题。原始运行仍完成并封存，之后修复代码，对**相同原始输出**另做修正复算。原分数没有被覆盖；修正结果不是第二轮独立模型实验，不能称预登记的修正版首跑或改善效果。
 
 第三轮审查又发现歧义位置被合并、任意叙述挤掉最小金额、部分相对月份无金额描述漏拒三个P2，已在 `5f254ec` 修复。第一次修正的24份代码另行封存；同一批原始输出再次独立复算到 `corrections-v2/`，逐案匹配、接受数量和分数与v1均相同。新增合成反例红→绿不等于自然留出材料覆盖了这些边界。
+
+实验工具审查另发现后端参数预检、开发完成态门禁、历史可执行文件封存和修正目录中断发布四项问题。旧首跑/v1/v2均保留，v2代码另封存26份，当前完整历史归档为36份（原32份归档仍保存）；第三版只重新绑定修复后的实验工具，不新增推理或标签。
 
 ## 最新修正后描述性指标
 
@@ -20,13 +22,13 @@ Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的工程�
 | Qwen3-32B-4bit | 30.19 | 34.04 | 18.87 | 21.28 | 15.09 | 17.02 |
 | DeepSeek-v4-pro | 72.34 | 72.34 | 57.45 | 57.45 | 53.19 | 53.19 |
 
-Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；第一次修正与第二次修正的全量计数、逐案变化和代码绑定分别见 `corrections/` 与 `corrections-v2/`。下表采用最新v2。
+Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；三版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/` 与 `corrections-v3/`。v1、v2和最新v3的三路报告逐字相同；上表采用最新v3。
 
 收紧 value 边界使 Qwen 3个基本、3个关联、2个严格 TP 失效，DeepSeek 1个基本 TP 失效。有些损失来自“月工资16000元”“150万元执行款”超出有限金额包装，而实际金额、角色本来正确，应解释为严格值边界损失，不能全部称金额理解错误。修正允许完整币种前缀、有限工资对象后缀及“整/正”货币终止词；后者是在首跑后的审查中确定，不能倒称事前登记。没有新增 gold 别名。
 
 ## 数据、运行和失败边界
 
-- 新集共15个案件族：3份开发材料/13项参考事实、12份留出材料/43项；来自7份官方网页。独立来源与案件隔离核对见 `SOURCE_REVIEW.md`、`annotation-review.independent.json`、`data/independence.authoring.json`。主实现者冻结前没有查看留出内容；数据作者和技术审查者看过以完成标注及复核。不同案件不等于独立来源网页：其中2份出版页同时含开发案与留出案，划分按案件/项目而非来源网页；匿名同案关联也无法穷尽。
+- 新集共15个案件族：3份开发材料/13项参考事实、12份留出材料/43项；来自7份官方网页。独立来源与案件隔离核对见 `SOURCE_REVIEW.md`、`annotation-review.independent.json`、`data/independence.authoring.json`。主实现者冻结前没有查看留出内容；数据作者和技术审查者看过以完成标注及复核。不同案件不等于独立来源网页：其中2份出版页同时含开发案与留出案，划分按案件/项目而非来源网页；匿名同案关联也无法穷尽，公开来源也不能排除模型预训练见过材料。
 - 两轮开发就绪检查的提示、数据和标签均相同；第二轮因代码审查修复后重新满足运行哈希门禁而执行，没有挑选最好输出。两轮及初始化失败都保存，见 `DEVELOPMENT.md`。
 - 正式留出每系统只执行一次，无因空输出、低分、非法格式或协议拒收重投。三路全为12/12 stop。DeepSeek 最后一案有一次发送前连接超时，第二次连接成功后仅一次 POST；传输失败没有抹去。Qwen 每案独立本机进程，全部 memory/events/token IDs 留存。
 - Qwen 的12份都是 JSON fence，经解析后接受；DeepSeek 11份原生 JSON、1份 fence。原生 JSON 格式率、协议接受率和事实正确率是不同指标。本轮未用 JSON mode、约束解码或事后补字段。
@@ -38,15 +40,17 @@ Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项�
 原 freeze 时间 `2026-10-18T04:09:33.275Z`，124项文件；原结果 manifest 覆盖60个文件。当前源码已经修复，不应改写旧 freeze 以让其匹配。
 
 ```sh
-# 用32份原代码快照和未变的输入/标签/结果，还原并验证原首跑。
+# 用36份完整代码快照和未变的输入/标签/结果，还原并验证原首跑。
 node experiments/material-facts-v7/verify-frozen.mjs
 # 用24份第一次修正代码快照验证v1，明确不声称它是当前源码。
 node experiments/material-facts-v7/verify-correction-v1.mjs
-# 依据当前代码核对另存的v2；同一原始输出，不调用模型。
-node experiments/material-facts-v7/corrective-assessment-v2.mjs --check
+# 用26份第二次修正代码快照验证v2。
+node experiments/material-facts-v7/verify-correction-v2.mjs
+# 依据当前代码核对另存的v3；同一原始输出，不调用模型。
+node experiments/material-facts-v7/corrective-assessment-v3.mjs --check
 ```
 
-以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。修正脚本 `--write` 只允许首次创建，不覆盖已有结果；日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1 `corrective-assessment.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行均被拒绝，callback 抛错后临时目录确已删除。
+以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1/v2 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行均被拒绝，callback 抛错后临时目录确已删除。
 
 主要不可变标识：
 
@@ -55,14 +59,15 @@ node experiments/material-facts-v7/corrective-assessment-v2.mjs --check
 | 原 freeze | `0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2` |
 | 修正v1 manifest | `eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de` |
 | 修正v2 manifest | `1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80` |
+| 修正v3 manifest | `72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841` |
 | 原结果 manifest | `3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee` |
 | 留出材料 | `9ec54411e9008434457ae59f68585f8fb7a6bc6d089cee4e87709bfddd6a2181` |
 | 留出标签 | `abac05fa2c3de7d8e83e866345bf5edaec61c65f8f706bb7d5f0c0d98fa27b64` |
 
 ## 验收限度
 
-工程验证、真实模型首跑、实现者自检、非实现者独立复算分别有记录，人工业务验收尚未进行。本机隔离 HTTP 已执行取消/重启14项；最新代码构建的材料事实回归扩展为17项（旧13项回执仍保留），使用合成模型回答，验证 raw 保留、拒收、两次同额事件保留、历史确认和重启复读；它没有使用真实案件或本批全部模型回答走完整用户确认流程。
+工程验证、真实模型首跑、实现者自检、非实现者独立复算分别有记录，人工业务验收尚未进行。最终本机 `npm run check` 通过1660项Vitest、288项运行时/证据测试、材料67通过加1项Linux OCR本机跳过、Python 9+11+16；精确提交的远端CI另行核对，不由本机绿测代替。本机隔离 HTTP 已执行取消/重启14项；最新代码构建的材料事实回归扩展为17项（旧13项回执仍保留），使用合成模型回答，验证 raw 保留、拒收、两次同额事件保留、历史确认和重启复读；它没有使用真实案件或本批全部模型回答走完整用户确认流程。
 
 本批共46条协议接受金额，20条派生出精确金额、23条概数无精确金额、3条不支持；全部仍带 `source_relation_unresolved`，没有“无核对问题的精确金额”。这说明当前防御保守，不说明46条都语义错误。报告的 `calculation_authorized:false` 是比较工具固定政策字段，不是每条模型候选经过真实 UI 授权流程的证明。
 
-待办与明确语义错误、程序保守拒绝、标签争议分别见 `ERROR_REVIEW.md`、`POSTRUN_LABEL_AUDIT.md`、`POSTRUN_MONEY_AUDIT.md`、`POSTRUN_INDEPENDENT.md`、`POSTRUN_ROUND3_INDEPENDENT.md`。没有法律专家/用户业务验收；没有自然零金额、承认的年假部分应付、真实 OCR 图片及两笔同额同属性独立实际工资付款的完整自然覆盖。样本少且来源集中，不形成模型总体能力、真实案件可靠性、训练就绪或生产发布结论。
+待办与明确语义错误、程序保守拒绝、标签争议分别见 `ERROR_REVIEW.md`、`POSTRUN_LABEL_AUDIT.md`、`POSTRUN_MONEY_AUDIT.md`、`POSTRUN_INDEPENDENT.md`、`POSTRUN_ROUND3_INDEPENDENT.md`、`POSTRUN_ROUND4_INDEPENDENT.md`。没有法律专家/用户业务验收；没有自然零金额、承认的年假部分应付、真实 OCR 图片及两笔同额同属性独立实际工资付款的完整自然覆盖。样本少且来源集中，不形成模型总体能力、真实案件可靠性、训练就绪或生产发布结论。

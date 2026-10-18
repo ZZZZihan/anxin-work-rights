@@ -1,0 +1,19 @@
+{
+  "expected": "retry after failure should publish a complete set without overwriting prior final evidence",
+  "first": {
+    "exit": 1,
+    "stderr": "file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-red-6w3VyS/fail-write.mjs:1\nimport fs from 'node:fs';import {syncBuiltinESMExports} from 'node:module';const original=fs.promises.writeFile;fs.promises.writeFile=async function(path,...args){if(String(path).endsWith('/report-qwen.json')){const e=new Error('synthetic atomic write interruption');e.code='EIO';throw e;}return original.call(this,path,...args)};syncBuiltinESMExports();\n                                                                                                                                                                                                                          ^\n\nError: synthetic atomic write interruption\n    at fs.promises.writeFile (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-red-6w3VyS/fail-write.mjs:1:219)\n    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-red-6w3VyS/experiments/material-facts-v7/corrective-assessment.mjs:56:13 {\n  code: 'EIO'\n}\n\nNode.js v26.11.0\n"
+  },
+  "partial_final_files": [
+    "report-rules.json"
+  ],
+  "second": {
+    "exit": 1,
+    "stderr": "node:internal/fs/promises:1677\n  return await PromisePrototypeThen(\n         ^\n\nError: EEXIST: file already exists, mkdir '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/atomic-red-6w3VyS/experiments/material-facts-v7/corrections'\n    at async mkdir (node:internal/fs/promises:1677:10)\n    at async file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-red-6w3VyS/experiments/material-facts-v7/corrective-assessment.mjs:54:5 {\n  errno: -17,\n  code: 'EEXIST',\n  syscall: 'mkdir',\n  path: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/atomic-red-6w3VyS/experiments/material-facts-v7/corrections'\n}\n\nNode.js v26.11.0\n"
+  },
+  "failed_worktree_preserved": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/atomic-red-6w3VyS",
+  "actual": "FAIL: first write leaves final directory partial; retry EEXIST",
+  "file_sha256": {
+    "report-rules.json": "0553db2f6eb0801c6311021f16ce67268a165cd8198afe66fa4821ee737dbaf7"
+  }
+}

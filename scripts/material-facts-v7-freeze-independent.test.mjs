@@ -3,13 +3,14 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtemp, mkdir, readFile, writeFile, copyFile, readdir, rm, lstat } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile, copyFile, readdir, rm, lstat, chmod } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // No model/Worker is started. Native runner children either execute rules or must
-// reject before attempting inference; a nonexistent executable is a final guard.
+// reject before attempting inference. A local sentinel executable cannot load a
+// model or send a request, and its execution would fail the test.
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const ENGINE = resolve(process.env.MATERIAL_FACTS_V7_ENGINEERING_ROOT || ROOT);
 const E = 'experiments/material-facts-v7';
@@ -19,7 +20,6 @@ const execute = promisify(execFile);
 const sha = value => createHash('sha256').update(value).digest('hex');
 const json = value => JSON.stringify(value, null, 2) + '\n';
 const lines = value => value.map(row => JSON.stringify(row)).join('\n') + '\n';
-const engineeringFiles = new Set(['run.mjs', 'freeze.mjs', 'verify.mjs', 'summarize.mjs'].map(file => `${E}/${file}`));
 const exists = async path => { try { await lstat(path); return true; } catch (error) { if (error.code === 'ENOENT') return false; throw error; } };
 const write = async (root, path, value) => { await mkdir(dirname(resolve(root, path)), { recursive: true }); await writeFile(resolve(root, path), value); };
 
@@ -29,12 +29,16 @@ async function fixture(t) {
   await write(root, 'package.json', '{"type":"module"}\n');
   const files = new Set([...RUN_HASH_FILES, `${E}/data/dev.inputs.jsonl`, `${E}/data/holdout.inputs.jsonl`,
     `${E}/api-models-preflight.json`, 'experiments/material-facts-v6/freeze.mjs']);
-  for (const entry of await readdir(resolve(ROOT, 'lib'))) if (entry.endsWith('.ts') && !entry.endsWith('.test.ts')) files.add(`lib/${entry}`);
+  for (const entry of await readdir(resolve(ENGINE, 'lib'))) if (entry.endsWith('.ts') && !entry.endsWith('.test.ts')) files.add(`lib/${entry}`);
   for (const path of files) {
     await mkdir(dirname(resolve(root, path)), { recursive: true });
-    await copyFile(resolve(engineeringFiles.has(path) ? ENGINE : ROOT, path), resolve(root, path));
+    await copyFile(resolve(ENGINE, path), resolve(root, path));
   }
   await mkdir(resolve(root, E, 'results'), { recursive: true });
+  await write(root, 'fixture-python', '#!/bin/sh\nif [ "$1" = "-c" ]; then printf "anxin-v7-python-ready\\n"; exit 0; fi\nprintf unexpected > "' + resolve(root, 'unexpected-worker-started') + '"\nexit 79\n');
+  await chmod(resolve(root, 'fixture-python'), 0o700);
+  await write(root, 'fixture-key', 'independent-test-not-a-real-credential\n');
+  await chmod(resolve(root, 'fixture-key'), 0o600);
   const devBytes = await readFile(resolve(root, E, 'data/dev.inputs.jsonl'));
   const inputs = devBytes.toString().trim().split('\n').map(JSON.parse);
   return { root, inputs, devBytes, policy: await loadPolicy(root) };
@@ -44,10 +48,12 @@ async function run({ root }, backend, inputs, name, extra = []) {
   const out = resolve(root, E, 'results', name);
   try {
     const result = await execute(process.execPath, [resolve(root, E, 'run.mjs'), '--mode', 'diagnostic', '--backend', backend,
-      '--inputs', resolve(root, inputs), '--out', out, '--python', resolve(root, 'never-exists-model-executable'),
-      '--key-file', resolve(root, 'no-credential-file'), ...extra], { cwd: root, timeout: 10_000, maxBuffer: 256 * 1024 });
+      '--inputs', resolve(root, inputs), '--out', out, '--python', resolve(root, 'fixture-python'),
+      '--key-file', resolve(root, 'fixture-key'), ...extra], { cwd: root, timeout: 10_000, maxBuffer: 256 * 1024 });
+    assert.equal(await exists(resolve(root, 'unexpected-worker-started')), false, 'No fixture may start an inference worker.');
     return { code: 0, out, ...result };
   } catch (error) {
+    assert.equal(await exists(resolve(root, 'unexpected-worker-started')), false, 'No fixture may start an inference worker.');
     assert.equal(typeof error.code, 'number', 'Gate check must terminate normally instead of hanging or spawning a missing executable.');
     return { code: error.code, out, stdout: error.stdout, stderr: error.stderr };
   }
@@ -62,6 +68,12 @@ async function developmentAttempts(f) {
     await write(f.root, `${directory}/protocol.json`, json({ backend, mode: 'diagnostic', input_sha256: sha(f.devBytes),
       case_ids: f.inputs.map(row => row.id), hashes, synthetic_test_receipt: true }));
     await write(f.root, `${directory}/messages.jsonl`, messages);
+    const ids = f.inputs.map(row => row.id);
+    await write(f.root, `${directory}/results.jsonl`, lines(ids.map(id => ({ id, backend, raw_output: '[]', finish_reason: 'stop' }))));
+    const attempt = ids => ({ ids, completed: true, code: 0, signal: null, stop_reason: null, incomplete_stdout: false });
+    await write(f.root, `${directory}/outcome.json`, json(backend === 'rules' ? { completed: true } : { completed: true,
+      isolation: backend === 'qwen' ? 'fresh_process_per_document' : 'sequential_requests',
+      attempts: backend === 'qwen' ? ids.map(id => attempt([id])) : [attempt(ids)] }));
   }
   return { hashes, messages };
 }

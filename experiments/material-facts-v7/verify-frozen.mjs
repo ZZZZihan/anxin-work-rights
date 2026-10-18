@@ -10,16 +10,20 @@ import { createHash } from 'node:crypto';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const EXPERIMENT = 'experiments/material-facts-v7';
+const FIRST_RUN_FREEZE_SHA256 = '0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const readJson = async path => JSON.parse(await readFile(path, 'utf8'));
 export async function withFrozenCode(action, root = ROOT) {
-  const base = resolve(root, EXPERIMENT), snapshot = resolve(base, 'frozen-code');
+  const base = resolve(root, EXPERIMENT), snapshot = resolve(base, 'frozen-code-v2');
   const freezeBytes = await readFile(resolve(base, 'freeze.json')), freeze = JSON.parse(freezeBytes);
+  assert.equal(hash(freezeBytes), FIRST_RUN_FREEZE_SHA256, 'Original first-run freeze changed');
   const manifest = await readJson(resolve(snapshot, 'manifest.json'));
-  assert.equal(manifest.schema, 'material-facts-v7-frozen-code/1');
+  assert.equal(manifest.schema, 'material-facts-v7-frozen-code/2');
   assert.equal(manifest.storage_suffix, '.snapshot');
   assert.equal(manifest.freeze_sha256, hash(freezeBytes));
-  const expected = Object.keys(freeze.files).filter(path => !path.startsWith(`${EXPERIMENT}/`) || path === `${EXPERIMENT}/assess.mjs`).sort();
+  // Select from the original immutable freeze, without importing current
+  // run/freeze/verify/summarize code. All five bound v7 executables are restored.
+  const expected = Object.keys(freeze.files).filter(path => !path.startsWith(`${EXPERIMENT}/`) || path.endsWith('.mjs')).sort();
   assert.deepEqual(Object.keys(manifest.files).sort(), expected, 'Historical code snapshot omits or adds frozen paths');
   const archived = [];
   for (const path of expected) {

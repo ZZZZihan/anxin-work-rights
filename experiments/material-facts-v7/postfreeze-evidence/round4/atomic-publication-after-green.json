@@ -1,0 +1,27 @@
+{
+  "expected": "retry after failure should publish a complete set without overwriting prior final evidence",
+  "first": {
+    "exit": 1,
+    "stderr": "file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-green-Rt2NkW/fail-write.mjs:1\nimport fs from 'node:fs';import {syncBuiltinESMExports} from 'node:module';const original=fs.promises.writeFile;fs.promises.writeFile=async function(path,...args){if(String(path).endsWith('/report-qwen.json')){const e=new Error('synthetic atomic write interruption');e.code='EIO';throw e;}return original.call(this,path,...args)};syncBuiltinESMExports();\n                                                                                                                                                                                                                          ^\n\nError: synthetic atomic write interruption\n    at fs.promises.writeFile (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-green-Rt2NkW/fail-write.mjs:1:219)\n    at publishArtifacts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-green-Rt2NkW/experiments/material-facts-v7/publish-artifacts.mjs:30:13)\n    at async file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-green-Rt2NkW/experiments/material-facts-v7/corrective-assessment.mjs:55:5 {\n  code: 'EIO',\n  stagingDirectory: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/atomic-green-Rt2NkW/experiments/material-facts-v7/.corrections.staging-mAlxZy'\n}\n\nNode.js v26.11.0\n"
+  },
+  "final_after_failure": null,
+  "retained_stages": [
+    ".corrections.staging-mAlxZy"
+  ],
+  "second": {
+    "exit": 0
+  },
+  "third": {
+    "exit": 1,
+    "stderr": "file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-green-Rt2NkW/experiments/material-facts-v7/publish-artifacts.mjs:10\n  const error = new Error('Artifact destination already exists');\n                ^\n\nError: Artifact destination already exists\n    at requireAbsent (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-green-Rt2NkW/experiments/material-facts-v7/publish-artifacts.mjs:10:17)\n    at async publishArtifacts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-green-Rt2NkW/experiments/material-facts-v7/publish-artifacts.mjs:25:3)\n    at async file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/.scratch/issue42/atomic-green-Rt2NkW/experiments/material-facts-v7/corrective-assessment.mjs:55:5 {\n  code: 'EEXIST'\n}\n\nNode.js v26.11.0\n"
+  },
+  "failed_worktree_preserved": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/atomic-green-Rt2NkW",
+  "actual": "PASS: failed stage retained; final absent after failure; retry succeeds; third write refuses overwrite",
+  "file_sha256": {
+    "comparison.json": "8e55de7bbb0058c3ae2e9730454e6cff0ef81f1ceb06f04ae7884ae239184186",
+    "manifest.json": "c8ea711203a54c73c5b3843193ce22fe63a142ab26f2d57127a12b95eb0f8ecb",
+    "report-deepseek.json": "32937a32ce0f8af3ce61845cf05f8edc3d07f0e0200c623581014b5f3c117f7d",
+    "report-qwen.json": "38eefe88b7cbdd047e20f6cc160cbd4290dfcb16ef599522881a597d06613c41",
+    "report-rules.json": "0553db2f6eb0801c6311021f16ce67268a165cd8198afe66fa4821ee737dbaf7"
+  }
+}

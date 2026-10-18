@@ -1,0 +1,789 @@
+
+> anxin-work-rights@1.0.0 check
+> npm run typecheck && npm run lint && npm test && npm run build && npm run data:check && npm run data:runtime:check && npm run test:materials && npm run test:fact-runtime
+
+
+> anxin-work-rights@1.0.0 typecheck
+> tsc --noEmit --pretty false
+
+
+> anxin-work-rights@1.0.0 lint
+> eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern js --ignore-pattern screenshot.py
+
+
+/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/atomic-green-repro.mjs
+  1:14  warning  'mkdir' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/atomic-red-repro.mjs
+  1:14  warning  'mkdir' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 2 problems (0 errors, 2 warnings)
+
+
+> anxin-work-rights@1.0.0 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards
+
+ ✓ lib/material-fact-rmb-unit.test.ts (49 tests) 65ms
+ ✓ lib/material-fact-pr40-currency-date-independent.test.ts (67 tests) 83ms
+ ✓ lib/material-fact-source-review.test.ts (72 tests) 77ms
+ ✓ lib/material-fact-pr40-independent.test.ts (63 tests) 88ms
+ ✓ lib/material-fact-pr40-final-review.test.ts (50 tests) 111ms
+ ✓ lib/material-fact-pr40-followup.test.ts (156 tests) 116ms
+ ✓ deploy/synthetic-http/material-config.test.mjs (9 tests) 493ms
+   ✓ Wrangler credentials remain private on both success and failure > suppresses both real child streams, disables disk logging and strips migration error payloads  467ms
+ ✓ deploy/local-cloud/readiness.test.mjs (9 tests) 573ms
+   ✓ actual isolated HTTPS certificate checks > enforces the wall-clock deadline even while HTTPS keeps sending bytes  406ms
+ ✓ lib/material-money-v4.test.ts (356 tests) 57ms
+ ✓ lib/material-facts-v7-runtime-independent.test.ts (47 tests) 56ms
+ ✓ lib/material-fact-currency-review.test.ts (114 tests) 52ms
+ ✓ lib/material-money-v4.review-regression.test.ts (55 tests) 59ms
+ ✓ lib/material-fact-pr40-regression.test.ts (28 tests) 38ms
+ ✓ lib/material-fact-date-event-review.test.ts (96 tests) 56ms
+ ✓ lib/material-fact-pr40-currency-boundary-independent.test.ts (10 tests) 24ms
+ ✓ lib/material-service-client.test.ts (45 tests) 9ms
+ ✓ lib/material-facts-v2.test.ts (27 tests) 20ms
+ ✓ lib/client.test.ts (7 tests) 19ms
+ ✓ lib/material-fact-calendar-money.test.ts (4 tests) 21ms
+ ✓ lib/material-fact-coverage-review.test.ts (30 tests) 16ms
+ ✓ lib/material-facts-v3.test.ts (95 tests) 21ms
+ ✓ lib/cases-step-feedback.test.ts (5 tests) 24ms
+ ✓ lib/material-money-v4.independent.test.ts (10 tests) 12ms
+ ✓ lib/public-retrieval.test.ts (15 tests) 1193ms
+   ✓ public labor knowledge retrieval on frozen official records > rebuild verification matches the committed index without writing  624ms
+   ✓ public labor knowledge retrieval on frozen official records > rejects altered paragraph references and invented provision text before index output  540ms
+ ✓ deploy/synthetic-http/stop-control.test.mjs (3 tests) 4ms
+ ✓ lib/validation.test.ts (4 tests) 5ms
+ ✓ lib/material-facts-v6-eval.test.ts (12 tests) 14ms
+ ✓ lib/client-uuid.test.ts (2 tests) 4ms
+ ✓ lib/material-facts-review.test.ts (31 tests) 13ms
+ ✓ lib/material-facts-v5-eval.test.ts (7 tests) 8ms
+ ✓ lib/draft-copies.test.ts (7 tests) 2ms
+ ✓ lib/legal.test.ts (3 tests) 3ms
+ ✓ deploy/synthetic-http/environment.test.mjs (12 tests) 1376ms
+   ✓ session boundaries and worker identity > refuses occupied Worker ports and unrelated 401/other-instance readiness  307ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > retains the key for a DELETE retry when late-put cleanup fails
+evidence upload incomplete Error: synthetic late cleanup failure
+    at Object.delete (/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/lib/evidence-concurrency.test.ts:141:36)
+    at Module.POST (/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/app/api/evidence/route.ts:100:70)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/lib/evidence-concurrency.test.ts:149:13
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20
+
+ ✓ deploy/synthetic-http/regional-demo.test.mjs (14 tests) 1645ms
+stderr | lib/evidence-concurrency.test.ts > evidence upload and cancellation interleavings > rolls back cancellation if marking deletion fails and preserves the uploaded bytes
+evidence deletion incomplete Error: D1_ERROR: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at Module.DELETE (/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/app/api/evidence/route.ts:128:22)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/lib/evidence-concurrency.test.ts:170:15
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20 {
+  [cause]: Error: synthetic cancellation failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+      at D1DatabaseSessionAlwaysPrimary._sendOrThrow (cloudflare-internal:d1-api:189:24)
+      at async cloudflare-internal:d1-api:137:19
+      at async #fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4923:18)
+      at async ProxyServer.fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4823:14) {
+    [cause]: undefined
+  }
+}
+
+ ✓ lib/evidence-concurrency.test.ts (4 tests) 1690ms
+   ✓ evidence upload and cancellation interleavings > keeps original bytes when identical concurrent requests finalize the same upload  313ms
+   ✓ evidence upload and cancellation interleavings > cleans a put that completes after DELETE without recreating the cancelled UUID  427ms
+   ✓ evidence upload and cancellation interleavings > retains the key for a DELETE retry when late-put cleanup fails  317ms
+ ✓ lib/material-fact-pr40-currency-date-api-independent.test.ts (2 tests) 2193ms
+   ✓ PR40 independent D1 API: runtime currency/date source review survives reload and scope > never promotes unmarked money through ingest, reload or confirmed scope; independent manual amounts remain usable  1473ms
+   ✓ PR40 independent D1 API: runtime currency/date source review survives reload and scope > returns a persisted receipt date with a mislabel warning without rewriting the model role  719ms
+ ✓ lib/server-schema.test.ts (4 tests) 2593ms
+   ✓ persisted local schema upgrades > upgrades a journal-free old database without losing drafts, records or file bytes  1305ms
+   ✓ persisted local schema upgrades > adopts a fresh runtime-created database so later explicit migrations are harmless  459ms
+   ✓ persisted local schema upgrades > finishes a partial upgrade and preserves existing revisions and journal entries  429ms
+   ✓ persisted local schema upgrades > leaves production schemas to explicit migrations and can reopen a migrated database locally  400ms
+ ✓ lib/material-lifecycle-review.test.ts (5 tests) 2996ms
+   ✓ independent material lifecycle review regressions > independent: cancellation captures a job attached before deletion transaction starts  877ms
+   ✓ independent material lifecycle review regressions > independent: archival during submission cancels the late job and keeps analysis inaccessible  572ms
+   ✓ independent material lifecycle review regressions > independent: foreign deletion leaves owner records and original bytes intact  641ms
+   ✓ independent material lifecycle review regressions > independent: offline cache cleanup is reported while original and analysis deletion finish  642ms
+stderr | lib/evidence-fact-cleanup.test.ts > evidence deletion acknowledges its durable fact cancellation > makes no external cancellation when the deleting transaction rolls back
+evidence deletion incomplete Error: D1_ERROR: synthetic evidence transaction failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at Module.DELETE (/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/app/api/evidence/route.ts:128:22)
+    at /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/lib/evidence-fact-cleanup.test.ts:126:13
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20 {
+  [cause]: Error: synthetic evidence transaction failure: SQLITE_CONSTRAINT (extended: SQLITE_CONSTRAINT_TRIGGER)
+      at D1DatabaseSessionAlwaysPrimary._sendOrThrow (cloudflare-internal:d1-api:189:24)
+      at async cloudflare-internal:d1-api:137:19
+      at async #fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4923:18)
+      at async ProxyServer.fetch (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-app/node_modules/miniflare/dist/src/workers/core/entry.worker.js:4823:14) {
+    [cause]: undefined
+  }
+}
+
+ ✓ lib/evidence-fact-cleanup.test.ts (7 tests) 3586ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > removes the successful cancellation journal so a later offline case request has no false pending cleanup  790ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > keeps a failed cancellation durable after the evidence is gone and retries it on an owned request  593ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > acknowledges only the captured owner, case and job while preserving other queued tasks  425ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > preserves a newer active job when the already deleted evidence is retried  477ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > does not cancel or change facts for a missing or foreign evidence ID  428ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > makes no external cancellation when the deleting transaction rolls back  394ms
+   ✓ evidence deletion acknowledges its durable fact cancellation > reports pending and retains the journal when the remote deletion succeeds but its acknowledgement fails  478ms
+ ✓ lib/material-fact-cleanup.test.ts (9 tests) 4132ms
+   ✓ durable cancellation after case fact invalidation > retries a timed-out cancellation on the next owned case request after the fact row is gone  883ms
+   ✓ durable cancellation after case fact invalidation > preserves active work for a company/status no-op and an ordinary case step change  491ms
+   ✓ durable cancellation after case fact invalidation > does not drain another owner or another case even when this request has a pending job  447ms
+   ✓ durable cancellation after case fact invalidation > journals replacements but a pending old job cannot cancel the newer active job  319ms
+   ✓ durable cancellation after case fact invalidation > bounds retries and stops at the first unavailable service without dropping any queued IDs  497ms
+   ✓ durable cancellation after case fact invalidation > ignores local starting claims and invalid IDs while deletion still clears malformed old state  417ms
+   ✓ durable cancellation after case fact invalidation > uses identical local and explicit migration statements and upgrades the old 0004 schema safely  499ms
+ ✓ lib/material-fact-poll-concurrency.test.ts (6 tests) 4576ms
+   ✓ material fact read-side job consumption concurrency > converges two same-job ready reads without duplicating state, audit or cancellation  1045ms
+   ✓ material fact read-side job consumption concurrency > converges two failed-job reads and preserves the failure for an explicit retry  761ms
+   ✓ material fact read-side job consumption concurrency > returns the stored result if the winning reader already removed the remote job  661ms
+   ✓ material fact read-side job consumption concurrency > does not turn a late old poll into a successful write over a replacement job  622ms
+   ✓ material fact read-side job consumption concurrency > keeps generation changes and user exclusions as genuine conflicts  975ms
+   ✓ material fact read-side job consumption concurrency > rechecks ownership and archive status before returning a converged snapshot  510ms
+ ✓ lib/material-fact-retention.test.ts (7 tests) 4614ms
+   ✓ completed fact result retention across an inactive page > recovers the original ready result after six minutes and commits it only once  1086ms
+   ✓ completed fact result retention across an inactive page > recovers the original ready result after 30 minutes 59.999 seconds and commits it only once  675ms
+   ✓ completed fact result retention across an inactive page > converges two returning readers near the deadline to one raw import and one D1 write  613ms
+   ✓ completed fact result retention across an inactive page > fails closed exactly 31 minutes before polling and cancels the owned task  570ms
+   ✓ completed fact result retention across an inactive page > fails closed past 31 minutes before polling and cancels the owned task  573ms
+   ✓ completed fact result retention across an inactive page > allows an explicit exclusion after six minutes to cancel retained output without importing it  548ms
+   ✓ completed fact result retention across an inactive page > keeps an earlier cancellation effective when the inactive page returns at six minutes  548ms
+ ✓ lib/material-analysis.test.ts (9 tests) 5214ms
+   ✓ material extraction boundaries and persisted ownership > uploads exact bytes, deduplicates starts, persists grounded fields and real public citations, and protects review revisions  1158ms
+   ✓ material extraction boundaries and persisted ownership > rejects cross-user reads, starts and edits without service calls or state changes  642ms
+   ✓ material extraction boundaries and persisted ownership > preserves the original through service failure and recovers only through explicit retry  670ms
+   ✓ material extraction boundaries and persisted ownership > rejects changed original bytes before sending a job  403ms
+   ✓ material extraction boundaries and persisted ownership > does not revive results when a file is deleted while the provider returns  581ms
+   ✓ material extraction boundaries and persisted ownership > blocks archived case access and unsupported formats  397ms
+   ✓ material extraction boundaries and persisted ownership > cancels a job whose ID arrives only after the original was deleted  492ms
+   ✓ material extraction boundaries and persisted ownership > turns expired/unknown provider jobs into visible retryable failures  627ms
+ ✓ lib/material-fact-recovery.test.ts (26 tests) 14219ms
+   ✓ material fact transient transport recovery and bounded ownership > retains a running job after transient timeout and consumes its later success  966ms
+   ✓ material fact transient transport recovery and bounded ownership > retains a running job after transient 503 and consumes its later success  650ms
+   ✓ material fact transient transport recovery and bounded ownership > retains a running job after transient invalid JSON and consumes its later success  611ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps missing body recoverable without cancelling a possibly healthy task  589ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps null body recoverable without cancelling a possibly healthy task  585ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps unknown state recoverable without cancelling a possibly healthy task  573ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps array running state recoverable without cancelling a possibly healthy task  557ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps array ready state recoverable without cancelling a possibly healthy task  536ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps incomplete ready envelope recoverable without cancelling a possibly healthy task  531ms
+   ✓ material fact transient transport recovery and bounded ownership > preserves readable raw output from an incomplete envelope without making it a material or total  512ms
+   ✓ material fact transient transport recovery and bounded ownership > preserves an explicit terminal service failure and cleans up immediately  458ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps invalid candidate protocol terminal and preserves raw output rather than authorizing it  456ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps truncated model output terminal and preserves raw output rather than authorizing it  456ms
+   ✓ material fact transient transport recovery and bounded ownership > uses elapsed time rather than a small retry count for repeated transport errors  795ms
+   ✓ material fact transient transport recovery and bounded ownership > a normal running reply clears the consecutive-error window before a later interruption  495ms
+   ✓ material fact transient transport recovery and bounded ownership > permits the queue plus runtime budget, then terminates a job past the 31-minute total bound  560ms
+   ✓ material fact transient transport recovery and bounded ownership > records the first legacy transport failure and bounds it without inventing a start date  540ms
+   ✓ material fact transient transport recovery and bounded ownership > retains compatibility for an old starting claim and expires it without polling a fabricated job  493ms
+   ✓ material fact transient transport recovery and bounded ownership > persists the caller UUID before POST and does not poll while submission is pending  408ms
+   ✓ material fact transient transport recovery and bounded ownership > recovers a POST whose service accepted the known UUID but whose response was lost  454ms
+   ✓ material fact transient transport recovery and bounded ownership > a transient loser returns the same-job completed snapshot without resurrecting it  548ms
+   ✓ material fact transient transport recovery and bounded ownership > converges two readers recording the first warning for the same still-running job: partial raw=false  484ms
+   ✓ material fact transient transport recovery and bounded ownership > converges two readers recording the first warning for the same still-running job: partial raw=true  484ms
+   ✓ material fact transient transport recovery and bounded ownership > never attaches a mismatched submission acknowledgement instead of the claimed UUID  490ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps a transient old poll conflicting after replacement job  543ms
+   ✓ material fact transient transport recovery and bounded ownership > keeps a transient old poll conflicting after new generation  445ms
+ ✓ lib/material-fact-submit-rejection-independent.test.ts (31 tests) 16002ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > persists a definite HTTP 429 rejection as failed and never polls a nonexistent job  882ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 400 rejection is terminal without manufacturing model data  572ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 401 rejection is terminal without manufacturing model data  494ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 403 rejection is terminal without manufacturing model data  480ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 404 rejection is terminal without manufacturing model data  473ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 408 rejection is terminal without manufacturing model data  465ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 409 rejection is terminal without manufacturing model data  458ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 410 rejection is terminal without manufacturing model data  453ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 413 rejection is terminal without manufacturing model data  448ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 415 rejection is terminal without manufacturing model data  426ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 422 rejection is terminal without manufacturing model data  421ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > HTTP 499 rejection is terminal without manufacturing model data  415ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recognizes plain text 429 from HTTP status independently of its response body  404ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recognizes malformed JSON 400 from HTTP status independently of its response body  408ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recognizes empty 422 from HTTP status independently of its response body  414ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recognizes unreadable 429 from HTTP status independently of its response body  412ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recognizes oversized 413 from HTTP status independently of its response body  398ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after HTTP 503 after acceptance, without another POST  541ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after malformed HTTP 500 after acceptance, without another POST  530ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after network timeout after acceptance, without another POST  533ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after network reset after acceptance, without another POST  535ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after successful empty reply, without another POST  535ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after successful malformed reply, without another POST  534ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > recovers the same persisted UUID after successful unreadable body, without another POST  537ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > does not fabricate a result or resubmit when a 503 was not actually accepted  487ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > blocks another owner before dispatching or changing the fact row  364ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > a late 429 cannot overwrite a newer source generation or revive its retired UUID  550ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > a late 429 cannot overwrite a newer job in the same generation  666ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > a late rejection preserves intervening manual facts instead of silently overwriting them  631ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > never restores revoked manual confirmations after definite rejection  740ms
+   ✓ independent submit rejection versus uncertain acceptance through real client and D1 routes > never restores revoked manual confirmations after uncertain acceptance and later success  796ms
+ ✓ lib/material-fact-store.test.ts (36 tests) 22044ms
+   ✓ material facts API and transactional persistence > keeps extraction as candidates, binds actor to authentication, and persists raw provenance  1009ms
+   ✓ material facts API and transactional persistence > persists empty extraction diagnostics without authorizing totals  617ms
+   ✓ material facts API and transactional persistence > returns an actionable 400 for ready OCR over the extraction limit without claiming a job or clearing scope  537ms
+   ✓ material facts API and transactional persistence > keeps an exact observation after an approximate duplicate through the real polling store without rewriting historical results  671ms
+   ✓ material facts API and transactional persistence > returns current coverage for a nonempty historical v2 record without storing a derived display diagnostic  930ms
+   ✓ material facts API and transactional persistence > returns source attribution warnings for non-total and date candidates after persistence reload  552ms
+   ✓ material facts API and transactional persistence > persists the original amount span and exact normalization separately  529ms
+   ✓ material facts API and transactional persistence > binds cropped group quotes to the source before offering personal totals  593ms
+   ✓ material facts API and transactional persistence > keeps a source approximate amount non-exact when the model omits the qualifier  576ms
+   ✓ material facts API and transactional persistence > persists and rechecks PR40 group header without exposing an available personal total  637ms
+   ✓ material facts API and transactional persistence > persists and rechecks PR40 other worker without exposing an available personal total  642ms
+   ✓ material facts API and transactional persistence > persists and rechecks PR40 partial due without exposing an available personal total  633ms
+   ✓ material facts API and transactional persistence > persists and rechecks PR40 postposed partial without exposing an available personal total  643ms
+   ✓ material facts API and transactional persistence > persists and rechecks PR40 foreign currency without exposing an available personal total  637ms
+   ✓ material facts API and transactional persistence > does not suggest a total from a cropped monetary token: 18000元 as 8000元  524ms
+   ✓ material facts API and transactional persistence > does not suggest a total from a cropped monetary token: 80000元 as 0000元  519ms
+   ✓ material facts API and transactional persistence > does not suggest a total from a cropped monetary token: 1000元/月 as 1000元  514ms
+   ✓ material facts API and transactional persistence > persists failed cleanup after completing a fact job and retries on the next owned read  545ms
+   ✓ material facts API and transactional persistence > requires explicit totals and commits integer arithmetic plus receipt in D1  712ms
+   ✓ material facts API and transactional persistence > does not produce a calculation receipt when the final SQL loses generation CAS  705ms
+   ✓ material facts API and transactional persistence > preserves exact cents for a negative sub-yuan difference  714ms
+   ✓ material facts API and transactional persistence > accepts explicit zero and rejects blank totals without modifying confirmation  719ms
+   ✓ material facts API and transactional persistence > invalidates confirmations from the first upload intent and blocks omitted new sources  726ms
+   ✓ material facts API and transactional persistence > clears derived private text at deletion and rejects late stale actions  586ms
+   ✓ material facts API and transactional persistence > makes archive/restore and company changes invalidate earlier authorizations  821ms
+   ✓ material facts API and transactional persistence > captures and cancels a fact job on case invalidation, but preserves a job on no-op changes  711ms
+   ✓ material facts API and transactional persistence > rejects stale concurrent revisions without a second write  551ms
+   ✓ material facts API and transactional persistence > cancels a job started while another upload changes the generation  500ms
+   ✓ material facts API and transactional persistence > keeps a late unattached job retryable when its first cancellation fails  513ms
+   ✓ material facts API and transactional persistence > claims re-extraction before a delayed service call and blocks concurrent calculation  813ms
+   ✓ material facts API and transactional persistence > expires an interrupted starting claim without querying a fabricated remote job  349ms
+   ✓ material facts API and transactional persistence > retains a temporarily unreachable job for polling recovery without fabricating candidates  405ms
+   ✓ material facts API and transactional persistence > invalidates earlier confirmations while an ambiguous submission is being reconciled  676ms
+   ✓ material facts API and transactional persistence > keeps malformed original model output for review while the source stays unresolved  449ms
+   ✓ material facts API and transactional persistence > preserves incomplete model output without accepting even syntactically valid candidates  440ms
+   ✓ material facts API and transactional persistence > blocks dispatch for malformed stored original blocks and rejects client-owned state  346ms
+
+ Test Files  46 passed (46)
+      Tests  1660 passed (1660)
+   Start at  13:02:03
+   Duration  22.97s (transform 1.29s, setup 0ms, collect 7.97s, tests 90.22s, environment 5ms, prepare 3.61s)
+
+
+> anxin-work-rights@1.0.0 build
+> vinext build
+
+
+  vinext build  (Vite 8.3.0)
+
+(node:33570) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[1/5] analyze client references...
+transforming...
+✓ 281 modules transformed.
+rendering chunks...
+✓ built in 321ms
+[2/5] analyze server references...
+transforming...
+✓ 191 modules transformed.
+rendering chunks...
+✓ built in 169ms
+[3/5] build rsc environment...
+transforming...
+✓ 272 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 349ms
+[4/5] build client environment...
+transforming...
+✓ 1700 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 662ms
+[5/5] build ssr environment...
+transforming...
+✓ 195 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 318ms
+[0m
+  Route (app)
+  ┌ ƒ /                         
+  ├ λ /api/bootstrap            
+  ├ λ /api/cases                
+  ├ λ /api/cases/:id/facts      
+  ├ λ /api/chat                 
+  ├ λ /api/documents            
+  ├ λ /api/evidence             
+  ├ λ /api/evidence/:id/analysis
+  ├ λ /api/evidence/:id/download
+  ├ λ /api/knowledge            
+  └ λ /api/synthetic-ready      
+
+  λ API  ƒ Dynamic
+
+  Build complete. Run `vinext start` to start the production server.
+
+
+> anxin-work-rights@1.0.0 data:check
+> python3 -B scripts/public-data.py verify && python3 -B -m unittest discover -s scripts/tests -p test_public_data.py
+
+{
+  "status": "PASS",
+  "data_fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a",
+  "counts": {
+    "sources": 12,
+    "source_paragraphs": 1453,
+    "cases": 14,
+    "cases_by_topic": {
+      "employment_relationship": 8,
+      "wage_arrears": 8
+    },
+    "laws": 8,
+    "selected_provisions": 54,
+    "field_citations": 620,
+    "evidence_descriptions": 22,
+    "original_case_exhibits": 0,
+    "linked_rule_citations": 10,
+    "unlinked_rule_citations": 9,
+    "cases_with_undisclosed_region": 14,
+    "cases_with_undisclosed_decision_date": 14
+  }
+}
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 1.339s
+
+OK
+
+> anxin-work-rights@1.0.0 data:runtime:check
+> python3 -B scripts/build-public-index.py --check
+
+{"status": "PASS", "fingerprint": "e599f7f44e0350378c8369a0bf98932ffb15c111bd7d2d867402584104d8ad7a", "bytes": 232203, "checkOnly": true}
+
+> anxin-work-rights@1.0.0 test:materials
+> node --test scripts/fact-jobs.test.mjs scripts/material-runner.test.mjs scripts/material-service.test.mjs scripts/material-ocr-linux.test.mjs
+
+✔ service selects the bounded runtime and only forwards an explicit loopback port (3.565583ms)
+✔ production inference forwards text blocks without private filename or source metadata (0.886417ms)
+✔ oversized fact input reports a split-material client error before queueing inference (0.610708ms)
+▶ Qwen preflight requires normal measurable memory before spawning
+  ✔ 2 (0.135416ms)
+  ✔ 4 (0.105125ms)
+  ✔ 1 (0.072625ms)
+  ✔ 0 (0.045208ms)
+  ✔ undefined (0.043666ms)
+✔ Qwen preflight requires normal measurable memory before spawning (0.768625ms)
+✔ cancellation during preflight never spawns a late model (0.155375ms)
+✔ external critical guard covers loading, escalates after 3 seconds, and waits for close (0.532166ms)
+✔ warning must remain continuous for 10 seconds and normal pressure resets it (0.540292ms)
+✔ swap guard uses pre-spawn baseline and stops only above 4 GiB growth (0.248625ms)
+✔ lost monitor fails closed even before any model telemetry (0.235167ms)
+✔ an in-flight memory sample cannot signal a child after successful exit (0.237041ms)
+✔ absolute 600-second timeout also bounds the remote backend (0.239083ms)
+✔ raw unfinished answers survive and a nonzero exit cannot authorize stop (0.470209ms)
+✔ UTF-8 split across pipe chunks preserves the exact raw Chinese answer (0.318083ms)
+✔ decoded Chinese output still obeys the byte limit instead of a character limit (0.840584ms)
+✔ output limit terminates with the same grace period and never exposes stderr (0.560625ms)
+✔ a missing executable rejects only after close and releases queue ownership (13.543875ms)
+✔ queue cancel and close hold ownership until the process actually closes (0.604875ms)
+✔ real child ignoring SIGTERM exits before cancellation permits the next process (3227.852875ms)
+✔ fact queue rejects caller-controlled backend and preserves rule candidates (1.556416ms)
+✔ bounded queue cancellation discards late results and unblocks shutdown (0.289959ms)
+✔ real loopback fact HTTP requires token, blocks browser and arbitrary model config (22.976417ms)
+✔ caller job ID: same source retries share queued, running and ready work (0.384334ms)
+✔ caller job ID: binds all source contents and ignores JSON object key order (0.237625ms)
+✔ caller job ID: unknown and known cancellation block delayed submissions (0.148083ms)
+✔ caller job ID: finished-result expiry leaves a full replay-window tombstone (0.144792ms)
+✔ finished result retention: a tab returning after six minutes recovers the unchanged raw result (0.087834ms)
+✔ finished result retention: the complete 31-minute window is readable before expiry becomes 410 (0.1155ms)
+✔ finished result retention: queued and late completions each keep a full window after finishing (0.224625ms)
+✔ finished result retention: cancellation immediately hides work and discards a late completion (0.233458ms)
+✔ finished result retention: 32 cached jobs remain bounded and expiry restores capacity (11.190833ms)
+✔ finished result retention: failed jobs also remain recoverable for the full window (0.149834ms)
+✔ caller job ID: bounded tombstones reserve cancellation for admitted work (5.229208ms)
+✔ caller job ID: malformed IDs and unsupported fields do not admit work (0.19175ms)
+✔ caller job ID: discarded HTTP submit response is safely retried and bound to source (8.389875ms)
+✔ caller job ID: HTTP cancellation before the complete POST body prevents late creation (4.554708ms)
+✔ TSV preserves page references, normalised left-top boxes, confidence and recognised text (3.722708ms)
+✔ TSV rejects ungrounded coordinates, missing dimensions, control text and oversized pages (0.34075ms)
+✔ image preflight checks PNG/JPEG dimensions before decoding (0.227209ms)
+✔ PDF preflight rejects encryption, page truncation and a large later page before rendering (0.594292ms)
+✔ private executable/language/library configuration is passed only to Tesseract (4.443958ms)
+✔ missing Chinese language/tool capabilities fail explicitly while TXT remains advertised (0.293792ms)
+✔ all PDF pages retain page IDs, bounded rendering arguments and citations; over-limit PDF never renders (2.838792ms)
+✔ PDF password errors and OCR timeouts expose stable errors, not subprocess paths or stderr (1.572459ms)
+✔ aborting a direct OCR child kills and settles it before caller cleanup (304.610791ms)
+✔ a missing direct executable closes and rejects without hanging startup (0.572375ms)
+﹣ real Linux Tesseract/Poppler recognises explicit synthetic PNG/PDF fixtures without model inference (0.045417ms) # Tesseract is the supported Linux runtime; macOS real OCR uses Apple Vision and is tested in material-service.test.mjs.
+✔ runner waits for close and records failure after parse error (3205.73775ms)
+✔ runner waits for close and records failure after stdout-write error (197.620458ms)
+✔ runner waits for close and records failure after stderr-write error (197.592583ms)
+✔ runner preserves stdout and stderr UTF-8 across byte boundaries (198.817083ms)
+✔ all routes require the caller token, reject browser origins and client parameters (34.501541ms)
+✔ TXT jobs run actual UTF-8 extraction and explicit rules with verbatim field citations (420.47575ms)
+✔ model fields require allowed keys, existing blocks and exact original text (0.980792ms)
+✔ recorded real Apple HTTP misclassifications are rejected without adding or changing model fields (0.938542ms)
+✔ semantic model rejections are visible in job warnings and cannot be filled by rules (105.389708ms)
+✔ Ollama calls reject redirects and a model transport failure cannot become rule success (105.431584ms)
+✔ recorded synthetic Apple candidates can lose display ID prefixes while exact citations stay mandatory (0.220958ms)
+✔ temporary cleanup failures remain visible without hanging cancellation or the next job (107.454833ms)
+✔ an occupied listen port removes the newly created private service directory (0.787792ms)
+✔ job capacity is bounded and a restart cannot expose prior in-memory jobs (3314.179875ms)
+✔ deleting a ready job clears cached content and DELETE is idempotent (106.429375ms)
+✔ at most two jobs wait and deletion cancels running/queued OCR without reviving results (2156.059125ms)
+✔ real platform OCR recognises synthetic PNG/PDF, preserves bboxes, rejects broken images and six-page PDFs (3279.83975ms)
+ℹ tests 68
+ℹ suites 0
+ℹ pass 67
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 9808.054292
+
+> anxin-work-rights@1.0.0 test:fact-runtime
+> python3 -B scripts/fact_memory_runtime_test.py && python3 -B scripts/fact_api_transport_test.py && node --test scripts/fact-runtime-runner.test.mjs scripts/material-facts-v4-assessment.test.mjs scripts/material-facts-panel.test.mjs scripts/material-facts-v7-assessment-independent.test.mjs scripts/material-facts-v7-freeze-independent.test.mjs scripts/material-fact-relative-month.test.mjs scripts/material-facts-v7-postfreeze-p1-independent.test.mjs scripts/material-facts-v7-correction-gates.test.mjs scripts/material-fact-dedup-review.test.mjs scripts/material-facts-v7-round3-independent.test.mjs scripts/material-facts-v7-correction-v2-gates.test.mjs scripts/material-facts-v7-run-readiness.test.mjs scripts/material-facts-v7-full-archive.test.mjs scripts/material-facts-v7-experiment-integrity-independent.test.mjs
+
+...........
+----------------------------------------------------------------------
+Ran 11 tests in 0.002s
+
+OK
+................
+----------------------------------------------------------------------
+Ran 16 tests in 0.098s
+
+OK
+✔ API runner preserves earlier response and rejects late success after deadline (183.43875ms)
+✔ API runner preserves earlier response and rejects late success after cancel (156.59325ms)
+✔ two non-unique bare quotes retain both same-attribute payments for review (8.821875ms)
+✔ a unique quote with two possible value positions cannot prove duplicate identity (0.696917ms)
+✔ an arbitrary narrative cannot evict the minimal amount, reversed=false (8.357625ms)
+✔ a unique finite RMB wrapper still identifies one occurrence, reversed=false (1.562583ms)
+✔ the same unique value with different quote extents still collapses, reversed=false (0.632167ms)
+✔ non-overlapping same-attribute payment events remain distinct, reversed=false (0.550167ms)
+✔ an arbitrary narrative cannot evict the minimal amount, reversed=true (0.569292ms)
+✔ a unique finite RMB wrapper still identifies one occurrence, reversed=true (1.417166ms)
+✔ the same unique value with different quote extents still collapses, reversed=true (0.83225ms)
+✔ non-overlapping same-attribute payment events remain distinct, reversed=true (0.651458ms)
+✔ equal values in separate source blocks remain distinct (0.531834ms)
+✔ different assertions at one unique position remain separate observations (0.885ms)
+✔ 上月工资 is a period amount, including when the quote crops the month (15.103958ms)
+✔ 本月工资 is a period amount, including when the quote crops the month (1.077541ms)
+✔ 下月工资 is a period amount, including when the quote crops the month (0.396833ms)
+✔ 上个月工资 is a period amount, including when the quote crops the month (0.28875ms)
+✔ 下个月工资 is a period amount, including when the quote crops the month (0.313125ms)
+✔ 上一个月工资 is a period amount, including when the quote crops the month (0.269459ms)
+✔ 下一个月工资 is a period amount, including when the quote crops the month (0.249084ms)
+✔ 这个月工资 is a period amount, including when the quote crops the month (0.816417ms)
+✔ 这月工资 is a period amount, including when the quote crops the month (0.264ms)
+✔ 当月工资 is a period amount, including when the quote crops the month (0.296792ms)
+✔ 该月工资 is a period amount, including when the quote crops the month (0.226083ms)
+✔ 2026年1月工资 remains a calendar period rather than a monthly rate (0.398834ms)
+✔ 一月工资 remains a calendar period rather than a monthly rate (0.207542ms)
+✔ 正月工资 remains a calendar period rather than a monthly rate (0.161167ms)
+✔ 腊月工资 remains a calendar period rather than a monthly rate (0.290167ms)
+✔ a cropped total cannot hide the real monthly rate: 月工资1000元 (0.40575ms)
+✔ a correctly declared monthly rate remains exact: 月工资1000元 (0.668125ms)
+✔ a cropped total cannot hide the real monthly rate: 月薪1000元 (0.176583ms)
+✔ a correctly declared monthly rate remains exact: 月薪1000元 (0.169833ms)
+✔ a cropped total cannot hide the real monthly rate: 每月工资1000元 (0.164292ms)
+✔ a correctly declared monthly rate remains exact: 每月工资1000元 (0.179ms)
+✔ a cropped total cannot hide the real monthly rate: 每月1000元 (1.037292ms)
+✔ a correctly declared monthly rate remains exact: 每月1000元 (0.895208ms)
+✔ a cropped total cannot hide the real monthly rate: 1000元/月 (1.390458ms)
+✔ a correctly declared monthly rate remains exact: 1000元/月 (0.984417ms)
+✔ a cropped total cannot hide the real monthly rate: 1000元每月 (0.165583ms)
+✔ a correctly declared monthly rate remains exact: 1000元每月 (0.143875ms)
+✔ an explicit rate suffix still governs an amount associated with a relative month (0.193ms)
+✔ a real monthly rate still rejects a mismatched declared day rate (0.139167ms)
+✔ a relative-month word inside the complete subject cannot hide a real monthly rate (0.173458ms)
+✔ a relative month following that complete subject still names a period (0.143584ms)
+✔ an explicit 月薪 rate is not exempted by a preceding relative-month word (0.143875ms)
+✔ late calculation response cannot restore old results: lower generation and revision (65.247375ms)
+✔ late calculation response cannot restore old results: same generation and lower revision (25.816875ms)
+✔ late calculation response cannot restore old results: lower generation even with higher revision (20.340125ms)
+✔ accepts a current mutation response generation=1, revision=11 (16.931375ms)
+✔ accepts a current mutation response generation=2, revision=1 (17.112625ms)
+✔ a stale scope response preserves the local scope draft and emits no success notice (14.870583ms)
+✔ a stale amount confirmation cannot clear the amount or explanation draft (15.678333ms)
+✔ an older manual GET does not reset reviewed draft checks or replace the displayed version (14.829625ms)
+✔ a late POST 409 cannot add an error or lock a newer GET generation=2, revision=1 (17.92225ms)
+✔ a late POST 409 cannot add an error or lock a newer GET generation=1, revision=20 (13.74625ms)
+✔ a late POST 500 cannot add an error or lock a newer GET generation=2, revision=1 (13.294916ms)
+✔ a late POST 500 cannot add an error or lock a newer GET generation=1, revision=20 (12.983209ms)
+✔ a current POST 409 still reports the failure and preserves the amount draft (15.490125ms)
+✔ a current POST 500 still reports the failure and preserves the amount draft (13.985375ms)
+✔ a GET 409 started before a newer POST success cannot overwrite its status (13.662916ms)
+✔ a GET 500 started before a newer POST success cannot overwrite its status (17.383625ms)
+✔ frozen v4 assessor retains null as a raw false positive (1.1485ms)
+✔ frozen v4 assessor retains 1 as a raw false positive (1.082833ms)
+✔ frozen v4 assessor retains "8000元" as a raw false positive (0.097708ms)
+✔ frozen v4 assessor retains true as a raw false positive (0.076416ms)
+✔ frozen v4 assessor retains [] as a raw false positive (0.063834ms)
+✔ frozen v4 assessor retains {} as a raw false positive (0.052667ms)
+✔ malformed candidates do not discard a valid later/earlier answer: invalidFirst=true (0.664125ms)
+✔ malformed candidates do not discard a valid later/earlier answer: invalidFirst=false (0.146917ms)
+✔ raw malformed observations remain false positives with an empty gold set (0.09775ms)
+✔ a non-stop answer cannot count as accepted business facts (0.147792ms)
+✔ all valid gold categories short-circuit non-object raw candidates (0.163625ms)
+✔ maximum matching does not let duplicates inflate recall (0.058208ms)
+✔ all six layers require the same source event, including basic (15.629417ms)
+✔ the correct second occurrence matches; first-index location is forbidden (2.098ms)
+✔ a whole paragraph containing two equal amounts from different events is ambiguous (0.535125ms)
+✔ a bare amount quote repeated at two source locations cannot borrow the first location (0.424458ms)
+✔ unannotated repeated locations remain unresolved rather than disappearing (0.345542ms)
+✔ a whole paragraph with a unique matching value is usable evidence (1.023542ms)
+✔ identical words in another block cannot match the expected block event (2.238083ms)
+✔ a quote assembled across blocks is invalid and remains a raw false positive (0.343292ms)
+✔ multiple identical source occurrences may match only when all belong to the same registered event (1.439209ms)
+✔ source anchor offsets are Unicode code points even after astral and combining characters (1.438833ms)
+✔ registered containment supports a literal currency prefix within the same event (0.955583ms)
+✔ event identity does not use a self-reported subject to resolve a two-event quote (0.526042ms)
+✔ a party admission cannot impersonate a later same-value court order by self-reporting decided (1.6665ms)
+✔ schema or literal evidence violation is a raw FP: missing quote (0.281875ms)
+✔ schema or literal evidence violation is a raw FP: missing blockId (0.206125ms)
+✔ schema or literal evidence violation is a raw FP: missing required rateUnit (0.194125ms)
+✔ schema or literal evidence violation is a raw FP: extra field (0.181334ms)
+✔ schema or literal evidence violation is a raw FP: invalid scope enum (0.141459ms)
+✔ schema or literal evidence violation is a raw FP: invalid payment completeness (0.146458ms)
+✔ schema or literal evidence violation is a raw FP: empty quote (0.128833ms)
+✔ schema or literal evidence violation is a raw FP: fabricated quote (0.125792ms)
+✔ schema or literal evidence violation is a raw FP: wrong blockId (0.1185ms)
+✔ schema or literal evidence violation is a raw FP: unsupported subject (0.1435ms)
+✔ malformed raw values are counted and do not abort a valid neighboring candidate (1.176375ms)
+✔ raw duplicate predictions do not inflate recall (1.056542ms)
+✔ two real same-value same-attribute payments preserve two source events in raw and accepted layers (1.407375ms)
+✔ event matching preserves the separate basic and relational attribute contract (0.982834ms)
+✔ different semantic facts may inherit a shared registered event without duplicating the amount (0.483417ms)
+✔ finite alternatives inherit their expected event and cannot authorize another same-value event (0.685333ms)
+✔ non-stop output retains raw observation but supplies no accepted facts (0.466875ms)
+▶ historical-code and correction gates reject isolated evidence corruption
+  ✔ unaltered copied evidence passes the real historical verifier (2255.103791ms)
+  ✔ a missing historical manifest path is rejected (3.457791ms)
+  ✔ an extra historical manifest path is rejected (1.327084ms)
+  ✔ modified historical snapshot bytes are rejected (2.950959ms)
+  ✔ an absent historical snapshot file is rejected (2.429875ms)
+  ✔ changed first-run result bytes block correction before reassessment (2259.398917ms)
+  ✔ a throwing callback removes its owned temporary reconstruction (732.749084ms)
+✔ historical-code and correction gates reject isolated evidence corruption (5966.201333ms)
+▶ independent correction-v2 gates preserve correction-v1 evidence and cleanup
+  ✔ unaltered correction-v1 CLI checks exact archived code and original artifacts (3217.051791ms)
+  ✔ missing correction snapshot manifest path rejects before callback (2.963375ms)
+  ✔ additional correction snapshot manifest path rejects before callback (1.147292ms)
+  ✔ changed archived runtime bytes reject before callback (2.242333ms)
+  ✔ missing archived runtime file rejects before callback (1.705041ms)
+  ✔ changed correction-v1 manifest bytes reject before callback (1.1875ms)
+  ✔ changed correction-v1 report bytes block v2 before reassessment or writing (3034.29825ms)
+  ✔ throwing reconstruction callback cleans only its owned temporary directory (322.039292ms)
+  ✔ successful reconstruction callback also removes its temporary directory (312.780916ms)
+  ✔ v2 --write refuses an existing output directory and preserves its sentinel (4128.379042ms)
+✔ independent correction-v2 gates preserve correction-v1 evidence and cleanup (11664.086459ms)
+✔ formal runner rejects missing Qwen model arguments without consuming the unique attempt or starting a worker (266.63225ms)
+✔ formal runner rejects missing Qwen integrity directory without consuming the unique attempt or starting a worker (194.403ms)
+✔ formal runner rejects unreadable Qwen model path without consuming the unique attempt or starting a worker (201.938417ms)
+✔ formal runner rejects missing DeepSeek credential argument without consuming the unique attempt or starting a worker (181.268125ms)
+✔ formal runner rejects unreadable DeepSeek credential file without consuming the unique attempt or starting a worker (204.555125ms)
+✔ formal runner rejects missing Python executable without consuming the unique attempt or starting a worker (195.0105ms)
+✔ formal runner rejects non-numeric transport port without consuming the unique attempt or starting a worker (199.714041ms)
+✔ formal runner rejects zero transport port without consuming the unique attempt or starting a worker (178.234458ms)
+✔ formal runner rejects out-of-range transport port without consuming the unique attempt or starting a worker (178.027416ms)
+✔ formal rules need no model arguments and retain complete empty-candidate terminal rows (185.967833ms)
+✔ all three completed development attempts may legitimately return no candidates (34.29125ms)
+✔ matching protocol and code hashes cannot make missing outcome development-ready (33.0765ms)
+✔ matching protocol and code hashes cannot make incomplete outcome development-ready (25.977167ms)
+✔ matching protocol and code hashes cannot make missing terminal results development-ready (25.760083ms)
+✔ matching protocol and code hashes cannot make empty terminal stream development-ready (25.184709ms)
+✔ matching protocol and code hashes cannot make partial terminal stream development-ready (26.990125ms)
+✔ matching protocol and code hashes cannot make duplicate terminal IDs development-ready (27.944542ms)
+✔ matching protocol and code hashes cannot make foreign backend terminal rows development-ready (30.634875ms)
+✔ matching protocol and code hashes cannot make non-stop terminal result development-ready (26.405542ms)
+✔ matching protocol and code hashes cannot make truncated JSONL tail development-ready (21.627916ms)
+✔ successful rows cannot hide a failed model process receipt (22.420166ms)
+✔ an audited failed history does not prevent a separate complete current-code attempt from contributing readiness (33.502667ms)
+✔ historical restoration replaces all four changed live v7 executables with their frozen bytes (1179.250208ms)
+✔ historical restoration rejects a missing required archived executable before invoking its callback (543.571583ms)
+✔ historical restoration rejects a changed required archived executable before invoking its callback (450.304458ms)
+✔ historical restoration cleans temporary code after callback failure while preserving the original error (1183.808333ms)
+✔ atomic publication keeps a complete legitimate empty-candidate artifact set (2.875875ms)
+✔ a mid-write fault preserves evidence outside the final directory and permits an exact retry (3.628791ms)
+✔ invalid empty set is rejected before creating either a final publication or a partial stage (0.56075ms)
+✔ invalid parent traversal is rejected before creating either a final publication or a partial stage (0.650958ms)
+✔ invalid undefined JSON is rejected before creating either a final publication or a partial stage (0.593792ms)
+✔ invalid non-serializable JSON is rejected before creating either a final publication or a partial stage (0.737625ms)
+✔ a destination created while staging is preserved and the complete unpublished stage remains evidence (3.558ms)
+✔ atomic publication cannot replace an empty directory (1.263166ms)
+✔ atomic publication cannot replace an existing history (1.420917ms)
+✔ atomic publication cannot replace an symlink (1.255541ms)
+✔ two complete concurrent publishers cannot overwrite the winning immutable artifact set (3.031333ms)
+✔ SIGKILL leaves an unpublished stage and a later publisher can complete without erasing it (122.670208ms)
+✔ native rules diagnostic rejects the real holdout before creating any attempt (228.862458ms)
+✔ native diagnostic rejects a changed development source even when all three IDs remain unchanged (197.941917ms)
+✔ native freeze CLI executes its argument guard through a temporary-directory path alias (150.170792ms)
+✔ native verify CLI executes its argument guard through a temporary-directory path alias (149.401625ms)
+✔ native summarize CLI executes its argument guard through a temporary-directory path alias (160.632458ms)
+✔ a complete development-only fixture passes the independent pre-freeze binding check (75.033416ms)
+✔ pre-freeze development check rejects altered model messages (36.6175ms)
+✔ pre-freeze development check rejects a non-development case_ids receipt (43.897916ms)
+✔ pre-freeze development check rejects a non-development input_sha256 receipt (49.994917ms)
+✔ freeze rejects a formal attempt directory before reading or freezing any new labels (46.146333ms)
+✔ development binding rejects a disguised pre-freeze formal attempt (36.419666ms)
+✔ native runner never overwrites an existing attempt directory (185.045042ms)
+✔ freeze creation and later diagnostic runs both preserve an existing freeze byte for byte (169.520666ms)
+✔ prior budget counts both development and stopped formal attempts without refunding unreturned cases (29.706291ms)
+✔ an existing atomic DeepSeek budget lock blocks native runner before inference and is left for reconciliation (408.76275ms)
+✔ native runner reserves the entire next development batch before spending the remaining budget (431.715625ms)
+▶ complete first-run archive restores every bound executable and rejects archive corruption
+  ✔ all 36 selected paths and bytes match the original freeze (4.027708ms)
+  ✔ changed live run/freeze/verify/summarize restore to their original bytes (727.112834ms)
+  ✔ the real historical verifier still checks all 60 original result artifacts (1969.32425ms)
+  ✔ missing archived run.mjs is rejected (2.222333ms)
+  ✔ changed archived run.mjs is rejected (2.845709ms)
+  ✔ missing archived freeze.mjs is rejected (1.593542ms)
+  ✔ changed archived freeze.mjs is rejected (1.709959ms)
+  ✔ missing archived verify.mjs is rejected (1.964041ms)
+  ✔ changed archived verify.mjs is rejected (2.537917ms)
+  ✔ missing archived summarize.mjs is rejected (1.558542ms)
+  ✔ changed archived summarize.mjs is rejected (2.165917ms)
+  ✔ a required executable omitted from the new manifest is rejected (1.677833ms)
+  ✔ an unregistered executable added to the new manifest is rejected (1.084292ms)
+  ✔ changed original result bytes are rejected by the archived historical verifier (2024.757292ms)
+  ✔ a throwing callback removes the temporary reconstruction (717.211875ms)
+✔ complete first-run archive restores every bound executable and rejects archive corruption (6164.258167ms)
+ℹ historical receipt: {"status":"PASS","preflight":false,"planned_per_backend":12,"runs":[{"name":"holdout-rules-1","backend":"rules","split":"holdout","planned":12,"returned":12,"completed":12,"protocol_valid":12},{"name":"holdout-qwen-1","backend":"qwen","split":"holdout","planned":12,"returned":12,"completed":12,"protocol_valid":12},{"name":"holdout-deepseek-1","backend":"deepseek","split":"holdout","planned":12,"returned":12,"completed":12,"protocol_valid":12}],"budget":{"attempts":3,"reserved_upper_usd":0.51686844,"limit_usd":2},"result_files":60,"result_manifest_sha256":"3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee","inference":false,"training":false,"execution":"exact_archived_first_run_code_in_temporary_directory","current_code_claim":false}
+{"evidence":"implementation_hash","path":"lib/material-money-v4.ts","sha256":"0cb4948c106dbf4522ea7deec8e3c4f0fe141bd3260869813a3cb7c9b2a14ff8"}
+{"evidence":"implementation_hash","path":"lib/material-fact-source-review.ts","sha256":"97c3ed0e0f24fa67ff3369a9732261811caba224dddbf63a87b54b3cb8115ae0"}
+{"evidence":"implementation_hash","path":"lib/material-fact-runtime-ingest.ts","sha256":"a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f"}
+{"evidence":"implementation_hash","path":"experiments/material-facts-v7/assess.mjs","sha256":"d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"}
+{"evidence":"cropped_range","text":"王甲2024年7月完整应付工资为人民币3万元至人民币4万元。","raw":{"kind":"money","value":"人民币3万元","quote":"人民币3万元","blockId":"b1","subject":"王甲","scope":"individual","meaning":"due_total","completeness":"complete","period":"2024年7月","rateUnit":null,"assertion":"narrated"},"whole":{"rawValue":"人民币3万元至人民币4万元","status":"range","amount":null,"matchedText":null,"span":null,"reason":"金额属于区间，未选取单个端点。"},"normalized_with_full_quote":{"value":"人民币3万元","amount":null,"rateUnit":null,"normalization":{"rawValue":"人民币3万元","status":"range","amount":null,"matchedText":null,"span":null,"reason":"当前金额在原文中直接属于区间端点。"}},"stored_amount":null,"stored_normalization":{"rawValue":"人民币3万元","status":"range","amount":null,"matchedText":null,"span":null,"reason":"源文上下文约束：当前金额在原文中直接属于区间端点。"},"stored_issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"},{"code":"source_amount_context_mismatch","message":"源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号或费率单位。"}],"six_counts":{"raw_basic":[0,1,1],"raw_relational":[0,1,1],"raw_strict":[0,1,1],"accepted_basic":[0,1,1],"accepted_relational":[0,1,1],"accepted_strict":[0,1,1]},"production_defense":[{"index":0,"kind":"money","amount":null,"normalization":"range","issues":["source_relation_unresolved","source_amount_context_mismatch"],"exact_money_without_review_issue":false,"calculation_authorized":false}]}
+{"evidence":"whole_paragraph","text":"王甲声称公司长期拖欠其工资，现要求支付4000元并追究责任。","gold":{"kind":"money","value":"4000元","quote":"王甲声称公司长期拖欠其工资，现要求支付4000元并追究责任。","blockId":"b1","subject":"王甲","scope":"individual","meaning":"arrears","completeness":"not_applicable","period":null,"rateUnit":null,"assertion":"claimed"},"raw":{"kind":"money","value":"王甲声称公司长期拖欠其工资，现要求支付4000元并追究责任。","quote":"王甲声称公司长期拖欠其工资，现要求支付4000元并追究责任。","blockId":"b1","subject":"王甲","scope":"individual","meaning":"arrears","completeness":"not_applicable","period":null,"rateUnit":null,"assertion":"claimed"},"anchors":[{"id":"wage-event","anchors":[{"blockId":"b1","start":19,"end":24}]}],"raw_key":"exact:4000.00","gold_key":"exact:4000.00","event":{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":0,"end":30}]},"six_counts":{"raw_basic":[0,1,1],"raw_relational":[0,1,1],"raw_strict":[0,1,1],"accepted_basic":[0,1,1],"accepted_relational":[0,1,1],"accepted_strict":[0,1,1]},"production_defense":[{"index":0,"kind":"money","amount":"4000.00","normalization":"exact","issues":["source_relation_unresolved"],"exact_money_without_review_issue":false,"calculation_authorized":false}]}
+{"evidence":"relative_wage_period","relative":"上月","text":"王甲上月工资为4000元。","raw":{"kind":"money","value":"4000元","quote":"王甲上月工资为4000元。","blockId":"b1","subject":"王甲","scope":"individual","meaning":"due_total","completeness":"complete","period":"上月","rateUnit":null,"assertion":"narrated"},"amount":"4000.00","normalization":{"rawValue":"4000元","status":"exact","amount":"4000.00","matchedText":"4000元","span":{"start":0,"end":5},"reason":"唯一完整人民币金额已精确解析；原文和位置保持不变。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"}]}
+{"evidence":"relative_wage_period","relative":"本月","text":"王甲本月工资为4000元。","raw":{"kind":"money","value":"4000元","quote":"王甲本月工资为4000元。","blockId":"b1","subject":"王甲","scope":"individual","meaning":"due_total","completeness":"complete","period":"本月","rateUnit":null,"assertion":"narrated"},"amount":"4000.00","normalization":{"rawValue":"4000元","status":"exact","amount":"4000.00","matchedText":"4000元","span":{"start":0,"end":5},"reason":"唯一完整人民币金额已精确解析；原文和位置保持不变。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"}]}
+{"evidence":"relative_wage_period","relative":"下月","text":"王甲下月工资为4000元。","raw":{"kind":"money","value":"4000元","quote":"王甲下月工资为4000元。","blockId":"b1","subject":"王甲","scope":"individual","meaning":"due_total","completeness":"complete","period":"下月","rateUnit":null,"assertion":"narrated"},"amount":"4000.00","normalization":{"rawValue":"4000元","status":"exact","amount":"4000.00","matchedText":"4000元","span":{"start":0,"end":5},"reason":"唯一完整人民币金额已精确解析；原文和位置保持不变。"},"issues":[{"code":"source_relation_unresolved","message":"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"}]}
+✔ 4305687517: a cropped first endpoint of an RMB-to-RMB range never becomes an exact amount (15.796667ms)
+✔ 4305687521: a whole narrative paragraph cannot be the value of one anchored amount (3.331917ms)
+✔ 4305687523: 上月工资 identifies a period rather than a rate (1.536166ms)
+✔ 4305687523: 本月工资 identifies a period rather than a rate (0.317916ms)
+✔ 4305687523: 下月工资 identifies a period rather than a rate (0.297458ms)
+✔ finite RMB prefix aligns at the same Unicode amount occurrence: 人民币 (0.974083ms)
+✔ finite RMB prefix aligns at the same Unicode amount occurrence: RMB (2.369417ms)
+✔ finite RMB prefix aligns at the same Unicode amount occurrence: CNY (0.795042ms)
+✔ finite RMB prefix aligns at the same Unicode amount occurrence: ¥ (0.752ms)
+✔ finite RMB prefix aligns at the same Unicode amount occurrence: ￥ (1.767792ms)
+✔ finite RMB prefix and wage suffix permit both containment directions (2.18325ms)
+✔ a narrative or object phrase around an exact amount cannot borrow its anchor: 王甲声称应支付4000元 (0.429792ms)
+✔ a narrative or object phrase around an exact amount cannot borrow its anchor: 4000元并追究责任 (0.323208ms)
+✔ a narrative or object phrase around an exact amount cannot borrow its anchor: 4000元执行款 (0.290042ms)
+✔ a bare-number clipping cannot borrow the event of a complete monetary value (2.533917ms)
+✔ date boundary wrappers align an event but never replace exact date-value equality (4.889041ms)
+✔ a year clipped out of a full date is not its registered event (0.257542ms)
+✔ postfreeze currency grammar permits an optional exactness terminator: 八百零四元六角整 (1.870666ms)
+✔ postfreeze currency grammar permits an optional exactness terminator: 四万元正 (1.297417ms)
+✔ currency containment still rejects clipped cents, units or magnitude: 八百零四元六角整/八百零四元 (0.547583ms)
+✔ currency containment still rejects clipped cents, units or magnitude: 四万元五角整/四万元 (0.2565ms)
+✔ currency containment still rejects clipped cents, units or magnitude: 四万元整/四万 (1.990542ms)
+{"evidence":"implementation_hash","path":"lib/material-fact-runtime-ingest.ts","sha256":"a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f"}
+{"evidence":"implementation_hash","path":"lib/material-money-v4.ts","sha256":"0cb4948c106dbf4522ea7deec8e3c4f0fe141bd3260869813a3cb7c9b2a14ff8"}
+{"evidence":"implementation_hash","path":"lib/material-fact-source-review.ts","sha256":"97c3ed0e0f24fa67ff3369a9732261811caba224dddbf63a87b54b3cb8115ae0"}
+{"evidence":"implementation_hash","path":"experiments/material-facts-v7/assess.mjs","sha256":"d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"}
+{"evidence":"repeated-short-quote","raw_count":2,"accepted_count":2,"accepted_values":["四万元","四万元"],"accepted_amounts":[null,null],"rejected":[],"six_counts":{"raw_basic":[0,2,2],"raw_relational":[0,2,2],"raw_strict":[0,2,2],"accepted_basic":[0,2,2],"accepted_relational":[0,2,2],"accepted_strict":[0,2,2]},"event_alignment":{"raw":[{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]},{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]}],"accepted":[{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]},{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]}]}}
+{"evidence":"unique-quote-repeated-value","raw_count":2,"accepted_count":2,"accepted_values":["四万元","四万元"],"accepted_amounts":[null,null],"rejected":[],"six_counts":{"raw_basic":[0,2,2],"raw_relational":[0,2,2],"raw_strict":[0,2,2],"accepted_basic":[0,2,2],"accepted_relational":[0,2,2],"accepted_strict":[0,2,2]},"event_alignment":{"raw":[{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]},{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]}],"accepted":[{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]},{"status":"ambiguous_event","event":null,"positions":[{"blockId":"b1","start":9,"end":12},{"blockId":"b1","start":22,"end":25}]}]}}
+{"evidence":"illegal-wrapper-false","raw_count":2,"accepted_count":2,"accepted_values":["😀王甲2024年7月完整应付工资为四万元。","四万元"],"accepted_amounts":["40000.00","40000.00"],"rejected":[],"six_counts":{"raw_basic":[1,1,0],"raw_relational":[1,1,0],"raw_strict":[1,1,0],"accepted_basic":[1,1,0],"accepted_relational":[1,1,0],"accepted_strict":[1,1,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":0,"end":21}]},{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":20}]}],"accepted":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":0,"end":21}]},{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":20}]}]}}
+{"evidence":"unique-finite-wrapper-false","raw_count":2,"accepted_count":1,"accepted_values":["人民币四万元"],"accepted_amounts":["40000.00"],"rejected":[{"index":1,"reason":"同一源文位置、同一事实属性及规范化状态的候选重复；不同发生位置及待核金额分别保留"}],"six_counts":{"raw_basic":[1,1,0],"raw_relational":[1,1,0],"raw_strict":[1,1,0],"accepted_basic":[1,0,0],"accepted_relational":[1,0,0],"accepted_strict":[1,0,0]},"event_alignment":{"raw":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":23}]},{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":20,"end":23}]}],"accepted":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":23}]}]}}
+{"evidence":"illegal-wrapper-true","raw_count":2,"accepted_count":2,"accepted_values":["四万元","😀王甲2024年7月完整应付工资为四万元。"],"accepted_amounts":["40000.00","40000.00"],"rejected":[],"six_counts":{"raw_basic":[1,1,0],"raw_relational":[1,1,0],"raw_strict":[1,1,0],"accepted_basic":[1,1,0],"accepted_relational":[1,1,0],"accepted_strict":[1,1,0]},"event_alignment":{"raw":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":20}]},{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":0,"end":21}]}],"accepted":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":20}]},{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":0,"end":21}]}]}}
+{"evidence":"unique-finite-wrapper-true","raw_count":2,"accepted_count":1,"accepted_values":["四万元"],"accepted_amounts":["40000.00"],"rejected":[{"index":1,"reason":"同一源文位置、同一事实属性及规范化状态的候选重复；不同发生位置及待核金额分别保留"}],"six_counts":{"raw_basic":[1,1,0],"raw_relational":[1,1,0],"raw_strict":[1,1,0],"accepted_basic":[1,0,0],"accepted_relational":[1,0,0],"accepted_strict":[1,0,0]},"event_alignment":{"raw":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":20,"end":23}]},{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":17,"end":23}]}],"accepted":[{"status":"aligned","event":"event-0","positions":[{"blockId":"b1","start":20,"end":23}]}]}}
+{"evidence":"non-money-period","value":"这个月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"这个月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"这个月工资\",\"quote\":\"王甲材料仅记载“这个月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-这个月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":13}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"这月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"这月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"这月工资\",\"quote\":\"王甲材料仅记载“这月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-这月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":12}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"当月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"当月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"当月工资\",\"quote\":\"王甲材料仅记载“当月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-当月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":12}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"该月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"该月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"该月工资\",\"quote\":\"王甲材料仅记载“该月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-该月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":12}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"上个月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"上个月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"上个月工资\",\"quote\":\"王甲材料仅记载“上个月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-上个月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":13}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"下个月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"下个月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"下个月工资\",\"quote\":\"王甲材料仅记载“下个月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-下个月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":13}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"上一个月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"上一个月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"上一个月工资\",\"quote\":\"王甲材料仅记载“上一个月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-上一个月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":14}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"下一个月工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"下一个月工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"下一个月工资\",\"quote\":\"王甲材料仅记载“下一个月工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-下一个月工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":14}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"这个月的工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"这个月的工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"这个月的工资\",\"quote\":\"王甲材料仅记载“这个月的工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-这个月的工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":14}]}],"accepted":[]}}
+{"evidence":"non-money-period","value":"下一个月的工资","classification":{"kind":"not_monetary","normalization":{"rawValue":"下一个月的工资","status":"not_money","amount":null,"matchedText":null,"span":null,"reason":"原文为工资名称或期间描述，未表述金额。"}},"accepted":0,"raw":"{\"schemaVersion\":3,\"candidates\":[{\"kind\":\"money\",\"value\":\"下一个月的工资\",\"quote\":\"王甲材料仅记载“下一个月的工资”。\",\"blockId\":\"b1\",\"subject\":\"王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"unknown\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"}]}"}
+{"evidence":"non-money-period-下一个月的工资","raw_count":1,"accepted_count":0,"accepted_values":[],"accepted_amounts":[],"rejected":[{"index":0,"reason":"money 候选原文没有金额表达，仅为日期、计数或工资描述；原始输出仍保留，未补金额或置零"}],"six_counts":{"raw_basic":[0,1,0],"raw_relational":[0,1,0],"raw_strict":[0,1,0],"accepted_basic":[0,0,0],"accepted_relational":[0,0,0],"accepted_strict":[0,0,0]},"event_alignment":{"raw":[{"status":"unregistered_position","event":null,"positions":[{"blockId":"b1","start":8,"end":15}]}],"accepted":[]}}
+✔ 4305746125: unresolved occurrences retain both observations: repeated-short-quote (11.115708ms)
+✔ 4305746125: unresolved occurrences retain both observations: unique-quote-repeated-value (1.232625ms)
+✔ 4305746130: narrative containment cannot suppress the valid minimum in narrative-first order (9.1335ms)
+✔ a true unique finite RMB wrapper still deduplicates in full-first order (2.692958ms)
+✔ two distinct uniquely quoted equal payments survive in source order (1.9595ms)
+✔ different assertions at a unique occurrence never deduplicate in source order (1.808458ms)
+✔ 4305746130: narrative containment cannot suppress the valid minimum in minimum-first order (1.848209ms)
+✔ a true unique finite RMB wrapper still deduplicates in cropped-first order (1.462292ms)
+✔ two distinct uniquely quoted equal payments survive in reverse order (1.764ms)
+✔ different assertions at a unique occurrence never deduplicate in reverse order (1.215291ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 这个月工资 (1.650042ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 这月工资 (0.237166ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 当月工资 (0.212833ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 该月工资 (0.2335ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 上个月工资 (0.209083ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 下个月工资 (0.208542ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 上一个月工资 (0.203416ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 下一个月工资 (0.228292ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 这个月的工资 (0.179125ms)
+✔ 4305746128: a relative wage period without any amount stays raw FP: 下一个月的工资 (0.18375ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 工资金额不详 (0.916125ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 这个月工资金额不详 (0.562791ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 工资金额另议 (1.1225ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 新型工资口径待核 (0.236333ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 四万元至五万元 (0.273667ms)
+✔ absence gate keeps genuinely unknown or unsupported money reviewable: 四万元港币 (0.211667ms)
+✔ missing DeepSeek credential rejects before allocating the unique formal attempt (263.612875ms)
+✔ a current-hash failed Qwen outcome cannot establish development readiness (43.281459ms)
+✔ Qwen missing both rejects before creating any artifacts (191.58475ms)
+✔ Qwen missing model-path rejects before creating any artifacts (181.892709ms)
+✔ Qwen missing integrity-dir rejects before creating any artifacts (185.05525ms)
+✔ Qwen invalid model directory rejects before creating any artifacts (205.844167ms)
+✔ Qwen invalid integrity directory rejects before creating any artifacts (214.19475ms)
+✔ Qwen invalid configuration JSON rejects before creating any artifacts (194.160834ms)
+✔ Qwen invalid integrity receipt rejects before creating any artifacts (181.893333ms)
+✔ DeepSeek missing credential rejects without spending an attempt (176.052333ms)
+✔ DeepSeek directory credential rejects without spending an attempt (175.770708ms)
+✔ DeepSeek empty credential rejects without spending an attempt (184.233916ms)
+✔ DeepSeek shared credential rejects without spending an attempt (182.799583ms)
+✔ DeepSeek port 0 rejects before allocating an attempt (192.602042ms)
+✔ DeepSeek port 65536 rejects before allocating an attempt (192.7715ms)
+✔ DeepSeek port -1 rejects before allocating an attempt (183.454084ms)
+✔ DeepSeek port 1.5 rejects before allocating an attempt (173.705292ms)
+✔ DeepSeek port not-a-port rejects before allocating an attempt (184.811291ms)
+✔ invalid Python missing rejects before creating any artifacts (198.859417ms)
+✔ invalid Python non-executable rejects before creating any artifacts (196.486875ms)
+✔ invalid Python probe-failure rejects before creating any artifacts (362.795666ms)
+✔ a missing worker script rejects without consuming the formal attempt (178.206625ms)
+✔ a corrected configuration can reuse the same unconsumed path, while a started worker failure is immutable (750.694875ms)
+✔ rules can complete without any model paths, credentials or interpreter (204.542833ms)
+✔ complete current-hash runs with empty candidate arrays qualify all backends without a score threshold (57.039667ms)
+✔ development readiness rejects missing outcome despite current protocol hashes (47.64425ms)
+✔ development readiness rejects missing results despite current protocol hashes (42.526417ms)
+✔ development readiness rejects empty results despite current protocol hashes (31.202375ms)
+✔ development readiness rejects missing case despite current protocol hashes (31.970208ms)
+✔ development readiness rejects duplicate case despite current protocol hashes (38.781917ms)
+✔ development readiness rejects foreign case despite current protocol hashes (51.635875ms)
+✔ development readiness rejects wrong backend despite current protocol hashes (45.38275ms)
+✔ development readiness rejects nonterminal result despite current protocol hashes (55.603041ms)
+✔ development readiness rejects unterminated JSONL despite current protocol hashes (43.713542ms)
+✔ development readiness rejects truncated JSON despite current protocol hashes (42.508125ms)
+✔ development readiness rejects partial worker stdout despite current protocol hashes (29.099417ms)
+✔ rules false completion cannot be hidden by otherwise complete stop rows (24.443083ms)
+✔ qwen false completion cannot be hidden by otherwise complete stop rows (35.803541ms)
+✔ deepseek false completion cannot be hidden by otherwise complete stop rows (56.6695ms)
+✔ Qwen unsuccessful process receipt code cannot be ready (39.752875ms)
+✔ Qwen unsuccessful process receipt signal cannot be ready (46.528667ms)
+✔ Qwen unsuccessful process receipt stop_reason cannot be ready (37.807667ms)
+✔ Qwen unsuccessful process receipt incomplete_stdout cannot be ready (30.581625ms)
+✔ Qwen unsuccessful process receipt ids cannot be ready (46.865625ms)
+✔ Qwen unsuccessful process receipt missing attempt cannot be ready (35.785708ms)
+✔ a preserved failed historical attempt does not veto a separate complete current run (35.692959ms)
+✔ all six original successful development artifacts satisfy completion without rewriting them (3.894875ms)
+ℹ tests 288
+ℹ suites 0
+ℹ pass 288
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11854.545708

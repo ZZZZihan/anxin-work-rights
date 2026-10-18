@@ -18,7 +18,7 @@ export const RUN_HASH_FILES = ['lib/material-facts.ts', 'lib/material-fact-types
   'scripts/fact-runtime-v2.py', 'scripts/fact_memory_runtime.py', 'scripts/fact_api_transport.py', `${EXPERIMENT}/run.mjs`, `${EXPERIMENT}/assess.mjs`, `${EXPERIMENT}/freeze.mjs`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/runtime-policy.json`];
 export const REQUIRED_FILES = [...RUN_HASH_FILES, 'lib/material-money-v4.test.ts', 'lib/material-money-v4.independent.test.ts', 'lib/material-money-v4.review-regression.test.ts',
   'lib/material-fact-source-review.test.ts', 'lib/material-facts-v7-runtime-independent.test.ts', 'lib/material-fact-calendar-money.test.ts',
-  'lib/material-fact-store.ts', 'scripts/fact-jobs.mjs', 'scripts/material-facts-v7-assessment-independent.test.mjs', 'scripts/material-facts-v7-freeze-independent.test.mjs', 'scripts/material-facts-v7-http-regression.mjs',
+  'lib/material-fact-store.ts', 'scripts/fact-jobs.mjs', 'scripts/material-facts-v7-assessment-independent.test.mjs', 'scripts/material-facts-v7-freeze-independent.test.mjs', 'scripts/material-facts-v7-run-readiness.test.mjs', 'scripts/material-facts-v7-http-regression.mjs',
   `${EXPERIMENT}/PROTOCOL.md`, `${EXPERIMENT}/ANNOTATION.md`, `${EXPERIMENT}/model-identity.json`, `${EXPERIMENT}/api-models-preflight.json`, `${EXPERIMENT}/annotation-review.independent.json`,
   `${EXPERIMENT}/technical-review.json`, `${EXPERIMENT}/technical-review.initial.json`, `${EXPERIMENT}/benchmark-review.independent.json`, `${EXPERIMENT}/benchmark-review.initial.json`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/SOURCE_REVIEW.md`, `${EXPERIMENT}/REVIEW.md`, `${EXPERIMENT}/DEVELOPMENT.md`,
   `${LEGACY}/verify.mjs`, `${LEGACY}/freeze.mjs`, `${LEGACY}/freeze.json`, `${LEGACY}/result-manifest.json`];
@@ -167,12 +167,42 @@ export async function messageBytes(inputs, root = ROOT) {
   return inputs.map(input => JSON.stringify({ id: input.id, messages: buildExtractionMessagesV4(input.source) })).join('\n') + '\n';
 }
 
+/** Completion is transport/process readiness, never a candidate-quality filter. */
+export async function validateDevelopmentCompletion(directory, protocol) {
+  const { backend, case_ids: ids } = protocol;
+  assert(BACKENDS.includes(backend), 'Unknown development backend');
+  assert(Array.isArray(ids) && ids.length > 0 && new Set(ids).size === ids.length, 'Development protocol has invalid case IDs');
+  const outcome = await json(resolve(directory, 'outcome.json'));
+  assert.equal(outcome.completed, true, 'Development outcome is not successfully complete');
+  const bytes = await readFile(resolve(directory, 'results.jsonl'), 'utf8');
+  assert(bytes.trim() && bytes.endsWith('\n'), 'Development terminal results are empty or truncated');
+  const rows = bytes.slice(0, -1).split('\n').map(line => { assert(line.trim(), 'Development terminal results contain an empty record'); return JSON.parse(line); });
+  same(rows.map(row => row?.id), ids, 'Development terminal results do not cover protocol case IDs exactly once in order');
+  assert(rows.every(row => row.backend === backend && row.finish_reason === 'stop' && typeof row.raw_output === 'string'
+    && !Object.hasOwn(row, 'original_finish_reason')), 'Development terminal result is failed or differs from its backend protocol');
+  assert(!(await readdir(directory)).some(name => /^partial-stdout-\d+\.txt$/u.test(name)), 'Development worker stdout is truncated');
+  if (backend !== 'rules') {
+    const isolation = backend === 'qwen' ? 'fresh_process_per_document' : 'sequential_requests';
+    assert.equal(outcome.isolation ?? isolation, isolation, 'Development process isolation differs');
+    assert(Array.isArray(outcome.attempts) && outcome.attempts.length === (backend === 'qwen' ? ids.length : 1), 'Development process attempts are incomplete');
+    const batches = backend === 'qwen' ? ids.map(id => [id]) : [ids];
+    for (let index = 0; index < batches.length; index++) {
+      const attempt = outcome.attempts[index];
+      same(attempt.ids, batches[index], 'Development process attempt IDs differ from protocol');
+      assert(attempt.completed === true && attempt.code === 0 && attempt.signal == null && attempt.stop_reason == null
+        && attempt.incomplete_stdout === false, 'Development process attempt did not finish successfully and completely');
+    }
+  }
+  return { backend, cases: rows.length };
+}
+
 export async function validateDevelopment(root, inputs, { allowFormal = false } = {}) {
   const entries = await readdir(resolve(root, EXPERIMENT, 'results'), { withFileTypes: true });
   const expectedInput = sha(await readFile(resolve(root, EXPERIMENT, 'data/dev.inputs.jsonl')));
   const expectedMessages = await messageBytes(inputs, root), expectedIds = inputs.map(row => row.id);
   const current = Object.fromEntries(await Promise.all(RUN_HASH_FILES.map(async path => [path, sha(await readFile(safePath(root, path)))])));
   const verifiedBackends = new Set();
+  const notReady = [];
   for (const entry of entries) {
     assert(entry.isDirectory() && !entry.isSymbolicLink(), 'Unexpected development result entry');
     if (allowFormal && BACKENDS.some(backend => entry.name === `holdout-${backend}-1`)) continue;
@@ -183,9 +213,14 @@ export async function validateDevelopment(root, inputs, { allowFormal = false } 
     assert.equal(protocol.input_sha256, expectedInput, 'Pre-freeze attempt used inputs other than the registered development cases');
     same(protocol.case_ids, expectedIds, 'Pre-freeze attempt used non-development IDs');
     assert.equal(await readFile(resolve(directory, 'messages.jsonl'), 'utf8'), expectedMessages, 'Pre-freeze messages differ from registered development cases/prompt');
-    if (RUN_HASH_FILES.every(path => protocol.hashes?.[path] === current[path])) verifiedBackends.add(protocol.backend);
+    // Preserve failed historical attempts; they cannot establish readiness even
+    // when their protocol was written with the current code hash.
+    try {
+      await validateDevelopmentCompletion(directory, protocol);
+      if (RUN_HASH_FILES.every(path => protocol.hashes?.[path] === current[path])) verifiedBackends.add(protocol.backend);
+    } catch { notReady.push(entry.name); }
   }
-  assert(BACKENDS.every(backend => verifiedBackends.has(backend)), 'Every backend needs a development attempt using the final pre-freeze code');
+  assert(BACKENDS.every(backend => verifiedBackends.has(backend)), `Every backend needs a successful complete development attempt using the final pre-freeze code; not ready: ${notReady.join(', ')}`);
   return { backends: [...verifiedBackends].sort(), input_sha256: expectedInput, messages_sha256: sha(expectedMessages) };
 }
 

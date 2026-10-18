@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile, appendFile, lstat, realpath, rmdir } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, appendFile, lstat, realpath, rmdir, stat, access } from 'node:fs/promises';
+import { constants } from 'node:fs';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { basename, dirname, resolve } from 'node:path';
+import { basename, dirname, resolve, delimiter } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { StringDecoder } from 'node:string_decoder';
 import { extractRuleCandidates } from '../../lib/material-facts-v3.ts';
@@ -10,6 +11,52 @@ import { EXPERIMENT, RUN_HASH_FILES, deepseekReservation, priorDeepseekReservati
 import { verifyPreflight } from './verify.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
+const execute = promisify(execFile);
+
+async function readablePath(path, directory, label) {
+  try {
+    const info = await stat(path);
+    if (directory ? !info.isDirectory() : !info.isFile()) throw new Error('Wrong path type');
+    await access(path, constants.R_OK | (directory ? constants.X_OK : 0));
+    return info;
+  } catch { throw new Error(`${label} must name a readable ${directory ? 'directory' : 'regular file'}`); }
+}
+
+async function backendPreflight(backend, options) {
+  if (backend === 'rules') return null;
+  if (backend === 'qwen') {
+    if (!options['model-path']?.trim() || !options['integrity-dir']?.trim()) throw new Error('Qwen requires --model-path and --integrity-dir');
+    await readablePath(options['model-path'], true, '--model-path');
+    await readablePath(options['integrity-dir'], true, '--integrity-dir');
+    // Inspect small required files only. The worker retains weight integrity,
+    // package, memory and model-loading checks, and preserves any such failure.
+    for (const path of [resolve(options['model-path'], 'config.json'), resolve(options['integrity-dir'], 'source-manifest.json'), resolve(options['integrity-dir'], 'weights-verification.json')]) {
+      await readablePath(path, false, 'Qwen configuration/integrity file');
+      try { JSON.parse(await readFile(path, 'utf8')); } catch { throw new Error('Qwen configuration/integrity file must be valid JSON'); }
+    }
+  } else {
+    if (!options['key-file']?.trim()) throw new Error('DeepSeek requires --key-file');
+    if (options['connect-port'] !== undefined && (!/^[0-9]+$/u.test(options['connect-port']) || Number(options['connect-port']) < 1 || Number(options['connect-port']) > 65535)) throw new Error('--connect-port must be an integer from 1 to 65535');
+    const key = await readablePath(options['key-file'], false, '--key-file');
+    if (key.mode & 0o077) throw new Error('--key-file must be private to its owner');
+    if (!(await readFile(options['key-file'], 'utf8')).trim()) throw new Error('--key-file must not be empty');
+  }
+  await readablePath(resolve(root, 'scripts/fact-runtime-v2.py'), false, 'Worker script');
+  const requested = options.python ?? 'python3';
+  if (!requested.trim()) throw new Error('--python must name an executable Python interpreter');
+  let python;
+  for (const path of requested.includes('/') ? [resolve(requested)] : (process.env.PATH ?? '').split(delimiter).map(directory => resolve(directory, requested))) {
+    try { if ((await stat(path)).isFile()) { await access(path, constants.R_OK | constants.X_OK); python = path; break; } }
+    catch { /* Keep searching PATH without exposing process output or credentials. */ }
+  }
+  if (!python) throw new Error('--python must name an executable Python interpreter');
+  try {
+    const probe = await execute(python, ['-c', 'import sys; assert sys.version_info >= (3, 10); print("anxin-v7-python-ready")'], { timeout: 5000, maxBuffer: 4096 });
+    if (probe.stdout.trim() !== 'anxin-v7-python-ready') throw new Error('Invalid interpreter response');
+  } catch { throw new Error('Python executable failed its no-model preflight'); }
+  return python;
+}
+
 const args = process.argv.slice(2), options = {};
 const acceptedOptions = new Set(['mode', 'backend', 'inputs', 'out', 'python', 'model-path', 'integrity-dir', 'key-file', 'connect-port']);
 for (let i = 0; i < args.length; i += 2) { const key = args[i].slice(2); if (!args[i].startsWith('--') || args[i + 1] === undefined || !acceptedOptions.has(key) || Object.hasOwn(options, key)) throw new Error('Expected unique supported --key value pairs'); options[key] = args[i + 1]; }
@@ -25,6 +72,7 @@ const out = resolve(resultRoot, basename(requestedOut));
 if (mode === 'holdout' && basename(out) !== `holdout-${backend}-1`) throw new Error('Formal attempt directory must match the frozen backend');
 if (mode !== 'holdout' && basename(out).startsWith('holdout-')) throw new Error('Diagnostic output cannot use a formal attempt name');
 if (!['rules', 'qwen', 'deepseek'].includes(backend)) throw new Error('Invalid backend');
+const python = await backendPreflight(backend, options);
 const sha = value => createHash('sha256').update(value).digest('hex');
 const inputBytes = await readFile(inputPath);
 const inputs = inputBytes.toString().trim().split('\n').filter(Boolean).map(line => JSON.parse(line));
@@ -84,11 +132,9 @@ if (backend === 'rules') {
   const batches = backend === 'qwen' ? messages.map(message => [message]) : [messages];
   const attempts = [];
   for (const batch of batches) {
-  const python = options.python || 'python3';
   const argv = [resolve(root, 'scripts/fact-runtime-v2.py'), '--backend', backend];
   if (backend === 'qwen') argv.push('--model-path', options['model-path'], '--integrity-dir', options['integrity-dir']);
   else { argv.push('--key-file', options['key-file']); if (options['connect-port']) argv.push('--connect-host', '127.0.0.1', '--connect-port', options['connect-port']); }
-  const execute = promisify(execFile);
   const memory = async () => {
     const [pressure, swap] = await Promise.all([execute('sysctl', ['-n', 'kern.memorystatus_vm_pressure_level'], { timeout: 2000 }), execute('sysctl', ['-n', 'vm.swapusage'], { timeout: 2000 })]);
     const level = Number(pressure.stdout), match = /used\s*=\s*([\d.]+)([MG])/.exec(swap.stdout);

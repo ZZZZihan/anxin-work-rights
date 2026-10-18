@@ -1,13 +1,14 @@
 // Post-freeze correction of the SAME first outputs. No requests, new labels,
 // retries or overwrite of the original reports. This is not another holdout run.
 import assert from 'node:assert/strict';
+import { publishArtifacts } from './publish-artifacts.mjs';
 import { execFileSync } from 'node:child_process';
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { assess, readJsonl } from './assess.mjs';
 import { BACKENDS, EXPERIMENT, ROOT, RUN_HASH_FILES, isMainModule, sha, same } from './freeze.mjs';
 const json = async path => JSON.parse(await readFile(path, 'utf8'));
-const codePaths = [...RUN_HASH_FILES, `${EXPERIMENT}/verify-frozen.mjs`, `${EXPERIMENT}/corrective-assessment.mjs`];
+const codePaths = [...RUN_HASH_FILES, `${EXPERIMENT}/verify-frozen.mjs`, `${EXPERIMENT}/corrective-assessment.mjs`, `${EXPERIMENT}/publish-artifacts.mjs`];
 
 export async function computeCorrection(root = ROOT) {
   const base = resolve(root, EXPERIMENT);
@@ -51,9 +52,7 @@ if (await isMainModule(import.meta.url)) {
   const { artifacts, manifest } = await computeCorrection();
   const directory = resolve(ROOT, EXPERIMENT, 'corrections');
   if (args[0] === '--write') {
-    await mkdir(directory); // Fail if any prior correction exists; never overwrite it.
-    for (const [path, value] of Object.entries({ ...artifacts, 'manifest.json': manifest }))
-      await writeFile(resolve(directory, path), JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
+    await publishArtifacts(directory, { ...artifacts, 'manifest.json': manifest });
   } else {
     same((await readdir(directory)).sort(), [...Object.keys(artifacts), 'manifest.json'].sort(), 'Correction file set changed');
     same(await json(resolve(directory, 'manifest.json')), manifest, 'Correction manifest changed');

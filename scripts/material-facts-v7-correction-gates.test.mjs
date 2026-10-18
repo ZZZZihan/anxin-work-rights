@@ -10,7 +10,8 @@ import { withFrozenCode } from '../experiments/material-facts-v7/verify-frozen.m
 
 // Independent negative gate tests. Only a temporary copy is mutated: no model,
 // network, build, correction write, or modification of historical repo evidence.
-const ROOT = fileURLToPath(new URL('../', import.meta.url));
+const IMPLEMENTATION_ROOT = fileURLToPath(new URL('../', import.meta.url));
+const ROOT = resolve(process.env.MATERIAL_FACT_TEST_ROOT || IMPLEMENTATION_ROOT);
 const EXPERIMENT = 'experiments/material-facts-v7';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const jsonBytes = value => Buffer.from(JSON.stringify(value, null, 2) + '\n');
@@ -25,16 +26,18 @@ async function replaced(path, replacement, action) {
 test('historical-code and correction gates reject isolated evidence corruption', { timeout: 120000 }, async t => {
   const fixture = await mkdtemp(resolve(tmpdir(), 'anxin-v7-correction-gates-'));
   const base = resolve(fixture, EXPERIMENT);
-  const manifestPath = resolve(base, 'frozen-code/manifest.json');
+  const manifestPath = resolve(base, 'frozen-code-v2/manifest.json');
   const originalResult = resolve(ROOT, EXPERIMENT, 'results/holdout-rules-1/results.jsonl');
   const rootResultHash = sha(await readFile(originalResult));
   try {
     for (const path of ['lib', 'scripts', 'experiments', 'docs', 'package.json'])
       await cp(resolve(ROOT, path), resolve(fixture, path), { recursive: true });
+    await cp(resolve(IMPLEMENTATION_ROOT, EXPERIMENT, 'verify-frozen.mjs'), resolve(base, 'verify-frozen.mjs'));
+    await cp(resolve(IMPLEMENTATION_ROOT, EXPERIMENT, 'frozen-code-v2'), resolve(base, 'frozen-code-v2'), { recursive: true });
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
     const archivedPath = 'lib/material-fact-source-review.ts';
     assert.ok(Object.hasOwn(manifest.files, archivedPath), 'fixture must contain the source-review snapshot');
-    const snapshotPath = resolve(base, 'frozen-code', `${archivedPath}.snapshot`);
+    const snapshotPath = resolve(base, 'frozen-code-v2', `${archivedPath}.snapshot`);
 
     await t.test('unaltered copied evidence passes the real historical verifier', () => {
       const receipt = JSON.parse(execFileSync(process.execPath, [resolve(base, 'verify-frozen.mjs')], {
