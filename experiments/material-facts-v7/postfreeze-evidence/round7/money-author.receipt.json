@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "round": 7,
+  "author": "v7_money",
+  "scope": "Finite direct amount-noun bridge in shared arithmetic guard; new author regression only. No changes to parser, source-review or currency by this author.",
+  "parent_baseline_commit": "0abcea42de71dcc70980a24f8faa68c8894082cb",
+  "implementation_files": [
+    {
+      "file": "lib/material-fact-arithmetic-review.ts",
+      "sha256": "a53e57f19fb0375b1016f54c05dc5763e36661ca4bb4a4acfd16d28364801363"
+    },
+    {
+      "file": "scripts/material-fact-arithmetic-noun.test.mjs",
+      "sha256": "63eb60a7da9ab22ee28fa9627d0fe8fdac126b9d48a54dc1b16534cabcc4162e"
+    }
+  ],
+  "synthetic_checks": [
+    {
+      "phase": "original-baseline valid fixture",
+      "log": "money-before-red.valid-fixture.txt",
+      "tests": 51,
+      "pass": 13,
+      "fail": 38,
+      "baseline_helper_sha256": "3ff2d33aa4b388205d2c6cdd165c0caf1d225383e536d7316598380a8468d323"
+    },
+    {
+      "phase": "first noun-with-explicit-de version",
+      "log": "money-after-green.txt",
+      "tests": 51,
+      "pass": 51,
+      "fail": 0
+    },
+    {
+      "phase": "explicit operator expansion before fix",
+      "log": "money-operator-before-red.txt",
+      "tests": 13,
+      "pass": 0,
+      "fail": 13
+    },
+    {
+      "phase": "intermediate operator expansion",
+      "log": "money-final-green.txt",
+      "tests": 64,
+      "pass": 62,
+      "fail": 2,
+      "note": "Short noun alternative consumed 工资款/工资总额; preserved failing output, fixed by a structural lookahead."
+    },
+    {
+      "phase": "explicit noun/operator version",
+      "log": "money-final-fixed-green.txt",
+      "tests": 64,
+      "pass": 64,
+      "fail": 0,
+      "helper_sha256": "42a1fadf9a85deb31835f6cedc4557b75d744129af89e1907bf55191b737b3f7"
+    },
+    {
+      "phase": "same-line bare noun factor before fix",
+      "log": "money-bare-noun-before-red.txt",
+      "tests": 86,
+      "pass": 72,
+      "fail": 14,
+      "helper_sha256": "42a1fadf9a85deb31835f6cedc4557b75d744129af89e1907bf55191b737b3f7"
+    },
+    {
+      "phase": "final author checks",
+      "log": "money-bare-noun-after-green.txt",
+      "tests": 86,
+      "pass": 86,
+      "fail": 0
+    },
+    {
+      "phase": "final combined isolated overlay",
+      "log": "money-cross-module.bare-noun-final-green.txt",
+      "tests": 386,
+      "pass": 386,
+      "fail": 0,
+      "components": {
+        "author_noun": 86,
+        "peer_currency_rate": 127,
+        "existing_arithmetic_source": 96,
+        "existing_arithmetic_independent": 77
+      },
+      "peer_sha256": {
+        "lib/material-fact-currency-review.ts": "21b50936cacc5b9188f31d6695c588b0e0470068ba2eed4ba9f0c60042db57dd",
+        "lib/material-fact-source-review.ts": "1da900cf5c9ddaa62dec8548eff8c528ade853549853a248bb647e18cf06b035",
+        "scripts/material-fact-currency-rate-source-review.test.mjs": "1d188c12089dbbb5ca93dda859cf2aa108cbedf99ccb7d8393051f47e0294528"
+      }
+    },
+    {
+      "phase": "final lint",
+      "log": "money-eslint.bare-noun-final.txt",
+      "exit_code": 0,
+      "stdout": "empty",
+      "stderr": "empty"
+    }
+  ],
+  "command_author": "MATERIAL_FACT_TEST_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards node --test scripts/material-fact-arithmetic-noun.test.mjs",
+  "command_lint": "npx eslint lib/material-fact-arithmetic-review.ts scripts/material-fact-arithmetic-noun.test.mjs",
+  "provenance": [
+    "All stdout logs are original local outputs, not reconstructed.",
+    "money-before-red.txt preserves the first run with 11 layout fixtures missing the subject; those assertion failures are fixture errors and are not evidence of parser failures. money-before-red.valid-fixture.txt is the corrected actual baseline.",
+    "money-final-green.txt is a preserved intermediate FAIL log despite its historical filename; only money-final-fixed-green.txt and newer after-green logs are green.",
+    "The original new positive control 工资2倍另案处理 was replaced by 工资另案处理按2倍 after parent explicitly confirmed immediate same-line noun-factor倍 is an operand. No frozen or existing test was modified.",
+    "Combined checks used a new temporary directory: copied integration lib and assess source, overlaid author helper and the exact peer currency/source files, copied four test scripts, executed native node tests, then deleted only that temporary directory.",
+    "money-cross-module-green.txt is the earlier 364-pass combination with the 64-test author script. money-cross-module.bare-noun-final-green.txt is the final 386-pass combination with the 86-test author script."
+  ],
+  "cross_review": {
+    "reviewed": "Peer currency/source implementation; this author did not implement those changes.",
+    "finding": "No blocking issue found within the finite same-event bridge and rate scope in static review plus the executed 127 peer controls in the final combined run.",
+    "controls": "Foreign prefix/postfix attribution, Unicode format controls, another person/clause/line, declared month rates, calendar/relative wage periods, historical v2 read-only downgrade."
+  },
+  "limits": [
+    "Finite lexical and operator grammar, not exhaustive natural-language arithmetic detection; no inferred calculation.",
+    "NFKC/Cf/whitespace handling affects only detection copies; source raw/value/quote/positions remain unchanged.",
+    "Only the new bare noun-factor倍 path requires amount through 倍 to remain on one line; explicit 的 and arithmetic operators retain existing layout continuation behavior.",
+    "All tests are synthetic local source/runtime/read-time checks; no model, new holdout, HTTP service, deployment, user confirmation or actual monetary calculation was executed.",
+    "Final whole-project check and HTTP regression belong to the parent on the integrated source; these local checks do not replace them.",
+    "No commit, push or frozen artifact modification."
+  ],
+  "evidence_files": [
+    {
+      "file": "money-after-green.txt",
+      "sha256": "265631d4dc81d6d313141df7128cbf52f9e0c92a78f8619bedc0ed75dd6e3794",
+      "bytes": 5074,
+      "counts": {
+        "tests": 51,
+        "pass": 51,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "money-bare-noun-after-green.txt",
+      "sha256": "fd7274c442ece64607b251f83b26b8f5afa3d53654f9a970b5a4478e5ef63bba",
+      "bytes": 8829,
+      "counts": {
+        "tests": 86,
+        "pass": 86,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "money-bare-noun-before-red.txt",
+      "sha256": "ac0d4d2f1f99d5c4542e2d3891cdf0559d96a31c0cba043292a2d6ece67fb487",
+      "bytes": 22068,
+      "counts": {
+        "tests": 86,
+        "pass": 72,
+        "fail": 14,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "money-before-red.txt",
+      "sha256": "b9bccad1b249c8fa6f0a6ff4337403aa4fd60265d833fa4a6c1e98c17d704f99",
+      "bytes": 42397,
+      "counts": {
+        "tests": 51,
+        "pass": 13,
+        "fail": 38,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "money-before-red.valid-fixture.txt",
+      "sha256": "b287447a36f8d0d3d47030fd2eda8b1e3e11536509294ab2e2291648b51aba2d",
+      "bytes": 40757,
+      "counts": {
+        "tests": 51,
+        "pass": 13,
+        "fail": 38,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "money-cross-module-green.txt",
+      "sha256": "c343167dbe51e39c6cf51b82ccd12b11c8d91806828d826bfc01c5c6e0af89c9",
+      "bytes": 64998,
+      "counts": {
+        "tests": 364,
+        "pass": 364,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "money-cross-module.bare-noun-final-green.txt",
+      "sha256": "c4a1168b7ae86d789f6bfce637604ddc0ca05f9fb27397e017540e0634a9cb6d",
+      "bytes": 67415,
+      "counts": {
+        "tests": 386,
+        "pass": 386,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "money-eslint.bare-noun-final.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "file": "money-eslint.final.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "file": "money-eslint.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "file": "money-existing-arithmetic-green.txt",
+      "sha256": "24d93668de8529ffb6717ecd1c17ece105bbabf3163175fa8f9d647a18301d3e",
+      "bytes": 47479,
+      "counts": {
+        "tests": 173,
+        "pass": 173,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "money-final-fixed-green.txt",
+      "sha256": "03c6b414bf919530602a9617d4c5f9219cacec82bf09ff77fabb2a4a74710b12",
+      "bytes": 6434,
+      "counts": {
+        "tests": 64,
+        "pass": 64,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "money-final-green.txt",
+      "sha256": "2b69466bb71f8d2e9e148c70e35b7a8d15c35537b1ddec52e562a504085706d7",
+      "bytes": 8288,
+      "counts": {
+        "tests": 64,
+        "pass": 62,
+        "fail": 2,
+        "skipped": 0
+      }
+    },
+    {
+      "file": "money-helper.baseline.snapshot",
+      "sha256": "3ff2d33aa4b388205d2c6cdd165c0caf1d225383e536d7316598380a8468d323",
+      "bytes": 3225
+    },
+    {
+      "file": "money-helper.patch",
+      "sha256": "c64f5820b9be06faa4d2dd3ef8ba33e2ba431f195181e6cf807f0189095be21d",
+      "bytes": 3616
+    },
+    {
+      "file": "money-operator-before-red.txt",
+      "sha256": "811b56f7b6689b2a830c225342868db676f9e41750e05e7556a5303432957b0b",
+      "bytes": 13351,
+      "counts": {
+        "tests": 13,
+        "pass": 0,
+        "fail": 13,
+        "skipped": 0
+      }
+    }
+  ]
+}
