@@ -45,7 +45,7 @@ const SUBUNITS = `(?:[0-9${SINGLE_DIGIT}]角(?:[0-9${SINGLE_DIGIT}]分)?|[0-9${S
 const YUAN_TAIL = `[元圆圓](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`;
 // New alternatives require an explicit named RMB currency. A bare 5角/2分
 // remains unsupported; no time/measure unit is inferred to be money.
-const TOKEN = new RegExp(`(?:${RMB_NAME}\\s*${SUBUNITS}(?:整|正)?|${SUBUNITS}(?:整|正)?\\s*${RMB_NAME}|${LITERAL_NUMBER}\\s*(?:${YUAN_TAIL}\\s*)?${RMB_NAME}|(?:人民[币幣]\\s*)?[¥￥]?\\s*${LITERAL_NUMBER}\\s*${YUAN_TAIL})`, 'giu');
+const TOKEN = new RegExp(`(?:${RMB_NAME}\\s*${SUBUNITS}(?:整|正)?|${SUBUNITS}(?:整|正)?\\s*${RMB_NAME}|${RMB_NAME}\\s*${LITERAL_NUMBER}(?:\\s*${YUAN_TAIL})?|${LITERAL_NUMBER}\\s*(?:${YUAN_TAIL}\\s*)?${RMB_NAME}|(?:人民[币幣]\\s*)?[¥￥]?\\s*${LITERAL_NUMBER}\\s*${YUAN_TAIL})`, 'giu');
 
 function result(rawValue: string, status: CandidateNormalization['status'], reason: string, match?: { text: string; index: number; amount: string }): CandidateNormalization {
   return { rawValue, status, amount: match?.amount ?? null, matchedText: match?.text ?? null,
@@ -56,7 +56,14 @@ function result(rawValue: string, status: CandidateNormalization['status'], reas
 // the numeric token. It cannot silently turn 数十万 or 负数四万 into its tail.
 function monetaryDetectionView(value: string): string {
   // Fold only detection copies; keep line boundaries and every raw offset.
-  return moneyQualifierDetectionView(value).replace(/兩/gu, '两').replace(/億/gu, '亿');
+  return moneyQualifierDetectionView(value).replace(/[兩億詳無確認載記註實補暫計給發號]/gu,
+    glyph => ({ 兩: '两', 億: '亿', 詳: '详', 無: '无', 確: '确', 認: '认', 載: '载', 記: '记', 註: '注', 實: '实', 補: '补', 暫: '暂', 計: '计', 給: '给', 發: '发', 號: '号' })[glyph]!);
+}
+
+// Only uncertainty matching joins layout inside its finite existing words;
+// punctuation and every other character remain barriers between events.
+function uncertaintyDetectionView(value: string): string {
+  return monetaryDetectionView(value).replace(/\s/gu, '');
 }
 
 
@@ -205,8 +212,8 @@ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization 
     const match = matches[0];
     if (hasAttachedMoneyArithmetic(rawValue.slice(0, match.index), rawValue.slice(match.index + match[0].length))) return result(rawValue, 'unsupported', '金额直接参与倍数或算式，未把其中的金额操作数当作计算结果。');
   }
-  if (MASKED.test(rawValue)) return result(rawValue, 'masked', '金额未知、未明确或被遮盖；保留原文且不转换为零。');
-  if (UNCERTAIN.test(rawValue)) return result(rawValue, 'uncertain', '金额有不确定或待核表述。');
+  if (MASKED.test(uncertaintyDetectionView(rawValue))) return result(rawValue, 'masked', '金额未知、未明确或被遮盖；保留原文且不转换为零。');
+  if (UNCERTAIN.test(uncertaintyDetectionView(rawValue))) return result(rawValue, 'uncertain', '金额有不确定或待核表述。');
   if (isRange) return result(rawValue, 'range', '金额属于区间，未选取单个端点。');
   if (matches.length === 0 && INNER_APPROXIMATE_MONEY.test(monetaryDetectionView(rawValue))) return result(rawValue, 'approximate', '金额含多或余的内嵌概数，未转成精确金额。');
 
@@ -232,8 +239,15 @@ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization 
     // token is anchored. Returned evidence and code-point spans use text/rawValue.
     let parseText = text.replace(/^人民幣/u, '人民币').replace(/圓/gu, '圆').replace(/萬/gu, '万').replace(/億/gu, '亿').replace(/兩/gu, '两').replace(/[貳參陸]/gu, glyph => ({ 貳: '贰', 參: '叁', 陸: '陆' })[glyph]!);
     const subunitAmount = parseExplicitRmbSubunits(parseText);
-    if (subunitAmount !== null && (new RegExp(`${RMB_NAME}\\s*$`, 'iu').test(before) || new RegExp(`^\\s*${RMB_NAME}`, 'iu').test(after)))
-      return result(rawValue, 'unsupported', '纯角分金额重复附着币种标记，未截取其中一个完整片段。');
+    const prefix = parseText.match(new RegExp(`^${RMB_NAME}\\s*`, 'iu'));
+    if ((subunitAmount !== null || prefix) && (new RegExp(`${RMB_NAME}\\s*$`, 'iu').test(before) || new RegExp(`^\\s*${RMB_NAME}`, 'iu').test(after)))
+      return result(rawValue, 'unsupported', '金额重复附着币种标记，未截取其中一个完整片段。');
+    // Explicit named RMB supplies the omitted yuan unit, only after the whole
+    // original token and its continuation have passed the existing guards.
+    if (prefix) {
+      parseText = '人民币' + parseText.slice(prefix[0].length);
+      if (!/[元圆角分整正]$/u.test(parseText)) parseText += '元';
+    }
     // A postfix currency label is replaced only in this parse copy, after the
     // complete original token has been anchored. Never change returned spans.
     const postfix = parseText.match(new RegExp(`\\s*${RMB_NAME}$`, 'iu'));
@@ -255,14 +269,30 @@ export function normalizeMoneyValueV4(rawValue: string): CandidateNormalization 
 /** An immediately following uncertainty marker can be cropped out of value
  * and quote. Inspect a detection copy, retaining punctuation as evidence. */
 export function hasPostposedMoneyUncertainty(after: string): boolean {
-  const text = after.normalize('NFKC').replace(/\p{Cf}/gu, '');
-  return /^\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\s*[()[\]{}【】]*\s*(?:(?:金[额額]|[数數][额額])\s*(?:为|為|是|[:=])?\s*)?(?:[?□_]|待核(?:实)?|待(?:定|确认|补充)|未知|不详|不明|无法确定|未(?:提供|明确|载明|记载|披露|列明|注明|约定|确定)|\.{2,}|…)/iu.test(text);
+  // ×/x/* also occur in redactions. An explicit attached operation keeps
+  // its established unsupported status instead of becoming a masked value.
+  if (hasAttachedMoneyArithmetic('', after)) return false;
+  const text = uncertaintyDetectionView(after);
+  return new RegExp(`^\\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\\s*[()[\\]{}【】]*\\s*(?:(?:金[额額]|[数數][额額])\\s*(?:为|為|是|[:=])?\\s*)?(?:${MASKED.source}|${UNCERTAIN.source})`, 'iu').test(text);
 }
 
 const RATE_UNITS: Record<string, RawCandidateV3['rateUnit']> = { 小时: 'hour', 月: 'month', 日: 'day', 天: 'day', 时: 'hour', 件: 'piece' };
 
+/** A bounded calendar payment instruction is not a monthly denominator.
+ * Source review reuses this detection-only predicate; amounts and raw offsets
+ * are unaffected, and slash units and ordinary monthly rates remain guarded. */
+export function isPostposedMoneyPaymentSchedule(after: string): boolean {
+  const day = '(?:[12][0-9]|3[01]|[1-9]|二十[一二三四五六七八九]?|三十一?|十[一二三四五六七八九]?|[一二三四五六七八九])';
+  const detection = monetaryDetectionView(after);
+  const calendar = detection.match(new RegExp(`^\\s*(?:[元圆圓]\\s*)?每\\s*月\\s*(?:第\\s*)?${day}\\s*(?:日|号)\\s*(?:支付|发放|给付|付清|发薪)`, 'u'));
+  if (!calendar) return false;
+  const tail = detection.slice(calendar[0].length);
+  return /^\s*(?:$|[，,。；;！!）)】\]])/u.test(tail) && !hasPostposedMoneyUncertainty(tail);
+}
+
 function attachedSuffixRate(after: string) {
   const detection = monetaryDetectionView(after).replace(/[^\S\r\n\u2028\u2029]/gu, '');
+  if (isPostposedMoneyPaymentSchedule(detection)) return { present: false, supported: undefined, postposedBy: false, uncertain: false };
   // 按时支付 is ordinary prose, and 按月15日 is a payment schedule.
   // Only a complete unit plus this finite pricing ending (or an unambiguous
   // bare unit at a clause boundary) creates a new denominator.
@@ -372,7 +402,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
       else if (hasUnfinishedMoneyRangeAfter(arithmeticAfter)) normalized = result(candidate.value, 'uncertain', '连接词后的数字未形成完整金额或明确时间，不能确认被截取的数值可用。');
       else if (hasAttachedMoneyArithmetic(arithmeticBefore, arithmeticAfter)) normalized = result(candidate.value, 'unsupported', '当前金额在原文中直接参与倍数或算式，未把裁剪后的金额操作数当作计算结果。');
       else if (qualifierStatus) normalized = result(candidate.value, qualifierStatus, '当前金额在原文中直接附着数量不定、概数界限或正负限定，未截取为精确正数。');
-      else if (/(?:可能|或许|大概|估计|待核|暂计|暂定)(?:为|工资|金额|人民币|\s)*$/u.test(before) || /(?:或|或者)\s*$/u.test(before)
+      else if (/(?:可能|或许|大概|估计|待核|暂计|暂定)(?:为|工资|金额|人民币|\s)*$/u.test(monetaryDetectionView(before)) || /(?:或|或者)\s*$/u.test(before)
         || new RegExp(`^\\s*(?:或|或者)\\s*(?:${RMB_NAME}\\s*)?[${NUMERALS}]`, 'iu').test(after)) normalized = result(candidate.value, 'uncertain', '当前金额在原文中有直接附着的不确定或备选表述。');
       else if (bareValue && !attachedCurrency) normalized = result(candidate.value, 'unsupported', 'value 和当前原文锚点均无明确人民币单位，未猜测这是金额。');
       else if (new RegExp(`[${NUMERALS},.，]$`, 'u').test(beforeBoundary)
@@ -415,9 +445,9 @@ export function classifyMonetaryExpression(value: string): MonetaryExpressionCla
     || [...detection.matchAll(new RegExp(`[${NUMERALS}]+[角分]`, 'gu'))]
       .some(match => !moneyTokenHasNonCurrencySubunit(match[0], detection.slice(match.index + match[0].length)));
   if (normalization.status === 'exact' || explicit) return { kind: 'monetary', normalization };
-  if (MASKED.test(value) && /工资|薪资|薪酬|金额|款项|欠薪|报酬|劳务费|付款|应付|实付|已付|尚欠|欠款/u.test(value)) return { kind: 'monetary', normalization };
+  if (MASKED.test(detection) && /工资|薪资|薪酬|金额|款项|欠薪|报酬|劳务费|付款|应付|实付|已付|尚欠|欠款/u.test(value)) return { kind: 'monetary', normalization };
   const ordinaryCount = detection.match(new RegExp(`^[${NUMERALS}]+([角分].*)$`, 'u'));
-  if (ordinaryCount && isNonCurrencySubunitMeasure(ordinaryCount[1]) && !MASKED.test(value))
+  if (ordinaryCount && isNonCurrencySubunitMeasure(ordinaryCount[1]) && !MASKED.test(detection))
     return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为时间、计量或普通词语的计数，未表述金额。') };
   const count = `[${NUMERALS}]+`;
   const date = `(?:[${NUMERALS}]+\\s*年(?:\\s*(?:[${NUMERALS}]+月份?|元月份?|元旦)(?:\\s*[${NUMERALS}]+\\s*日)?)?|\\d{4}[-/.]\\d{1,2}(?:[-/.]\\d{1,2})?)`;
@@ -434,14 +464,14 @@ export function classifyMonetaryExpression(value: string): MonetaryExpressionCla
   // text. Unknown/masked suffixes cannot match the complete empty-label rule.
   const wageLabel = monetaryDetectionView(value).trim().replace(/[資勞動報務費應標準稅後崗績離職試實總額計]/gu,
     character => ({ 資: '资', 勞: '劳', 動: '动', 報: '报', 務: '务', 費: '费', 應: '应', 標: '标', 準: '准', 稅: '税', 後: '后', 崗: '岗', 績: '绩', 離: '离', 職: '职', 試: '试', 實: '实', 總: '总', 額: '额', 計: '计' })[character]!);
-  if (wageDescription.test(wageLabel) && !MASKED.test(value)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为工资名称或期间描述，未表述金额。') };
+  if (wageDescription.test(wageLabel) && !MASKED.test(detection)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为工资名称或期间描述，未表述金额。') };
   const ordinaryWord = /^(?:元月份?|元旦|元宵(?:节)?|元年|元素|元件|元音|[圆圓](?:满|滿|形|圈|周))$/u;
   const wageCompletion = /^(?:已|已经)?[圆圓][满滿](?:完成)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:发放|支付|结算)(?:工作)?$/u;
-  if (!MASKED.test(value) && (ordinaryWord.test(value.trim()) || wageCompletion.test(value.trim()) || new RegExp(`^${date}$`, 'u').test(value.trim()))) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为日期、普通词语或工资发放描述，未表述金额。') };
+  if (!MASKED.test(detection) && (ordinaryWord.test(value.trim()) || wageCompletion.test(value.trim()) || new RegExp(`^${date}$`, 'u').test(value.trim()))) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为日期、普通词语或工资发放描述，未表述金额。') };
   const withoutDatesAndCounts = value.trim().replace(/\d{4}[-/.]\d{1,2}(?:[-/.]\d{1,2})?/gu, '')
     .replace(new RegExp(`${count}\\s*(?:年|个?月|天|日|小时|分钟|件|名(?:工人|员工|劳动者)?|(?:个|位)(?:工人|员工|劳动者)|个?人|位|个|倍|次)`, 'gu'), '')
     .replace(/(?:工资|薪资|薪酬|劳务费|劳动报酬|应付|已付|实付|月薪|日薪|时薪|工作|为|是|按月|按日|发放|支付|劳动者|每月|每年|每|共计|计|[\s，,。:：;；至到])/gu, '');
-  if ((!value.trim() || !withoutDatesAndCounts) && !MASKED.test(value)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为日期、普通计数或无金额工资描述。') };
+  if ((!value.trim() || !withoutDatesAndCounts) && !MASKED.test(detection)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为日期、普通计数或无金额工资描述。') };
   return { kind: 'undetermined', normalization };
 }
 

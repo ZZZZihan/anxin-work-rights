@@ -11,8 +11,8 @@ export const MONEY_BOUND_SUFFIX = `(?:(?:不到|不止|不足|不满|未满|未�
 
 /** Fold a detection copy only; never use this text for source positions. */
 export function moneyQualifierDetectionView(text: string): string {
-  return text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[約餘滿於達內頂頭許萬開兩億貳參陸]/gu,
-    character => ({ 約: '约', 餘: '余', 滿: '满', 於: '于', 達: '达', 內: '内', 頂: '顶', 頭: '头', 許: '许', 萬: '万', 開: '开', 兩: '两', 億: '亿', 貳: '贰', 參: '叁', 陸: '陆' })[character]!);
+  return text.normalize('NFKC').replace(/\p{Cf}/gu, '').replace(/[約餘滿於達內頂頭許萬開兩億貳參陸過將]/gu,
+    character => ({ 約: '约', 餘: '余', 滿: '满', 於: '于', 達: '达', 內: '内', 頂: '顶', 頭: '头', 許: '许', 萬: '万', 開: '开', 兩: '两', 億: '亿', 貳: '贰', 參: '叁', 陸: '陆', 過: '过', 將: '将' })[character]!);
 }
 const view = (text: string) => moneyQualifierDetectionView(text).replace(/\s+/gu, ' ');
 const SPACE = String.raw`\s*`;

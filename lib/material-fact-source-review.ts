@@ -1,7 +1,7 @@
 import type { FactCandidate, FactSource, FactState } from './material-fact-types';
 import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 } from './material-fact-types-v3';
 import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from './material-facts-v3.ts';
-import { hasPostposedMoneyUncertainty, hasUnfinishedMoneyRangeAfter, hasUnsafeWholeMoneyContinuation, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
+import { isPostposedMoneyPaymentSchedule, hasPostposedMoneyUncertainty, hasUnfinishedMoneyRangeAfter, hasUnsafeWholeMoneyContinuation, normalizeCandidateValueV4 as normalizeCandidateValue } from './material-money-v4.ts';
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
 import { sourceMoneyHasNonCurrencySubunit, sourceMoneyHasNonCurrencyYuan, sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
@@ -180,7 +180,7 @@ function sourcePostposedRate(afterEdge: string): { unit: RateUnit | null; uncert
   return null;
 }
 
-function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null, postposedUnit?: RateUnit): RateUnit | null {
+function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null, postposedUnit?: RateUnit, paymentSchedule = false): RateUnit | null {
   const edges = monetaryEdges(context, normalized, true);
   if (!edges) return null;
   const detectionText = sourceRateDetectionText;
@@ -190,7 +190,9 @@ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNorma
   // A model-supplied subject never exempts a postposed source denominator.
   if (postposedUnit) return postposedUnit;
   const suffix = after.match(/^(?:[元圆圓]\s*)?(?:[/／]\s*|每\s*)(小时|月|日|天|时|件)/u);
-  if (suffix) return units[suffix[1]];
+  // Only an explicit recurring day plus payment verb exempts 每月. The
+  // shared predicate does not exempt slash units or another wage standard.
+  if (suffix && !paymentSchedule && !isPostposedMoneyPaymentSchedule(edges.after)) return units[suffix[1]];
   const prefix = before.match(/(?:(?:每|按)(小时|月|日|天|时|件)|(月|日|时)(?:薪|(?:基本)?工资)|小时工资|计件(?:单价|工资)?)(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|[¥￥:=])*$/u);
   if (!prefix) return null;
   // “2026年1月工资1000元” and “上月工资1000元” name wage periods,
@@ -271,6 +273,31 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
     // Review may only reduce availability, including for historical extractions.
     // New parsing is applied on re-extraction; old raw/value/quote remain intact.
     let sourceNormalized = normalizeCandidateValue({ ...raw, quote: context.text });
+    // A local-clause cut may stop at 每月 before the calendar day in the next
+    // OCR/TXT line. Extend only a proven recurring-payment schedule, using the
+    // original anchored layout as a detection quote. Other contexts, raw
+    // evidence and CP positions remain unchanged; old null amounts stay null.
+    const literal = normalizeCandidateValue({ ...raw, quote: raw.value });
+    const scheduleLayout = literal.amount !== null
+      ? sourceMoneyLayoutEdges(context, literal.normalization, source!, candidate.blockId) : null;
+    if (scheduleLayout && isPostposedMoneyPaymentSchedule(scheduleLayout.after)) {
+      const localPrefix = context.text.slice(0, context.text.indexOf(raw.value));
+      sourceNormalized = normalizeCandidateValue({ ...raw, quote: localPrefix + Array.from(raw.value).slice(0, literal.normalization.span!.end).join('') + scheduleLayout.after });
+    }
+    // A local cut can leave a bare ×/x/* before its operand on the next
+    // line/block. Only the anchored full-layout arithmetic grammar may reclassify
+    // that local uncertainty; the amount remains unavailable, including old nulls.
+    const multiplicationMask = scheduleLayout
+      && /^\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\s*[×x*]/iu.test(scheduleLayout.after.normalize('NFKC').replace(/\p{Cf}/gu, ''));
+    if (sourceNormalized.normalization.status === 'uncertain' && literal.amount !== null && multiplicationMask
+      && sourceMoneyHasAttachedArithmetic(context, literal.normalization, source!, candidate.blockId)) {
+      sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。', 'unsupported'),
+      };
+      if (candidate.amount === null && isV3Candidate(candidate) && candidate.normalization.status === 'uncertain') reviewed.normalization = {
+        ...sourceNormalized.normalization, reason: `源文上下文约束：${sourceNormalized.normalization.reason}`,
+      };
+    }
     if (totalNeedsCompleteRelationship
       && (context.qualifiers.length > 0 || !hasSupportedTotalRelationship(raw, context.text, sourceNormalized.normalization))) appendIssue(reviewed, {
       code: 'source_relation_unresolved', message: '源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。',
@@ -317,7 +344,7 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
       else if (layout && (sourceHasUnsupportedRate(layout.before) || postposedRate?.unit === null)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着不受支持的费率分母，未换算成总额或现有费率单位，请人工核对。', 'unsupported'),
       };
-      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject, postposedRate?.unit ?? undefined))) sourceNormalized = {
+      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject, postposedRate?.unit ?? undefined, isPostposedMoneyPaymentSchedule(layout?.after ?? '')))) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着费率单位，与当前总额角色或已声明费率单位冲突，未生成精确金额。', 'rate_unit_mismatch'),
       };
       else if (!sourceMoneyHasExplicitRmbCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
