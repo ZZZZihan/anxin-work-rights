@@ -1,0 +1,397 @@
+{
+  "schema": "material-facts-v7-round6-review/1",
+  "status": "PASS",
+  "blocking_findings": [],
+  "created_at": "2026-10-18T05:43:53.635494+00:00",
+  "scope_of_pass": "Round6 experiment integrity, actual synthetic subprocess/locking behavior, unchanged saved report bytes and independently recounted match partitions; not business, UI, legal or production acceptance.",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning_effort": "ultra",
+  "actual_runtime_configuration_independently_verified": false,
+  "authoring_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+  "implementation_root_reviewed": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+  "root_head_before_integration_commit": "3e14bd781a230b3fc937fd6e46a62b8b87232bab",
+  "review_roles": {
+    "original_result_manifest_byte_binding": "Implemented by this reviewer; independently reviewed statically and rerun 6/6 by money agent, who did not implement it.",
+    "run_timers_output_bounds_and_shared_lock": "Non-implementer source review and actual rerun of author synthetic tests, then integrated root 19/19.",
+    "v5_chain_and_artifacts": "Non-implementer source review; authored four negative/binding tests against real v5 CLI and independent standard-library report/count checker."
+  },
+  "no_new_model_requests": true,
+  "no_new_inference_outputs": true,
+  "no_real_model_worker_started": true,
+  "isolated_synthetic_subprocesses_started": true,
+  "no_http_service_started_by_reviewer": true,
+  "no_build_by_reviewer": true,
+  "no_training": true,
+  "no_deployment": true,
+  "no_push_by_reviewer": true,
+  "historical_sha256": {
+    "freeze.json": "0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2",
+    "result-manifest.json": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+    "corrections/manifest.json": "eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de",
+    "corrections-v2/manifest.json": "1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80",
+    "corrections-v3/manifest.json": "72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841",
+    "corrections-v4/manifest.json": "3bceefdb375173567fa7ce60c662eae991957ade70bb89f0da989edb7ebd9db6"
+  },
+  "historical_archive_sha256": {
+    "frozen-code-v2/manifest.json": "a0f5103e20bfc971fcb585e6fc5ceb26b4aaeab20cd1cde6a16458457cf02aaf",
+    "correction-code-v4/manifest.json": "e1ca45fc49c35fe862206de16b03488d47e65c30d46adc659cb287aaa3cd2e54"
+  },
+  "v5_manifest_sha256": "eb79da00daa92966f081a2eba35d7355e258a45d18411570834efc62d632e32e",
+  "v5_current_code_files": 35,
+  "current_manifest_code_sha256": {
+    "lib/material-facts.ts": "c7ca5ea8892142ceb08b4b9a74ec8fa829be3c921d5f32d5ff91e9b69df779b9",
+    "lib/material-fact-types.ts": "482bfd611104c213358b0ff194969df6926fa96847d30e531bab40a21fff476f",
+    "lib/material-facts-v2.ts": "0a7e93a3a15393bf2479e8e37fa6000f87266d8a01836c4c7487acee2c97aeec",
+    "lib/material-fact-types-v2.ts": "1e2c55415334bf0b7d84e85937eb09b45bc1ef4eb8b7bc809db8932e2923d339",
+    "lib/material-facts-v3.ts": "b1e5fbe9829cd677c98315070fd3406dfadd6305a3291dfa601a3df64874cbdd",
+    "lib/material-fact-types-v3.ts": "0a3ba7fac7223c1a7d5856f324171e29f7a54c41539392baa719307eaf02442f",
+    "lib/material-money-v4.ts": "3ebe3b80971a74af09b05b3ba17a5f5b597d042b0b12ffb787066a4d71d8e6a5",
+    "lib/material-fact-arithmetic-review.ts": "3ff2d33aa4b388205d2c6cdd165c0caf1d225383e536d7316598380a8468d323",
+    "lib/material-fact-extraction-v4.ts": "319f4f94073f6d5e18a307e5498c2704cac3639586a24f1e48b7da14301f26d2",
+    "lib/material-fact-source-review.ts": "cc28c81a760b2b852af98129afffbacdabba4f524b228f13ac4b3beb1d0e40fa",
+    "lib/material-fact-runtime-ingest.ts": "a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f",
+    "lib/material-fact-event-review.ts": "6266aa769459619181aeba3cda262efdf8912f8a94a0edc3bccea2254fe4a181",
+    "lib/material-fact-currency-review.ts": "a34e9381fa3454f6c735f08c94864f8a3663433d71e81ecce940f7c12d5d3200",
+    "lib/material-fact-coverage-review.ts": "ab4b4ee52126b204327b6930a0675a1e5b43db3fedce06d0ec752feb833b47c4",
+    "scripts/fact-runtime-v2.py": "2fa950cdde02156aab7f676efcbf3c1abf89e3ed734286f0a9e8437b325c1cc3",
+    "scripts/fact_memory_runtime.py": "9b0fab42e910736998cf54a9cfc63315f33624dce758ce15deccca1c67c8b51b",
+    "scripts/fact_api_transport.py": "958cfade7e59c08dc0397c448775b98c30cd9c5c1b689106c0fe6a4c82be5600",
+    "experiments/material-facts-v7/run.mjs": "53196e59f91d4862c1acc4ca8e7e8cd788e0e0ea4586f9e0bbff9063c8e2afc2",
+    "experiments/material-facts-v7/assess.mjs": "d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1",
+    "experiments/material-facts-v7/freeze.mjs": "ff9b6696af12f2b4235fbe9695a3bdaf354c72706c36a96fb995e8b928b269ad",
+    "experiments/material-facts-v7/experiment-lock.mjs": "eccebd49c4c2d8391878322c982992a1ea297cc1a81489c869d9b2b83a98b94f",
+    "experiments/material-facts-v7/verify.mjs": "eb7d7e274d9cf1c9fdbed2585e0843b4637116a4b33f4d43dca460f179645c40",
+    "experiments/material-facts-v7/summarize.mjs": "4590768f0c42a2d5ea1d4b0fb812c8d2fc9068642d82bc0661daaf44b2eaa63d",
+    "experiments/material-facts-v7/runtime-policy.json": "e17cbcfc38ca71c328b093d9493f1ba90809afa4fd8def8d23ab1cc62673b4a8",
+    "experiments/material-facts-v7/verify-frozen.mjs": "aae2e203ce8f1423277e43fac83605f703562b68bcce6ae80fe05d9fea1235fa",
+    "experiments/material-facts-v7/corrective-assessment.mjs": "628742ed21e55dbf225313b46b361de8f098f6d2fc8c69ef22669324d13db0b1",
+    "experiments/material-facts-v7/publish-artifacts.mjs": "fed30876cd481d0c76bf50c5fbf02a1e78a198a751b66f98c692dbccac347204",
+    "experiments/material-facts-v7/verify-correction-v1.mjs": "c064038697087ef882ac581c5cebc7389098074a685f8bbb6d5299c61a68bc09",
+    "experiments/material-facts-v7/corrective-assessment-v2.mjs": "4f5b856829ea26ba5ee68a21afa1d5a33b37801192147f7a963d04c48a2d7423",
+    "experiments/material-facts-v7/verify-correction-v2.mjs": "44f318b62e3c3e66609e1a84e32919bc77df4dab23368c01df1daa042ef21ed0",
+    "experiments/material-facts-v7/corrective-assessment-v3.mjs": "c293b0ed093fc316900375774f9372ed6118aca2c92187181555a28a67ef25f5",
+    "experiments/material-facts-v7/verify-correction-v3.mjs": "65fe8a242832670e1ed91c4c3d6e5eefc0b727521ef420ed9529cef61816471c",
+    "experiments/material-facts-v7/corrective-assessment-v4.mjs": "498726eb7a436627d17ee7506c58d761c9fa8aaa0b1d74e072fdeb0a801c48be",
+    "experiments/material-facts-v7/verify-correction-v4.mjs": "84774ccca5ee595647415f5920eb7fbf3ce0c317e426069207ed887c94b1acba",
+    "experiments/material-facts-v7/corrective-assessment-v5.mjs": "e49e2a94ae21bbc185c96dfd33f4b6d063ec2c9cc5bf715206d51ddf5a9833e2"
+  },
+  "unchanged_input_sha256": "9ec54411e9008434457ae59f68585f8fb7a6bc6d089cee4e87709bfddd6a2181",
+  "unchanged_labels_sha256": "abac05fa2c3de7d8e83e866345bf5edaec61c65f8f706bb7d5f0c0d98fa27b64",
+  "focused_source_review": [
+    "experiments/material-facts-v7/run.mjs",
+    "experiments/material-facts-v7/freeze.mjs",
+    "experiments/material-facts-v7/experiment-lock.mjs",
+    "experiments/material-facts-v7/verify-frozen.mjs",
+    "experiments/material-facts-v7/verify-correction-v4.mjs",
+    "experiments/material-facts-v7/corrective-assessment-v5.mjs"
+  ],
+  "test_sha256": {
+    "scripts/material-facts-v7-first-manifest-independent.test.mjs": "249705b7b59c267d42f8ff3144534d07dd43df16600bba71743b9317a989978d",
+    "scripts/material-facts-v7-correction-v4-gates-independent.test.mjs": "c7d83fd26cfcd7c3b82d5e9acccb9e5e195efc77cda2407e411f6896f21b8ef5",
+    "scripts/material-facts-v7-correction-v5-gates-independent.test.mjs": "e0ce20a0673c7de98fea0c65c9bfe0e8bcff1c181f077c077c26a2a7bb5a42fb",
+    "scripts/material-facts-v7-run-lifecycle.test.mjs": "9f0aa5abec879082f93d3871528be32f065193a4d4a48179bf139ba6122705eb",
+    "scripts/material-facts-v7-freeze-lock.test.mjs": "6a79694e1f0e83476300f8f18ceb150ca739b285dda2794c7cabb451dff0bc82",
+    "scripts/material-facts-v7-full-archive.test.mjs": "6cbb1468dfacbdd143db880f05c9928cb73357c26df419922445cb70f4be07ac"
+  },
+  "checks": {
+    "first_manifest_actual_red": {
+      "pass": 1,
+      "fail": 5,
+      "node_tests_including_parent": 6,
+      "equivalent_json_cli_variants_actually_accepted_before_fix": 3,
+      "exported_callback_entered_before_fix": true,
+      "evidence": "first-manifest-independent-before-red.txt"
+    },
+    "first_manifest_green": {
+      "pass": 6,
+      "fail": 0,
+      "old_freeze_and_result_manifest_unchanged": true,
+      "exact_original_full_historical_chain_passed": true,
+      "evidence": "first-manifest-independent-after-green.txt"
+    },
+    "original_full_archive_compatibility": {
+      "pass": 16,
+      "fail": 0,
+      "code_snapshots": 36,
+      "original_result_files": 60,
+      "evidence": "full-archive-manifest-fix-independent-green.txt"
+    },
+    "historical_v4_gates": {
+      "pass": 8,
+      "fail": 0,
+      "original_assertions_preserved": true,
+      "old_test_sha256": "995d909dd487f4ac2cb322ad764da3d9e25ff3429abd48d8dcb680ec72e955b2",
+      "execution_dependency_change": "withCorrectionV4Code restores sealed v4 before the same eight v3/v4 assertions; old receipts and artifacts unchanged.",
+      "evidence": "correction-v4-historical-gates-green.txt"
+    },
+    "final_integrated_native_runner_and_lock": {
+      "pass": 19,
+      "fail": 0,
+      "lifecycle_tests": 10,
+      "freeze_lock_tests": 9,
+      "synthetic_only": true,
+      "actual_runner_lock_integration_tests": 2,
+      "forced_kill_and_pid_esrch_checked": true,
+      "evidence": "round6-integrated-runtime-lock-independent-green.txt"
+    },
+    "v5_real_cli_gates": {
+      "pass": 4,
+      "fail": 0,
+      "historical_chain_mocked": false,
+      "comment_only_current_dependency_drift_refused": [
+        "experiment-lock.mjs",
+        "run.mjs"
+      ],
+      "refusal": "Correction v5 manifest changed",
+      "fixture_deadline_triggered": false,
+      "evidence": "correction-v5-gates-independent-green.txt"
+    },
+    "distinct_final_node_checks_including_parent_tests": 53,
+    "independent_report_check": {
+      "reports_byte_identical_to_v4": 3,
+      "case_layers_recounted": 216,
+      "cases_per_backend": 12,
+      "expected_facts_per_backend": 43,
+      "code_hashes_checked": 35,
+      "original_scorer_imported": false,
+      "method": "Disjoint complete pairs/missing/extra index partitions; independent TP/FP/FN, precision, recall and F1 arithmetic; byte hashes and manifest file sets. Earlier source/event semantic review remains separate.",
+      "evidence": "v5-independent-report-comparison.json",
+      "reproducer": "v5-independent-report-check.py"
+    },
+    "eslint": {
+      "own_changed_mjs_files": 4,
+      "method": "Root ESLint configuration through --stdin with repository-relative --stdin-filename; all exit0. Initial direct outside-base warnings are not counted as validation."
+    }
+  },
+  "models": {
+    "rules": {
+      "v4_v5_report_byte_identical": true,
+      "report_sha256": "0553db2f6eb0801c6311021f16ce67268a165cd8198afe66fa4821ee737dbaf7",
+      "cases": 12,
+      "expected_facts": 43,
+      "metrics_recounted_from_saved_match_partitions": {
+        "raw_basic": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 41,
+          "precision": 1.0,
+          "recall": 0.046511627906976744,
+          "f1": 0.08888888888888888
+        },
+        "raw_relational": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "raw_strict": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "accepted_basic": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 41,
+          "precision": 1.0,
+          "recall": 0.046511627906976744,
+          "f1": 0.08888888888888888
+        },
+        "accepted_relational": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "accepted_strict": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      },
+      "raw": 2,
+      "accepted": 2,
+      "rejected": 0,
+      "amount_nonnull": 2,
+      "exact_money_without_review_issue": 0,
+      "calculation_authorized": 0
+    },
+    "qwen": {
+      "v4_v5_report_byte_identical": true,
+      "report_sha256": "7d3179e74932e322876ec5a7f67dda817f680473d8f8a850746ddb99091d521f",
+      "cases": 12,
+      "expected_facts": 43,
+      "metrics_recounted_from_saved_match_partitions": {
+        "raw_basic": {
+          "tp": 16,
+          "fp": 47,
+          "fn": 27,
+          "precision": 0.25396825396825395,
+          "recall": 0.37209302325581395,
+          "f1": 0.3018867924528302
+        },
+        "raw_relational": {
+          "tp": 10,
+          "fp": 53,
+          "fn": 33,
+          "precision": 0.15873015873015872,
+          "recall": 0.23255813953488372,
+          "f1": 0.18867924528301885
+        },
+        "raw_strict": {
+          "tp": 8,
+          "fp": 55,
+          "fn": 35,
+          "precision": 0.12698412698412698,
+          "recall": 0.18604651162790697,
+          "f1": 0.1509433962264151
+        },
+        "accepted_basic": {
+          "tp": 16,
+          "fp": 35,
+          "fn": 27,
+          "precision": 0.3137254901960784,
+          "recall": 0.37209302325581395,
+          "f1": 0.3404255319148936
+        },
+        "accepted_relational": {
+          "tp": 10,
+          "fp": 41,
+          "fn": 33,
+          "precision": 0.19607843137254902,
+          "recall": 0.23255813953488372,
+          "f1": 0.2127659574468085
+        },
+        "accepted_strict": {
+          "tp": 8,
+          "fp": 43,
+          "fn": 35,
+          "precision": 0.1568627450980392,
+          "recall": 0.18604651162790697,
+          "f1": 0.1702127659574468
+        }
+      },
+      "raw": 63,
+      "accepted": 51,
+      "rejected": 12,
+      "amount_nonnull": 8,
+      "exact_money_without_review_issue": 0,
+      "calculation_authorized": 0
+    },
+    "deepseek": {
+      "v4_v5_report_byte_identical": true,
+      "report_sha256": "32937a32ce0f8af3ce61845cf05f8edc3d07f0e0200c623581014b5f3c117f7d",
+      "cases": 12,
+      "expected_facts": 43,
+      "metrics_recounted_from_saved_match_partitions": {
+        "raw_basic": {
+          "tp": 34,
+          "fp": 17,
+          "fn": 9,
+          "precision": 0.6666666666666666,
+          "recall": 0.7906976744186046,
+          "f1": 0.7234042553191489
+        },
+        "raw_relational": {
+          "tp": 27,
+          "fp": 24,
+          "fn": 16,
+          "precision": 0.5294117647058824,
+          "recall": 0.627906976744186,
+          "f1": 0.5744680851063829
+        },
+        "raw_strict": {
+          "tp": 25,
+          "fp": 26,
+          "fn": 18,
+          "precision": 0.49019607843137253,
+          "recall": 0.5813953488372093,
+          "f1": 0.5319148936170213
+        },
+        "accepted_basic": {
+          "tp": 34,
+          "fp": 17,
+          "fn": 9,
+          "precision": 0.6666666666666666,
+          "recall": 0.7906976744186046,
+          "f1": 0.7234042553191489
+        },
+        "accepted_relational": {
+          "tp": 27,
+          "fp": 24,
+          "fn": 16,
+          "precision": 0.5294117647058824,
+          "recall": 0.627906976744186,
+          "f1": 0.5744680851063829
+        },
+        "accepted_strict": {
+          "tp": 25,
+          "fp": 26,
+          "fn": 18,
+          "precision": 0.49019607843137253,
+          "recall": 0.5813953488372093,
+          "f1": 0.5319148936170213
+        }
+      },
+      "raw": 51,
+      "accepted": 51,
+      "rejected": 0,
+      "amount_nonnull": 10,
+      "exact_money_without_review_issue": 0,
+      "calculation_authorized": 0
+    }
+  },
+  "main_agent_reported_checks_separate": {
+    "source": "Parent message in this round; not independently rerun by this reviewer.",
+    "npm_run_check_exit_code": 0,
+    "vitest_tests": 1789,
+    "vitest_files": 46,
+    "runtime_tests": 494,
+    "materials_pass": 67,
+    "materials_linux_skip": 1,
+    "python_groups": [
+      9,
+      11,
+      16
+    ],
+    "v5_write": "PASS",
+    "unmodified_v5_check": "PASS, parent reported after the independent runs",
+    "main_agent_additional_v5_gate_rerun": "4/4 PASS, parent reported",
+    "additional_scoped_eslint": "exit0, parent reported"
+  },
+  "limitations": [
+    "This reviewer authored the manifest fix, so money agent supplied the independent non-implementer review for that change.",
+    "Both source and copied original result-manifest bytes are checked. This is not an OS-level atomic filesystem snapshot or a defense against an adversarial writer with arbitrary access to owned temporary directories.",
+    "A killed lock owner deliberately leaves a fail-closed lock. PID/host and evidence require explicit reconciliation; age is not proof of staleness.",
+    "The shared lock covers cooperating diagnostic runners and freeze publication; it does not promise to serialize arbitrary external filesystem writers.",
+    "Freeze race tests preserve the actual critical createFreeze body but stub unrelated dataset, legacy and model prechecks. Actual diagnostic-runner integration is exercised with synthetic workers.",
+    "Output queues pause one current chunk per stream; per-stream disk and decoded buffers are finite under the independent 20000000 raw-byte caps. No absolute OS/process memory guarantee is claimed.",
+    "No new source/event semantic reannotation was performed this round. Labels remain provisional non-expert technical annotations.",
+    "All three reports are byte-identical to v4. This integrity repair does not improve model semantic accuracy. Accepted candidates, derived amount values, review readiness and calculation authorization remain separate.",
+    "The saved evaluation still has zero exact monetary candidates without review issues and zero calculation authorization. UI, OCR and real-user confirmation were not validated here."
+  ],
+  "evidence_authoring_directory": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round6",
+  "evidence_repository_directory": "experiments/material-facts-v7/postfreeze-evidence/round6",
+  "evidence_sha256": {
+    "correction-v4-historical-gates-green.txt": "518db32b26bb938ab04db5af3c02cc35ac8c8a48e4fb3f3d1bcfe143a7da757f",
+    "correction-v5-gates-independent-green.txt": "035041b647dcb8c971400d95b865cebfdac50c88e041d69c18afde8934e1c56c",
+    "first-manifest-independent-after-green.txt": "0d3a93944119218905f603b4bc6c422abc05c5f367400369ad0de1ef4bcca8c0",
+    "first-manifest-independent-before-red.txt": "8c228d2e0854701d0ff12e50353a03334fa86eac25901c5ff720bf4bd417f27b",
+    "freeze-lock-independent-rerun-green.txt": "3e8d5855d3ccf6bc62600596507f02ba75601b72993f741c7bf720de4ccfe0c0",
+    "full-archive-manifest-fix-independent-green.txt": "aa266a34886a629def6158bc74754ec9571c42cf65a3d9ada56f8b75b6094783",
+    "lifecycle-independent-rerun-green.txt": "b47df83a36ab89182ccefc008173bdcd03610cb44648624aa08e4abb60631626",
+    "round6-integrated-runtime-lock-independent-green.txt": "5a267f19e7dfa6118c382410ba014998033830b928fef73b280b24f12a4d046a",
+    "v5-independent-report-check.py": "b4500a25cdcd95e1f914e1900558868e7801b85e84f2168951b4a2a6f51a4d5d",
+    "v5-independent-report-comparison.json": "17ab1e00c43e2cef7d932bb845ae49fec6496ceb93ed6348e6fd2872dd9e292c"
+  }
+}

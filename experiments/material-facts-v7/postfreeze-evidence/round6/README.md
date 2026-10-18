@@ -1,0 +1,5 @@
+本目录保留第六轮工具修复的真实失败、通过及交叉技术复核证据；不调用新模型。各原始日志按字节保存，包括测试断言和构建终端输出的尾部空格，未为了通过格式检查改写原始证据。代码、测试和说明文档另行通过空白/静态检查。
+
+freeze-lock-before-red为旧生产freeze临界区的3项真实并发失败；lifecycle-before-red为退出计时器、stderr限额与背压3项实际缺陷。lifecycle-fixture-import-failure为中间临时夹具漏拷依赖，单独保留，不作为产品缺陷或通过证明。manifest交叉复核和lock交叉复核两份tool-stdout来自已有工具响应的原样转存；其余作者日志来自原文件，准确来源由money-review-receipt.json说明。
+
+独立收据位于实验根round6-review.independent.json，绑定10项独立证据、35项当前代码和历史摘要。锁回归使用生产createFreeze原函数体及合成预检依赖；runner使用真实run入口与有限合成worker，不联网、不读真实密钥、不启动模型。业务语义与人工验收范围见实验根README和ERROR_REVIEW。

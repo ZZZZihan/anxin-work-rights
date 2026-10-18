@@ -4,6 +4,7 @@ import { lstat, readFile, readdir, realpath, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { checkFileHashes, filesUnder, json, jsonl, safePath, same, sha } from '../material-facts-v6/freeze.mjs';
+import { withExperimentLock } from './experiment-lock.mjs';
 
 export { checkFileHashes, filesUnder, json, jsonl, safePath, same, sha };
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
@@ -15,10 +16,10 @@ export const QWEN_MEMORY = { allocator_guideline_gib: 24, wired_gib: 20, cache_m
 export const RUN_HASH_FILES = ['lib/material-facts.ts', 'lib/material-fact-types.ts', 'lib/material-facts-v2.ts', 'lib/material-fact-types-v2.ts', 'lib/material-facts-v3.ts', 'lib/material-fact-types-v3.ts',
   'lib/material-money-v4.ts', 'lib/material-fact-arithmetic-review.ts', 'lib/material-fact-extraction-v4.ts', 'lib/material-fact-source-review.ts', 'lib/material-fact-runtime-ingest.ts',
   'lib/material-fact-event-review.ts', 'lib/material-fact-currency-review.ts', 'lib/material-fact-coverage-review.ts',
-  'scripts/fact-runtime-v2.py', 'scripts/fact_memory_runtime.py', 'scripts/fact_api_transport.py', `${EXPERIMENT}/run.mjs`, `${EXPERIMENT}/assess.mjs`, `${EXPERIMENT}/freeze.mjs`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/runtime-policy.json`];
+  'scripts/fact-runtime-v2.py', 'scripts/fact_memory_runtime.py', 'scripts/fact_api_transport.py', `${EXPERIMENT}/run.mjs`, `${EXPERIMENT}/assess.mjs`, `${EXPERIMENT}/freeze.mjs`, `${EXPERIMENT}/experiment-lock.mjs`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/runtime-policy.json`];
 export const REQUIRED_FILES = [...RUN_HASH_FILES, 'lib/material-money-v4.test.ts', 'lib/material-money-v4.independent.test.ts', 'lib/material-money-v4.review-regression.test.ts',
   'lib/material-fact-source-review.test.ts', 'lib/material-facts-v7-runtime-independent.test.ts', 'lib/material-fact-calendar-money.test.ts',
-  'lib/material-fact-store.ts', 'scripts/fact-jobs.mjs', 'scripts/material-facts-v7-assessment-independent.test.mjs', 'scripts/material-facts-v7-freeze-independent.test.mjs', 'scripts/material-facts-v7-run-readiness.test.mjs', 'scripts/material-facts-v7-http-regression.mjs',
+  'lib/material-fact-store.ts', 'scripts/fact-jobs.mjs', 'scripts/material-facts-v7-assessment-independent.test.mjs', 'scripts/material-facts-v7-freeze-independent.test.mjs', 'scripts/material-facts-v7-run-readiness.test.mjs', 'scripts/material-facts-v7-run-lifecycle.test.mjs', 'scripts/material-facts-v7-freeze-lock.test.mjs', 'scripts/material-facts-v7-http-regression.mjs',
   `${EXPERIMENT}/PROTOCOL.md`, `${EXPERIMENT}/ANNOTATION.md`, `${EXPERIMENT}/model-identity.json`, `${EXPERIMENT}/api-models-preflight.json`, `${EXPERIMENT}/annotation-review.independent.json`,
   `${EXPERIMENT}/technical-review.json`, `${EXPERIMENT}/technical-review.initial.json`, `${EXPERIMENT}/benchmark-review.independent.json`, `${EXPERIMENT}/benchmark-review.initial.json`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/SOURCE_REVIEW.md`, `${EXPERIMENT}/REVIEW.md`, `${EXPERIMENT}/DEVELOPMENT.md`,
   `${LEGACY}/verify.mjs`, `${LEGACY}/freeze.mjs`, `${LEGACY}/freeze.json`, `${LEGACY}/result-manifest.json`];
@@ -225,6 +226,9 @@ export async function validateDevelopment(root, inputs, { allowFormal = false } 
 }
 
 export async function createFreeze(root = ROOT) {
+  // Diagnostic runners hold the same lock through their terminal writes. This
+  // snapshot cannot race a new allocation or a still-running attempt's output.
+  return withExperimentLock(root, 'freeze', async () => {
   const destination = resolve(root, EXPERIMENT, 'freeze.json');
   try { await lstat(destination); throw new Error('freeze.json already exists; never overwrite a frozen experiment'); }
   catch (error) { if (error.code !== 'ENOENT') throw error; }
@@ -262,6 +266,7 @@ export async function createFreeze(root = ROOT) {
     dev_input_sha256: sha(await readFile(resolve(root, EXPERIMENT, 'data/dev.inputs.jsonl'))), dev_messages_sha256: sha(await messageBytes(validation.sets.dev.inputs, root)), qwen, legacy, files };
   await writeFile(destination, JSON.stringify(freeze, null, 2) + '\n', { flag: 'wx' });
   return freeze;
+  });
 }
 
 if (await isMainModule(import.meta.url)) {

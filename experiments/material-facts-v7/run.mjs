@@ -9,6 +9,7 @@ import { StringDecoder } from 'node:string_decoder';
 import { extractRuleCandidates } from '../../lib/material-facts-v3.ts';
 import { EXPERIMENT, RUN_HASH_FILES, deepseekReservation, priorDeepseekReservation, loadPolicy, QWEN_MEMORY } from './freeze.mjs';
 import { verifyPreflight } from './verify.mjs';
+import { withExperimentLock } from './experiment-lock.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const execute = promisify(execFile);
@@ -81,6 +82,9 @@ const { buildExtractionMessagesV4 } = await import('../../lib/material-fact-extr
 const policy = await loadPolicy(root);
 if (backend === 'deepseek' && (options['connect-port'] ? 'temporary_loopback_ssh_test_host' : 'direct') !== policy.deepseek.egress) throw new Error('DeepSeek route differs from the verified runtime policy');
 const messages = inputs.map(input => ({ id: input.id, messages: buildExtractionMessagesV4(input.source) }));
+// Diagnostic attempts and freeze publication share a lock. Hold it through all
+// terminal writes so a freeze cannot observe an allocated but unfinished run.
+async function runAttempt() {
 if (mode === 'holdout') {
   const { freeze } = await verifyPreflight(root);
   if (backend === 'deepseek' && (options['connect-port'] ? 'temporary_loopback_ssh_test_host' : 'direct') !== freeze.deepseek_egress) throw new Error('DeepSeek route differs from frozen choice');
@@ -149,41 +153,52 @@ if (backend === 'rules') {
   }
   const child = spawn(python, argv, { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HF_HUB_OFFLINE: '1', TRANSFORMERS_OFFLINE: '1', HF_HUB_DISABLE_IMPLICIT_TOKEN: '1', HF_HUB_DISABLE_TELEMETRY: '1', PYTHONUNBUFFERED: '1' } });
   let requestTimer = null, activeRequestId = null, interruptedRequestId = null;
-  let buffer = '', bytes = 0, stopReason = null, writeQueue = Promise.resolve(), writeFailure = null, lastEvent = Date.now();
+  let buffer = '', stdoutBytes = 0, stderrBytes = 0, stopReason = null, writeQueue = Promise.resolve(), writeFailure = null, lastEvent = Date.now();
+  const outputLimit = 20_000_000; // Independent bounds for each stream, in raw bytes.
   const stdoutDecoder = new StringDecoder('utf8');
   const resultRows = [];
   const started = Date.now();
-  // Handle each rejection immediately: a rejected log/parse promise must not
-  // exit this parent while its inference process is still running.
-  const queueWrite = operation => {
+  // Each readable pauses before enqueueing its current chunk and resumes only
+  // after its disk work settles. At most one chunk per stream can wait here;
+  // output cannot create an unbounded chain of pending write promises.
+  const queueWrite = (stream, operation) => {
+    stream.pause();
     writeQueue = writeQueue.then(() => writeFailure ? undefined : operation()).catch(error => {
       writeFailure ??= error instanceof Error ? error : new Error('Worker output failed');
       stopReason ??= 'worker_output_error';
       terminate();
-    });
+    }).finally(() => stream.resume()); // Keep draining pipes after failure/exit.
   };
   child.stdout.on('data', chunk => {
-    if (writeFailure) return;
-    bytes += chunk.length; if (bytes > 20_000_000) { stopReason = 'output_limit'; terminate(); return; }
-    buffer += stdoutDecoder.write(chunk);
-    let newline;
-    while ((newline = buffer.indexOf('\n')) >= 0) {
-      const line = buffer.slice(0, newline); buffer = buffer.slice(newline + 1);
-      queueWrite(async () => {
+    if (writeFailure || stdoutBytes > outputLimit) return;
+    stdoutBytes += chunk.length;
+    if (stdoutBytes > outputLimit) { stopReason ??= 'output_limit'; terminate(); return; }
+    queueWrite(child.stdout, async () => {
+      buffer += stdoutDecoder.write(chunk);
+      let newline;
+      while ((newline = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, newline); buffer = buffer.slice(newline + 1);
         await appendFile(resolve(out, 'events.jsonl'), line + '\n');
         const event = JSON.parse(line); lastEvent = Date.now();
         if (backend === 'deepseek' && event.type === 'requesting') {
           if (activeRequestId !== null) throw new Error('Overlapping request');
           activeRequestId = event.id;
-          requestTimer = setTimeout(() => { interruptedRequestId = activeRequestId; stopReason = 'absolute_request_timeout'; terminate(); }, 180_000);
+          // A queued disk write may finish after exit/close. Retain its event
+          // but never create a live request deadline for a dead worker.
+          if (!exited && !closed) requestTimer = setTimeout(() => { interruptedRequestId = activeRequestId; stopReason = 'absolute_request_timeout'; terminate(); }, 180_000);
         }
         if (event.type === 'result') { if (!batch.some(row => row.id === event.id) || resultRows.some(row => row.id === event.id)) throw new Error('Duplicate or unexpected result'); resultRows.push(event); if (backend === 'deepseek') { clearTimeout(requestTimer); activeRequestId = null; } }
         if (event.type === 'transport') await appendFile(resolve(out, 'transport-attempts.jsonl'), line + '\n');
         if (!['telemetry', 'phase_memory'].includes(event.type)) console.log(JSON.stringify({ type: event.type, id: event.id, finish_reason: event.finish_reason, latency_seconds: event.latency_seconds, error_type: event.error_type }));
-      });
-    }
+      }
+    });
   });
-  child.stderr.on('data', chunk => { queueWrite(() => appendFile(resolve(out, 'worker.log'), chunk)); });
+  child.stderr.on('data', chunk => {
+    if (writeFailure || stderrBytes > outputLimit) return;
+    stderrBytes += chunk.length;
+    if (stderrBytes > outputLimit) { stopReason ??= 'stderr_output_limit'; terminate(); return; }
+    queueWrite(child.stderr, () => appendFile(resolve(out, 'worker.log'), chunk));
+  });
   child.stdin.on('error', () => {});
   child.stdin.end(batch.map(row => JSON.stringify(row)).join('\n') + '\n');
   // External monitor also covers model loading and prefill, before a token is produced.
@@ -211,8 +226,13 @@ if (backend === 'rules') {
     finally { monitoring = false; }
   }, 2000);
   const result = await new Promise(resolveExit => { child.once('error', () => { stopReason = 'spawn_or_process_error'; terminate(); }); child.once('exit', () => { exited = true; clearInterval(monitor); clearTimeout(hardTimeout); clearTimeout(requestTimer); clearTimeout(killTimer); }); child.once('close', (code, signal) => { closed = true; resolveExit({ code, signal }); }); });
-  clearInterval(monitor); clearTimeout(hardTimeout); clearTimeout(requestTimer); clearTimeout(killTimer); await writeQueue;
-  process.removeListener('SIGTERM', cancelParent); process.removeListener('SIGINT', cancelParent);
+  clearInterval(monitor); clearTimeout(hardTimeout); clearTimeout(requestTimer); clearTimeout(killTimer);
+  try { await writeQueue; }
+  finally {
+    // Clear again after queued events, including any late requesting event.
+    clearTimeout(requestTimer); clearTimeout(killTimer);
+    process.removeListener('SIGTERM', cancelParent); process.removeListener('SIGINT', cancelParent);
+  }
   buffer += stdoutDecoder.end();
   if (buffer) await writeFile(resolve(out, `partial-stdout-${attempts.length + 1}.txt`), buffer);
   for (const row of resultRows) {
@@ -236,3 +256,7 @@ if (backend === 'rules') {
   }
   process.exitCode = attempts.length === batches.length && attempts.every(row => row.completed) ? 0 : 1;
 }
+}
+
+if (mode === 'diagnostic') await withExperimentLock(root, 'diagnostic', runAttempt);
+else await runAttempt();

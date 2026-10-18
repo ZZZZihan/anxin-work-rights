@@ -11,12 +11,14 @@ import { createHash } from 'node:crypto';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const EXPERIMENT = 'experiments/material-facts-v7';
 const FIRST_RUN_FREEZE_SHA256 = '0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2';
+const FIRST_RUN_RESULT_MANIFEST_SHA256 = '3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const readJson = async path => JSON.parse(await readFile(path, 'utf8'));
 export async function withFrozenCode(action, root = ROOT) {
   const base = resolve(root, EXPERIMENT), snapshot = resolve(base, 'frozen-code-v2');
   const freezeBytes = await readFile(resolve(base, 'freeze.json')), freeze = JSON.parse(freezeBytes);
   assert.equal(hash(freezeBytes), FIRST_RUN_FREEZE_SHA256, 'Original first-run freeze changed');
+  assert.equal(hash(await readFile(resolve(base, 'result-manifest.json'))), FIRST_RUN_RESULT_MANIFEST_SHA256, 'Original first-run result manifest changed');
   const manifest = await readJson(resolve(snapshot, 'manifest.json'));
   assert.equal(manifest.schema, 'material-facts-v7-frozen-code/2');
   assert.equal(manifest.storage_suffix, '.snapshot');
@@ -36,6 +38,9 @@ export async function withFrozenCode(action, root = ROOT) {
   const temporary = await realpath(await mkdtemp(join(tmpdir(), 'anxin-v7-frozen-')));
   try {
     for (const path of ['lib', 'scripts', 'experiments', 'docs', 'package.json']) await cp(resolve(root, path), resolve(temporary, path), { recursive: true });
+    // Verify the bytes actually supplied to the historical verifier as well as
+    // the source artifact. JSON equivalence does not preserve sealed evidence.
+    assert.equal(hash(await readFile(resolve(temporary, EXPERIMENT, 'result-manifest.json'))), FIRST_RUN_RESULT_MANIFEST_SHA256, 'Original first-run result manifest changed');
     for (const [path, bytes] of archived) {
       const target = resolve(temporary, path);
       await mkdir(dirname(target), { recursive: true });

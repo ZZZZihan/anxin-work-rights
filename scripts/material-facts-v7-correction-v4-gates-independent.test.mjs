@@ -9,10 +9,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 // Synthetic corruption in an owned fixture only. All executed CLIs are read-only
 // verifiers; this test never invokes a runner, a model or an HTTP service.
-const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const CURRENT_ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const EXPERIMENT = 'experiments/material-facts-v7';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
-const { withCorrectionV3Code } = await import(pathToFileURL(resolve(ROOT, EXPERIMENT, 'verify-correction-v3.mjs')).href);
+const { withCorrectionV4Code } = await import(pathToFileURL(resolve(CURRENT_ROOT, EXPERIMENT, 'verify-correction-v4.mjs')).href);
 const run = (root, path, args = []) => execFileSync(process.execPath, [resolve(root, EXPERIMENT, path), ...args],
   { cwd: root, encoding: 'utf8', stdio: 'pipe', timeout: 60000, maxBuffer: 16 * 1024 ** 2 });
 
@@ -31,7 +31,10 @@ function failsWith(action, pattern) {
   });
 }
 
-test('independent v4 gates bind the archived v3 and current arithmetic code', { timeout: 120000 }, async t => {
+// V4 is now historical: restore its sealed execution dependencies before
+// running the same eight original assertions against owned corruption fixtures.
+test('independent v4 gates bind the archived v3 and current arithmetic code', { timeout: 120000 }, async t => withCorrectionV4Code(async ROOT => {
+  const { withCorrectionV3Code } = await import(pathToFileURL(resolve(ROOT, EXPERIMENT, 'verify-correction-v3.mjs')).href);
   const historical = ['freeze.json', 'result-manifest.json', 'corrections/manifest.json',
     'corrections-v2/manifest.json', 'corrections-v3/manifest.json', 'corrections-v4/manifest.json'];
   const before = Object.fromEntries(await Promise.all(historical.map(async path => [path, sha(await readFile(resolve(ROOT, EXPERIMENT, path)))])));
@@ -112,4 +115,4 @@ test('independent v4 gates bind the archived v3 and current arithmetic code', { 
     }
     evidence('historical_hashes_unchanged', before);
   }
-});
+}, CURRENT_ROOT));
