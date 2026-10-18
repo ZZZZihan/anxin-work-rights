@@ -13,6 +13,15 @@ type Snapshot = { revision: number; generation: number; state: FactState; source
 export class FactStoreError extends Error { constructor(message: string, public status = 400) { super(message); } }
 const conflict = () => new FactStoreError('材料或确认版本已变化，当前草稿未保存。请重新加载后再核对。', 409);
 const now = () => new Date().toISOString();
+function serializeStoredFactState(state: FactState): string {
+  // Coverage from current source blocks is a response diagnostic, never a new
+  // stored extraction or a migration of a historical v2 record.
+  return JSON.stringify({ ...state, materials: state.materials.map(material => {
+    const stored = { ...material } as typeof material & { sourceCoverage?: unknown };
+    delete stored.sourceCoverage;
+    return stored;
+  }) });
+}
 const accessCondition = `EXISTS (SELECT 1 FROM cases c JOIN case_material_generations g ON g.case_id=c.id AND g.user_id=c.user_id
   WHERE c.id=case_material_facts.case_id AND c.user_id=case_material_facts.user_id AND c.status!='archived' AND g.generation=?)`;
 
@@ -56,7 +65,7 @@ async function snapshot(user: RequestUser, id: string): Promise<Snapshot> {
 }
 
 async function save(user: RequestUser, id: string, current: Snapshot, state: FactState): Promise<boolean> {
-  const json = JSON.stringify(state);
+  const json = serializeStoredFactState(state);
   if (current.revision === 0) {
     const result = await getDatabase().prepare(`INSERT INTO case_material_facts(case_id,user_id,revision,state_json,updated_at)
       SELECT ?,?,1,?,? WHERE EXISTS (SELECT 1 FROM cases c JOIN case_material_generations g ON g.case_id=c.id AND g.user_id=c.user_id
@@ -199,7 +208,7 @@ export async function actOnMaterialFacts(user: RequestUser, id: string, revision
         FROM (SELECT CAST(? AS INTEGER)-CAST(? AS INTEGER) AS gap_cents)),
       'at', ?, 'actor', ?, 'generation', ?, 'receiptId', ?)),revision=revision+1,updated_at=?
       WHERE case_id=? AND user_id=? AND revision=? AND ${accessCondition}`)
-      .bind(JSON.stringify(state), state.confirmations.due!.amount, state.confirmations.paid!.amount, plan.dueCents, plan.paidCents,
+      .bind(serializeStoredFactState(state), state.confirmations.due!.amount, state.confirmations.paid!.amount, plan.dueCents, plan.paidCents,
         at, user.userId, generation, receiptId, at, id, user.userId, revision, generation).run();
     if (!saved.meta.changes) throw conflict();
     return response(await synchronized(user, id));

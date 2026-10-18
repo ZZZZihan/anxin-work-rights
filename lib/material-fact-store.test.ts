@@ -104,6 +104,52 @@ describe('material facts API and transactional persistence', () => {
     expect((await read()).state.materials[0]).toEqual(current.state.materials[0]);
   });
 
+  it('returns current coverage for a nonempty historical v2 record without storing a derived display diagnostic', async () => {
+    await extracted();
+    const row = await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>();
+    const legacy = JSON.parse(row!.state_json), material = legacy.materials[0];
+    material.schemaVersion = 2;
+    delete material.coverage;
+    delete material.sourceCoverage;
+    material.candidates = material.candidates.slice(0, 1);
+    material.candidates[0].schemaVersion = 2;
+    delete material.candidates[0].normalization;
+    material.raw = JSON.stringify({ schemaVersion: 2, candidates: [material.candidates[0].representation] });
+    const legacyJson = JSON.stringify(legacy);
+    await bindings.DB.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=?').bind(legacyJson, 'fact-case').run();
+    const readStored = async () => (await bindings.DB.prepare('SELECT state_json FROM case_material_facts WHERE case_id=?').bind('fact-case').first<{ state_json: string }>())!.state_json;
+    let current = await read();
+    expect(current.state.materials[0]).toMatchObject({ schemaVersion: 2, raw: material.raw, sourceCoverage: { status: 'possible_missing', acceptedCount: 1 } });
+    expect(await readStored()).toBe(legacyJson);
+    current = await (await act(current, { action: 'confirm_scope', scope, note, verified: true })).json() as MaterialFactsResponse;
+    for (const field of ['due', 'paid']) current = await (await act(current, { action: 'confirm_amount', field, amount: field === 'due' ? '1000' : '200', note, complete: true, verified: true, reviewedCandidateIds: current.candidates.map(candidate => candidate.id) })).json() as MaterialFactsResponse;
+    expect((await act(current, { action: 'calculate' })).status).toBe(200);
+    const stored = JSON.parse(await readStored()).materials[0];
+    expect(stored).toMatchObject({ schemaVersion: 2, raw: material.raw });
+    expect(Object.hasOwn(stored, 'sourceCoverage')).toBe(false);
+    expect(Object.hasOwn(stored, 'coverage')).toBe(false);
+    expect((await read()).state.materials[0]).toMatchObject({ sourceCoverage: { status: 'possible_missing' } });
+  });
+
+  it('returns source attribution warnings for non-total and date candidates after persistence reload', async () => {
+    const text = '张三2026年1月资料待核。李四2026年2月月薪1000元。李四2026年2月15日入职。';
+    await bindings.DB.prepare(`UPDATE evidence_analyses SET result_json=json_set(result_json,'$.blocks[0].text',?) WHERE evidence_id='source-1'`).bind(text).run();
+    const modelOutput = JSON.parse(raw), first = modelOutput.candidates[0];
+    modelOutput.candidates = [
+      { ...first, quote: '1000元', meaning: 'rate', completeness: 'not_applicable', rateUnit: 'month' },
+      { ...first, kind: 'date', value: '2026年2月15日', quote: '2026年2月15日', meaning: 'employment_period', completeness: 'not_applicable', period: null },
+    ];
+    const answer = JSON.stringify(modelOutput);
+    bindings.service.mockImplementation(async (path: string, init?: RequestInit) => path === '/health' ? { capabilities: { factConfigured: true } }
+      : init?.method === 'DELETE' ? { ok: true } : path === '/fact-jobs' ? { jobId: 'roles-job' }
+        : { status: 'ready', result: { raw: answer, backend: 'controlled-test-fixture', model: null } });
+    const current = await extracted();
+    for (const candidate of current.candidates) expect(candidate).toMatchObject({ reviewIssues: expect.arrayContaining([expect.objectContaining({ code: 'source_relation_unresolved' })]) });
+    expect(current.state.materials[0].raw).toBe(answer);
+    expect((await read()).candidates).toEqual(current.candidates);
+    expect(current.canCalculate).toBe(false);
+  });
+
   it('persists the original amount span and exact normalization separately', async () => {
     const parsed=JSON.parse(raw);parsed.candidates[0].value='本期完整应付工资1000元';
     bindings.service.mockImplementation(async (path: string) => path === '/health' ? { capabilities: { factBackend: 'controlled-test-fixture', factConfigured: true } } : path === '/fact-jobs' ? { jobId: 'amount-job' } : {status:'ready',result:{raw:JSON.stringify(parsed),backend:'controlled-test-fixture',model:null}});

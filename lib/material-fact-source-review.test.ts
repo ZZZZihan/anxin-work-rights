@@ -217,7 +217,9 @@ describe('post-freeze runtime source binding, separate from model evaluation', (
     const date = (value: string): RawCandidateV3 => entry({ kind: 'date', value, quote: value, meaning: 'employment_period', period: null, completeness: 'not_applicable' });
     const batch = validateCandidateOutput(JSON.stringify({ schemaVersion: 3, candidates: [date('2024年7月'), date('2024年8月')] }), material);
     const first = reviewCandidateAgainstSource(batch.candidates[0], material) as FactCandidateV3, second = reviewCandidateAgainstSource(batch.candidates[1], material) as FactCandidateV3;
-    expect(first.reviewIssues).toEqual([]);
+    // The second event has no explicit owner; it now also requires attribution review,
+    // without falsely importing its signing role into the anchored first date.
+    expect(first.reviewIssues.map(issue => issue.code)).toEqual(['source_relation_unresolved']);
     expect(second.reviewIssues.map(issue => issue.code)).toContain('contract_signing_as_employment');
     expect(second.representation.meaning).toBe('employment_period');
   });

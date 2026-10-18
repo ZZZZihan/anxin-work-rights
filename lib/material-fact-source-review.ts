@@ -1,8 +1,9 @@
 import type { FactCandidate, FactSource, FactState } from './material-fact-types';
 import type { CandidateNormalization, FactReviewIssue, RateUnit, RawCandidateV3 } from './material-fact-types-v3';
 import { getCandidateRepresentation, isV2Candidate, isV3Candidate, normalizeCandidateValue } from './material-facts-v3.ts';
-import { hasSupportedTotalRelationship } from './material-fact-event-review.ts';
+import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
 import { sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
+import { reviewMaterialCoverage } from './material-fact-coverage-review.ts';
 
 /** Runtime source review is deliberately separate from the frozen extraction/evaluation contract. */
 export type SourceFactReviewIssue = FactReviewIssue | {
@@ -38,13 +39,18 @@ function sourceEvent(candidate: FactCandidate, source: FactSource | undefined): 
   const subject = getCandidateRepresentation(candidate)?.subject;
   const separateEvent = (clause: string) => {
     if (!subject || clause.includes(subject)) return false;
-    if (/^另一(?:班组|工人|劳动者|员工)/u.test(clause.trim())) return true;
-    const worker = clause.trim().match(/^([\p{Script=Han}]{2,4})(?:在[\p{L}\p{N}（）()·]{1,60}(?:公司|单位|厂|店))?\s*\d{4}(?:年|[-/.])/u)?.[1];
-    // Date-bearing headings such as "全组2024年7月" are not another worker.
-    // Require an amount-bearing event, and never discard group or metadata labels.
-    return !!worker && !hasGroupText(clause)
-      && !/全|组|工资|金额|总额|合计|汇总|部分|仅|记录|单位|公司|个人|本人|统计|币种|名单|备注|说明|以下|上述/u.test(worker)
-      && /[0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟]+\s*[元圆]/u.test(clause);
+    const trimmed = clause.trim();
+    // "Another worker" can still qualify this total (e.g. included above). Only
+    // explicitly bounded independent events may be skipped, never an arbitrary tail.
+    if (/^另一(?:班组|工人|劳动者|员工)(?:[0-9一二三四五六七八九十百千万零两]+(?:名|位|人)(?:工人|员工|劳动者)?)?另案处理$/u.test(trimmed)) return true;
+    if (/^另一(?:工人|劳动者|员工)(?:(?:工资|本次|此次|部分|完整|应付|已付|支付|约|合计|共计)|\s)*[0-9一二三四五六七八九十百千万亿零两壹贰叁肆伍陆柒捌玖拾佰仟.]+[元圆](?:整|正)?$/u.test(trimmed)) return true;
+    const ownerAndPeriod = trimmed.match(/^([\p{Script=Han}]{2,4})(?:在[\p{L}\p{N}（）()·]{1,60}(?:公司|单位|厂|店))?\s*(\d{4}年\d{1,2}月(?:\d{1,2}日)?)/u);
+    const worker = ownerAndPeriod?.[1], value = trimmed.match(/[0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟.]+\s*[元圆](?:整|正)?$/u)?.[0];
+    if (!worker || !value || hasGroupText(clause)
+      || /全|组|工资|金额|总额|合计|汇总|部分|仅|记录|单位|公司|个人|本人|统计|币种|名单|备注|说明|以下|上述/u.test(worker)) return false;
+    const other: RawCandidateV3 = { kind: 'money', value, quote: trimmed, blockId: block.id, subject: worker,
+      scope: 'unknown', meaning: 'other_money', completeness: 'not_applicable', period: ownerAndPeriod![2], rateUnit: null, assertion: 'unknown' };
+    return hasSupportedCandidateAttribution(other, trimmed, normalizeCandidateValue(other).normalization);
   };
   const splitClauses = (text: string) => text.split(/[，,。！？!?；;\n\r\u2028\u2029]+/u).map(clause => clause.trim()).filter(Boolean);
   const qualifiers: string[] = [];
@@ -140,11 +146,17 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
     || /(?:单笔|本次|此次|一笔|该笔|部分|先付|预付|预支|首批|第[一二三四五六七八九十0-9]+(?:笔|批|期)|仅含|只含|不含|未含|不包括|未包括)/u.test(`${context.text} ${context.qualifiers}`))) appendIssue(reviewed, {
     code: raw.meaning === 'due_total' ? 'partial_due_total' : 'partial_paid_total', message: '候选绑定的源文含单笔、部分或排除工资组成的表述，不能因裁剪引文就提示为本期完整总额，请核对金额覆盖范围。',
   });
+  const totalNeedsCompleteRelationship = raw.kind === 'money' && raw.scope === 'individual'
+    && ['due_total', 'paid_total'].includes(raw.meaning) && raw.completeness === 'complete';
+  if (!totalNeedsCompleteRelationship && (context.qualifiers.length > 0
+    || !hasSupportedCandidateAttribution(raw, context.text, normalizeCandidateValue({ ...raw, quote: context.text }).normalization))) appendIssue(reviewed, {
+    code: 'source_relation_unresolved', message: '源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。',
+  });
   if (raw.kind === 'money') {
     // Reuse the frozen normalizer only as a runtime source constraint. Its raw/value/quote
     // and the frozen model result remain intact; only derived availability can decrease.
     let sourceNormalized = normalizeCandidateValue({ ...raw, quote: context.text });
-    if (raw.scope === 'individual' && ['due_total', 'paid_total'].includes(raw.meaning) && raw.completeness === 'complete'
+    if (totalNeedsCompleteRelationship
       && (context.qualifiers.length > 0 || !hasSupportedTotalRelationship(raw, context.text, sourceNormalized.normalization))) appendIssue(reviewed, {
       code: 'source_relation_unresolved', message: '源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。',
     });
@@ -176,10 +188,11 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
 /** Apply at the store/view boundary, outside formal evaluation. Input state is never mutated. */
 export function reviewFactsAgainstSources(state: FactState, sources: FactSource[]): FactState {
   const reviewed = structuredClone(state);
-  for (const material of reviewed.materials) {
-    if (material.status !== 'extracted') continue;
-    const source = sources.find(item => item.ready && item.id === material.evidenceId && `${item.sha256}:${item.analysisRevision}` === material.signature);
-    material.candidates = material.candidates.map(candidate => reviewCandidateAgainstSource(candidate, source));
-  }
+  reviewed.materials = reviewed.materials.map(material => {
+    const source = material.status === 'extracted' ? sources.find(item => item.ready && item.id === material.evidenceId && `${item.sha256}:${item.analysisRevision}` === material.signature) : undefined;
+    const covered = reviewMaterialCoverage(material, source);
+    if (covered.status === 'extracted') covered.candidates = covered.candidates.map(candidate => reviewCandidateAgainstSource(candidate, source));
+    return covered;
+  });
   return reviewed;
 }

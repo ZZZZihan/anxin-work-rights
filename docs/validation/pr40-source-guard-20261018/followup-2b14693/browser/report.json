@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "requiredScenariosStatus": "PASS",
+  "finalValidFixtureStatus": "PASS",
+  "recordedAt": "2026-10-18T00:47:50.831Z",
+  "environment": {
+    "productionBuild": true,
+    "worker": "wrangler local",
+    "bindingHost": "127.0.0.1",
+    "database": "new disposable on-disk D1",
+    "browser": "headed Chromium via playwright-cli",
+    "testData": "strictly synthetic; no production data",
+    "realHttpAndD1": true,
+    "uiRoutesMocked": false,
+    "materialService": "intentionally unconfigured to produce durable cancellation pending",
+    "testedCssWidth": 1200
+  },
+  "provenance": {
+    "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts",
+    "gitHead": "2b14693175860f5d1b627760861c746861a3c928",
+    "workingTreeDiffSha256": "aeafd3713e1e4af581a4ea9dd9c4eb02addfa198917ca678679d201852967aae",
+    "sourceSha256": {
+      "components/views/Cases.tsx": "b124bc8c48cd90a007eb1efcd4d6ecff57f5d990211fb7e629ef8169f7b8dd02",
+      "components/MaterialFactsPanel.tsx": "9055986d12298454f6f9a1f497a62e9e2dcb6fb4e7b2590a5b48a2bed51b7099",
+      "lib/material-fact-event-review.ts": "fdaa9bea4191fcf4bb0143a8f402f7e07293cbd558711e728a3177a8cc570e68",
+      "lib/material-fact-source-review.ts": "8680300379a55fc8b903f498a72e834163ba1b76eb56bb8c6df3d0b539b1dede",
+      "lib/material-fact-store.ts": "e84b3249db5584b28f1fc2f7ef4ab51bb75fcfa1508fc118fdb2bde86b01dc84",
+      "lib/material-fact-coverage-review.ts": "43a1313fe4da8cd9730e77cdf096002af331fb989274a6abe8bcee436c173b4b"
+    },
+    "distServerMain": "/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/dist/server/index.js",
+    "distServerMainSha256": "c17c1982adf697b583360ab4cf690d38b77919a5a8e3d0851aed3e2a833dc2df",
+    "distConfigSha256": "cb7050d838b6cd948aedb5fe26f9d73c112a275ae2edf0bca5094b33ea3ea1a4",
+    "distMainModifiedAt": "2026-10-18T00:41:29.005Z"
+  },
+  "scenarios": [
+    {
+      "id": "cases_pending",
+      "status": "PASS",
+      "httpStatus": 200,
+      "processingCleanupPending": true,
+      "savedStep": 1,
+      "visibleProgress": "2 / 5",
+      "toast": "已进入“固定证据”阶段；后台提取尚未确认停止，请检查识别服务。",
+      "persistedD1Checked": true,
+      "screenshot": "01-cases-pending.png"
+    },
+    {
+      "id": "cases_real_save_failure",
+      "status": "PASS",
+      "fault": "synthetic SQLite BEFORE UPDATE trigger RAISE(ABORT)",
+      "httpStatus": 500,
+      "savedStepBefore": 1,
+      "savedStepAfter": 1,
+      "visibleProgress": "2 / 5",
+      "toast": "请求没有成功，请稍后重试。",
+      "screenshot": "02-cases-save-failure.png"
+    },
+    {
+      "id": "cases_retry_after_fault_removed",
+      "status": "PASS",
+      "httpStatus": 200,
+      "processingCleanupPending": false,
+      "savedStep": 2,
+      "visibleProgress": "3 / 5",
+      "toast": "已进入“沟通协商”阶段。",
+      "screenshot": "03-cases-save-recovery.png"
+    },
+    {
+      "id": "panel_nonempty_v2_coverage",
+      "status": "PASS",
+      "httpStatus": 200,
+      "schemaVersion": 2,
+      "acceptedCandidates": 1,
+      "sourceCoverageStatus": "possible_missing",
+      "uncoveredSignal": "9000元",
+      "visibleLabel": "1 条候选 · 可能有遗漏",
+      "rawPreservedInUIAndD1": true,
+      "screenshot": "04-panel-v2-possible-missing.png"
+    },
+    {
+      "id": "panel_v3_rate_attribution",
+      "status": "PASS",
+      "candidate": {
+        "meaning": "rate",
+        "value": "8000元",
+        "subject": "王甲",
+        "period": "2024年7月",
+        "blockId": "b2"
+      },
+      "actualSourceBlock": "李乙2024年8月月薪8000元。",
+      "issue": "source_relation_unresolved",
+      "visibleLabel": "需要进一步核对",
+      "rawPreservedInUIAndD1": true,
+      "screenshot": "05-panel-rate-attribution-warning.png"
+    },
+    {
+      "id": "no_automatic_amount_or_calculation",
+      "status": "PASS",
+      "dueInput": "",
+      "paidInput": "",
+      "confirmations": {
+        "due": null,
+        "paid": null
+      },
+      "calculationButtonDisabled": true,
+      "sourceCoveragePersisted": false
+    },
+    {
+      "id": "source_view_after_fixture_corrected",
+      "status": "PASS",
+      "visibleSource": [
+        "王甲2024年7月信息待核。",
+        "李乙2024年8月月薪8000元。"
+      ],
+      "reloadViaRealErrorBoundary": true,
+      "panelWarningsAndRawRecheckedAfterReload": true,
+      "screenshot": "07-source-view-recovered.png"
+    }
+  ],
+  "observedFailures": [
+    {
+      "type": "intentional_database_failure",
+      "expected": true,
+      "error": "PATCH /api/cases 500",
+      "recovered": true,
+      "evidence": "02-cases-save-failure.png"
+    },
+    {
+      "type": "incomplete_synthetic_fixture",
+      "expected": false,
+      "error": "TypeError: Cannot read properties of undefined (reading 'query')",
+      "ui": "This page couldn’t load",
+      "cause": "Directly seeded result_json omitted required MaterialResult.knowledge; production readAnalysis normally persists validateMaterialResult output including knowledge.",
+      "correction": "Only isolated fixture result_json was completed with actual local /api/knowledge response. No product code changed.",
+      "recovered": true,
+      "evidence": "06-incomplete-fixture-source-error.png",
+      "recoveryEvidence": "07-source-view-recovered.png"
+    }
+  ],
+  "toolingNotes": [
+    "One attempted playwright-cli network subcommand was unsupported; replaced with documented requests. The preceding UI assertions and screenshot had succeeded; no business request was repeated for this tool typo."
+  ],
+  "screenshots": [
+    {
+      "file": "01-cases-pending.png",
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/output/playwright/pr40-final-integrated/01-cases-pending.png",
+      "sha256": "16af14c9736beee61e398044b421af5c6d54cbdf069dd19593f4a98afcbef6bb",
+      "width": 2400,
+      "height": 1838
+    },
+    {
+      "file": "02-cases-save-failure.png",
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/output/playwright/pr40-final-integrated/02-cases-save-failure.png",
+      "sha256": "f3f6295e020ab5bd03dd843300ea22a1cbf907a4d14b8570e90642dbb4e477c8",
+      "width": 2400,
+      "height": 1838
+    },
+    {
+      "file": "03-cases-save-recovery.png",
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/output/playwright/pr40-final-integrated/03-cases-save-recovery.png",
+      "sha256": "b93b1e5568824bd50ba3703f47028fab81ce9b746cd95966e31e2cbcdec68aa4",
+      "width": 2400,
+      "height": 1838
+    },
+    {
+      "file": "04-panel-v2-possible-missing.png",
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/output/playwright/pr40-final-integrated/04-panel-v2-possible-missing.png",
+      "sha256": "a47051eca5d6bc277fba67e8051a76d8a8c85ec9de01f0f378abbfa77d7b6610",
+      "width": 858,
+      "height": 949
+    },
+    {
+      "file": "05-panel-rate-attribution-warning.png",
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/output/playwright/pr40-final-integrated/05-panel-rate-attribution-warning.png",
+      "sha256": "897f3e4acc90ffc9baf0043b85d2b53153ceaabf397986f02e0cf5b101368364",
+      "width": 858,
+      "height": 983
+    },
+    {
+      "file": "06-incomplete-fixture-source-error.png",
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/output/playwright/pr40-final-integrated/06-incomplete-fixture-source-error.png",
+      "sha256": "c6d5833867d749c7cec6785eaecd8a33e9791374c560d8682140296c178d8fb7",
+      "width": 1200,
+      "height": 1400
+    },
+    {
+      "file": "07-source-view-recovered.png",
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-structured-material-facts/output/playwright/pr40-final-integrated/07-source-view-recovered.png",
+      "sha256": "0ed7d42d34b071c0b505e3cb39c91d204a3acceed13f420070bc04452c910a88",
+      "width": 1200,
+      "height": 1400
+    }
+  ],
+  "limitations": [
+    "Local synthetic stored OCR/fact state verifies server-to-browser behavior, not real OCR or external LLM quality.",
+    "Original object upload/download and production login were outside this run.",
+    "Desktop browser checked; mobile and production acceptance were not performed.",
+    "Malformed externally edited historical analysis resilience is not claimed by the valid-fixture pass."
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "launcherFinallyExited": true,
+    "workerUnreachable": true,
+    "readyFileRemoved": true,
+    "temporaryConfigAndD1Removed": true,
+    "fixtureMetadataRemoved": true,
+    "browserSession": "dedicated pr40-final-integrated closed",
+    "finishedAt": "2026-10-18T00:48:11.380Z",
+    "browserSessionClosed": true
+  },
+  "screenshotsVisuallyInspected": [
+    "01-cases-pending.png",
+    "02-cases-save-failure.png",
+    "03-cases-save-recovery.png",
+    "04-panel-v2-possible-missing.png",
+    "05-panel-rate-attribution-warning.png",
+    "06-incomplete-fixture-source-error.png",
+    "07-source-view-recovered.png"
+  ]
+}

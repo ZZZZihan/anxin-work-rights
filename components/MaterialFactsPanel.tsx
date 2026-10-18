@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Calculator, Check, Info, LoaderCircle, RefreshCw, ScanText, Undo2 } from 'lucide-react';
 import type { AmountField, Assertion, CandidateKind, FactAction, FactScope, MaterialFactsResponse, Qualifier } from '@/lib/material-fact-types';
-import { getCandidateRepresentation, getExtractionCoverage, isV2Candidate, isV3Candidate } from '@/lib/material-facts-v3';
+import { getCandidateRepresentation, isV2Candidate, isV3Candidate } from '@/lib/material-facts-v3';
+import { getReviewedExtractionCoverage } from '@/lib/material-fact-coverage-review';
 import './MaterialFactsPanel.css';
 
 const kinds: Record<CandidateKind, string> = { worker: '劳动者', employer: '用人单位', period: '期间', monthly_rate: '月工资标准', due_total: '应付总额候选', paid_total: '已付总额候选', arrears: '欠款表述', award: '裁判 / 命令支付', payment: '单笔付款', other_amount: '其他金额' };
@@ -153,7 +154,7 @@ export default function MaterialFactsPanel({ caseId, evidenceVersion, onOpenSour
           {data.sources.map((source) => {
             const material = data.state.materials.find((item) => item.evidenceId === source.id);
             const candidates = data.candidates.filter((item) => item.evidenceId === source.id);
-            const coverage = material?.status === 'extracted' ? getExtractionCoverage(material) : null;
+            const coverage = material?.status === 'extracted' ? getReviewedExtractionCoverage(material) : null;
             const legacyEmpty = material?.status === 'extracted' && !coverage && candidates.length === 0;
             const extractionLabel = legacyEmpty ? '旧版提取无可用候选 · 需核对原文' : coverage?.status === 'empty' ? '未提取到候选 · 需核对原文' : coverage?.status === 'none_accepted' ? '候选均未通过核验 · 需核对原文' : coverage?.status === 'possible_missing' ? `${candidates.length} 条候选 · 可能有遗漏` : `${candidates.length} 条候选 · 待核对`;
             return <article className="fact-source-card" key={source.id}>

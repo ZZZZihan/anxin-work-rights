@@ -82,7 +82,8 @@ export default function Cases({
         }),
       });
       updateCase(result.case);
-      notify(nextStep >= 4 ? '案件已标记完成。' : `已进入“${steps[nextStep]}”阶段。`);
+      const progressMessage = nextStep >= 4 ? '案件已标记完成' : `已进入“${steps[nextStep]}”阶段`;
+      notify(result.processingCleanupPending ? `${progressMessage}；后台提取尚未确认停止，请检查识别服务。` : `${progressMessage}。`);
     } catch (error) {
       notify(error instanceof Error ? error.message : '更新失败。', 'error');
     } finally {
