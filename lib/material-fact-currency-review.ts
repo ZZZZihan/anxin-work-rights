@@ -35,7 +35,7 @@ const SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}${FOREIGN_MARKER}`, 'iu');
 // These words can attribute the same anchored wage/payment to its currency even
 // when the model crops the marker out of both value and quote. No arbitrary text,
 // person name, numeral, clause delimiter or newline can join this finite bridge.
-const WAGE_CURRENCY_WORD = '(?:基本工资|工资|薪酬|薪资|薪金|劳动报酬|报酬|计价|计付|计发|计薪|计酬|支付|发放|结算|标准|约定|共计|合计|金额|为|是|共|的)';
+const WAGE_CURRENCY_WORD = '(?:基本工资|工资|薪酬|薪资|薪金|劳动报酬|报酬|计价|计付|计发|计薪|计酬|计算|計算|折算|计|計|支付|发放|结算|标准|约定|共计|合计|金额|为|是|共|的)';
 const WAGE_CURRENCY_PREFIX = new RegExp(`${FOREIGN_MARKER}${CURRENCY_BRIDGE}(?:${WAGE_CURRENCY_WORD}${CURRENCY_BRIDGE})+$`, 'iu');
 const WAGE_CURRENCY_SUFFIX = new RegExp(`^${CURRENCY_BRIDGE}(?:(?:${WAGE_CURRENCY_WORD}|币种|幣種|以|按)${CURRENCY_BRIDGE})+${FOREIGN_MARKER}`, 'iu');
 const RMB_PREFIX = new RegExp(`(?:人民币|人民幣|(?<![A-Z])(?:CNY|RMB)(?![A-Z])|¥)${BRIDGE}$`, 'iu');

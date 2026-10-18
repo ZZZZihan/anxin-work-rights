@@ -453,6 +453,40 @@ try {
     durableSnapshots.push({ name: 'historical-arithmetic', item, state: before });
     return { historicalOperandDowngraded: true, rawAndStoredStateUnchanged: true, automaticCalculation: false };
   });
+  for (const spec of [
+    { name: 'currency-bare-count', text: '测试王甲2026年1月工资以港币计四万元', value: '四万元', amount: null },
+    { name: 'currency-calculation', text: '测试王甲2026年1月工资以美元计算四万元', value: '四万元', amount: null },
+    { name: 'named-factor', text: '测试王甲2026年1月工资四万元乘以出勤系数', value: '四万元', amount: null },
+    { name: 'named-factor-full', text: '测试王甲2026年1月工资四万元乘以出勤系数', value: '四万元乘以出勤系数', amount: null },
+    { name: 'range-first', text: '测试王甲2026年1月工资在3万元和4万元之间', value: '3万元', amount: null },
+    { name: 'range-second', text: '测试王甲2026年1月工资介于3万元与4万元', value: '4万元', amount: null },
+    { name: 'range-layout', text: '测试王甲2026年1月工资在3万元\n和4万元之间', value: '3万元', amount: null },
+    { name: 'arabic-jiao', text: '测试王甲2026年1月完整应付工资5元5角', value: '5元5角', amount: '5.50' },
+    { name: 'arabic-fen', text: '测试王甲2026年1月完整应付工资5元5角2分', value: '5元5角2分', amount: '5.52' },
+    { name: 'arabic-cropped-fen', text: '测试王甲2026年1月完整应付工资5元5角2分', value: '5元5角', amount: null },
+  ]) await scenario(`round11_${spec.name}_source_and_raw`, async () => {
+    const [item] = await fixture(spec.name, [{ text: spec.text, candidates: [money(spec.value, spec.value)] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, spec.amount);
+    if (spec.amount === null) assert.notEqual(material.candidates[0].normalization.status, 'exact');
+    durableSnapshots.push({ name: spec.name, item, state: stored(item.caseId) });
+    return { amount: spec.amount, rawRetained: true, automaticCalculation: false };
+  });
+  await scenario('round11_historical_exact_range_is_downgraded_without_storage_rewrite', async () => {
+    const [item] = await fixture('historical-range', [{ text: '测试王甲2026年1月工资在3万元和4万元之间', candidates: [money('3万元', '3万元')] }]);
+    await extract(item);
+    const legacy = stored(item.caseId), candidate = legacy.state.materials[0].candidates[0];
+    candidate.amount = '30000.00';
+    candidate.normalization = { rawValue: '3万元', amount: '30000.00', status: 'exact', matchedText: '3万元', span: { start: 0, end: 3 }, reason: 'Synthetic pre-fix exact endpoint' };
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path);
+    assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body).candidates[0];
+    assert.equal(checked.amount, null); assert.equal(checked.normalization.status, 'range');
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: 'historical-range', item, state: before });
+    return { rangeEndpointDowngraded: true, storedRawAndHistoryUnchanged: true };
+  });
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

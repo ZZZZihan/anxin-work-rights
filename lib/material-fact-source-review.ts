@@ -5,6 +5,7 @@ import { normalizeCandidateValueV4 as normalizeCandidateValue } from './material
 import { hasSupportedCandidateAttribution, hasSupportedTotalRelationship } from './material-fact-event-review.ts';
 import { sourceMoneyHasExplicitRmbCurrency, sourceMoneyHasUnsupportedCurrency } from './material-fact-currency-review.ts';
 import { hasAttachedMoneyArithmetic } from './material-fact-arithmetic-review.ts';
+import { isConjunctionMoneyRangeEndpoint } from './material-fact-range-review.ts';
 import { reviewMaterialCoverage } from './material-fact-coverage-review.ts';
 
 /** Runtime source review is deliberately separate from the frozen extraction/evaluation contract. */
@@ -105,6 +106,15 @@ function sourceMoneyHasAttachedArithmetic(context: AnchoredSourceEvent, normaliz
   return hasAttachedMoneyArithmetic(before, after);
 }
 
+function sourceMoneyIsConjunctionRange(context: AnchoredSourceEvent, normalized: CandidateNormalization, source: FactSource, blockId: string): boolean {
+  const edges = monetaryEdges(context, normalized, true);
+  if (!edges) return false;
+  const blockIndex = source.blocks.findIndex(block => block.id === blockId);
+  const before = [...source.blocks.slice(0, blockIndex).map(block => block.text), edges.before].join('\n');
+  const after = [edges.after, ...source.blocks.slice(blockIndex + 1).map(block => block.text)].join('\n');
+  return isConjunctionMoneyRangeEndpoint(before, edges.matched, after);
+}
+
 /** Inspect the original block: a grouping comma may already be outside the local clause. */
 function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: CandidateNormalization): boolean {
   const edges = monetaryEdges(context, normalized);
@@ -197,6 +207,9 @@ export function reviewCandidateAgainstSource(candidate: FactCandidate, source: F
     if (sourceNormalized.amount !== null) {
       if (sourceMoneyHasUnsupportedCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着外币或不支持的币种标记，当前规范化不进行币种转换。', 'unsupported'),
+      };
+      else if (sourceMoneyIsConjunctionRange(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {
+        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文明确给出金额区间，未将裁剪后的任一端点作为精确金额。', 'range'),
       };
       else if (sourceMoneyHasAttachedArithmetic(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {
         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。', 'unsupported'),
