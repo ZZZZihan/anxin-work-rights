@@ -1,0 +1,107 @@
+// Independent R40 comparison/event controls. Synthetic labels only; no CLI/model.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const ROOT = resolve(process.env.MATERIAL_FACT_TEST_ROOT || fileURLToPath(new URL('../', import.meta.url)));
+const { canonicalMonetaryExpression: key, normalizeMoneyValueV4: normalize } = await import(pathToFileURL(resolve(ROOT, 'lib/material-money-v4.ts')).href);
+const { assessCase } = await import(pathToFileURL(resolve(ROOT, 'experiments/material-facts-v7/assess.mjs')).href);
+const MODES = ['raw_basic', 'raw_relational', 'raw_strict', 'accepted_basic', 'accepted_relational', 'accepted_strict'];
+const cpLength = value => Array.from(value).length;
+const block = (id, text) => ({ id, text, page: 1, bbox: null, confidence: null });
+const money = (value, quote, blockId = 'b1') => ({ kind: 'money', value, quote, blockId, subject: null,
+  scope: 'unknown', meaning: 'other_money', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' });
+function anchor(sourceBlock, value, occurrence = 0) {
+  let start = -1;
+  for (let i = 0; i <= occurrence; i++) start = sourceBlock.text.indexOf(value, start + 1);
+  assert.ok(start >= 0);
+  return { blockId: sourceBlock.id, start: cpLength(sourceBlock.text.slice(0, start)), end: cpLength(sourceBlock.text.slice(0, start + value.length)) };
+}
+function run(blocks, expected, events, expectedEventIds, candidates) {
+  const input = { id: 'r40-independent-comparison', source: { id: 'r40-independent-source', name: 'synthetic.txt',
+    sha256: '4'.repeat(64), analysisRevision: 40, ready: true, blocks } };
+  const label = { id: input.id, schemaVersion: 3, label_status: 'provisional_non_expert', expected,
+    events, expected_event_ids: expectedEventIds, acceptable_alternatives: [] };
+  const result = { id: input.id, finish_reason: 'stop', raw_output: JSON.stringify({ schemaVersion: 3, candidates }) };
+  const original = structuredClone({ input, label, result });
+  const row = assessCase(input, label, result);
+  assert.deepEqual({ input, label, result }, original, 'Read-only assessment never changes labels, raw output or source CP positions.');
+  return row;
+}
+function all(row, counts) {
+  for (const mode of MODES) {
+    assert.deepEqual([row[mode].tp, row[mode].fp, row[mode].fn], counts, mode);
+    assert.equal(new Set(row[mode].pairs.map(pair => pair.actual)).size, row[mode].tp);
+    assert.equal(new Set(row[mode].pairs.map(pair => pair.expected)).size, row[mode].tp);
+  }
+}
+
+test('RMB aliases have one qualified comparison key without creating a calculation amount', () => {
+  for (const qualifier of ['约', '至少', '可能']) {
+    const expected = key(`人民币${qualifier}4000元`);
+    assert.notEqual(expected, null);
+    for (const prefix of ['人民币', '人民幣', 'RMB', 'rmb', 'CNY', 'cny', '¥', '￥']) {
+      const value = `${prefix}${qualifier}4000元`;
+      assert.equal(key(value), expected, value);
+      assert.equal(normalize(value).amount, null, 'A comparison key has no precision/calculation authority.');
+    }
+  }
+});
+test('qualifier words, sides, direction and exactness are retained', () => {
+  const values = ['RMB约4000元', 'CNY至少4000元', '人民币至多4000元', '人民幣可能4000元', 'RMB4000元以上', 'RMB4000元以下', '4000元'];
+  const keys = values.map(key);
+  assert.ok(keys.every(value => value !== null));
+  assert.equal(new Set(keys).size, values.length);
+});
+test('foreign, conflicting, duplicate and narrative wrappers do not acquire RMB alias keys', () => {
+  for (const value of ['USD约4000元', '港币约4000元', 'RMB人民币约4000元', 'RMB约4000元美元', 'ACNY约4000元', 'RMB约4000元和5000元'])
+    assert.equal(key(value), null, value);
+});
+
+const first = '😀甲方记载人民币约4000元。', repeated = '复述记载RMB约4000元。';
+const one = block('b1', first + repeated);
+const expected = money('人民币约4000元', first);
+const repeat = money('RMB约4000元', repeated);
+const firstAnchor = anchor(one, expected.value), repeatAnchor = anchor(one, repeat.value);
+
+test('two literal RMB aliases may match only within their one registered statement event', () => {
+  all(run([one], [expected], [{ id: 'one-statement', anchors: [firstAnchor, repeatAnchor] }], ['one-statement'], [repeat]), [1, 0, 0]);
+});
+test('equal RMB alias keys cannot cross from one statement event to another', () => {
+  all(run([one], [expected], [{ id: 'first', anchors: [firstAnchor] }, { id: 'other', anchors: [repeatAnchor] }], ['first'], [repeat]), [0, 1, 1]);
+});
+test('two predictions in one event cannot consume a single reference twice', () => {
+  all(run([one], [expected], [{ id: 'one', anchors: [firstAnchor, repeatAnchor] }], ['one'], [expected, repeat]), [1, 1, 0]);
+});
+test('two predictions for event one cannot fill the equal-amount event-two reference', () => {
+  const otherText = '另一事件记载CNY约4000元。', sourceBlock = block('b1', one.text + otherText);
+  const other = money('CNY约4000元', otherText);
+  // Use two distinct literal representations of event one. An identical raw
+  // object is rejected by protocol duplicate validation before accepted scoring.
+  all(run([sourceBlock], [expected, other], [{ id: 'first', anchors: [firstAnchor, repeatAnchor] },
+    { id: 'other', anchors: [anchor(sourceBlock, other.value)] }], ['first', 'other'], [expected, repeat]), [1, 1, 1]);
+});
+test('two separately evidenced events retain their two separate true positives', () => {
+  all(run([one], [expected, repeat], [{ id: 'first', anchors: [firstAnchor] }, { id: 'other', anchors: [repeatAnchor] }], ['first', 'other'], [expected, repeat]), [2, 0, 0]);
+});
+test('unregistered RMB alias occurrence cannot borrow the registered original occurrence', () => {
+  all(run([one], [expected], [{ id: 'first', anchors: [firstAnchor] }], ['first'], [repeat]), [0, 1, 1]);
+});
+test('an ambiguous bare quote repeated in different source events stays unmatched', () => {
+  const a = '甲方记载RMB约4000元。', b = '乙方记载RMB约4000元。', sourceBlock = block('b1', a + b);
+  const gold = money('RMB约4000元', a), ambiguous = money('RMB约4000元', 'RMB约4000元');
+  all(run([sourceBlock], [gold], [{ id: 'a', anchors: [anchor(sourceBlock, gold.value, 0)] }, { id: 'b', anchors: [anchor(sourceBlock, gold.value, 1)] }], ['a'], [ambiguous]), [0, 1, 1]);
+});
+test('same-event upper and lower bounds cannot become equal through currency aliases', () => {
+  const a = '甲方记载RMB至少4000元。', b = '更正记载CNY至多4000元。', sourceBlock = block('b1', a + b);
+  const gold = money('RMB至少4000元', a), actual = money('CNY至多4000元', b);
+  all(run([sourceBlock], [gold], [{ id: 'one', anchors: [anchor(sourceBlock, gold.value), anchor(sourceBlock, actual.value)] }], ['one'], [actual]), [0, 1, 1]);
+});
+test('a date with the same literal day still cannot cross source events', () => {
+  const a = '王甲2026年1月15日收到工资。', b = '李乙2026年1月15日收到工资。', sourceBlock = block('b1', a + b);
+  const candidate = (quote, subject) => ({ kind: 'date', value: '2026年1月15日', quote, blockId: 'b1', subject, scope: 'individual',
+    meaning: 'payment_date', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' });
+  const gold = candidate(a, '王甲'), actual = candidate(b, '李乙');
+  all(run([sourceBlock], [gold], [{ id: 'a', anchors: [anchor(sourceBlock, gold.value, 0)] }, { id: 'b', anchors: [anchor(sourceBlock, gold.value, 1)] }], ['a'], [actual]), [0, 1, 1]);
+});

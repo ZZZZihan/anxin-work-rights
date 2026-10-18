@@ -1751,6 +1751,51 @@ try {
     return {rejectedEmptyLabel: full, preciseYearAmount: null, rawAndStoredHistoryUnchanged: true};
   });
   // End ROUND39 additions.
+  // ROUND40: bounded qualifiers, operands and accounting signs stay unavailable.
+  for (const expression of ['4000元为上限', '4000元的双倍', '(4000元)', '（4000元）']) for (const full of [true, false]) await scenario(`round40_unavailable_${expression}_${full}`, async () => {
+    const value = full ? expression : '4000元';
+    const [item] = await fixture(`round40-unavailable-${expression}-${full}`, [{text: `测试王甲2026年1月全部应付工资合计${expression}。`, exactSource: true, candidates: [money(value, value)]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, null);
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '4000.00';
+    old.normalization = {rawValue: old.value, amount: old.amount, status: 'exact', matchedText: old.value, span: {start: 0, end: Array.from(old.value).length}, reason: 'Synthetic ROUND40 old exact observation'};
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `round40-unavailable-${expression}-${full}`, item, state: before});
+    return {amount: null, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true};
+  });
+  for (const suffix of ['每个小时', '/个小时', '每个小时待定']) await scenario(`round40_hour_${suffix}`, async () => {
+    const amount = suffix.endsWith('待定') ? null : '4000.00';
+    const [item] = await fixture(`round40-hour-${suffix}`, [{text: `测试王甲工资4000元${suffix}。`, exactSource: true, candidates: [money('4000元', '4000元', {meaning: 'rate', completeness: 'not_applicable', period: null, rateUnit: 'hour'})]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates[0].amount, amount); assert.equal(material.candidates[0].representation.rateUnit, 'hour');
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert.equal(rawAndLocations(item, read.body).candidates[0].amount, amount); assert.deepEqual(stored(item.caseId), before);
+    durableSnapshots.push({name: `round40-hour-${suffix}`, item, state: before}); return {amount, hourlyClassifierPreserved: true, uncertaintyPreserved: true};
+  });
+  for (const currency of ['RMB', 'CNY']) await scenario(`round40_qualified_${currency}`, async () => {
+    const value = `${currency}约4000元`;
+    const [item] = await fixture(`round40-qualified-${currency}`, [{text: `测试王甲2026年1月全部应付工资合计${value}。`, exactSource: true, candidates: [money(value, value)]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates[0].amount, null); assert.equal(material.candidates[0].normalization.status, 'approximate');
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before);
+    durableSnapshots.push({name: `round40-qualified-${currency}`, item, state: before}); return {amount: null, qualifierAndRawPreserved: true};
+  });
+  for (const [verb, meaning, field, value, amount] of [['应发', 'due_total', 'due', '4000元', '4000.00'], ['实发', 'paid_total', 'paid', '3500元', '3500.00']]) await scenario(`round40_total_${verb}`, async () => {
+    const [item] = await fixture(`round40-total-${verb}`, [{text: `测试王甲2026年1月${verb}工资合计${value}。`, exactSource: true, candidates: [money(value, value, {meaning})]}]);
+    const material = rawAndLocations(item, await extract(item)); assert(!material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert.deepEqual(stored(item.caseId), before);
+    const scoped = await request(item.path, 'POST', {action: 'confirm_scope', revision: read.body.revision, generation: read.body.generation,
+      scope: {worker: '测试王甲', employer: '合成测试单位', start: '2026-01-01', end: '2026-01-31'}, note: '合成程序测试的范围核对，不是人工业务验收。', verified: true});
+    assert.equal(scoped.status, 200); assert.deepEqual(scoped.body.fields[field].values, [amount]); assert.equal(scoped.body.canCalculate, false); assert.deepEqual(scoped.body.state.confirmations, {due: null, paid: null}); assert.equal(rawAndLocations(item, scoped.body).raw, material.raw);
+    const revoked = await request(item.path, 'POST', {action: 'revoke', field: 'scope', revision: scoped.body.revision, generation: scoped.body.generation}); assert.equal(revoked.status, 200); unconfirmed(revoked.body);
+    durableSnapshots.push({name: `round40-total-${verb}`, item, state: stored(item.caseId)}); return {amount, scopedSuggestion: [amount], calculationStillUnconfirmed: true};
+  });
+  for (const [value, text, meaning] of [['1月15日', '测试王甲工资于1月15日支付。', 'payment_date'], ['2026年1月与2月', '测试王甲2026年1月与2月工资所属期间。', 'wage_period']]) await scenario(`round40_date_${meaning}`, async () => {
+    const candidate = {kind: 'date', value, quote: value, subject: '测试王甲', scope: 'individual', meaning, completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated'};
+    const [item] = await fixture(`round40-date-${meaning}`, [{text, exactSource: true, candidates: [candidate]}]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert(!material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved')); assert.equal(material.candidates[0].value, value);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body); assert(!rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved')); assert.deepEqual(stored(item.caseId), before);
+    durableSnapshots.push({name: `round40-date-${meaning}`, item, state: before}); return {sourceRelationSupported: true, noInventedYear: true, dateDoesNotConfirmAmount: true};
+  });
+  // End ROUND40 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
