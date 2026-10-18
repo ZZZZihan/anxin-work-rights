@@ -1,0 +1,87 @@
+{
+  "at": "2026-10-16T09:42:34.148711+00:00",
+  "local_python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "scope": "CI three commands independently run in exact copied benchmark snapshot under review; no original source/data writes",
+  "commands": [
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "data/validate_dataset.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"passed\",\n  \"splits\": {\n    \"train\": {\n      \"records\": 24,\n      \"groups\": 12,\n      \"categories\": {\n        \"complete\": 7,\n        \"conflict\": 2,\n        \"missing_due\": 3,\n        \"missing_period\": 2,\n        \"mixed_payment\": 2,\n        \"multi_turn\": 4,\n        \"payment_attribution\": 2,\n        \"tool_failure\": 2\n      },\n      \"actions\": {\n        \"ask_user\": 11,\n        \"call_tool\": 11,\n        \"report_tool_failure\": 2\n      }\n    },\n    \"dev\": {\n      \"records\": 12,\n      \"groups\": 6,\n      \"categories\": {\n        \"complete\": 3,\n        \"conflict\": 1,\n        \"missing_due\": 1,\n        \"mixed_payment\": 2,\n        \"multi_turn\": 3,\n        \"payment_attribution\": 1,\n        \"tool_failure\": 1\n      },\n      \"actions\": {\n        \"ask_user\": 5,\n        \"call_tool\": 6,\n        \"report_tool_failure\": 1\n      }\n    },\n    \"test\": {\n      \"records\": 72,\n      \"groups\": 36,\n      \"categories\": {\n        \"complete\": 15,\n        \"conflict\": 5,\n        \"missing_due\": 9,\n        \"missing_period\": 8,\n        \"mixed_payment\": 9,\n        \"multi_turn\": 13,\n        \"payment_attribution\": 9,\n        \"tool_failure\": 4\n      },\n      \"actions\": {\n        \"ask_user\": 36,\n        \"call_tool\": 32,\n        \"report_tool_failure\": 4\n      }\n    }\n  },\n  \"checks\": {\n    \"one_to_one_input_label_ids\": true,\n    \"unique_ids\": true,\n    \"no_duplicate_conversations\": true,\n    \"strict_schema\": true,\n    \"groups_do_not_cross_splits\": true,\n    \"question_fields_exact\": true,\n    \"calendar_dates_valid\": true,\n    \"amounts_have_at_most_two_decimals\": true,\n    \"retry_limit_observed_in_gold\": true,\n    \"explicit_zero_values\": 9,\n    \"negative_tool_gaps\": 3\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "prepare.py"
+      ],
+      "exit_code": 0,
+      "stdout": "Frozen hashes verified\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        ".",
+        "-p",
+        "test_*.py"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ".................................\n----------------------------------------------------------------------\nRan 33 tests in 0.007s\n\nOK\n"
+    }
+  ],
+  "original_frozen_files_changed": [],
+  "diagnostics_sha256": "929f6a75421c70a93e418d0c916ac998bb09223fc049ae66ca68c6d56e917006",
+  "test_diagnostics_sha256": "695b61775fff942d82ea2422efb67919cfdf40389776b78fe5a7a9400733d802",
+  "ci_workflow_sha256": "6456d6d99ffb5070f2b209e50162f2b6422f6f9d817ea6a748d50686e672dee6",
+  "remote_github_ci_run_verified": false,
+  "python312": "Python 3.12.12",
+  "python312_commands": [
+    {
+      "command": [
+        "/Users/xuzihan/Documents/Projects/国创/training-assets/runtime/qwen32b-mlx/bin/python",
+        "-B",
+        "data/validate_dataset.py"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"passed\",\n  \"splits\": {\n    \"train\": {\n      \"records\": 24,\n      \"groups\": 12,\n      \"categories\": {\n        \"complete\": 7,\n        \"conflict\": 2,\n        \"missing_due\": 3,\n        \"missing_period\": 2,\n        \"mixed_payment\": 2,\n        \"multi_turn\": 4,\n        \"payment_attribution\": 2,\n        \"tool_failure\": 2\n      },\n      \"actions\": {\n        \"ask_user\": 11,\n        \"call_tool\": 11,\n        \"report_tool_failure\": 2\n      }\n    },\n    \"dev\": {\n      \"records\": 12,\n      \"groups\": 6,\n      \"categories\": {\n        \"complete\": 3,\n        \"conflict\": 1,\n        \"missing_due\": 1,\n        \"mixed_payment\": 2,\n        \"multi_turn\": 3,\n        \"payment_attribution\": 1,\n        \"tool_failure\": 1\n      },\n      \"actions\": {\n        \"ask_user\": 5,\n        \"call_tool\": 6,\n        \"report_tool_failure\": 1\n      }\n    },\n    \"test\": {\n      \"records\": 72,\n      \"groups\": 36,\n      \"categories\": {\n        \"complete\": 15,\n        \"conflict\": 5,\n        \"missing_due\": 9,\n        \"missing_period\": 8,\n        \"mixed_payment\": 9,\n        \"multi_turn\": 13,\n        \"payment_attribution\": 9,\n        \"tool_failure\": 4\n      },\n      \"actions\": {\n        \"ask_user\": 36,\n        \"call_tool\": 32,\n        \"report_tool_failure\": 4\n      }\n    }\n  },\n  \"checks\": {\n    \"one_to_one_input_label_ids\": true,\n    \"unique_ids\": true,\n    \"no_duplicate_conversations\": true,\n    \"strict_schema\": true,\n    \"groups_do_not_cross_splits\": true,\n    \"question_fields_exact\": true,\n    \"calendar_dates_valid\": true,\n    \"amounts_have_at_most_two_decimals\": true,\n    \"retry_limit_observed_in_gold\": true,\n    \"explicit_zero_values\": 9,\n    \"negative_tool_gaps\": 3\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/xuzihan/Documents/Projects/国创/training-assets/runtime/qwen32b-mlx/bin/python",
+        "-B",
+        "prepare.py"
+      ],
+      "exit_code": 0,
+      "stdout": "Frozen hashes verified\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/xuzihan/Documents/Projects/国创/training-assets/runtime/qwen32b-mlx/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        ".",
+        "-p",
+        "test_*.py"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ".................................\n----------------------------------------------------------------------\nRan 33 tests in 0.007s\n\nOK\n"
+    }
+  ]
+}

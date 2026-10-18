@@ -1,0 +1,760 @@
+{
+  "evaluated_at": "2026-10-16T09:28:05.852899+00:00",
+  "labels_sha256": "8e80d1e5c9e8bb3ddc2ea2c472d9a142d9fd2509349c576393afedad43bbb5c4",
+  "results_sha256": "0a617642ef11059beb0688fbacf341293cd376219be870dd12dce2cd1b237782",
+  "summary": {
+    "planned_cases": 12,
+    "returned_cases": 12,
+    "counts": {
+      "strict_json": 8,
+      "contract_valid": 12,
+      "action_correct": 12,
+      "decision_contract_correct": 10,
+      "premature_tool_call": 0
+    },
+    "decision_contract_accuracy": 0.8333333333333334,
+    "question_field_recall": 1.0,
+    "covered_question_fields": 5,
+    "needed_question_fields": 5,
+    "unnecessary_question_fields": 2,
+    "premature_tool_call_denominator": 6,
+    "premature_tool_call_rate": 0.0,
+    "expected_tool_calls": 6,
+    "correct_tool_arguments": 6,
+    "by_category": {
+      "mixed_payment": {
+        "total": 2,
+        "correct": 2,
+        "premature": 0
+      },
+      "conflict": {
+        "total": 1,
+        "correct": 0,
+        "premature": 0
+      },
+      "multi_turn": {
+        "total": 3,
+        "correct": 3,
+        "premature": 0
+      },
+      "payment_attribution": {
+        "total": 1,
+        "correct": 1,
+        "premature": 0
+      },
+      "complete": {
+        "total": 3,
+        "correct": 3,
+        "premature": 0
+      },
+      "tool_failure": {
+        "total": 1,
+        "correct": 1,
+        "premature": 0
+      },
+      "missing_due": {
+        "total": 1,
+        "correct": 0,
+        "premature": 0
+      }
+    },
+    "failure_counts": {
+      "not_strict_json": 4,
+      "wrong_missing_fields": 2,
+      "wrong_conflict_fields": 1,
+      "unnecessary_question_fields": 1
+    },
+    "latency_seconds": {
+      "median": 6.01456895848969,
+      "p95": 9.54788012499921,
+      "sum": 78.84526441397611,
+      "includes_loading": false,
+      "concurrency": 1
+    },
+    "api_usage": {},
+    "api_cost_estimate": null,
+    "question_semantic_review": "separate; field tags alone do not prove question adequacy"
+  },
+  "cases": [
+    {
+      "id": "c_f8ce52984c4c",
+      "group_id": "g013",
+      "category": "mixed_payment",
+      "strict_json": true,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": true,
+      "missing_exact": true,
+      "conflicts_exact": true,
+      "tool_arguments_exact": null,
+      "needed_question_fields": [
+        "wage_paid_total"
+      ],
+      "asked_question_fields": [
+        "wage_paid_total"
+      ],
+      "covered_question_fields": 1,
+      "needed_question_count": 1,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": null,
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [
+          "wage_paid_total"
+        ],
+        "conflicts": [],
+        "next_action": {
+          "type": "ask_user",
+          "questions": [
+            {
+              "field": "wage_paid_total",
+              "text": "这段期间实际已付的工资合计是多少，是否已包括全部工资付款？"
+            }
+          ],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "parsed_output": {
+        "missing": [
+          "wage_paid_total"
+        ],
+        "conflicts": [],
+        "next_action": {
+          "type": "ask_user",
+          "questions": [
+            {
+              "field": "wage_paid_total",
+              "text": "请问2026年4月10日至4月22日期间，您实际收到的工资总额是多少元？（请明确说明是否包含报销的200元）"
+            }
+          ],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "failure_reasons": [],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_0a4597802377",
+      "group_id": "g013",
+      "category": "mixed_payment",
+      "strict_json": false,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": true,
+      "missing_exact": true,
+      "conflicts_exact": true,
+      "tool_arguments_exact": true,
+      "needed_question_fields": [],
+      "asked_question_fields": [],
+      "covered_question_fields": 0,
+      "needed_question_count": 0,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": "2700",
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-04-10",
+            "period_end": "2026-04-22",
+            "due": 4200,
+            "paid": 1500
+          }
+        }
+      },
+      "parsed_output": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-04-10",
+            "period_end": "2026-04-22",
+            "due": 4200,
+            "paid": 1500
+          }
+        }
+      },
+      "failure_reasons": [
+        "not_strict_json"
+      ],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_9281dd807f77",
+      "group_id": "g014",
+      "category": "conflict",
+      "strict_json": true,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": false,
+      "missing_exact": false,
+      "conflicts_exact": false,
+      "tool_arguments_exact": null,
+      "needed_question_fields": [
+        "period"
+      ],
+      "asked_question_fields": [
+        "period"
+      ],
+      "covered_question_fields": 1,
+      "needed_question_count": 1,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": null,
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [],
+        "conflicts": [
+          "period"
+        ],
+        "next_action": {
+          "type": "ask_user",
+          "questions": [
+            {
+              "field": "period",
+              "text": "这次核算的起止日期分别是哪一天？"
+            }
+          ],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "parsed_output": {
+        "missing": [
+          "period"
+        ],
+        "conflicts": [],
+        "next_action": {
+          "type": "ask_user",
+          "questions": [
+            {
+              "field": "period",
+              "text": "请确认工资核算的具体期间起止日期（例如：2026年2月1日至2月20日）"
+            }
+          ],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "failure_reasons": [
+        "wrong_missing_fields",
+        "wrong_conflict_fields"
+      ],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_75e003fa5781",
+      "group_id": "g014",
+      "category": "multi_turn",
+      "strict_json": true,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": true,
+      "missing_exact": true,
+      "conflicts_exact": true,
+      "tool_arguments_exact": true,
+      "needed_question_fields": [],
+      "asked_question_fields": [],
+      "covered_question_fields": 0,
+      "needed_question_count": 0,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": "4000",
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-02-03",
+            "period_end": "2026-02-22",
+            "due": 5800,
+            "paid": 1800
+          }
+        }
+      },
+      "parsed_output": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-02-03",
+            "period_end": "2026-02-22",
+            "due": 5800,
+            "paid": 1800
+          }
+        }
+      },
+      "failure_reasons": [],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_6dc3fbe6f5ad",
+      "group_id": "g015",
+      "category": "payment_attribution",
+      "strict_json": false,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": true,
+      "missing_exact": true,
+      "conflicts_exact": true,
+      "tool_arguments_exact": null,
+      "needed_question_fields": [
+        "wage_paid_total"
+      ],
+      "asked_question_fields": [
+        "wage_paid_total"
+      ],
+      "covered_question_fields": 1,
+      "needed_question_count": 1,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": null,
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [
+          "wage_paid_total"
+        ],
+        "conflicts": [],
+        "next_action": {
+          "type": "ask_user",
+          "questions": [
+            {
+              "field": "wage_paid_total",
+              "text": "这段期间实际已付的工资合计是多少，是否已包括全部工资付款？"
+            }
+          ],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "parsed_output": {
+        "missing": [
+          "wage_paid_total"
+        ],
+        "conflicts": [],
+        "next_action": {
+          "type": "ask_user",
+          "questions": [
+            {
+              "field": "wage_paid_total",
+              "text": "请问您能确认2026年7月4日至7月31日期间，通过银行或其他渠道实际支付的工资总额是多少吗？"
+            }
+          ],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "failure_reasons": [
+        "not_strict_json"
+      ],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_344ca2b4f334",
+      "group_id": "g015",
+      "category": "complete",
+      "strict_json": false,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": true,
+      "missing_exact": true,
+      "conflicts_exact": true,
+      "tool_arguments_exact": true,
+      "needed_question_fields": [],
+      "asked_question_fields": [],
+      "covered_question_fields": 0,
+      "needed_question_count": 0,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": "6400",
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-07-04",
+            "period_end": "2026-07-31",
+            "due": 8900,
+            "paid": 2500
+          }
+        }
+      },
+      "parsed_output": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-07-04",
+            "period_end": "2026-07-31",
+            "due": 8900,
+            "paid": 2500
+          }
+        }
+      },
+      "failure_reasons": [
+        "not_strict_json"
+      ],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_2e940aa5df82",
+      "group_id": "g016",
+      "category": "multi_turn",
+      "strict_json": true,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": true,
+      "missing_exact": true,
+      "conflicts_exact": true,
+      "tool_arguments_exact": null,
+      "needed_question_fields": [
+        "agreed_due_total"
+      ],
+      "asked_question_fields": [
+        "agreed_due_total"
+      ],
+      "covered_question_fields": 1,
+      "needed_question_count": 1,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": null,
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [
+          "agreed_due_total"
+        ],
+        "conflicts": [],
+        "next_action": {
+          "type": "ask_user",
+          "questions": [
+            {
+              "field": "agreed_due_total",
+              "text": "这段期间双方确认的应发工资总额是多少？"
+            }
+          ],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "parsed_output": {
+        "missing": [
+          "agreed_due_total"
+        ],
+        "conflicts": [],
+        "next_action": {
+          "type": "ask_user",
+          "questions": [
+            {
+              "field": "agreed_due_total",
+              "text": "2026年8月11日到8月28日的约定工资总额是多少？"
+            }
+          ],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "failure_reasons": [],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_2f18cf5b7b16",
+      "group_id": "g016",
+      "category": "multi_turn",
+      "strict_json": true,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": true,
+      "missing_exact": true,
+      "conflicts_exact": true,
+      "tool_arguments_exact": true,
+      "needed_question_fields": [],
+      "asked_question_fields": [],
+      "covered_question_fields": 0,
+      "needed_question_count": 0,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": "2660",
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-08-11",
+            "period_end": "2026-08-28",
+            "due": 4760,
+            "paid": 2100
+          }
+        }
+      },
+      "parsed_output": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-08-11",
+            "period_end": "2026-08-28",
+            "due": 4760,
+            "paid": 2100
+          }
+        }
+      },
+      "failure_reasons": [],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_b3a8c9222199",
+      "group_id": "g017",
+      "category": "complete",
+      "strict_json": true,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": true,
+      "missing_exact": true,
+      "conflicts_exact": true,
+      "tool_arguments_exact": true,
+      "needed_question_fields": [],
+      "asked_question_fields": [],
+      "covered_question_fields": 0,
+      "needed_question_count": 0,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": "600",
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-01-12",
+            "period_end": "2026-01-16",
+            "due": 1100,
+            "paid": 500
+          }
+        }
+      },
+      "parsed_output": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-01-12",
+            "period_end": "2026-01-16",
+            "due": 1100,
+            "paid": 500
+          }
+        }
+      },
+      "failure_reasons": [],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_b60111cb46e7",
+      "group_id": "g017",
+      "category": "complete",
+      "strict_json": true,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": true,
+      "missing_exact": true,
+      "conflicts_exact": true,
+      "tool_arguments_exact": true,
+      "needed_question_fields": [],
+      "asked_question_fields": [],
+      "covered_question_fields": 0,
+      "needed_question_count": 0,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": "0",
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-01-12",
+            "period_end": "2026-01-16",
+            "due": 0,
+            "paid": 0
+          }
+        }
+      },
+      "parsed_output": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "call_tool",
+          "questions": [],
+          "tool": "calculate_wage_gap",
+          "arguments": {
+            "period_start": "2026-01-12",
+            "period_end": "2026-01-16",
+            "due": 0,
+            "paid": 0
+          }
+        }
+      },
+      "failure_reasons": [],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_ac276ddb9117",
+      "group_id": "g018",
+      "category": "tool_failure",
+      "strict_json": false,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": true,
+      "missing_exact": true,
+      "conflicts_exact": true,
+      "tool_arguments_exact": null,
+      "needed_question_fields": [],
+      "asked_question_fields": [],
+      "covered_question_fields": 0,
+      "needed_question_count": 0,
+      "unnecessary_question_fields": 0,
+      "premature_tool_call": false,
+      "tool_replay_result": null,
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "report_tool_failure",
+          "questions": [],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "parsed_output": {
+        "missing": [],
+        "conflicts": [],
+        "next_action": {
+          "type": "report_tool_failure",
+          "questions": [],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "failure_reasons": [
+        "not_strict_json"
+      ],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    },
+    {
+      "id": "c_b459e1769cc3",
+      "group_id": "g018",
+      "category": "missing_due",
+      "strict_json": true,
+      "contract_valid": true,
+      "action_correct": true,
+      "decision_contract_correct": false,
+      "missing_exact": false,
+      "conflicts_exact": true,
+      "tool_arguments_exact": null,
+      "needed_question_fields": [
+        "agreed_due_total"
+      ],
+      "asked_question_fields": [
+        "agreed_due_total",
+        "period",
+        "wage_paid_total"
+      ],
+      "covered_question_fields": 1,
+      "needed_question_count": 1,
+      "unnecessary_question_fields": 2,
+      "premature_tool_call": false,
+      "tool_replay_result": null,
+      "tool_replay_blocked_by_retry_limit": false,
+      "expected": {
+        "missing": [
+          "agreed_due_total"
+        ],
+        "conflicts": [],
+        "next_action": {
+          "type": "ask_user",
+          "questions": [
+            {
+              "field": "agreed_due_total",
+              "text": "这段期间双方确认的应发工资总额是多少？"
+            }
+          ],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "parsed_output": {
+        "missing": [
+          "period",
+          "agreed_due_total",
+          "wage_paid_total"
+        ],
+        "conflicts": [],
+        "next_action": {
+          "type": "ask_user",
+          "questions": [
+            {
+              "field": "period",
+              "text": "请确认您提到的具体工资期间的起止日期（例如：2026年9月1日至9月6日）"
+            },
+            {
+              "field": "agreed_due_total",
+              "text": "请提供该期间根据合同或约定应发的工资总额"
+            },
+            {
+              "field": "wage_paid_total",
+              "text": "请确认该期间已支付的全部工资总额"
+            }
+          ],
+          "tool": null,
+          "arguments": null
+        }
+      },
+      "failure_reasons": [
+        "wrong_missing_fields",
+        "unnecessary_question_fields"
+      ],
+      "question_text_semantics": "not_scored_by_deterministic_checker"
+    }
+  ]
+}

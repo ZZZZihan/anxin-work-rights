@@ -1,0 +1,1144 @@
+[
+  {
+    "id": "dev-complete",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "dev-complete",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.01 元。",
+          "sha256": "2f57d3cbd1c688e11a89d22a2cd8697292f81ca988eba9f95201b19fa70e4d3f"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。",
+          "sha256": "e60d763f9ce9377b398f3657c67fb1ca7a9a12296d8758c67890ae457d48d31a"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "confirmed",
+          "value": "100.01",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 51,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.01 元。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "0.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 48,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-zero-due",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "dev-zero-due",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 0.00 元。",
+          "sha256": "c3223a2fd021e518fbb743c9618427dca4e61667e62888aa17630cf30c3bc77e"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 100.00 元。",
+          "sha256": "535cdb4fa6265cc67d732d7ea4b62b10b5bdfe1f66bf85b7531542b59800ef12"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "confirmed",
+          "value": "0.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 49,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 0.00 元。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "100.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 50,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 100.00 元。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-unknown-due",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "dev-unknown-due",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "evidence",
+          "text": "开发情境的受控记录：agreed_due_total，状态 unknown；值 未核实。",
+          "sha256": "fc10655be155592d6fa98a4c3d8030952e7c14f0c0673b0c269753ba58d19d58"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。",
+          "sha256": "e60d763f9ce9377b398f3657c67fb1ca7a9a12296d8758c67890ae457d48d31a"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "unknown",
+          "value": null,
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": false,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 44,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 unknown；值 未核实。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "0.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 48,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-unknown-paid",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "dev-unknown-paid",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.01 元。",
+          "sha256": "2f57d3cbd1c688e11a89d22a2cd8697292f81ca988eba9f95201b19fa70e4d3f"
+        },
+        {
+          "id": "s2",
+          "kind": "evidence",
+          "text": "开发情境的受控记录：wage_paid_total，状态 unknown；值 未核实。",
+          "sha256": "6855571780b1c57c8ba54b4ca1d4e6121cdb57031601901e1a0eda695f7d0487"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "confirmed",
+          "value": "100.01",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 51,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.01 元。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "unknown",
+          "value": null,
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": false,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 43,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 unknown；值 未核实。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-monthly",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "dev-monthly",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "evidence",
+          "text": "开发情境的受控记录：agreed_due_total，状态 candidate；值 5900.00 元。",
+          "sha256": "1b0c66025e17034ce2f2448fd1478c4adaa3572c15b73001c84662be487d363f"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。",
+          "sha256": "e60d763f9ce9377b398f3657c67fb1ca7a9a12296d8758c67890ae457d48d31a"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "candidate",
+          "value": "5900.00",
+          "scope": "e0",
+          "meaning": "monthly_rate",
+          "complete": false,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 52,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 candidate；值 5900.00 元。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "0.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 48,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-conflict",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "dev-conflict",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "evidence",
+          "text": "开发情境的受控记录：agreed_due_total，状态 conflict；值 100.01 元 与 200.02 元。",
+          "sha256": "6d3fbc06e235f051098259a64ae55ef4199d3ea78c0db86a8cc62c3755dcea9f"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。",
+          "sha256": "e60d763f9ce9377b398f3657c67fb1ca7a9a12296d8758c67890ae457d48d31a"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "conflict",
+          "value": [
+            "100.01",
+            "200.02"
+          ],
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": false,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 61,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 conflict；值 100.01 元 与 200.02 元。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "0.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 48,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-both-unknown",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "dev-both-unknown",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "evidence",
+          "text": "开发情境的受控记录：agreed_due_total，状态 unknown；值 未核实。",
+          "sha256": "fc10655be155592d6fa98a4c3d8030952e7c14f0c0673b0c269753ba58d19d58"
+        },
+        {
+          "id": "s2",
+          "kind": "evidence",
+          "text": "开发情境的受控记录：wage_paid_total，状态 unknown；值 未核实。",
+          "sha256": "6855571780b1c57c8ba54b4ca1d4e6121cdb57031601901e1a0eda695f7d0487"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "unknown",
+          "value": null,
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": false,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 44,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 unknown；值 未核实。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "unknown",
+          "value": null,
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": false,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 43,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 unknown；值 未核实。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-known-after-timeout",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": {
+      "status": "TIMEOUT",
+      "attempts": 1,
+      "max_attempts": 2
+    },
+    "fact_bundle": {
+      "case_id": "dev-known-after-timeout",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.01 元。",
+          "sha256": "2f57d3cbd1c688e11a89d22a2cd8697292f81ca988eba9f95201b19fa70e4d3f"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。",
+          "sha256": "e60d763f9ce9377b398f3657c67fb1ca7a9a12296d8758c67890ae457d48d31a"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "confirmed",
+          "value": "100.01",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 51,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.01 元。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "0.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 48,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-exhausted",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": {
+      "status": "TIMEOUT",
+      "attempts": 2,
+      "max_attempts": 2
+    },
+    "fact_bundle": {
+      "case_id": "dev-exhausted",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.01 元。",
+          "sha256": "2f57d3cbd1c688e11a89d22a2cd8697292f81ca988eba9f95201b19fa70e4d3f"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。",
+          "sha256": "e60d763f9ce9377b398f3657c67fb1ca7a9a12296d8758c67890ae457d48d31a"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "confirmed",
+          "value": "100.01",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 51,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.01 元。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "0.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 48,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-decimal",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "dev-decimal",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.11 元。",
+          "sha256": "89223236b8db9dcf27cb5eb29351e26be23af742a458a1090e877881c1d2d135"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 30.06 元。",
+          "sha256": "1509f110e148c9f962e78c73e3d63b20e8bed80de356a4df2e2b6ce4e4418dd4"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "confirmed",
+          "value": "100.11",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 51,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.11 元。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "30.06",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 49,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 30.06 元。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-unconfirmed-zero",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "dev-unconfirmed-zero",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "evidence",
+          "text": "开发情境的受控记录：agreed_due_total，状态 candidate；值 0.00 元。",
+          "sha256": "752d4ac9d2321f686084a84abd23b7cdf0e538ade0285c007e53f7ebab1a7902"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。",
+          "sha256": "e60d763f9ce9377b398f3657c67fb1ca7a9a12296d8758c67890ae457d48d31a"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "candidate",
+          "value": "0.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": false,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 49,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 candidate；值 0.00 元。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "0.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 48,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "dev-period-revised",
+    "messages": [
+      {
+        "role": "user",
+        "content": "请根据已录入的期间和工资核实情况整理下一步。没有核实的金额不要猜。"
+      }
+    ],
+    "tool_state": null,
+    "fact_bundle": {
+      "case_id": "dev-period-revised",
+      "sources": [
+        {
+          "id": "s0",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。",
+          "sha256": "0680b2b902e1b9a7c28c92e91f66b90ddf6e4da1c74b5b89aba1ad1d296e4311"
+        },
+        {
+          "id": "s1",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.01 元。",
+          "sha256": "2f57d3cbd1c688e11a89d22a2cd8697292f81ca988eba9f95201b19fa70e4d3f"
+        },
+        {
+          "id": "s2",
+          "kind": "confirmation",
+          "text": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。",
+          "sha256": "e60d763f9ce9377b398f3657c67fb1ca7a9a12296d8758c67890ae457d48d31a"
+        },
+        {
+          "id": "new-period-source",
+          "kind": "confirmation",
+          "text": "受控确认的新期间 2026-02-01 至 2026-02-28",
+          "sha256": "8089aac2dbdb61e4b91f170020a9c611e209bb40eafc55c4e9e37c99a7767b7c"
+        }
+      ],
+      "events": [
+        {
+          "id": "e0",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-01-01",
+            "end": "2026-01-31"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s0",
+              "start": 0,
+              "end": 56,
+              "quote": "开发情境的受控记录：period，状态 confirmed；值 2026-01-01 至 2026-01-31。"
+            }
+          ]
+        },
+        {
+          "id": "e1",
+          "field": "agreed_due_total",
+          "status": "confirmed",
+          "value": "100.01",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s1",
+              "start": 0,
+              "end": 51,
+              "quote": "开发情境的受控记录：agreed_due_total，状态 confirmed；值 100.01 元。"
+            }
+          ]
+        },
+        {
+          "id": "e2",
+          "field": "wage_paid_total",
+          "status": "confirmed",
+          "value": "0.00",
+          "scope": "e0",
+          "meaning": "period_wage_total",
+          "complete": true,
+          "supersedes": null,
+          "refs": [
+            {
+              "source_id": "s2",
+              "start": 0,
+              "end": 48,
+              "quote": "开发情境的受控记录：wage_paid_total，状态 confirmed；值 0.00 元。"
+            }
+          ]
+        },
+        {
+          "id": "new-period-event",
+          "field": "period",
+          "status": "confirmed",
+          "value": {
+            "start": "2026-02-01",
+            "end": "2026-02-28"
+          },
+          "scope": null,
+          "meaning": "period",
+          "complete": true,
+          "supersedes": "e0",
+          "refs": [
+            {
+              "source_id": "new-period-source",
+              "start": 0,
+              "end": 32,
+              "quote": "受控确认的新期间 2026-02-01 至 2026-02-28"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

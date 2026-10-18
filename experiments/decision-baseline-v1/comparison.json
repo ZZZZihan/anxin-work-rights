@@ -1,0 +1,3129 @@
+{
+  "scope": "72 synthetic held-out cases, 36 paired groups; no training",
+  "semantic_status": "exploratory independent Agent review, not human expert validation",
+  "semantic_rule": "action and actual arguments correct AND question_text_adequate is not false",
+  "review_source_sha256": {
+    "review/blind-batch1-mapping.json": "02a4c9e2400510b82f5f1656955b595a9314de50495224ec4f86b36d37551f93",
+    "review/semantic-batch1.json": "246bbd82637775d26c01e9ba5bb21ad1c693c12c53868ff3ae6aa015934136e8",
+    "review/blind-batch1.jsonl": "b6481c1a03121a565f0b4cef3e1e14d020fac31d96f257812a7d3b70c43fe932",
+    "review/blind-batch2-mapping.json": "5fa81cc104680c2895cf1ff20312ad26abc0a38f58262471220e3159f6eb1c93",
+    "review/semantic-batch2.json": "52f1bf6e326e0030c904ba662a0a55c2395b6f483be46647d59172dfc595c947",
+    "review/blind-batch2.jsonl": "18bd4dd8fbb5087489a7ef659419f3b327684fa711cbef961e46dc305a1e74a6"
+  },
+  "backends": {
+    "rules": {
+      "primary": {
+        "planned_cases": 72,
+        "returned_cases": 72,
+        "counts": {
+          "strict_json": 72,
+          "contract_valid": 72,
+          "action_correct": 62,
+          "decision_contract_correct": 55,
+          "premature_tool_call": 5
+        },
+        "decision_contract_accuracy": 0.7638888888888888,
+        "question_field_recall": 0.8536585365853658,
+        "covered_question_fields": 35,
+        "needed_question_fields": 41,
+        "unnecessary_question_fields": 10,
+        "premature_tool_call_denominator": 40,
+        "premature_tool_call_rate": 0.125,
+        "expected_tool_calls": 32,
+        "correct_tool_arguments": 24,
+        "by_category": {
+          "missing_period": {
+            "total": 8,
+            "correct": 4,
+            "premature": 0
+          },
+          "complete": {
+            "total": 15,
+            "correct": 11,
+            "premature": 0
+          },
+          "missing_due": {
+            "total": 9,
+            "correct": 9,
+            "premature": 0
+          },
+          "payment_attribution": {
+            "total": 9,
+            "correct": 4,
+            "premature": 4
+          },
+          "mixed_payment": {
+            "total": 9,
+            "correct": 8,
+            "premature": 0
+          },
+          "conflict": {
+            "total": 5,
+            "correct": 4,
+            "premature": 1
+          },
+          "multi_turn": {
+            "total": 13,
+            "correct": 11,
+            "premature": 0
+          },
+          "tool_failure": {
+            "total": 4,
+            "correct": 4,
+            "premature": 0
+          }
+        },
+        "failure_counts": {
+          "wrong_missing_fields": 10,
+          "unnecessary_question_fields": 9,
+          "wrong_conflict_fields": 5,
+          "missed_question_fields": 6,
+          "wrong_action": 10,
+          "wrong_tool_arguments": 8,
+          "premature_tool_call": 5
+        },
+        "latency_seconds": {
+          "median": 8.012499893084168e-05,
+          "p95": 0.0003897499991580844,
+          "sum": 0.010331502737244591,
+          "includes_loading": false,
+          "concurrency": 1
+        },
+        "api_usage": {},
+        "api_cost_estimate": null,
+        "question_semantic_review": "separate; field tags alone do not prove question adequacy"
+      },
+      "raw_strict_json_and_primary_correct": 55,
+      "exploratory_action_and_declared_fields": 55,
+      "business_semantic_correct": 55,
+      "both_cases_in_group_semantically_correct": 24,
+      "independently_reviewed_rows": 44,
+      "raw_actual_call_count": 32,
+      "raw_numerically_correct_calls_on_expected_call_cases": 24,
+      "selected_protocol_issue_counts": {},
+      "cases": [
+        {
+          "id": "c_90818c45346a",
+          "group_id": "g019",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_074",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "期间追问必要，但额外重复询问已明确全量实付960。"
+          }
+        },
+        {
+          "id": "c_3b94df86700a",
+          "group_id": "g019",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_007",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "invented_conflict",
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "期间追问必要，但凭空声称应发冲突且重复追问已明确的应发与全部实付。"
+          }
+        },
+        {
+          "id": "c_e4a3edf52699",
+          "group_id": "g020",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_056",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "期间年份未定，完整日期问题覆盖必要字段，未另问金额。"
+          }
+        },
+        {
+          "id": "c_5e4c432806c7",
+          "group_id": "g020",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_103",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "期间追问必要，但同时重复索取已明确全部工资实付6200。"
+          }
+        },
+        {
+          "id": "c_9dc06f3163bb",
+          "group_id": "g021",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_090",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "missed_required_question",
+              "unnecessary_question",
+              "wrong_question_target",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "真正缺本次期间，却不问日期而重复追问已明确的全量实付750。"
+          }
+        },
+        {
+          "id": "c_e8e334c2a27b",
+          "group_id": "g021",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_050",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_ask_user",
+              "invented_conflict",
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "旧期间已明确不算，却凭空保留期间冲突并追问。"
+          }
+        },
+        {
+          "id": "c_53b7ee3297b2",
+          "group_id": "g022",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_063",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "跨年绝对年份仍缺，期间问题覆盖所需信息。"
+          }
+        },
+        {
+          "id": "c_39da101cd3f3",
+          "group_id": "g022",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_8a8f86f374ab",
+          "group_id": "g023",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_052",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问确认结算应发，不把月薪当整月确认总额。"
+          }
+        },
+        {
+          "id": "c_a0d95d2da318",
+          "group_id": "g023",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_026",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确追问两个月确认应发，没有直接相乘月薪。"
+          }
+        },
+        {
+          "id": "c_d3003120200c",
+          "group_id": "g024",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_004",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问结算应发；日费率和出勤天数未被直接用于计算。"
+          }
+        },
+        {
+          "id": "c_f5dbc98ca096",
+          "group_id": "g024",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_b062280c2e90",
+          "group_id": "g025",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_013",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问确认应发总额，未用时薪乘小时代替确认。"
+          }
+        },
+        {
+          "id": "c_d8787b6c34c0",
+          "group_id": "g025",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_2ddb5f830c53",
+          "group_id": "g026",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_093",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确追问包含调薪和请假的整体应发确认数。"
+          }
+        },
+        {
+          "id": "c_1b83ef125dac",
+          "group_id": "g026",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_043",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问调薪后的期间应发总额，未自行推算。"
+          }
+        },
+        {
+          "id": "c_353faa871342",
+          "group_id": "g027",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_096",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问计件期间确认应发，不取未验收件数直接乘单价。"
+          }
+        },
+        {
+          "id": "c_bc3cd28034b2",
+          "group_id": "g027",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_23c8730ca5a1",
+          "group_id": "g028",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_104",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只询问尚缺的期间与应发，未重复已知全部实付。"
+          }
+        },
+        {
+          "id": "c_31023cb13f70",
+          "group_id": "g028",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_003",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问期间确认应发，不将月薪6200当总额。"
+          }
+        },
+        {
+          "id": "c_d19a5376c5ef",
+          "group_id": "g029",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_058",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "premature_tool_call",
+              "ambiguous_payment_attribution_used",
+              "missed_required_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "1800属于本段还是8月尾款尚未确定，却全部计为本段工资并调用。"
+          }
+        },
+        {
+          "id": "c_839692ac36bf",
+          "group_id": "g029",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_010d819052c8",
+          "group_id": "g030",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_098",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "明确要求本段全量工资并区分借款等其他款，覆盖所需字段。"
+          }
+        },
+        {
+          "id": "c_8b6092520698",
+          "group_id": "g030",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_12d69b0ad04b",
+          "group_id": "g031",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_048",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "premature_tool_call",
+              "incomplete_payment_used",
+              "missed_required_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "现金是否付款及完整总额仍未知，却用银行1200直接计算，遗漏完整性澄清。"
+          }
+        },
+        {
+          "id": "c_cf70c136ce9f",
+          "group_id": "g031",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_069",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "premature_tool_call",
+              "incomplete_payment_used",
+              "missed_required_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "银行记录尚未查全，却把现金800当全部实付并调用。"
+          }
+        },
+        {
+          "id": "c_4b3652f61fa7",
+          "group_id": "g032",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_073",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "已发部分但金额与全量未知，正确询问全部实付。"
+          }
+        },
+        {
+          "id": "c_06ce2d516f39",
+          "group_id": "g032",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_027",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问完整已付工资，未把忘记金额当零。"
+          }
+        },
+        {
+          "id": "c_59e87f2dfd41",
+          "group_id": "g033",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_062",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确追问实际全量工资，不把拟打款视作已付。"
+          }
+        },
+        {
+          "id": "c_217a38fc7fa0",
+          "group_id": "g033",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_045",
+            "business_action_correct": false,
+            "question_text_adequate": null,
+            "issue_types": [
+              "wrong_tool_arguments",
+              "planned_payment_used_as_paid"
+            ],
+            "note": "把拟打款3000错作实际工资，实际已确认全量实付为2800。"
+          }
+        },
+        {
+          "id": "c_f2a7238a7fa0",
+          "group_id": "g034",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_450d6542dde0",
+          "group_id": "g034",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_404b383517fb",
+          "group_id": "g035",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_051",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确追问工资与报销拆分后的全部工资总额。"
+          }
+        },
+        {
+          "id": "c_018603f412c3",
+          "group_id": "g035",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_67b68991c3d2",
+          "group_id": "g036",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_081",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确请求拆分采购垫款与本段工资并确认全量工资。"
+          }
+        },
+        {
+          "id": "c_8c363cab9d5f",
+          "group_id": "g036",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_da1830f90e47",
+          "group_id": "g037",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_22bffbd6aec7",
+          "group_id": "g037",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_cd9ebc965c35",
+          "group_id": "g038",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_024",
+            "business_action_correct": false,
+            "question_text_adequate": null,
+            "issue_types": [
+              "wrong_tool_arguments",
+              "attributable_wage_payment_omitted"
+            ],
+            "note": "应计明确归属本段的预发1800加另付700，实际仅取700，工具参数错误。"
+          }
+        },
+        {
+          "id": "c_763cdad06820",
+          "group_id": "g038",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_087",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "premature_tool_call",
+              "ambiguous_payment_attribution_used",
+              "missed_required_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "1800预发期间归属未知，不能仅用另笔700当全部实付直接计算。"
+          }
+        },
+        {
+          "id": "c_b5b313d396dc",
+          "group_id": "g039",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_099",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确请求确认两份有效应发来源的最终期间金额。"
+          }
+        },
+        {
+          "id": "c_ab873c62c768",
+          "group_id": "g039",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_086",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_ask_user",
+              "invented_conflict",
+              "explicit_correction_not_applied",
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "旧应发表已明确作废并确认8600，仍当冲突追问，遗漏显式更正效果。"
+          }
+        },
+        {
+          "id": "c_959dbecae6e0",
+          "group_id": "g040",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_020",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "premature_tool_call",
+              "unresolved_conflict_ignored",
+              "missed_required_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "900与1900的完整实付冲突尚未协调，却擅选900并调用，遗漏必要澄清。"
+          }
+        },
+        {
+          "id": "c_3d85e78db4c8",
+          "group_id": "g040",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_a38c57786700",
+          "group_id": "g041",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_100",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "期间存在两种未解说法，日期问题必要且未追问已知金额。"
+          }
+        },
+        {
+          "id": "c_cec9cca92fa9",
+          "group_id": "g041",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_ceab75515e1f",
+          "group_id": "g042",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_029",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "应发和实付各有未解冲突，两问对应两个字段且无多余问题。"
+          }
+        },
+        {
+          "id": "c_7e96a951d722",
+          "group_id": "g042",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_5f3fdc11c881",
+          "group_id": "g043",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_019",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确请求确认两张未撤销应发清单的最终金额。"
+          }
+        },
+        {
+          "id": "c_d4da87938579",
+          "group_id": "g043",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_053",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "应发完全未知，正确只询问期间应发总额。"
+          }
+        },
+        {
+          "id": "c_386c84dd6031",
+          "group_id": "g044",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_101",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "助手猜测未获确认，正确追问真实确认应发。"
+          }
+        },
+        {
+          "id": "c_f3217712c3de",
+          "group_id": "g044",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_f7a7f82b3817",
+          "group_id": "g045",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_044",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只追问尚未查明的全量实付，不重复日期与应发。"
+          }
+        },
+        {
+          "id": "c_15f201c87251",
+          "group_id": "g045",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_6e23a8944206",
+          "group_id": "g046",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_031",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "多轮已补期间，正确只问仍未协调的应发。"
+          }
+        },
+        {
+          "id": "c_e9d7a7351646",
+          "group_id": "g046",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_b732319bcb86",
+          "group_id": "g047",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_059",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_ask_user",
+              "unnecessary_question",
+              "explicit_correction_not_applied",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "已明确更正为全渠道工资零，却重复询问已知实付。"
+          }
+        },
+        {
+          "id": "c_cead0e5ae748",
+          "group_id": "g047",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_e93d9c84dc8e",
+          "group_id": "g048",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_046",
+            "business_action_correct": false,
+            "question_text_adequate": null,
+            "issue_types": [
+              "wrong_tool_arguments",
+              "partial_wage_sum"
+            ],
+            "note": "完整工资两笔应相加1700.50，实际仅用首笔800.25。"
+          }
+        },
+        {
+          "id": "c_0db237be929f",
+          "group_id": "g048",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_047",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_ask_user",
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "全部工资两笔及报销性质已明确，本可计算却重复索取已知实付。"
+          }
+        },
+        {
+          "id": "c_8a9db31e5345",
+          "group_id": "g049",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_014",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "三项均未知，三个问题分别覆盖且无额外字段。"
+          }
+        },
+        {
+          "id": "c_0adbc114bac0",
+          "group_id": "g049",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_002",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只询问尚缺的期间应发与完整实付，未重复已知日期。"
+          }
+        },
+        {
+          "id": "c_793d774ca215",
+          "group_id": "g050",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_59e4a8ba8dd2",
+          "group_id": "g050",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_8eaa464547c5",
+          "group_id": "g051",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_793076241962",
+          "group_id": "g051",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_f363a43d35bc",
+          "group_id": "g052",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_0691255ccdab",
+          "group_id": "g052",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_ad35c5412c8e",
+          "group_id": "g053",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_779d7feb72d5",
+          "group_id": "g053",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_071",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_ask_user",
+              "invented_conflict",
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "应发200与实付零均已明确，却凭空生成应发冲突并追问。"
+          }
+        },
+        {
+          "id": "c_9091ce3085b3",
+          "group_id": "g054",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_8ab7b6e34ccc",
+          "group_id": "g054",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        }
+      ]
+    },
+    "qwen": {
+      "primary": {
+        "planned_cases": 72,
+        "returned_cases": 72,
+        "counts": {
+          "strict_json": 52,
+          "contract_valid": 70,
+          "action_correct": 67,
+          "decision_contract_correct": 61,
+          "premature_tool_call": 0
+        },
+        "decision_contract_accuracy": 0.8472222222222222,
+        "question_field_recall": 0.9512195121951219,
+        "covered_question_fields": 39,
+        "needed_question_fields": 41,
+        "unnecessary_question_fields": 12,
+        "premature_tool_call_denominator": 40,
+        "premature_tool_call_rate": 0.0,
+        "expected_tool_calls": 32,
+        "correct_tool_arguments": 31,
+        "by_category": {
+          "missing_period": {
+            "total": 8,
+            "correct": 7,
+            "premature": 0
+          },
+          "complete": {
+            "total": 15,
+            "correct": 15,
+            "premature": 0
+          },
+          "missing_due": {
+            "total": 9,
+            "correct": 6,
+            "premature": 0
+          },
+          "payment_attribution": {
+            "total": 9,
+            "correct": 8,
+            "premature": 0
+          },
+          "mixed_payment": {
+            "total": 9,
+            "correct": 8,
+            "premature": 0
+          },
+          "conflict": {
+            "total": 5,
+            "correct": 3,
+            "premature": 0
+          },
+          "multi_turn": {
+            "total": 13,
+            "correct": 12,
+            "premature": 0
+          },
+          "tool_failure": {
+            "total": 4,
+            "correct": 2,
+            "premature": 0
+          }
+        },
+        "failure_counts": {
+          "invalid_output_contract": 2,
+          "not_strict_json": 20,
+          "wrong_missing_fields": 8,
+          "unnecessary_question_fields": 8,
+          "wrong_action": 3,
+          "wrong_tool_arguments": 1,
+          "wrong_conflict_fields": 4
+        },
+        "latency_seconds": {
+          "median": 6.18403991649393,
+          "p95": 8.064321291982196,
+          "sum": 468.0112990020716,
+          "includes_loading": false,
+          "concurrency": 1
+        },
+        "api_usage": {},
+        "api_cost_estimate": null,
+        "question_semantic_review": "separate; field tags alone do not prove question adequacy"
+      },
+      "raw_strict_json_and_primary_correct": 42,
+      "exploratory_action_and_declared_fields": 63,
+      "business_semantic_correct": 62,
+      "both_cases_in_group_semantically_correct": 27,
+      "independently_reviewed_rows": 39,
+      "raw_actual_call_count": 31,
+      "raw_numerically_correct_calls_on_expected_call_cases": 31,
+      "selected_protocol_issue_counts": {},
+      "cases": [
+        {
+          "id": "c_90818c45346a",
+          "group_id": "g019",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_217",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确索取本次清点工资具体起止，不重复金额。"
+          }
+        },
+        {
+          "id": "c_3b94df86700a",
+          "group_id": "g019",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_207",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_question_field_enum",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "文字准确只询问未知结束日；period_end字段不在合同枚举中，是协议标签错误。"
+          }
+        },
+        {
+          "id": "c_e4a3edf52699",
+          "group_id": "g020",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_216",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只询问未知年份，保留已知月日与金额。"
+          }
+        },
+        {
+          "id": "c_5e4c432806c7",
+          "group_id": "g020",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_218",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_not_strict_json"
+            ],
+            "note": "正确询问2025年9月部分月份的实际起止，日期仅作示例。"
+          }
+        },
+        {
+          "id": "c_9dc06f3163bb",
+          "group_id": "g021",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_203",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确索取本次起止及年份，未挪用背景旧期间。"
+          }
+        },
+        {
+          "id": "c_e8e334c2a27b",
+          "group_id": "g021",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_53b7ee3297b2",
+          "group_id": "g022",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_202",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_not_strict_json"
+            ],
+            "note": "具体起止日期要求YYYY-MM-DD，足以补齐未知跨年年份。"
+          }
+        },
+        {
+          "id": "c_39da101cd3f3",
+          "group_id": "g022",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_8a8f86f374ab",
+          "group_id": "g023",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_239",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只询问双方确认的应发总额，未依据整月月薪自行推算。"
+          }
+        },
+        {
+          "id": "c_a0d95d2da318",
+          "group_id": "g023",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_227",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "明确两个月合计未核实，正确请求确认整体应发，未从月薪推算。"
+          }
+        },
+        {
+          "id": "c_d3003120200c",
+          "group_id": "g024",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_208",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确追问明确期间的确认应发，没有按费率和出勤擅算。"
+          }
+        },
+        {
+          "id": "c_f5dbc98ca096",
+          "group_id": "g024",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_b062280c2e90",
+          "group_id": "g025",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_213",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_question",
+              "unsupported_numeric_suggestion",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "重复询问明确期间，并给出尚未确认的720候选；应聚焦确认总额，文字不满足无多余问题要求。"
+          }
+        },
+        {
+          "id": "c_d8787b6c34c0",
+          "group_id": "g025",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_2ddb5f830c53",
+          "group_id": "g026",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_212",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "应发问题必要，但期间与全部实付9000早已明确，额外两问重复已知事实。"
+          }
+        },
+        {
+          "id": "c_1b83ef125dac",
+          "group_id": "g026",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_210",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确只询问调薪后的整体期间应发。"
+          }
+        },
+        {
+          "id": "c_353faa871342",
+          "group_id": "g027",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_240",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "应发确认仍缺，但核算期间已明确；额外期间确认是重复追问。"
+          }
+        },
+        {
+          "id": "c_bc3cd28034b2",
+          "group_id": "g027",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_23c8730ca5a1",
+          "group_id": "g028",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_219",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只询问未知开始日与确认应发，已知止日和完整实付保留。"
+          }
+        },
+        {
+          "id": "c_31023cb13f70",
+          "group_id": "g028",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_236",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只询问尚待确认的期间工资总额，未把月薪作为总额。"
+          }
+        },
+        {
+          "id": "c_d19a5376c5ef",
+          "group_id": "g029",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_204",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "唯一收款的期间归属是唯一缺口；询问是否属本段及对应金额足以确定本段实付。"
+          }
+        },
+        {
+          "id": "c_839692ac36bf",
+          "group_id": "g029",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_010d819052c8",
+          "group_id": "g030",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_205",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "唯一转账可能是借款，询问是否属于本期间工资可澄清归属。"
+          }
+        },
+        {
+          "id": "c_8b6092520698",
+          "group_id": "g030",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_12d69b0ad04b",
+          "group_id": "g031",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_231",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问包含可能现金在内的全部实付，不把银行部分当总额。"
+          }
+        },
+        {
+          "id": "c_cf70c136ce9f",
+          "group_id": "g031",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_224",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "明确要求银行查完后的最终全部实付，解决完整性问题。"
+          }
+        },
+        {
+          "id": "c_4b3652f61fa7",
+          "group_id": "g032",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_223",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "询问该期间已收到的具体工资金额，按期间整体语义覆盖实付缺口，未把已发部分视作零。"
+          }
+        },
+        {
+          "id": "c_06ce2d516f39",
+          "group_id": "g032",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_238",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确要求本段收到的工资总额，未把忘记金额当零。"
+          }
+        },
+        {
+          "id": "c_59e87f2dfd41",
+          "group_id": "g033",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_225",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_not_strict_json"
+            ],
+            "note": "正确追问实际已付工资总额，未采用拟打款数字。"
+          }
+        },
+        {
+          "id": "c_217a38fc7fa0",
+          "group_id": "g033",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_f2a7238a7fa0",
+          "group_id": "g034",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_450d6542dde0",
+          "group_id": "g034",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_404b383517fb",
+          "group_id": "g035",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_234",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "ambiguous_question_wording"
+            ],
+            "note": "问题最终明确询问3200是否含450报销，可解决唯一拆分歧义；开头工资到账表述略含混。"
+          }
+        },
+        {
+          "id": "c_018603f412c3",
+          "group_id": "g035",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_67b68991c3d2",
+          "group_id": "g036",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_222",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "唯一合并收款的工资部分未拆明，问题明确询问其中工资金额。"
+          }
+        },
+        {
+          "id": "c_8c363cab9d5f",
+          "group_id": "g036",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_da1830f90e47",
+          "group_id": "g037",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_232",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_ask_user",
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "期间及应发实付均已明确，本应调用却再次确认已知期间。"
+          }
+        },
+        {
+          "id": "c_22bffbd6aec7",
+          "group_id": "g037",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_cd9ebc965c35",
+          "group_id": "g038",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_763cdad06820",
+          "group_id": "g038",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_211",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_question",
+              "missed_required_question",
+              "wrong_question_target",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "应发6300和本段700已知，却重复追问它们，遗漏真正不明的预发1800归属与全量实付。"
+          }
+        },
+        {
+          "id": "c_b5b313d396dc",
+          "group_id": "g039",
+          "primary_correct": true,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_214",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "preference_substituted_for_fact_confirmation"
+            ],
+            "note": "虽然识别8100/8600冲突，却问用户希望采用哪个；个人偏好不能核实实际确认应发。"
+          }
+        },
+        {
+          "id": "c_ab873c62c768",
+          "group_id": "g039",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_959dbecae6e0",
+          "group_id": "g040",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_230",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "仅实付存在冲突，却重复追问明确期间和应发；实付问题也未要求核对冲突来源。"
+          }
+        },
+        {
+          "id": "c_3d85e78db4c8",
+          "group_id": "g040",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_a38c57786700",
+          "group_id": "g041",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_209",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "文字准确要求确认两套期间之一；把冲突写成missing是状态自述问题。"
+          }
+        },
+        {
+          "id": "c_cec9cca92fa9",
+          "group_id": "g041",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_ceab75515e1f",
+          "group_id": "g042",
+          "primary_correct": true,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_235",
+            "business_action_correct": true,
+            "question_text_adequate": false,
+            "issue_types": [
+              "preference_substituted_for_fact_confirmation"
+            ],
+            "note": "两项冲突均识别，但均问用户希望采用哪个，偏好选择不能替代对实际应发与实付的核实。"
+          }
+        },
+        {
+          "id": "c_7e96a951d722",
+          "group_id": "g042",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_5f3fdc11c881",
+          "group_id": "g043",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_228",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "已存在两张有效应发单，正确请求确认最终采用的实际总额。"
+          }
+        },
+        {
+          "id": "c_d4da87938579",
+          "group_id": "g043",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_226",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只询问尚无可用结算数字的期间应发总额。"
+          }
+        },
+        {
+          "id": "c_386c84dd6031",
+          "group_id": "g044",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_221",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "助手猜测未获确认，正确要求实际确认应发总额。"
+          }
+        },
+        {
+          "id": "c_f3217712c3de",
+          "group_id": "g044",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_f7a7f82b3817",
+          "group_id": "g045",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_220",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确只询问尚未查明的全部实付工资总额。"
+          }
+        },
+        {
+          "id": "c_15f201c87251",
+          "group_id": "g045",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_6e23a8944206",
+          "group_id": "g046",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_229",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_missing_conflicts_overlap",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "问题请求确认两候选中的期间应发；同字段同时列missing和conflicts是协议自述矛盾。"
+          }
+        },
+        {
+          "id": "c_e9d7a7351646",
+          "group_id": "g046",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_b732319bcb86",
+          "group_id": "g047",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_cead0e5ae748",
+          "group_id": "g047",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_e93d9c84dc8e",
+          "group_id": "g048",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_0db237be929f",
+          "group_id": "g048",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_8a9db31e5345",
+          "group_id": "g049",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_233",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "三项均未知，三个问题分别覆盖所需期间与金额。"
+          }
+        },
+        {
+          "id": "c_0adbc114bac0",
+          "group_id": "g049",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_206",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "已知期间保留，只问两项仍缺的期间总额。"
+          }
+        },
+        {
+          "id": "c_793d774ca215",
+          "group_id": "g050",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_59e4a8ba8dd2",
+          "group_id": "g050",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_8eaa464547c5",
+          "group_id": "g051",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_201",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "retry_limit_action_not_reported",
+              "unnecessary_ask_user",
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch",
+              "protocol_not_strict_json"
+            ],
+            "note": "机器状态已耗尽两次机会，当前应报告失败；实际仍追问应发冲突，动作违反冻结失败优先级。"
+          }
+        },
+        {
+          "id": "c_793076241962",
+          "group_id": "g051",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_215",
+            "business_action_correct": false,
+            "question_text_adequate": false,
+            "issue_types": [
+              "retry_limit_action_not_reported",
+              "unnecessary_ask_user",
+              "unnecessary_question",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "重试状态已到上限，仍索取资料而未报告失败，当前一步动作错误。"
+          }
+        },
+        {
+          "id": "c_f363a43d35bc",
+          "group_id": "g052",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_0691255ccdab",
+          "group_id": "g052",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_ad35c5412c8e",
+          "group_id": "g053",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_779d7feb72d5",
+          "group_id": "g053",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_9091ce3085b3",
+          "group_id": "g054",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_8ab7b6e34ccc",
+          "group_id": "g054",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        }
+      ]
+    },
+    "deepseek": {
+      "primary": {
+        "planned_cases": 72,
+        "returned_cases": 72,
+        "counts": {
+          "strict_json": 71,
+          "contract_valid": 33,
+          "action_correct": 33,
+          "decision_contract_correct": 33,
+          "premature_tool_call": 0
+        },
+        "decision_contract_accuracy": 0.4583333333333333,
+        "question_field_recall": 0.6585365853658537,
+        "covered_question_fields": 27,
+        "needed_question_fields": 41,
+        "unnecessary_question_fields": 0,
+        "premature_tool_call_denominator": 40,
+        "premature_tool_call_rate": 0.0,
+        "expected_tool_calls": 32,
+        "correct_tool_arguments": 7,
+        "by_category": {
+          "missing_period": {
+            "total": 8,
+            "correct": 5,
+            "premature": 0
+          },
+          "complete": {
+            "total": 15,
+            "correct": 5,
+            "premature": 0
+          },
+          "missing_due": {
+            "total": 9,
+            "correct": 8,
+            "premature": 0
+          },
+          "payment_attribution": {
+            "total": 9,
+            "correct": 2,
+            "premature": 0
+          },
+          "mixed_payment": {
+            "total": 9,
+            "correct": 0,
+            "premature": 0
+          },
+          "conflict": {
+            "total": 5,
+            "correct": 5,
+            "premature": 0
+          },
+          "multi_turn": {
+            "total": 13,
+            "correct": 4,
+            "premature": 0
+          },
+          "tool_failure": {
+            "total": 4,
+            "correct": 4,
+            "premature": 0
+          }
+        },
+        "failure_counts": {
+          "not_strict_json": 1,
+          "invalid_output_contract": 39
+        },
+        "latency_seconds": {
+          "median": 2.435830895512481,
+          "p95": 3.8132440419867635,
+          "sum": 312.8507293298899,
+          "includes_loading": false,
+          "concurrency": 1
+        },
+        "api_usage": {
+          "prompt_tokens": 39768,
+          "completion_tokens": 6530,
+          "prompt_cache_hit_tokens": 32384,
+          "prompt_cache_miss_tokens": 7384,
+          "total_tokens": 46298
+        },
+        "api_cost_estimate": {
+          "currency": "USD",
+          "off_peak_estimate": 0.018515288,
+          "peak_estimate": 0.037030576,
+          "actual_billed_cost": null,
+          "model_pricing": "DeepSeek-V4-Pro",
+          "excludes_other_runs": true
+        },
+        "question_semantic_review": "separate; field tags alone do not prove question adequacy"
+      },
+      "raw_strict_json_and_primary_correct": 33,
+      "exploratory_action_and_declared_fields": 71,
+      "business_semantic_correct": 71,
+      "both_cases_in_group_semantically_correct": 35,
+      "independently_reviewed_rows": 61,
+      "raw_actual_call_count": 32,
+      "raw_numerically_correct_calls_on_expected_call_cases": 32,
+      "selected_protocol_issue_counts": {
+        "missing_questions_key": 25,
+        "ask_despite_empty_missing_metadata": 9
+      },
+      "cases": [
+        {
+          "id": "c_90818c45346a",
+          "group_id": "g019",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_032",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只询问本次工资起止及年份，保留已知两项金额。"
+          }
+        },
+        {
+          "id": "c_3b94df86700a",
+          "group_id": "g019",
+          "primary_correct": false,
+          "business_semantic_correct": false,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_037",
+            "business_action_correct": false,
+            "question_text_adequate": null,
+            "issue_types": [
+              "network_error"
+            ],
+            "note": "网络未返回输出，本次请求未完成；无法审问题文字。"
+          }
+        },
+        {
+          "id": "c_e4a3edf52699",
+          "group_id": "g020",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_055",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "只问尚未确认的年份，日期例子已明确为示例；tool/arguments空字段遗漏。"
+          }
+        },
+        {
+          "id": "c_5e4c432806c7",
+          "group_id": "g020",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_039",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确索取部分月份的具体起止，示例明确为格式示范而非既定事实。"
+          }
+        },
+        {
+          "id": "c_9dc06f3163bb",
+          "group_id": "g021",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_064",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "只问本次新账起止，未套用旧期间；tool/arguments空字段遗漏。"
+          }
+        },
+        {
+          "id": "c_e8e334c2a27b",
+          "group_id": "g021",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_038",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确采用本次新期间而非背景旧期间；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_53b7ee3297b2",
+          "group_id": "g022",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_035",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只追问缺失的跨年绝对年份，月日已保留。"
+          }
+        },
+        {
+          "id": "c_39da101cd3f3",
+          "group_id": "g022",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_057",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "跨年日期、确认应发与全量实付正确；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_8a8f86f374ab",
+          "group_id": "g023",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_017",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问含请假调整后的确认应发总额，没有自动折算。"
+          }
+        },
+        {
+          "id": "c_a0d95d2da318",
+          "group_id": "g023",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_079",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只询问两个月确认用于核算的应发，不依据月薪自动相乘。"
+          }
+        },
+        {
+          "id": "c_d3003120200c",
+          "group_id": "g024",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_091",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确请求期间确认应发，未用日薪与出勤替代。"
+          }
+        },
+        {
+          "id": "c_f5dbc98ca096",
+          "group_id": "g024",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_041",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确使用确认结算4040，而非根据日费率自行折算；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_b062280c2e90",
+          "group_id": "g025",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_018",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问展会期间确认总额，未把45乘16当已确认事实。"
+          }
+        },
+        {
+          "id": "c_d8787b6c34c0",
+          "group_id": "g025",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_077",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "使用确认720应发与400实付，时薪仅背景；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_2ddb5f830c53",
+          "group_id": "g026",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_006",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_required_fields_missing",
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "正确询问调整后的期间总额；missing自述留空且tool/arguments空字段遗漏。"
+          }
+        },
+        {
+          "id": "c_1b83ef125dac",
+          "group_id": "g026",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_025",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确请求调薪后的整个期间确认应发总额。"
+          }
+        },
+        {
+          "id": "c_353faa871342",
+          "group_id": "g027",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_022",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问计件期间确认应发，不按未验收数量推算。"
+          }
+        },
+        {
+          "id": "c_bc3cd28034b2",
+          "group_id": "g027",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_23c8730ca5a1",
+          "group_id": "g028",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_060",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "同时询问未知入职起算日和确认应发，已知止日及实付得以保留。"
+          }
+        },
+        {
+          "id": "c_31023cb13f70",
+          "group_id": "g028",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_036",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "期间与实付已知，只追问确认应发。"
+          }
+        },
+        {
+          "id": "c_d19a5376c5ef",
+          "group_id": "g029",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_028",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "问题同时澄清1800归属与期间工资总额，覆盖所需实付字段；missing自述错误留空。"
+          }
+        },
+        {
+          "id": "c_839692ac36bf",
+          "group_id": "g029",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_085",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "明确排除8月尾款后，1800为本段全量工资，参数正确；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_010d819052c8",
+          "group_id": "g030",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_001",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "提问明确澄清2000元是否为本段工资并取得总实付；missing错误留空属于协议自述问题。"
+          }
+        },
+        {
+          "id": "c_8b6092520698",
+          "group_id": "g030",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_016",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "唯一收款为私人借款归还，paid=0正确；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_12d69b0ad04b",
+          "group_id": "g031",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_015",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "询问现金等其他工资及全量合计，准确解决付款完整性；missing错误留空。"
+          }
+        },
+        {
+          "id": "c_cf70c136ce9f",
+          "group_id": "g031",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_021",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "正确要求查全记录后的本段全部实付；missing错误留空不改变本次追问正确性。"
+          }
+        },
+        {
+          "id": "c_4b3652f61fa7",
+          "group_id": "g032",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_094",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确询问实际已付且归属于本段的工资总额，零值仅为条件说明。"
+          }
+        },
+        {
+          "id": "c_06ce2d516f39",
+          "group_id": "g032",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_067",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "要求明确归属本段的实际付款总额，可由记录补足，提问充分。"
+          }
+        },
+        {
+          "id": "c_59e87f2dfd41",
+          "group_id": "g033",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_082",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "正确追问实际已付并区分零与未知；missing自述错误留空。"
+          }
+        },
+        {
+          "id": "c_217a38fc7fa0",
+          "group_id": "g033",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_023",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确选实际2800而非拟付款3000；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_f2a7238a7fa0",
+          "group_id": "g034",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_008",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确排除600元报销，paid为1800；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_450d6542dde0",
+          "group_id": "g034",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_070",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "工资2400与报销另付的关系处理正确；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_404b383517fb",
+          "group_id": "g035",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_092",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "准确询问3200是否含报销及其中本段工资，覆盖实付歧义；missing自述错误留空。"
+          }
+        },
+        {
+          "id": "c_018603f412c3",
+          "group_id": "g035",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_009",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确使用已拆分2750元本段工资；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_67b68991c3d2",
+          "group_id": "g036",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_084",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "唯一合并收款的工资部分尚未拆明，问题精确针对1700中本段工资；missing自述错误留空。"
+          }
+        },
+        {
+          "id": "c_8c363cab9d5f",
+          "group_id": "g036",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_033",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "明确全为垫款返还且工资零，工具金额正确；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_da1830f90e47",
+          "group_id": "g037",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_049",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确排除另付600押金，只用1500工资；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_22bffbd6aec7",
+          "group_id": "g037",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_011",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确排除押金退款并用1500元工资；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_cd9ebc965c35",
+          "group_id": "g038",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_105",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "明确归属本段的预发1800加700得到2500，工具参数正确；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_763cdad06820",
+          "group_id": "g038",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_010",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_state_metadata_mismatch"
+            ],
+            "note": "提问聚焦1800元预发的期间归属，结合已知700元及唯一收款即可补足实付；missing自述错误留空。"
+          }
+        },
+        {
+          "id": "c_b5b313d396dc",
+          "group_id": "g039",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_012",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "准确指出8100与8600的未解冲突，仅请求确认应发依据。"
+          }
+        },
+        {
+          "id": "c_ab873c62c768",
+          "group_id": "g039",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_959dbecae6e0",
+          "group_id": "g040",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_030",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "准确指出900/1900实付冲突并请求确认实际工资总额。"
+          }
+        },
+        {
+          "id": "c_3d85e78db4c8",
+          "group_id": "g040",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_054",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确采用漏记现金后的更正全量实付1900；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_a38c57786700",
+          "group_id": "g041",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_095",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "准确列出两套未协调期间，询问最终采用期间。"
+          }
+        },
+        {
+          "id": "c_cec9cca92fa9",
+          "group_id": "g041",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_065",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确采用更正后的期间并保留已确认金额；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_ceab75515e1f",
+          "group_id": "g042",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_083",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "分别询问两项未解冲突，未重复期间。"
+          }
+        },
+        {
+          "id": "c_7e96a951d722",
+          "group_id": "g042",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_5f3fdc11c881",
+          "group_id": "g043",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_042",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "明确识别两张未撤销应发单，追问采用依据。"
+          }
+        },
+        {
+          "id": "c_d4da87938579",
+          "group_id": "g043",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_072",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "正确只询问没有可用数字的期间应发。"
+          }
+        },
+        {
+          "id": "c_386c84dd6031",
+          "group_id": "g044",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_076",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "不采用助手未获确认的猜测，正确只追问应发；tool/arguments空字段遗漏。"
+          }
+        },
+        {
+          "id": "c_f3217712c3de",
+          "group_id": "g044",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_088",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "用户确认单已补出3400，正确调用；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_f7a7f82b3817",
+          "group_id": "g045",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_080",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "多轮已知日期和应发，只询问期间已支付工资总额。"
+          }
+        },
+        {
+          "id": "c_15f201c87251",
+          "group_id": "g045",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_102",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "全渠道实付660已补齐，正确调用；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_6e23a8944206",
+          "group_id": "g046",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_066",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确只询问仍未协调的应发冲突；tool/arguments空字段遗漏。"
+          }
+        },
+        {
+          "id": "c_e9d7a7351646",
+          "group_id": "g046",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_068",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确排除作废应发并采用4600，期间与实付也正确；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_b732319bcb86",
+          "group_id": "g047",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_034",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确采用更正后的工资零和未变应发；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_cead0e5ae748",
+          "group_id": "g047",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_078",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "正确采用由零更正为50.25的工资实付；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_e93d9c84dc8e",
+          "group_id": "g048",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_005",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "日期与两笔工资相加后的1700.50均正确；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_0db237be929f",
+          "group_id": "g048",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_075",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "两笔工资相加1700.50且排除餐费报销正确；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_8a9db31e5345",
+          "group_id": "g049",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_097",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "三项仍未知，三个问题完整对应；例子明确为日期格式示范。"
+          }
+        },
+        {
+          "id": "c_0adbc114bac0",
+          "group_id": "g049",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_089",
+            "business_action_correct": true,
+            "question_text_adequate": true,
+            "issue_types": [],
+            "note": "只询问两个仍缺的期间金额，总额与完整性均覆盖。"
+          }
+        },
+        {
+          "id": "c_793d774ca215",
+          "group_id": "g050",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_59e4a8ba8dd2",
+          "group_id": "g050",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_8eaa464547c5",
+          "group_id": "g051",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_793076241962",
+          "group_id": "g051",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_f363a43d35bc",
+          "group_id": "g052",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_0691255ccdab",
+          "group_id": "g052",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_ad35c5412c8e",
+          "group_id": "g053",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_779d7feb72d5",
+          "group_id": "g053",
+          "primary_correct": true,
+          "business_semantic_correct": true,
+          "validation": "deterministic_non_question",
+          "review": null
+        },
+        {
+          "id": "c_9091ce3085b3",
+          "group_id": "g054",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_040",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "跨年日期与两项总额正确；仅漏questions空数组。"
+          }
+        },
+        {
+          "id": "c_8ab7b6e34ccc",
+          "group_id": "g054",
+          "primary_correct": false,
+          "business_semantic_correct": true,
+          "validation": "independent_blind_agent",
+          "review": {
+            "review_id": "review_061",
+            "business_action_correct": true,
+            "question_text_adequate": null,
+            "issue_types": [
+              "protocol_required_fields_missing"
+            ],
+            "note": "闰年边界与两项小数金额正确；仅漏questions空数组。"
+          }
+        }
+      ]
+    }
+  },
+  "separate_recovery": {
+    "review": {
+      "review_id": "review_237",
+      "business_action_correct": true,
+      "question_text_adequate": true,
+      "issue_types": [],
+      "note": "已知开始日保留，准确索取结束日期及年份；该次返回可用于单独恢复记录。"
+    },
+    "latency_seconds": 2.8736317500006407,
+    "included_in_primary_or_business_test_score": false
+  },
+  "all_deepseek_runs": {
+    "attempts": 86,
+    "successful_responses": 85,
+    "reported_usage": {
+      "prompt_tokens": 47583,
+      "completion_tokens": 7881,
+      "total_tokens": 55464,
+      "prompt_cache_hit_tokens": 37632,
+      "prompt_cache_miss_tokens": 9951
+    },
+    "estimated_usd_peak": 0.045999887999999996,
+    "estimated_usd_off_peak": 0.022999943999999998,
+    "actual_billing": "not inspected; failed request billing unknown",
+    "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/"
+  }
+}
