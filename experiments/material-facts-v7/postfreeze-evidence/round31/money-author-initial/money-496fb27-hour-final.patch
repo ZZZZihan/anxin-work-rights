@@ -1,0 +1,13 @@
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -57,8 +57,8 @@
+ // the numeric token. It cannot silently turn 数十万 or 负数四万 into its tail.
+ function monetaryDetectionView(value: string): string {
+   // Fold only detection copies; keep line boundaries and every raw offset.
+-  return moneyQualifierDetectionView(value).replace(/[兩億詳無確認載記註實補暫計給發號]/gu,
+-    glyph => ({ 兩: '两', 億: '亿', 詳: '详', 無: '无', 確: '确', 認: '认', 載: '载', 記: '记', 註: '注', 實: '实', 補: '补', 暫: '暂', 計: '计', 給: '给', 發: '发', 號: '号' })[glyph]!);
++  return moneyQualifierDetectionView(value).replace(/[兩億詳無確認載記註實補暫計給發號時]/gu,
++    glyph => ({ 兩: '两', 億: '亿', 詳: '详', 無: '无', 確: '确', 認: '认', 載: '载', 記: '记', 註: '注', 實: '实', 補: '补', 暫: '暂', 計: '计', 給: '给', 發: '发', 號: '号', 時: '时' })[glyph]!);
+ }
+ 
+ // Only uncertainty matching joins layout inside its finite existing words;

@@ -1,0 +1,18 @@
+// ROUND31 author-only synthetic module checks. No scorer, HTTP, model or history CLI.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+const OWN=fileURLToPath(new URL('../',import.meta.url));
+const BASE=resolve(process.env.MATERIAL_FACT_TEST_ROOT||OWN);
+const PATCH=resolve(process.env.MATERIAL_FACT_PATCH_ROOT||OWN);
+const temporary=await mkdtemp(resolve(tmpdir(),'anxin-round31-hour-'));
+after(()=>rm(temporary,{recursive:true,force:true}));
+await cp(resolve(BASE,'lib'),resolve(temporary,'lib'),{recursive:true});
+await cp(resolve(PATCH,'lib/material-money-v4.ts'),resolve(temporary,'lib/material-money-v4.ts'));
+const load=file=>import(pathToFileURL(resolve(temporary,file)).href);
+const {normalizeMoneyValueV4:parse,normalizeCandidateValueV4:normalize}=await load('lib/material-money-v4.ts');
+const raw=(value,quote=value,meaning='rate',rateUnit='hour')=>({kind:'money',value,quote,blockId:'b1',subject:'王甲',scope:'individual',meaning,completeness:'not_applicable',period:null,rateUnit,assertion:'narrated'});
+for(const suffix of ['/小時','每小時','/時'])test('minimum traditional hour '+suffix,()=>assert.equal(normalize(raw('4000元'+suffix)).amount,'4000.00'));

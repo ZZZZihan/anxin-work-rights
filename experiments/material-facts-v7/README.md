@@ -1,14 +1,18 @@
 # v7：事件绑定修复与新公开材料首跑
 
+当前检查点说明：v24产物与8ac应用CI已通过，随后ROUND33审查新增四项待处理（后置人民币人数误警、重复后置标签、闭合进程组编号复用、跨块词法误拼）。本检查点不是最终无阻塞结论；具体修复与最终提交另行追加，既有记录不覆盖。
+
 Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 的工程修复由 [PR #45](https://github.com/ZZZZihan/anxin-work-rights/pull/45) 提供，本目录保存其后的新材料、运行协议、全部首次输出、失败和独立复核。没有训练、合并新 PR 或部署生产。标签是非专家暂定参考，技术检查与人工业务验收分开。
 
 ## 先读的结论
 
-当前应用为 PR #45 的 `496fb2740593c9c1d4ba95578686310c2caf2798`。ROUND30修复完整全角人民币金额、有限数字起始付款说明误拒、明确比例算式与后置负数注记；并闭合比例/负数有限续文以及付款问号的中间回归。最终主侧309定向通过，独立31在Node24/26各通过。6份旧测试13个完整有效全角fixture有明确契约迁移，非法及裁剪控制保留，相关688通过。详情见 [ROUND30技术记录](POSTRUN_ROUND30_APPLICATION.md) 和 [最终独立应用审查](ROUND30_APPLICATION_REVIEW_FINAL_INDEPENDENT.md)。
+当前应用为 PR #45 的 `8ac64640429017f2183b3ae0cde8f02a10cedfa4`。ROUND31/32补齐繁体及周期付款日期、小时费率未知尾文、以“有”连接的概数和普通角词。进一步修复“人民币五角星”及同时裁剪value/quote为“人民币五角”误成0.50的可达路径。有限语法不会推断到账，也不会把不明确金额变成精确值；raw、原引用、码点和人工核对保留。详情见 [ROUND31记录](POSTRUN_ROUND31_APPLICATION.md)、[ROUND32记录](POSTRUN_ROUND32_APPLICATION.md) 和 [最终独立应用审查](ROUND32_APPLICATION_REVIEW_FINAL_INDEPENDENT.md)。
 
-完整应用check退出0：1789 Vitest、7562运行时通过/1平台跳过、材料67通过/1平台跳过、Python9+11+16；之后新增2项独立回归已在309项中通过并注册CI，最终共7565运行时项。类型/构建通过，lint0错误/13个未用辅助变量警告。同锁HTTP310修前281通过29失败→最终310通过；311 raw/candidates/finish_reason逐项相同、309持久化快照重启保持、cleanup通过，旧274场景逐字保持。前测失败停在fresh断言，不倒称其历史读取也已执行。见 [HTTP夹具和报告只读复核](postfreeze-evidence/round30/http310-runner-review/final-report-review.md)。精确应用[CI39137932695](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39137932695)已成功，实验PR46最终提交CI另行核对。
+本轮主侧182定向通过（162作者＋20独立容器），未参与实现者在Node24/26各20通过。相同342项隔离HTTP在固定35b版325通过17失败→修后342通过；343份raw/candidates/finish_reason逐项相同，341份持久化快照重启保持，cleanup通过。修前失败停在fresh断言，不倒称历史断言已执行；重启核对存储/raw/history/未确认状态，不等于每个派生issue重判。精确应用[CI39142356614](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39142356614)成功：运行时7944、Vitest1789、材料68、Python9＋11＋16、HTTP342及OCR17均通过；CI产物与本机HTTP逐项一致。见 [CI核验](postfreeze-evidence/round32/ci-8ac-review/readonly-ci-review.receipt.md)。实验PR46最终提交CI另行核对。
 
-最新另存复评为 `corrections-v23/`，绑定88项当前代码，v22的85项代码另行归档。manifest SHA `e41acaf87e52dda27236aabbddd0c509c1d9762eaf46ef2e46314030e7f1b56c`。主侧write退出0（164.309秒），278份保护字节未变，三路逐案报告均与v22逐字相同；不改输入、gold或原回答。零新增模型请求。只读check退出0（165.572秒），[独立实际产物88/85/60/216/43轻核](ROUND30_V23_LIGHT_INDEPENDENT.md)通过、387保护路径未变；v23完整整合检查已退出0（3122.183秒，运行时7986通过/1平台跳过，283保护字节不变），PR46最终CI仍待完成。
+最新另存复评为 `corrections-v24/`，绑定91项当前代码，v23的88项代码另行归档。manifest SHA `86560d13902cba7458cae1d5c1b9175c01442c404a4d47bd17305950206e795e`。主侧write退出0（181.910秒），379份保护字节未变，三路逐案报告均与v23逐字相同。只读check退出0（183.688秒），379保护字节保持；实际产物非实现者轻核通过（91当前/88归档/60原始/216评分分区/43参考），398保护路径前后相同；不改输入、gold或原回答，零新增模型请求。
+
+v23检查点保留：manifest `e41acaf87e52dda27236aabbddd0c509c1d9762eaf46ef2e46314030e7f1b56c`，88项当前/85项归档代码，write/check及独立轻核通过、三路报告与v22逐字相同；完整整合检查退出0（3122.183秒，运行时7986通过/1平台跳过，283保护字节不变）。该完整检查对应旧v23检查点，不代替最终v24版本CI。ROUND30应用496fb27及CI39137932695的原记录保持。
 
 v22检查点保留：manifest7fbed100eb6fde657242b325ef73a8b7a42faa6ef3472e412958643230cfaa22，write/check与独立85/82/60/216/43轻核通过、342保护文件不变。规则/DeepSeek与v21逐字相同，Qwen仅一概数reason变化，其余字段和计数相同。完整整合检查因新增ROUND30审查而主动停止（343.819秒、SIGTERM/-15、189保护文件不变、自有进程清理），不计通过或产品失败。ROUND29应用47e4及其CI39135932612成功记录仍保留。
 
@@ -59,7 +63,7 @@ v10的49份代码另封存，v11绑定52份代码。新v10只读执行桥继续�
 | Qwen3-32B-4bit | 30.19 | 34.04 | 18.87 | 21.28 | 15.09 | 17.02 |
 | DeepSeek-v4-pro | 72.34 | 72.34 | 57.45 | 57.45 | 53.19 | 53.19 |
 
-Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；二十三版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/`、`corrections-v3/`、`corrections-v4/`、`corrections-v5/`、`corrections-v6/`、`corrections-v7/`、`corrections-v8/`、`corrections-v9/`、`corrections-v10/`、`corrections-v11/`、`corrections-v12/`、`corrections-v13/` 、`corrections-v14/` 、`corrections-v15/` 、`corrections-v16/` 、`corrections-v17/` 、`corrections-v18/` 、`corrections-v19/` 、`corrections-v20/` 、`corrections-v21/` 、`corrections-v22/` 与 `corrections-v23/`。v1至v3三路报告逐字相同；v4的规则与DeepSeek报告逐字相同，Qwen仅一条通用核对提示增加“倍数算式”，其余逐案结果及全部六层计数不变。v5三路报告与v4逐字相同；v6与v7三路报告也分别与前版逐字相同；v8三路报告与v7也逐字相同；v9三路报告也与v8逐字相同；v10三路报告与v9也逐字相同；v11三路报告与v10也逐字相同；v12至v17三路报告也分别与前版逐字相同；v18仅Qwen一条年假金额可用性及一条核对提示变化，六层计数不变；v19三路报告与v18逐字相同；v20仅Qwen10条与DeepSeek13条概数说明改变，数值及配对不变；v21三路逐案报告与v20逐字相同；v22仅Qwen一条概数说明改变、金额状态和计数不变；v23三路逐案报告与v22逐字相同；上表采用最新v23，不是模型能力提升。
+Qwen 原始63项、接受51项、拒收12项；DeepSeek 原始及接受均51项；规则均2项。首跑原 accepted 基本/关联/严格 F1 为 Qwen 40.43/27.66/21.28、DeepSeek 74.47/57.45/53.19、规则8.89/0/0。所有原 TP/FP/FN 见 `comparison.json`；二十四版修正的全量计数、逐案变化和代码绑定分别见 `corrections/`、`corrections-v2/`、`corrections-v3/`、`corrections-v4/`、`corrections-v5/`、`corrections-v6/`、`corrections-v7/`、`corrections-v8/`、`corrections-v9/`、`corrections-v10/`、`corrections-v11/`、`corrections-v12/`、`corrections-v13/` 、`corrections-v14/` 、`corrections-v15/` 、`corrections-v16/` 、`corrections-v17/` 、`corrections-v18/` 、`corrections-v19/` 、`corrections-v20/` 、`corrections-v21/` 、`corrections-v22/`、`corrections-v23/` 与 `corrections-v24/`。v1至v3三路报告逐字相同；v4的规则与DeepSeek报告逐字相同，Qwen仅一条通用核对提示增加“倍数算式”，其余逐案结果及全部六层计数不变。v5三路报告与v4逐字相同；v6与v7三路报告也分别与前版逐字相同；v8三路报告与v7也逐字相同；v9三路报告也与v8逐字相同；v10三路报告与v9也逐字相同；v11三路报告与v10也逐字相同；v12至v17三路报告也分别与前版逐字相同；v18仅Qwen一条年假金额可用性及一条核对提示变化，六层计数不变；v19三路报告与v18逐字相同；v20仅Qwen10条与DeepSeek13条概数说明改变，数值及配对不变；v21三路逐案报告与v20逐字相同；v22仅Qwen一条概数说明改变、金额状态和计数不变；v23三路逐案报告与v22逐字相同；v24三路逐案报告与v23逐字相同；上表采用最新v24，不是模型能力提升。
 
 收紧 value 边界使 Qwen 3个基本、3个关联、2个严格 TP 失效，DeepSeek 1个基本 TP 失效。有些损失来自“月工资16000元”“150万元执行款”超出有限金额包装，而实际金额、角色本来正确，应解释为严格值边界损失，不能全部称金额理解错误。修正允许完整币种前缀、有限工资对象后缀及“整/正”货币终止词；后者是在首跑后的审查中确定，不能倒称事前登记。没有新增 gold 别名。
 
@@ -118,13 +122,14 @@ node experiments/material-facts-v7/verify-correction-v18.mjs
 node experiments/material-facts-v7/verify-correction-v19.mjs
 # 用79项归档代码验证v20，不调用模型。
 node experiments/material-facts-v7/verify-correction-v20.mjs
-# 历史v21/v22按归档代码核对，当前v23零推理复算。
+# 历史v21/v22/v23按归档代码核对，当前v24零推理复算。
 node experiments/material-facts-v7/verify-correction-v21.mjs
 node experiments/material-facts-v7/verify-correction-v22.mjs
-node experiments/material-facts-v7/corrective-assessment-v23.mjs --check
+node experiments/material-facts-v7/verify-correction-v23.mjs
+node experiments/material-facts-v7/corrective-assessment-v24.mjs --check
 ```
 
-以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1至v22的 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
+以上命令不调用模型、不访问私有密钥、不修改原始文件。`verify-frozen.mjs` 只在自有临时目录还原旧代码，并递归执行完整 v6/v5/v4 校验，finally 清理临时目录。当前修正脚本 `--write` 先完整写入唯一同级暂存目录，再原子发布；失败暂存与失败记录保留供核查，不占用最终目录，重试使用新暂存。已有最终结果一律拒绝覆盖，日常使用 `--check`。直接在当前源码执行原 `verify.mjs` 或v1至v23的 `corrective-assessment*.mjs --check` 应因相应历史代码哈希不一致而拒绝，须使用对应快照入口。独立门禁测试确认缺/多路径、快照字节变化、原结果只多一个换行及原结果manifest的同义重排/空白改动均被拒绝，callback 抛错后临时目录确已删除。
 
 诊断运行从检查尚未冻结到终态写完，与冻结的枚举至发布共用 `.experiment.lock`。锁在results之外；并发竞争直接拒绝，SIGKILL或所有权变化的遗留锁保留，恢复前须核查owner的主机/PID、worker和已有attempt。不能仅按锁年龄自动删除。生命周期与锁回归使用本地合成worker/临时文件系统，不调用真实模型；完整生产代码的数据和身份门禁另行校验。
 
@@ -156,6 +161,7 @@ node experiments/material-facts-v7/corrective-assessment-v23.mjs --check
 | 修正v21 manifest | `e9d350b5e634fed62e7688ec940440a8889f90f61cbcd8dba875abcce0b05504` |
 | 修正v22 manifest | `7fbed100eb6fde657242b325ef73a8b7a42faa6ef3472e412958643230cfaa22` |
 | 修正v23 manifest | `e41acaf87e52dda27236aabbddd0c509c1d9762eaf46ef2e46314030e7f1b56c` |
+| 修正v24 manifest | `86560d13902cba7458cae1d5c1b9175c01442c404a4d47bd17305950206e795e` |
 | 原结果 manifest | `3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee` |
 | 留出材料 | `9ec54411e9008434457ae59f68585f8fb7a6bc6d089cee4e87709bfddd6a2181` |
 | 留出标签 | `abac05fa2c3de7d8e83e866345bf5edaec61c65f8f706bb7d5f0c0d98fa27b64` |

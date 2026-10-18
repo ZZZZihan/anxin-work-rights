@@ -1,0 +1,81 @@
+// Nonimplementer bounded archive/restore review. No real historical CLI or scorer.
+import assert from 'node:assert/strict';
+import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const ROOT=process.env.V7_PREPARED_REVIEW_ROOT??'/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/.scratch/round31-v24-prepared';
+const ORIGINAL='/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards';
+const E='experiments/material-facts-v7';
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const at=path=>readFile(resolve(ROOT,E,path));
+const oldAt=path=>readFile(resolve(ORIGINAL,E,path));
+const load=name=>import(pathToFileURL(resolve(ROOT,E,name)).href);
+const names=['freeze.json','result-manifest.json','corrections/manifest.json',
+ ...Array.from({length:22},(_,i)=>`corrections-v${i+2}/manifest.json`),
+ 'historical-execution-policy-v1.mjs','historical-execution-v1.mjs',
+ ...Array.from({length:14},(_,i)=>`historical-v${i+9}-execution.mjs`)];
+const protectedBefore=Object.fromEntries(await Promise.all(names.map(async name=>[name,sha(await oldAt(name))])));
+assert.equal(protectedBefore['result-manifest.json'],'3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee');
+assert.equal(protectedBefore['corrections-v23/manifest.json'],'e41acaf87e52dda27236aabbddd0c509c1d9762eaf46ef2e46314030e7f1b56c');
+assert.equal(protectedBefore['historical-execution-policy-v1.mjs'],'cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea');
+assert.equal(protectedBefore['historical-execution-v1.mjs'],'0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c');
+const previous=JSON.parse(await at('corrections-v23/manifest.json'));
+assert.equal(sha(await at('corrections-v23/manifest.json')),protectedBefore['corrections-v23/manifest.json']);
+const archiveBytes=await at('correction-code-v23/manifest.json'),archive=JSON.parse(archiveBytes);
+assert.equal(archive.schema,'material-facts-v7-correction-code/23');
+assert.equal(archive.correction_manifest_sha256,protectedBefore['corrections-v23/manifest.json']);
+assert.equal(archive.storage_suffix,'.snapshot');
+assert.equal(Object.keys(previous.code_sha256).length,88);
+assert.deepEqual(archive.files,previous.code_sha256);
+for(const[path,digest]of Object.entries(archive.files))assert.equal(sha(await at(`correction-code-v23/${path}.snapshot`)),digest,path);
+for(const name of names.filter(name=>name.startsWith('historical-')))assert.equal(sha(await at(name)),protectedBefore[name],name);
+// The prepared support tree deliberately excludes old v6 executables. Read
+// this literal export statically rather than importing unrelated old modules.
+const runHashLiteral=(await at('freeze.mjs')).toString().match(/export const RUN_HASH_FILES = \[([\s\S]*?)\];/u)?.[1];
+assert(runHashLiteral);
+const RUN_HASH_FILES=[...runHashLiteral.matchAll(/'([^']+)'|`([^`]+)`/gu)].map(match=>(match[1]??match[2]).replaceAll('${EXPERIMENT}',E));
+assert.equal(RUN_HASH_FILES.length,previous.code_sha256?Object.keys(previous.code_sha256).filter(path=>RUN_HASH_FILES.includes(path)).length:0);
+const expectedUnion=[...new Set([...RUN_HASH_FILES,...[`${E}/verify-frozen.mjs`,`${E}/corrective-assessment.mjs`,`${E}/publish-artifacts.mjs`],
+ ...Object.keys(previous.code_sha256),...[`${E}/verify-correction-v23.mjs`,`${E}/corrective-assessment-v24.mjs`,`${E}/historical-v23-execution.mjs`]])].sort();
+assert.equal(expectedUnion.length,91);
+for(const path of expectedUnion)await stat(resolve(ROOT,path));
+const {historicalV23Target}=await load('historical-v23-execution.mjs');
+const {historicalV22Target}=await load('historical-v22-execution.mjs');
+const {historicalTarget,ROOT_BUDGET_MS,CLEANUP_RESERVE_MS}=await load('historical-execution-policy-v1.mjs');
+assert.equal(ROOT_BUDGET_MS,900000);assert.equal(CLEANUP_RESERVE_MS,2000);
+for(const target of [historicalTarget,historicalV22Target,historicalV23Target])assert.equal(target(resolve(ROOT,E,'corrective-assessment-v24.mjs'),['--check']),null);
+assert.equal(historicalV23Target(resolve(ROOT,E,'corrective-assessment-v23.mjs'),['--write']),null);
+assert.equal(historicalV23Target(resolve(ROOT,E,'corrective-assessment-v23.mjs'),['--check']),`${E}/corrective-assessment-v23.mjs`);
+const {withCorrectionV23Code}=await load('verify-correction-v23.mjs');
+const fixture=await mkdtemp(resolve(tmpdir(),'anxin-v24-nonimplementer-minimal-'));
+let owned;
+try{
+ for(const folder of ['lib','scripts','docs',E])await mkdir(resolve(fixture,folder),{recursive:true});
+ await writeFile(resolve(fixture,'package.json'),'{}\n');
+ await mkdir(resolve(fixture,E,'corrections-v23'),{recursive:true});
+ await writeFile(resolve(fixture,E,'corrections-v23/manifest.json'),await at('corrections-v23/manifest.json'));
+ await cp(resolve(ROOT,E,'correction-code-v23'),resolve(fixture,E,'correction-code-v23'),{recursive:true});
+ const sentinel=new Error('Nonimplementer owned-temp callback sentinel');
+ await assert.rejects(withCorrectionV23Code(async temporary=>{
+  owned=temporary;
+  for(const[path,digest]of Object.entries(previous.code_sha256))assert.equal(sha(await readFile(resolve(temporary,path))),digest,path);
+  throw sentinel;
+ },fixture),error=>error===sentinel);
+ assert(owned);await assert.rejects(stat(owned),{code:'ENOENT'});
+}finally{await rm(fixture,{recursive:true,force:true});}
+const patch=(await at('postfreeze-evidence/round31/v24-prepared/package-ci-suggestion.patch')).toString();
+const runtime=sign=>JSON.parse('{'+patch.split('\n').find(line=>line.startsWith(sign)&&line.includes('"test:fact-runtime":')).slice(1).trim().replace(/,$/u,'')+'}')['test:fact-runtime'];
+const oldRuntime=runtime('-'),newRuntime=runtime('+');
+assert.equal(newRuntime,oldRuntime+' scripts/material-facts-v7-correction-v24-gates-independent.test.mjs scripts/material-facts-v7-historical-v23-execution.test.mjs');
+assert(newRuntime.includes('--test-concurrency=2'));
+for(const name of ['material-facts-v7-correction-v23-gates-independent.test.mjs','material-facts-v7-correction-v24-gates-independent.test.mjs','material-facts-v7-historical-v23-execution.test.mjs'])assert.equal(newRuntime.split('scripts/'+name).length-1,1,name);
+assert(patch.includes('+          node experiments/material-facts-v7/verify-correction-v23.mjs'));
+assert(patch.includes('+          node experiments/material-facts-v7/corrective-assessment-v24.mjs --check'));
+assert(patch.includes('           node experiments/material-facts-v7/verify-correction-v22.mjs'));
+for(const[name,digest]of Object.entries(protectedBefore))assert.equal(sha(await oldAt(name)),digest,name);
+let published=false;try{await stat(resolve(ROOT,E,'corrections-v24/manifest.json'));published=true;}catch(error){if(error.code!=='ENOENT')throw error;}
+console.log(JSON.stringify({status:'PASS_PREPARED_LIGHT_REVIEW',archive_count:88,archive_manifest_sha256:sha(archiveBytes),previous_manifest_sha256:protectedBefore['corrections-v23/manifest.json'],expected_current_dependency_union:expectedUnion.length,
+ callback_throw_preserved:true,owned_temp_removed:true,protected_before_after_unchanged:true,package_ci_status:'suggestion_only_not_applied',v24_manifest_present_in_prepared_root:published,historical_CLI_executions:0,scorer_executions:0,model_requests:0,
+ protected_sha256:protectedBefore,expected_current_paths:expectedUnion},null,2));

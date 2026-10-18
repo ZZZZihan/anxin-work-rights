@@ -1,0 +1,62 @@
+{
+  "task": "ROUND32 recurring wage-payment date event layout",
+  "recorded_at_utc": "2026-10-18T15:42:48.397100+00:00",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "actual_backend_independently_verified": false,
+  "fixed_baseline_commit": "35bdbde669f639a497f8685383e7a3fd7c948c3f",
+  "baseline_event_sha256": "4ec96de5642643333ec1dff5b9c2c6bb53f3295c27dcf82c9042547c42d2b2f4",
+  "files": [
+    {
+      "path": "lib/material-fact-event-review.ts",
+      "sha256": "186bcaf2daffaee0696d5b30146f3ed3a354ff10d4e40ec068f522c99af033ad"
+    },
+    {
+      "path": "scripts/material-facts-v7-round32-event-author.test.mjs",
+      "sha256": "d51848b271a60279e6a6165b31200cb7c2f67cfc3533b09fe912ef4f59ccf019"
+    }
+  ],
+  "implementation": "Only hasSupportedWagePaymentLayout: complete recurring payment-date with individual anchored subject; full wage-left/payment-right or empty-left/payment+wage-right. Existing payment verbs 支付/发放/给付/付清 with 給付 detection. No actual-receipt claim.",
+  "tests": {
+    "baseline": {
+      "tests": 51,
+      "pass": 36,
+      "fail": 15,
+      "skipped": 0
+    },
+    "final": {
+      "tests": 51,
+      "pass": 51,
+      "fail": 0,
+      "skipped": 0
+    },
+    "existing_round31": {
+      "tests": 44,
+      "pass": 44,
+      "fail": 0,
+      "skipped": 0
+    },
+    "scope": "Pure imported event-module tests; not runtime, scorer, HTTP or historical chain. Full/short quote assertions and unchanged raw/value/subject/normalization/CP fixture state."
+  },
+  "lint": {
+    "first_attempt_exit": 2,
+    "first_failure_reason": "OWN lacks eslint dependency for OWN config import; original failure retained.",
+    "retry_exit": 0,
+    "retry": "Existing CODE eslint executable/config, OWN two scoped files only; no install or dependency edit."
+  },
+  "preserved_guards": [
+    "payment_date role and individual scope only",
+    "Existing unique anchored continuous subject/heading and collective rejection",
+    "Negation, third-party payer/beneficiary, wrong owner, duplicate owner/second event",
+    "Invalid 0/32 day, qualified/ranged dates and cropped day",
+    "Other date roles and ordinary calendar payment remain conservative",
+    "No raw/source/CP/normalization mutation; no null-to-money upgrade"
+  ],
+  "not_executed": [
+    "No runtime/scorer/historical CLI",
+    "No build/fullcheck/HTTP",
+    "No model/training/deployment",
+    "No ROOT/CODE edit, commit, push or remote comment"
+  ],
+  "review_limits": "Author module self-check; independent integration/HTTP remains parent/reviewer responsibility."
+}
