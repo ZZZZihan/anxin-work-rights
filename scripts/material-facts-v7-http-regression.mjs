@@ -932,6 +932,56 @@ try {
     const before = stored(item.caseId), read = await request(item.path);assert.equal(read.status, 200);unconfirmed(read.body);assert.equal(rawAndLocations(item, read.body).candidates.length, 1);assert.deepEqual(stored(item.caseId), before);assert.deepEqual(read.body.state.history, before.state.history);
     durableSnapshots.push({name: 'round24-traditional-duplicate', item, state: before});return {accepted: 1, rawCandidates: 2, rawAndStoredHistoryUnchanged: true};
   });
+  // ROUND25: finite whole-amount terminators and postposed RMB wrappers.
+  for (const suffix of ['整', '正']) await scenario(`round25_cropped_whole_terminator_${suffix}`, async () => {
+    const quote = `测试王甲2026年1月全部应付工资合计4000元${suffix}`;
+    const [item] = await fixture(`round25-whole-${suffix}`, [{ text: quote + '。', candidates: [money('4000元', '4000元')] }]);
+    const material = rawAndLocations(item, await extract(item));
+    assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, '4000.00'); assert.equal(material.candidates[0].normalization.status, 'exact');
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
+    old.amount = null; old.normalization = { rawValue: old.value, amount: null, status: 'unsupported', matchedText: null, span: null, reason: 'Synthetic historical unsupported whole terminator' };
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    const checked = rawAndLocations(item, read.body).candidates[0]; assert.equal(checked.amount, null); assert.equal(checked.normalization.status, 'unsupported');
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round25-whole-${suffix}`, item, state: before });
+    return { freshAmount: '4000.00', historicalUnsupportedNotUpgraded: true, rawAndStoredHistoryUnchanged: true };
+  });
+  for (const reverse of [false, true]) await scenario(`round25_postposed_rmb_wrapper_${reverse}`, async () => {
+    const quote = '测试王甲收到4000元人民币'; const values = ['4000元', '4000元人民币']; if (reverse) values.reverse();
+    const [item] = await fixture(`round25-rmb-${reverse}`, [{ text: quote + '。', candidates: values.map(value => money(value, quote, { meaning: 'payment', completeness: 'unknown', period: null })) }]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(JSON.parse(material.raw).candidates.length, 2); assert.equal(material.candidates[0].amount, '4000.00');
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates.length, 1); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round25-rmb-${reverse}`, item, state: before });
+    return { accepted: 1, rawCandidates: 2, rawAndStoredHistoryUnchanged: true };
+  });
+  for (const [name, text, blockCount] of [
+    ['question-after-whole', '测试王甲工资4000元整？', 1],
+    ['subunit-after-whole-next-block', '测试王甲工资4000元整\n5角。', 2],
+    ['rmb-subunit-after-whole-next-block', '测试王甲工资4000元\n整人民币5角。', 2],
+  ]) await scenario(`round25_${name}_remains_unavailable`, async () => {
+    const [item] = await fixture(`round25-${name}`, [{ text, candidates: [money('4000元', '4000元', { period: null })] }]);
+    assert.equal(item.analysis.result.blocks.length, blockCount);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, null);
+    const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0]; old.amount = '4000.00';
+    old.normalization = { rawValue: old.value, amount: '4000.00', status: 'exact', matchedText: '4000元', span: { start: 0, end: 5 }, reason: 'Synthetic unsafe whole-amount continuation' };
+    db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, null); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: `round25-${name}`, item, state: before });
+    return { amount: null, historicalExactDowngraded: true, rawAndStoredHistoryUnchanged: true };
+  });
+  await scenario('round25_full_whole_amount_ascii_period', async () => {
+    const text = '测试王甲2026年1月全部应付工资合计4000元整.';
+    const [item] = await fixture('round25-ascii-period', [{ text, candidates: [money('4000元整', '4000元整')] }]);
+    const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1); assert.equal(material.candidates[0].amount, '4000.00');
+    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+    assert.equal(rawAndLocations(item, read.body).candidates[0].amount, '4000.00'); assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({ name: 'round25-ascii-period', item, state: before });
+    return { amount: '4000.00', rawAndStoredHistoryUnchanged: true };
+  });
+  // End ROUND25 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [
