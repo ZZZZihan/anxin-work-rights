@@ -281,7 +281,7 @@ function normalizeMoneyValueWithSubject(rawValue: string, subject: string | null
     if (moneyTokenHasNonCurrencySubunit(text, after)) return result(rawValue, 'unsupported', '匹配到的角或分属于时间、计量或普通词语，未作为分币金额。');
     const suffixRate = attachedSuffixRate(after);
     if (suffixRate.present && !suffixRate.supported) return result(rawValue, 'unsupported', '金额直接附着不受支持的费率分母，未将分子当作总额。');
-    const qualifierStatus = attachedQualifierStatus(moneyQualifierPrefixWithoutSubject(before, subject), after);
+    const qualifierStatus = attachedQualifierStatus(moneyQualifierPrefixWithoutSubject(before, subject), monetaryDetectionView(after));
     if (qualifierStatus) return result(rawValue, qualifierStatus, '完整金额带有数量不定、概数界限或正负限定，未截取其中的精确正数。');
     const yuanAt = text.search(/[元圆圓]/u);
     if (yuanAt >= 0 && !isRmbCurrencyUnitAt(rawValue, index + yuanAt)) return result(rawValue, 'unsupported', '匹配到的元或圆属于普通词语，不能截成金额单位。');
@@ -387,6 +387,7 @@ function attachedSuffixRate(after: string) {
   const unit = text?.match(/^(小时|月|日|天|时|件)/u);
   const remainder = unit ? text!.slice(unit[0].length) : '';
   const supported = unit && (remainder === '' || hasPostposedMoneyUncertainty(remainder)
+    || attachedQualifierStatus('', remainder) !== null
     || /^(?:计算|计酬|计价|计薪|计|支付|发放|付清)$/u.test(remainder)) ? unit[1] : undefined;
   return { present: suffix !== null, supported, postposedBy: false,
     uncertain: supported !== undefined && hasPostposedMoneyUncertainty(detection) };
@@ -472,7 +473,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
       const attachedPaymentInstruction = hasCompleteMoneyUnit(normalized.matchedText ?? '') && isPostposedMoneyPaymentInstruction(arithmeticAfter);
       const sourceAnchor = { blockText: local.text, valueStart: offset };
       const attachedCurrency = sourceMoneyHasExplicitRmbCurrency(sourceAnchor, normalized);
-      const qualifierStatus = attachedQualifierStatus(moneyQualifierPrefixWithoutSubject(arithmeticBefore, candidate.subject), arithmeticAfter);
+      const qualifierStatus = attachedQualifierStatus(moneyQualifierPrefixWithoutSubject(arithmeticBefore, candidate.subject), monetaryDetectionView(arithmeticAfter));
       const valueCharacters = Array.from(candidate.value), span = normalized.span;
       const rangeBefore = arithmeticBefore + (span ? valueCharacters.slice(0, span.start).join('') : '');
       const rangeToken = span ? valueCharacters.slice(span.start, span.end).join('') : candidate.value;
@@ -520,10 +521,18 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
 export function classifyMonetaryExpression(value: string): MonetaryExpressionClassification {
   const normalization = normalizeMoneyValueV4(value);
   const detection = monetaryDetectionView(value).replace(/\s/gu, '');
+  // Keep empty-label matching bounded to a complete wage or amount name.
+  // This detection copy never removes a subject, numeral or unknown suffix.
+  const wageName = '(?:基本|其他|其余|全部|正常|岗位|绩效|应付|已付|实付|税前|税后|拖欠|欠付|未付)?(?:工资|薪资|薪酬|劳务费|劳动报酬)';
+  const wageLabel = monetaryDetectionView(value).trim().replace(/[資勞動報務費應標準稅後崗績離職試實總額計]/gu,
+    character => ({ 資: '资', 勞: '劳', 動: '动', 報: '报', 務: '务', 費: '费', 應: '应', 標: '标', 準: '准', 稅: '税', 後: '后', 崗: '岗', 績: '绩', 離: '离', 職: '职', 試: '试', 實: '实', 總: '总', 額: '额', 計: '计' })[character]!);
   // A denomination alone names a currency, not an amount. Keep this bounded
   // before the explicit-currency branch; unknown/masked suffixes cannot match.
   if (/^(?:人民[币幣]|RMB|CNY|[元圆圓¥])$/iu.test(detection))
     return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为币种或金额单位名称，未表述金额。') };
+  const currencyLabel = new RegExp(`^(?:人民[币幣]|RMB|CNY|¥)(?:${wageName}|金额|数额)(?:合计|总额|标准)?$`, 'iu');
+  if (currencyLabel.test(wageLabel.replace(/\s/gu, '')) && !MASKED.test(detection))
+    return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为币种及工资或金额标签，未表述金额。') };
   // Only a complete percentage (optionally named by a finite ratio label) is
   // definite non-money. This whole-value grammar contains no currency unit;
   // in particular 百分比 must not be cropped into 百分 as a fen amount.
@@ -557,11 +566,9 @@ export function classifyMonetaryExpression(value: string): MonetaryExpressionCla
   const relativeDay = '(?:(?:今|昨|明|前|后|当)(?:日|天)|本日|该日|(?:这|那)(?:日|天|一天)|同(?:日|一天)|(?:前|后|上|下)一(?:日|天)|次日|翌日)';
   const dayStage = `(?:${relativeDay}|每(?:日|天)|日|某日|该天)`;
   const wageStage = `(?:${date}(?:\\s*(?:至|到|[~～—–-])\\s*${date})?|[${NUMERALS}]+月份?|元月份?|元旦|${relativeMonth}|月|${dayStage}|离职前|入职前|入职后|试用期|本期)`;
-  const wageDescription = new RegExp(`^(?:${wageStage}\\s*)?(?:的)?(?:基本|其他|其余|全部|正常|岗位|绩效|应付|已付|实付|税前|税后|拖欠|欠付|未付)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:合计|总额|标准)?$`, 'u');
+  const wageDescription = new RegExp(`^(?:${wageStage}\\s*)?(?:的)?${wageName}(?:合计|总额|标准)?$`, 'u');
   // This separate finite wage-label view changes no amount grammar or source
   // text. Unknown/masked suffixes cannot match the complete empty-label rule.
-  const wageLabel = monetaryDetectionView(value).trim().replace(/[資勞動報務費應標準稅後崗績離職試實總額計]/gu,
-    character => ({ 資: '资', 勞: '劳', 動: '动', 報: '报', 務: '务', 費: '费', 應: '应', 標: '标', 準: '准', 稅: '税', 後: '后', 崗: '岗', 績: '绩', 離: '离', 職: '职', 試: '试', 實: '实', 總: '总', 額: '额', 計: '计' })[character]!);
   if (wageDescription.test(wageLabel) && !MASKED.test(detection)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为工资名称或期间描述，未表述金额。') };
   const ordinaryWord = /^(?:元月份?|元旦|元宵(?:节)?|元年|元素|元件|元音|[圆圓](?:满|滿|形|圈|周))$/u;
   const wageCompletion = /^(?:已|已经)?[圆圓][满滿](?:完成)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:发放|支付|结算)(?:工作)?$/u;

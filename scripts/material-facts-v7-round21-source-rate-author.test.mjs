@@ -23,7 +23,7 @@ const { reviewFactsAgainstSources: review } = await load('material-fact-source-r
 const chars = text => Array.from(text).length;
 
 function fixture(before, { full = false, blocks = false, subject = '王甲', meaning = 'due_total', rateUnit = null,
-  value = '四万元', after = '。' } = {}) {
+  value = '四万元', after = '。', samePage = false } = {}) {
   const parts = blocks ? before.split('\n') : [before];
   const texts = parts.map((part, index) => (index === 0 ? '😀𠮷' : '') + part);
   texts[texts.length - 1] += value + after;
@@ -32,7 +32,7 @@ function fixture(before, { full = false, blocks = false, subject = '王甲', mea
     completeness: ['due_total', 'paid_total'].includes(meaning) ? 'complete' : 'not_applicable', period: null, rateUnit, assertion: 'narrated' };
   return { candidate, raw: JSON.stringify({ schemaVersion: 3, candidates: [candidate] }), source: {
     id: 'round21-author', name: '合成预置费率守护', sha256: '2'.repeat(64), analysisRevision: 21, ready: true,
-    blocks: texts.map((text, index) => ({ id: `b${index + 1}`, page: index + 1, text, bbox: null, confidence: null })),
+    blocks: texts.map((text, index) => ({ id: `b${index + 1}`, page: samePage ? 1 : index + 1, text, bbox: null, confidence: null })),
   } };
 }
 function ingest(f, historical = false) {
@@ -76,7 +76,7 @@ for (const before of ['王甲每周基本工资标准为', '王甲按季度工�
   '王甲工資按季度計人民幣', '王甲每\u200d周工资', '王甲每 周 工资 标准：', '王甲每季度工资\n',
   '王甲每周\n工资', '王甲每\n周工资', '王甲工资按\n季度计', '王甲每週工資標準為\n']) {
   for (const blocks of [false, true]) test(`layout/detection preserves explicit unsupported rate ${JSON.stringify(before)}, blocks=${blocks}`,
-    () => check(before, { blocks }));
+    () => check(before, { blocks, samePage: blocks }));
 }
 for (const meaning of ['due_total', 'paid_total', 'arrears', 'other_money', 'rate']) for (const rateUnit of [null, 'unknown', 'month'])
   test(`unsupported denominator is unavailable regardless of model attributes ${meaning}/${rateUnit}`, () => {

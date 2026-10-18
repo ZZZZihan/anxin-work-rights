@@ -30,16 +30,16 @@ const { assessCase } = await load('experiments/material-facts-v7/assess.mjs');
 const cpLength = text => Array.from(text).length;
 const AT = '2026-10-18T00:00:00.000Z';
 const modes = ['raw_basic', 'accepted_basic', 'raw_relational', 'accepted_relational', 'raw_strict', 'accepted_strict'];
-function sourceFor(texts) {
+function sourceFor(texts, samePage = false) {
   return { id: 'round30-author', name: '合成传统字形边界.txt', sha256: '9'.repeat(64), analysisRevision: 30, ready: true,
-    blocks: texts.map((text, i) => ({ id: `b${i + 1}`, text, page: i + 1, bbox: null, confidence: null })) };
+    blocks: texts.map((text, i) => ({ id: `b${i + 1}`, text, page: samePage ? 1 : i + 1, bbox: null, confidence: null })) };
 }
 function itemFor(value, quote = value, blockId = 'b1') {
   return { kind: 'money', value, quote, blockId, subject: '王甲', scope: 'individual', meaning: 'other_money', completeness: 'not_applicable',
     period: null, rateUnit: null, assertion: 'narrated' };
 }
-function pipeline({ texts, value = '4000元', quote = value, block = 0, amount = null, storedAmount = '4000.00', meaning = 'other_money', rateUnit = null, status = null }) {
-  const source = sourceFor(texts), item = { ...itemFor(value, quote, `b${block + 1}`), meaning, rateUnit }, raw = JSON.stringify({ schemaVersion: 3, candidates: [item] });
+function pipeline({ texts, value = '4000元', quote = value, block = 0, amount = null, storedAmount = '4000.00', meaning = 'other_money', rateUnit = null, status = null, samePage = false }) {
+  const source = sourceFor(texts, samePage), item = { ...itemFor(value, quote, `b${block + 1}`), meaning, rateUnit }, raw = JSON.stringify({ schemaVersion: 3, candidates: [item] });
   const fresh = ingestRuntimeCandidates(emptyFactState(30), source, { raw }, 'synthetic', 'author', AT);
   const history = ingestCandidates(emptyFactState(30), source, { raw }, 'synthetic', 'author', AT);
   assert.equal(history.materials[0].candidates.length, 1, 'Historical fixture really enters candidate storage');
@@ -84,7 +84,7 @@ for (const proportion of ['半成', '半折', '对折', '對折']) {
 for (const texts of [['😀王甲工资4000元乘以\n半成。'], ['😀王甲工资4000元乘\n以半折。'],
   ['😀王甲工资4000元', '乘以对折。'], ['😀王甲工资4000元乘以', '半折。'],
   ['😀王甲工资4000元×\n半成。'], ['😀王甲工资4000元乘以半\u200b折。']])
-  test(`proportion source layout ${JSON.stringify(texts)}`, () => pipeline({ texts, status: 'unsupported' }));
+  test(`proportion source layout ${JSON.stringify(texts)}`, () => pipeline({ texts, samePage: true, status: 'unsupported' }));
 
 for (const suffix of ['（负数）', '(负数)', '为负数', '负值', '（負數）', '為負值', '为负值', '是負數']) {
   test(`negative amount suffix shared detection ${suffix}`, () => {
@@ -100,7 +100,7 @@ for (const suffix of ['（负数）', '(负数)', '为负数', '负值', '（負
 for (const texts of [['😀王甲工资4000元\n（负数）。'], ['😀王甲工资4000元', '（负数）。'],
   ['😀王甲工资4000元为', '負數。'], ['😀王甲工资4000元（负', '数）。'],
   ['😀王甲工资4000元為\n負\n值。'], ['😀王甲工资4000元（負\u200d數）。']])
-  test(`negative suffix source layout ${JSON.stringify(texts)}`, () => pipeline({ texts, status: 'unsupported' }));
+  test(`negative suffix source layout ${JSON.stringify(texts)}`, () => pipeline({ texts, samePage: true, status: 'unsupported' }));
 
 for (const after of ['，王乙乘以半成', '。乘以半折', '，王乙负数', '。负值', '负责任地支付', '（负责任）'])
   test(`another clause or ordinary word does not attach ${after}`, () => {

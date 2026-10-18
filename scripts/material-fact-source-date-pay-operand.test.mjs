@@ -26,7 +26,7 @@ const { hasAttachedMoneyArithmetic } = await load('material-fact-arithmetic-revi
 const { normalizeMoneyValueV4 } = await load('material-money-v4.ts');
 const AT = '2026-10-18T00:00:00.000Z';
 function check({ text, texts = [text], full = false, value = '4000元', kind = 'money', meaning = 'due_total',
-  rateUnit = null, expected = null, supported, subject = '王甲', period = null }) {
+  rateUnit = null, expected = null, supported, subject = '王甲', period = null, samePage = false }) {
   const index = texts.findIndex(text => text.includes(value));
   assert.ok(index >= 0);
   const quote = full ? texts[index] : value;
@@ -34,7 +34,7 @@ function check({ text, texts = [text], full = false, value = '4000元', kind = '
     completeness: kind === 'money' && ['due_total', 'paid_total'].includes(meaning) ? 'complete' : 'not_applicable',
     period, rateUnit, assertion: 'narrated' };
   const source = { id: 'source-date-pay-operand', name: '合成费率日期与算式', sha256: '7'.repeat(64), analysisRevision: 27, ready: true,
-    blocks: texts.map((text, i) => ({ id: `b${i + 1}`, page: i + 1, text, bbox: null, confidence: null })) };
+    blocks: texts.map((text, i) => ({ id: `b${i + 1}`, page: samePage ? 1 : i + 1, text, bbox: null, confidence: null })) };
   const raw = JSON.stringify({ schemaVersion: 3, candidates: [representation] });
   const stored = ingestCandidates(emptyFactState(27), source, { raw }, 'synthetic', 'owner', AT);
   const candidate = stored.materials[0].candidates[0];
@@ -76,7 +76,7 @@ for (const tail of ['按周计', '按季度计', '按年计', '按年度计算',
   test(`unsupported denominator ${tail} full=${full}`, () => check({ text: `😀王甲工资4000元${tail}。`, full }));
 for (const texts of [['😀王甲工资4000元按', '季度计。'], ['😀王甲工资4000元', '按周计。'], ['😀王甲工资4000元按年', '計。'],
   ['😀王甲工资4000元按\n季度计。'], ['😀王甲工资4000元按\u2028周计。'], ['😀王甲工资4000元按\u2029年度计算。'], ['😀王甲工资4000元按\n周\n计。']])
-  test(`unsupported denominator layout ${JSON.stringify(texts)}`, () => check({ texts: texts.map(t => t.replaceAll('\\n', '\n').replaceAll('\\u2028', '\u2028').replaceAll('\\u2029', '\u2029')) }));
+  test(`unsupported denominator layout ${JSON.stringify(texts)}`, () => check({ samePage: true, texts: texts.map(t => t.replaceAll('\\n', '\n').replaceAll('\\u2028', '\u2028').replaceAll('\\u2029', '\u2029')) }));
 for (const tail of ['按时支付', '按时', '按时间顺序', '按月15日发放', '按日15日发放', '按季度汇总', '按周计划发放', '按年计算机规定', '按件计数'])
   test(`ordinary instruction remains amount ${tail}`, () => check({ text: `王甲工资4000元${tail}。`, expected: '4000.00' }));
 for (const texts of [['😀王甲工资4000元。', '王乙工资5000元按周计。'], ['😀王甲工资4000元', '王乙工资5000元按季度计。'],
@@ -107,7 +107,7 @@ for (const after of ['+奖金', '加上加班费', '乘以提成', '除以基本
     () => check({ text: `😀王甲工资4000元${tail}。`, full }));
 }
 for (const texts of [['😀王甲工资4000元+', '奖金。'], ['😀王甲工资4000元', '加上加班费。'], ['😀王甲工资4000元乘以', '提成。'],
-  ['😀王甲工资4000元加', '上加班費。']]) test(`arithmetic explicit layout ${JSON.stringify(texts)}`, () => check({ texts }));
+  ['😀王甲工资4000元加', '上加班費。']]) test(`arithmetic explicit layout ${JSON.stringify(texts)}`, () => check({ texts, samePage: true }));
 for (const after of ['奖金', '加班费', '工资已支付', '/月', '/小时', '。王乙奖金另计', '；另加奖金', '\n王乙奖金另计',
   '+奖金发放工作', '按时支付']) test(`ordinary text cannot become an operand ${JSON.stringify(after)}`,
     () => assert.equal(hasAttachedMoneyArithmetic('', after.replaceAll('\\n', '\n')), false));
@@ -135,7 +135,7 @@ for (const tail of ['+奖金', '加上加班费', '乘以提成', '+獎金', '�
 for (const [after, expected] of [['×貳', true], ['乘以參', true], ['+陸', true], ['。王乙貳角', false]])
   test(`traditional numeral arithmetic is a detection alias ${after}`, () => assert.equal(hasAttachedMoneyArithmetic('', after), expected));
 for (const texts of [['😀王甲工资4000元', '貳角。'], ['😀王甲工资4000元', '參角。'], ['😀王甲工资4000元', '陸分。']])
-  test(`traditional numeral subunit continuation cannot be hidden ${JSON.stringify(texts)}`, () => check({ texts }));
+  test(`traditional numeral subunit continuation cannot be hidden ${JSON.stringify(texts)}`, () => check({ texts, samePage: true }));
 
 for (const tail of ['按周计', '按季度计', '按年计'])
   test(`a model-declared supported unit cannot exempt unsupported ${tail}`, () => check({ text: `😀王甲工资4000元${tail}。`, meaning: 'rate', rateUnit: 'month' }));
@@ -148,7 +148,7 @@ for (const before of ['奖金+', '奖金乘以', '加班费加上', '销售提�
     () => check({ text: `😀王甲工资${before}4000元。`, full }));
 }
 for (const texts of [['😀王甲工资奖金+', '4000元。'], ['😀王甲工资奖金乘', '以4000元。'], ['😀王甲工资加班费', '加上4000元。']])
-  test(`prefix payroll operand source layout ${JSON.stringify(texts)}`, () => check({ texts }));
+  test(`prefix payroll operand source layout ${JSON.stringify(texts)}`, () => check({ texts, samePage: true }));
 for (const before of ['奖金+', '奖金乘以', '加班费加上']) test(`prefix payroll operand complete value ${before}`, () => {
   const value = before + '4000元', text = '😀王甲工资' + value + '。';
   assert.equal(normalizeMoneyValueV4(value).amount, null);
