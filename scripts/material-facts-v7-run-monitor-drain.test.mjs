@@ -28,7 +28,7 @@ if(process.env.MONITOR_SCENARIO!=='fast-exit')while(true){
   try{await readFile(process.env.MONITOR_STARTED);break;}catch(error){if(error.code!=='ENOENT')throw error;}
   await new Promise(done=>setTimeout(done,5));
 }
-for(const row of rows)console.log(JSON.stringify({type:'result',id:row.id,raw_output:'{"schemaVersion":3,"candidates":[]}',finish_reason:'stop'}));
+for(const row of rows)console.log(JSON.stringify({type:'result',backend:'qwen',id:row.id,raw_output:'{"schemaVersion":3,"candidates":[]}',finish_reason:'stop'}));
 await writeFile(process.env.MONITOR_WORKER_DONE,'done');
 `;
 
@@ -41,8 +41,8 @@ import cp from 'node:child_process';
 import {writeFileSync} from 'node:fs';
 import {syncBuiltinESMExports} from 'node:module';
 if(process.argv[1]?.endsWith('/run.mjs')){
- const append=io.appendFile,write=io.writeFile,nativeSpawn=cp.spawn,interval=globalThis.setInterval;
- const metrics={memory_started:0,memory_settled:0,terminal_before_monitor_settled:false,worker_closed:0};
+ const append=io.appendFile,write=io.writeFile,rename=io.rename,nativeSpawn=cp.spawn,interval=globalThis.setInterval;
+ const metrics={memory_started:0,memory_settled:0,terminal_before_monitor_settled:false,terminal_observations:0,worker_closed:0};
  let delayed=false;
  globalThis.setInterval=(callback,ms,...args)=>interval(callback,ms===2000&&process.env.MONITOR_SCENARIO!=='fast-exit'?10:ms,...args);
  cp.spawn=(...args)=>{const child=nativeSpawn(...args);child.once('close',()=>{metrics.worker_closed++;writeFileSync(process.env.MONITOR_CLOSED,String(metrics.worker_closed));});return child;};
@@ -60,8 +60,12 @@ if(process.argv[1]?.endsWith('/run.mjs')){
   return append(path,data,...args);
  };
  io.writeFile=async(path,...args)=>{
-  if(String(path).endsWith('/outcome.json')&&metrics.memory_started!==metrics.memory_settled)metrics.terminal_before_monitor_settled=true;
+  if(String(path).endsWith('/outcome.json')){metrics.terminal_observations++;if(metrics.memory_started!==metrics.memory_settled)metrics.terminal_before_monitor_settled=true;}
   return write(path,...args);
+ };
+ io.rename=async(source,target,...args)=>{
+  if(String(target).endsWith('/outcome.json')){metrics.terminal_observations++;if(metrics.memory_started!==metrics.memory_settled)metrics.terminal_before_monitor_settled=true;}
+  return rename(source,target,...args);
  };
  syncBuiltinESMExports();
  process.on('exit',()=>writeFileSync(process.env.MONITOR_METRICS,JSON.stringify(metrics)));
@@ -142,6 +146,7 @@ for (const scenario of ['delayed-success', 'late-append-error']) test(`pending m
   const metrics = JSON.parse(await readFile(resolve(f.root, 'monitor-metrics.json')));
   assert.equal(metrics.memory_started, metrics.memory_settled);
   assert.equal(metrics.terminal_before_monitor_settled, false);
+  assert(metrics.terminal_observations > 0, 'The terminal checkpoint observation must actually run');
   await assert.rejects(stat(resolve(f.root, E, '.experiment.lock')), { code: 'ENOENT' });
   if (scenario === 'delayed-success') {
     assert.equal(outcome.completed, true);
@@ -169,5 +174,6 @@ test('an exited worker with no pending sample finishes without new monitor work 
   const metrics = JSON.parse(await readFile(resolve(f.root, 'monitor-metrics.json')));
   assert.equal(metrics.memory_started, metrics.memory_settled);
   assert.equal(metrics.terminal_before_monitor_settled, false);
+  assert(metrics.terminal_observations > 0, 'The terminal checkpoint observation must actually run');
   await assert.rejects(stat(resolve(f.root, E, '.experiment.lock')), { code: 'ENOENT' });
 });

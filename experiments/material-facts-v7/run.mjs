@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile, appendFile, lstat, realpath, rmdir, stat, access } from 'node:fs/promises';
+import { createHash, randomUUID } from 'node:crypto';
+import { mkdir, readFile, writeFile, appendFile, lstat, realpath, rmdir, stat, access, rename } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -86,8 +86,9 @@ const { buildExtractionMessagesV4 } = await import('../../lib/material-fact-extr
 const policy = await loadPolicy(root);
 if (backend === 'deepseek' && (options['connect-port'] ? 'temporary_loopback_ssh_test_host' : 'direct') !== policy.deepseek.egress) throw new Error('DeepSeek route differs from the verified runtime policy');
 const messages = inputs.map(input => ({ id: input.id, messages: buildExtractionMessagesV4(input.source) }));
-// Diagnostic attempts and freeze publication share a lock. Hold it through all
-// terminal writes so a freeze cannot observe an allocated but unfinished run.
+// Both modes share the publication lock through their terminal writes. Full
+// verification, report publication and summary publication use the same lock;
+// verifyPreflight remains a read-only check inside this owned operation.
 async function runAttempt() {
 if (mode === 'holdout') {
   const { freeze } = await verifyPreflight(root);
@@ -98,7 +99,16 @@ if (mode === 'holdout') {
   catch (error) { if (error.code !== 'ENOENT') throw error; }
   if (inputs.length !== 3 || sha(inputBytes) !== sha(await readFile(resolve(root, EXPERIMENT, 'data/dev.inputs.jsonl')))) throw new Error('Diagnostic requests must use the complete preregistered three-case development input');
 }
-const save = (name, value) => writeFile(resolve(out, name), JSON.stringify(value, null, 2) + '\n');
+const save = async (name, value) => {
+  const bytes = JSON.stringify(value, null, 2) + '\n';
+  if (name !== 'outcome.json') return writeFile(resolve(out, name), bytes);
+  // A checkpoint replaces a prior valid receipt only after a complete same-dir
+  // stage has been written. Failed stages remain as failure evidence. The
+  // lifecycle lock prevents readers/finalizers from sealing a running prefix.
+  const temporary = resolve(out, `.outcome.json.${process.pid}.${randomUUID()}.stage`);
+  await writeFile(temporary, bytes, { flag: 'wx', mode: 0o600 });
+  await rename(temporary, resolve(out, name));
+};
 const hashes = {};
 for (const file of RUN_HASH_FILES) hashes[file] = sha(await readFile(resolve(root, file)));
 await mkdir(resultRoot, { recursive: true });
@@ -165,7 +175,7 @@ if (backend === 'rules') {
   let buffer = '', stdoutBytes = 0, stderrBytes = 0, stopReason = null, writeQueue = Promise.resolve(), writeFailure = null, lastEvent = Date.now();
   const outputLimit = 20_000_000; // Independent bounds for each stream, in raw bytes.
   const stdoutDecoder = new StringDecoder('utf8');
-  const resultRows = [];
+  const resultRows = [], requestedIds = new Set();
   const started = Date.now();
   // Each readable pauses before enqueueing its current chunk and resumes only
   // after its disk work settles. At most one chunk per stream can wait here;
@@ -187,16 +197,35 @@ if (backend === 'rules') {
       let newline;
       while ((newline = buffer.indexOf('\n')) >= 0) {
         const line = buffer.slice(0, newline); buffer = buffer.slice(newline + 1);
+        let event;
+        try {
+          event = JSON.parse(line);
+          if (!event || typeof event !== 'object' || Array.isArray(event) || typeof event.type !== 'string' || !event.type.trim()) throw new Error('Invalid worker event');
+          if (event.id !== undefined && (typeof event.id !== 'string' || !batch.some(row => row.id === event.id))) throw new Error('Unexpected event id');
+          if (event.type === 'result' && (typeof event.id !== 'string' || typeof event.raw_output !== 'string' || typeof event.finish_reason !== 'string'
+            || event.backend !== backend || resultRows.some(row => row.id === event.id))) throw new Error('Duplicate or invalid result');
+          if (backend === 'deepseek' && event.type === 'requesting' && (typeof event.id !== 'string' || activeRequestId !== null || requestedIds.has(event.id)
+            || event.id !== batch[requestedIds.size]?.id)) throw new Error('Overlapping, repeated or out-of-order request');
+          if (backend === 'deepseek' && event.type === 'result' && (event.id !== activeRequestId
+            || event.id !== batch[resultRows.length]?.id)) throw new Error('Result does not match the active planned request');
+        }
+        catch (error) {
+          // Keep malformed or invalid worker text outside the event protocol. Also
+          // retain the rest of this decoded chunk; it cannot be trusted as events
+          // after the first malformed line, and must not poison verification.
+          await appendFile(resolve(out, `malformed-stdout-${attempts.length + 1}.txt`), line + '\n' + buffer);
+          buffer = '';
+          throw error;
+        }
         await appendFile(resolve(out, 'events.jsonl'), line + '\n');
-        const event = JSON.parse(line); lastEvent = Date.now();
+        lastEvent = Date.now();
         if (backend === 'deepseek' && event.type === 'requesting') {
-          if (activeRequestId !== null) throw new Error('Overlapping request');
-          activeRequestId = event.id;
+          requestedIds.add(event.id); activeRequestId = event.id;
           // A queued disk write may finish after exit/close. Retain its event
           // but never create a live request deadline for a dead worker.
           if (!exited && !closed) requestTimer = setTimeout(() => { interruptedRequestId = activeRequestId; stopReason = 'absolute_request_timeout'; terminate(); }, 180_000);
         }
-        if (event.type === 'result') { if (!batch.some(row => row.id === event.id) || resultRows.some(row => row.id === event.id)) throw new Error('Duplicate or unexpected result'); resultRows.push(event); if (backend === 'deepseek') { clearTimeout(requestTimer); activeRequestId = null; } }
+        if (event.type === 'result') { resultRows.push(event); if (backend === 'deepseek') { clearTimeout(requestTimer); activeRequestId = null; } }
         if (event.type === 'transport') await appendFile(resolve(out, 'transport-attempts.jsonl'), line + '\n');
         if (!['telemetry', 'phase_memory'].includes(event.type)) console.log(JSON.stringify({ type: event.type, id: event.id, finish_reason: event.finish_reason, latency_seconds: event.latency_seconds, error_type: event.error_type }));
       }
@@ -278,5 +307,4 @@ if (backend === 'rules') {
 }
 }
 
-if (mode === 'diagnostic') await withExperimentLock(root, 'diagnostic', runAttempt);
-else await runAttempt();
+await withExperimentLock(root, mode, runAttempt);

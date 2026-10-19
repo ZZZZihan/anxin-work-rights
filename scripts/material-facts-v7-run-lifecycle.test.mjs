@@ -31,7 +31,7 @@ const send = async (stream, bytes) => { if (!stream.write(bytes)) await once(str
 const event = value => send(process.stdout, JSON.stringify(value) + '\n');
 const complete = async () => { for (const row of rows) {
   await event({type:'requesting',id:row.id});
-  await event({type:'result',id:row.id,raw_output:'{"schemaVersion":3,"candidates":[]}',finish_reason:'stop'});
+  await event({type:'result',id:row.id,backend:'deepseek',raw_output:'{"schemaVersion":3,"candidates":[]}',finish_reason:'stop'});
 } };
 if (process.env.LIFECYCLE_SCENARIO === 'exit-during-log') {
   await event({type:'requesting',id:rows[0].id}); process.exitCode = 7;
@@ -65,7 +65,8 @@ if (process.env.LIFECYCLE_SCENARIO === 'exit-during-log') {
   await complete();
 } else if (process.env.LIFECYCLE_SCENARIO === 'utf8') {
   for (const row of rows) {
-    const line=Buffer.from(JSON.stringify({type:'result',id:row.id,raw_output:'中文金额四万元',finish_reason:'stop'})+'\n');
+    await event({type:'requesting',id:row.id});
+    const line=Buffer.from(JSON.stringify({type:'result',id:row.id,backend:'deepseek',raw_output:'中文金额四万元',finish_reason:'stop'})+'\n');
     const split=line.indexOf(Buffer.from('中'))+1;
     await send(process.stdout,line.subarray(0,split));
     await new Promise(done=>setTimeout(done,10));

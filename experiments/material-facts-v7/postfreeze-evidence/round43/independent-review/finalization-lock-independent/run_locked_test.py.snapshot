@@ -1,0 +1,14 @@
+from pathlib import Path
+import subprocess,time,json,hashlib,os,sys,re
+own=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+p=Path(__file__).resolve().parent
+test=own/'scripts/material-facts-v7-round43-finalization-lock-independent.test.mjs'
+label,node,root=sys.argv[1:]
+env=os.environ.copy();env['MATERIAL_FACTS_V7_ENGINEERING_ROOT']=root
+start=time.monotonic();r=subprocess.run([node,'--test',str(test)],capture_output=True,env=env,timeout=55)
+for suffix,data in [('stdout.log',r.stdout),('stderr.log',r.stderr)]:
+ with (p/(label+'.'+suffix)).open('xb') as f:f.write(data)
+counters={k:int(v) for k,v in re.findall(r'(?:ℹ |# )(tests|pass|fail|skipped|cancelled) (\d+)',r.stdout.decode())}
+receipt={'exit':r.returncode,'seconds':time.monotonic()-start,'node':subprocess.check_output([node,'--version']).decode().strip(),'test_sha256':hashlib.sha256(test.read_bytes()).hexdigest(),'source':root,'counters':counters}
+with (p/(label+'.receipt.json')).open('x') as f:json.dump(receipt,f,indent=2)
+print(json.dumps(receipt));print(r.stdout.decode()[-5000:]);print(r.stderr.decode()[-1000:])

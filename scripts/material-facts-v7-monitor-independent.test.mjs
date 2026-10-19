@@ -56,7 +56,7 @@ while(true){try{await readFile(process.env.INDEPENDENT_MONITOR_ROOT+'/measuremen
  catch(error){if(error.code!=='ENOENT')throw error;}
  if(Date.now()>deadline)throw new Error('Synthetic worker barrier expired');
  await new Promise(done=>setTimeout(done,5));}
-for(const row of text.trim().split('\n').map(JSON.parse))console.log(JSON.stringify({type:'result',id:row.id,raw_output:'{"schemaVersion":3,"candidates":[]}',finish_reason:'stop'}));
+for(const row of text.trim().split('\n').map(JSON.parse))console.log(JSON.stringify({type:'result',id:row.id,backend:'qwen',raw_output:'{"schemaVersion":3,"candidates":[]}',finish_reason:'stop'}));
 `;
 const PRELOAD = String.raw`
 import cp from 'node:child_process';

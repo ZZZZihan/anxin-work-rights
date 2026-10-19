@@ -1,0 +1,59 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const evidence = dirname(fileURLToPath(import.meta.url));
+const baseline = resolve(process.env.PROBE_SOURCE_ROOT ?? resolve(evidence, 'baseline-b199'));
+const fixture = resolve(evidence, process.env.PROBE_FIXTURE_NAME ?? 'real-cli-fixture');
+const cli = resolve(baseline, 'experiments/material-facts-v7/assess.mjs');
+const { filesUnder } = await import(pathToFileURL(resolve(baseline, 'experiments/material-facts-v6/freeze.mjs')).href);
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const resultRelative = 'experiments/material-facts-v7/results/holdout-rules-1';
+const resultDirectory = resolve(fixture, resultRelative);
+await mkdir(resultDirectory, { recursive: true });
+const inputs = ['inputs', 'labels', 'results'].map(name => resolve(fixture, `${name}.jsonl`));
+for (const path of inputs) await writeFile(path, '\n', { flag: 'wx' });
+const output = resolve(resultDirectory, 'report.json');
+const run = () => {
+  const result = spawnSync(process.execPath, [cli, ...inputs, output], { encoding: 'utf8', timeout: 10000 });
+  return { status: result.status, signal: result.signal, stdout: result.stdout, stderr: result.stderr };
+};
+const initial = run();
+assert.equal(initial.status, 0, initial.stderr);
+async function inventory() {
+  const files = await filesUnder(fixture, 'experiments/material-facts-v7/results');
+  return Object.fromEntries(await Promise.all(files.map(async path => [path, sha(await readFile(resolve(fixture, path)))])));
+}
+const before = await inventory();
+const entriesBefore = await readdir(resultDirectory);
+const reportBefore = sha(await readFile(output));
+const duplicate = run();
+const after = await inventory();
+const entriesAfter = await readdir(resultDirectory);
+const reportAfter = sha(await readFile(output));
+let strictCoverageMatches = true;
+try { assert.deepEqual(after, before); } catch { strictCoverageMatches = false; }
+const result = {
+  baseline_commit: 'b199f52154d0eab731cb7d562ca02cff53021fe8',
+  node: process.version,
+  scope: 'Actual assessment CLI, three empty synthetic JSONL inputs, actual exported filesUnder enumeration; no model/network/frozen-data/scoring-fixture substitution.',
+  initial,
+  duplicate,
+  directory_before: entriesBefore,
+  directory_after: entriesAfter,
+  inventory_before: before,
+  inventory_after: after,
+  added_paths: Object.keys(after).filter(path => !Object.hasOwn(before, path)),
+  existing_report_sha256_before: reportBefore,
+  existing_report_sha256_after: reportAfter,
+  strict_manifest_inventory_still_matches: strictCoverageMatches,
+};
+await writeFile(resolve(evidence, process.env.PROBE_RESULT_NAME ?? 'baseline-observation.json'), JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ duplicate_exit: duplicate.status, original_report_unchanged: reportBefore === reportAfter, added_paths: result.added_paths, strict_manifest_inventory_still_matches: strictCoverageMatches }));
+assert.notEqual(duplicate.status, 0);
+assert.match(duplicate.stderr, /EEXIST/u);
+assert.equal(reportAfter, reportBefore);
+assert.deepEqual(after, before, 'An already-existing immutable report should reject without changing its result directory');

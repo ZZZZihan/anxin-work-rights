@@ -1,0 +1,300 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { spawn } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, writeFile, rm, chmod, readdir } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const ROOT = resolve(process.env.MATERIAL_FACT_TEST_ROOT ?? fileURLToPath(new URL('../', import.meta.url)));
+const RUN_FILE = resolve(process.env.MATERIAL_FACT_RUN_FILE ?? resolve(ROOT, 'experiments/material-facts-v7/run.mjs'));
+const VERIFY_FILE = resolve(process.env.MATERIAL_FACT_VERIFY_FILE ?? resolve(ROOT, 'experiments/material-facts-v7/verify.mjs'));
+const LOCK_FILE = resolve(process.env.MATERIAL_FACT_LOCK_FILE ?? resolve(ROOT, 'experiments/material-facts-v7/experiment-lock.mjs'));
+const PUBLICATION_FILE = resolve(process.env.MATERIAL_FACT_PUBLICATION_FILE ?? resolve(ROOT, 'experiments/material-facts-v7/immutable-artifact-publication.mjs'));
+const E = 'experiments/material-facts-v7';
+const sha = value => createHash('sha256').update(value).digest('hex');
+const json = value => JSON.stringify(value, null, 2) + '\n';
+const originalRun = await readFile(RUN_FILE);
+const originalVerify = await readFile(VERIFY_FILE, 'utf8');
+const originalLock = await readFile(LOCK_FILE);
+const originalPublication = await readFile(PUBLICATION_FILE);
+const sliceBetween = (text, start, end) => {
+  const from = text.indexOf(start), to = text.indexOf(end, from);
+  assert(from >= 0 && to > from, `Missing exact source boundary: ${start}`);
+  return text.slice(from, to).trimEnd();
+};
+const outcomeBody = sliceBetween(originalVerify, 'function checkOutcome(', '\nfunction checkEvents(');
+const eventBodies = sliceBetween(originalVerify, 'function checkEvents(', '\nasync function checkDeepseek(');
+const verificationBody = sliceBetween(originalVerify, 'export async function verifyExperiment(', '\nif (await isMainModule(');
+
+const policy = { deepseek: { model: 'deepseek-v4-pro', thinking: 'disabled', egress: 'direct', reserved_upper_usd: 2,
+  input_usd_per_million: 1.32, output_usd_per_million: 3.96 } };
+const memoryPolicy = { allocator_guideline_gib: 24, wired_gib: 20, cache_mib: 512, prefill_step_size: 128,
+  kv_bits: 4, kv_group_size: 64, quantized_kv_start: 0, critical: 'immediate_stop', warning: '10_seconds',
+  swap_growth_gib: 4, case_timeout_seconds: 600 };
+const report = { planned_documents: 2, expected_facts: 0, completed: 0, protocol_valid: 0 };
+const write = async (root, path, bytes) => {
+  const target = resolve(root, path); await mkdir(dirname(target), { recursive: true }); await writeFile(target, bytes);
+};
+const exists = async path => { try { await readFile(path); return true; } catch (error) { if (error.code === 'ENOENT') return false; throw error; } };
+
+// Only the real runner and outcome/manifest-verifier bodies are under test.
+// Dataset/hash preflight, prompt construction and scoring are explicit synthetic
+// stubs in an owned temporary tree. No real model worker, model, key or network
+// is used, and no historical CLI is started.
+async function fixture(t, scenario) {
+  const parent = process.env.MATERIAL_FACT_RUN_PRESERVE_ROOT;
+  if (parent) await mkdir(parent, { recursive: true });
+  const root = await mkdtemp(resolve(parent ?? tmpdir(), `run-preservation-${scenario}-`));
+  const beforeRemove = [];
+  t.after(async () => {
+    for (const cleanup of beforeRemove) await cleanup();
+    if (!parent) await rm(root, { recursive: true, force: true });
+  });
+  await write(root, 'package.json', '{"type":"module"}\n');
+  await write(root, `${E}/run.mjs`, originalRun);
+  // Copy the real publication implementation even for an older verifier body
+  // that does not call it, so both source versions use this same fixture.
+  await write(root, `${E}/immutable-artifact-publication.mjs`, originalPublication);
+  const inputs = Array.from({ length: 2 }, (_, n) => ({ id: `synthetic-${n + 1}`, source: { text: `Synthetic material ${n + 1}` } }));
+  const inputBytes = inputs.map(row => JSON.stringify(row)).join('\n') + '\n';
+  const messages = inputs.map(input => ({ id: input.id, messages: [{ role: 'user', content: input.source.text }] }));
+  const messageBytes = messages.map(row => JSON.stringify(row)).join('\n') + '\n';
+  await write(root, 'synthetic.inputs.jsonl', inputBytes);
+  await write(root, 'lib/material-facts-v3.ts', 'export function extractRuleCandidates(){throw new Error("No rules in Qwen probe");}\n');
+  await write(root, 'lib/material-fact-extraction-v4.ts', 'export function buildExtractionMessagesV4(source){return [{role:"user",content:source.text}];}\n');
+  await write(root, 'scripts/fact-runtime-v2.py', '# Synthetic placeholder; this file must never execute.\n');
+  await write(root, 'synthetic-model/config.json', '{}\n');
+  await write(root, 'synthetic-integrity/source-manifest.json', '{}\n');
+  await write(root, 'synthetic-integrity/weights-verification.json', '{}\n');
+  const freeze = { frozen_at: '2000-01-01T00:00:00Z', input_sha256: sha(inputBytes), messages_sha256: sha(messageBytes),
+    case_ids: inputs.map(row => row.id), policy, deepseek_egress: 'direct', files: { [`${E}/run.mjs`]: sha(originalRun) } };
+  await write(root, `${E}/freeze.json`, json(freeze));
+  await write(root, `${E}/freeze.mjs`, `export const EXPERIMENT=${JSON.stringify(E)};
+export const RUN_HASH_FILES=[${JSON.stringify(`${E}/run.mjs`)}];
+export const QWEN_MEMORY=${JSON.stringify(memoryPolicy)};
+export async function loadPolicy(){return ${JSON.stringify(policy)};}
+export function deepseekReservation(){return 0;}
+export function priorDeepseekReservation(){return 0;}
+`);
+  await write(root, `${E}/verify.mjs`, `import {readFile} from 'node:fs/promises';
+export async function verifyPreflight(root){return {freeze:JSON.parse(await readFile(root+'/${E}/freeze.json','utf8')),sets:{holdout:{inputs:JSON.parse(await readFile(root+'/synthetic.inputs.array.json','utf8')),labels:[],facts:0}},summary:{synthetic:true}};}
+`);
+  await write(root, 'synthetic.inputs.array.json', json(inputs));
+  await write(root, `${E}/experiment-lock.mjs`, originalLock);
+  const python = resolve(root, 'synthetic-python');
+  await writeFile(python, `#!${process.execPath}\nimport {appendFileSync,writeFileSync,existsSync} from 'node:fs';
+if(process.argv[2]==='-c'){console.log('anxin-v7-python-ready');}
+else{let input='';for await(const chunk of process.stdin)input+=chunk;const rows=input.trim().split('\\n').map(JSON.parse),row=rows[0];
+appendFileSync(process.env.PROBE_CALLS,JSON.stringify({id:row.id,worker:true})+'\\n');
+if(process.env.PROBE_SCENARIO==='malformed'){process.stdout.write(JSON.stringify({type:'telemetry',id:row.id})+'\\n{not JSON}\\n');}
+else if(process.env.PROBE_SCENARIO==='overlap'){const event={type:'requesting',id:row.id};process.stdout.write(JSON.stringify(event)+'\\n'+JSON.stringify(event)+'\\n');}
+else if(process.env.PROBE_SCENARIO==='out-of-order-request'){process.stdout.write(JSON.stringify({type:'telemetry',id:row.id})+'\\n'+JSON.stringify({type:'requesting',id:rows[1].id})+'\\n');}
+else if(process.env.PROBE_SCENARIO==='mismatched-result'){process.stdout.write(JSON.stringify({type:'requesting',id:row.id})+'\\n'+JSON.stringify({type:'result',id:rows[1].id,backend:'deepseek',raw_output:'',finish_reason:'fixture_error'})+'\\n');}
+else if(process.env.PROBE_SCENARIO.startsWith('invalid-')){
+const base={type:'result',id:row.id,backend:'qwen',raw_output:'',finish_reason:'fixture_error'};
+const cases={null:null,array:[],missing_type:{id:row.id},unexpected_id:{type:'telemetry',id:'unplanned'},missing_backend:{...base,backend:undefined},bad_result:{...base,raw_output:null}};
+let bad=cases[process.env.PROBE_SCENARIO.slice(8)];
+if(process.env.PROBE_SCENARIO==='invalid-duplicate'){process.stdout.write(JSON.stringify(base)+'\\n');bad=base;}
+process.stdout.write(JSON.stringify({type:'telemetry',id:row.id})+'\\n'+JSON.stringify(bad)+'\\n');}
+else if(process.env.PROBE_SCENARIO==='malformed-tail'){process.stdout.write(JSON.stringify({type:'result',id:row.id,backend:'qwen',raw_output:'',finish_reason:'fixture_error'})+'\\n{not JSON}\\nuntrusted tail');}
+else{if(process.env.PROBE_SCENARIO==='lifecycle'&&row.id==='synthetic-2'){writeFileSync(process.env.PROBE_READY,'ready');await new Promise(resolve=>{const timer=setInterval(()=>{if(existsSync(process.env.PROBE_RELEASE)){clearInterval(timer);resolve();}},10);});}
+console.log(JSON.stringify({type:'result',id:row.id,backend:'qwen',raw_output:'',finish_reason:'fixture_error'}));}}
+`, { mode: 0o700 });
+  await chmod(python, 0o700);
+  const sysctl = resolve(root, 'bin/sysctl');
+  await write(root, 'bin/sysctl', `#!${process.execPath}\nimport {appendFileSync} from 'node:fs';
+const key=process.argv[3],scenario=process.env.PROBE_SCENARIO;
+appendFileSync(process.env.PROBE_CALLS,JSON.stringify({type:'sysctl',key})+'\\n');
+if((scenario==='pressure-probe-fails'&&key==='kern.memorystatus_vm_pressure_level')||(scenario==='swap-probe-fails'&&key==='vm.swapusage'))process.exitCode=7;
+else if(key==='kern.memorystatus_vm_pressure_level')console.log('1');
+else console.log('total = 1024M used = 0M free = 1024M');
+`);
+  await chmod(sysctl, 0o700);
+  await write(root, `${E}/assess.mjs`, `export function assess(){return ${JSON.stringify(report)};}\n`);
+  await write(root, `${E}/results/holdout-qwen-1/report.json`, json(report));
+  // The runner must allocate its own one-time output directory.
+  await rm(resolve(root, E, 'results/holdout-qwen-1'), { recursive: true });
+  await write(root, `${E}/comparison.json`, json({ synthetic: true }));
+  const bodyVerifier = `import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {readFile,readdir,writeFile} from 'node:fs/promises';
+import {resolve,relative} from 'node:path';
+import {pathToFileURL,fileURLToPath} from 'node:url';
+import {verifyPreflight} from './verify.mjs';
+import {withExperimentLock} from './experiment-lock.mjs';
+import {publishImmutableFile} from './immutable-artifact-publication.mjs';
+const ROOT=fileURLToPath(new URL('../../',import.meta.url));
+const EXPERIMENT=${JSON.stringify(E)}, BACKENDS=['qwen'], COUNTS={holdout:2}, GIB=1024**3;
+const QWEN_MEMORY=${JSON.stringify(memoryPolicy)}, RUN_HASH_FILES=[${JSON.stringify(`${E}/run.mjs`)}];
+const sha=value=>createHash('sha256').update(value).digest('hex');
+const same=(a,b,message)=>assert.deepEqual(a,b,message), prefix=(ids,expected)=>ids.every((id,n)=>id===expected[n]);
+const json=async path=>JSON.parse(await readFile(path,'utf8'));
+const jsonl=async path=>(await readFile(path,'utf8')).trim().split('\\n').filter(Boolean).map(line=>JSON.parse(line));
+const optionalJsonl=async path=>{try{return await jsonl(path);}catch(error){if(error.code==='ENOENT')return [];throw error;}};
+const messageBytes=async inputs=>inputs.map(input=>JSON.stringify({id:input.id,messages:[{role:'user',content:input.source.text}]})).join('\\n')+'\\n';
+async function filesUnder(root,path){let result=[];for(const entry of await readdir(resolve(root,path),{withFileTypes:true})){const next=path+'/'+entry.name;result.push(...(entry.isDirectory()?await filesUnder(root,next):[next]));}return result.sort();}
+const buildSummary=async root=>json(resolve(root,EXPERIMENT,'comparison.json'));
+const checkBudgetReceipts=async()=>({synthetic_no_deepseek:true});
+${outcomeBody}
+${eventBodies}
+${verificationBody}
+`;
+  await write(root, `${E}/body-verifier.mjs`, bodyVerifier);
+  return { root, inputs, python, scenario, beforeRemove, calls: resolve(root, 'calls.jsonl'), worker: resolve(root, 'worker-started.marker'),
+    out: resolve(root, E, 'results/holdout-qwen-1'), verifier: resolve(root, E, 'body-verifier.mjs') };
+}
+
+function launch(f, extraEnv = {}, backend = 'qwen') {
+  const args = [resolve(f.root, E, 'run.mjs'), '--mode', 'holdout', '--backend', backend, '--inputs', resolve(f.root, 'synthetic.inputs.jsonl'),
+    '--out', f.out, '--python', f.python, ...(backend==='qwen'?['--model-path',resolve(f.root,'synthetic-model'),'--integrity-dir',resolve(f.root,'synthetic-integrity')]:['--key-file',resolve(f.root,'synthetic-key')])];
+  const env = { ...process.env, PATH: resolve(f.root, 'bin') + ':' + process.env.PATH, PROBE_SCENARIO: f.scenario, PROBE_CALLS: f.calls,
+    PROBE_READY:resolve(f.root,'ready'), PROBE_RELEASE:resolve(f.root,'release'), ...extraEnv };
+  const child=spawn(process.execPath,args,{cwd:f.root,env,stdio:['ignore','pipe','pipe']});
+  let stdout='',stderr='';child.stdout.on('data',b=>{stdout+=b;});child.stderr.on('data',b=>{stderr+=b;});
+  const timer=setTimeout(()=>child.kill('SIGKILL'),15000);
+  const completion=new Promise((resolveExit,reject)=>{child.once('error',error=>{clearTimeout(timer);reject(error);});child.once('close',(code,signal)=>{clearTimeout(timer);resolveExit({code,signal,stdout,stderr});});});
+  return {child,completion};
+}
+async function until(check,label){const deadline=Date.now()+7000;while(Date.now()<deadline){if(await check())return;await new Promise(r=>setTimeout(r,10));}throw new Error('Timed out: '+label);}
+async function observation(f,name,value){await writeFile(resolve(f.root,name+'.json'),json(value));console.log(JSON.stringify({root:f.root,name,...value}));}
+async function bodyVerify(f,writeManifest){const {verifyExperiment}=await import(pathToFileURL(f.verifier));return verifyExperiment(f.root,{writeManifest});}
+
+// Actual runner CLI / real owned filesystem and real lifecycle-lock helper.
+// Qwen is replaced by a local Node byte producer. Prompt/preflight/scoring and
+// the two-case dataset are explicitly synthetic; the original verifier bodies
+// run unchanged against those stubs. No model, network or historical CLI runs.
+test('malformed newline stdout is quarantined and its failed attempt remains sealable',async t=>{
+ const f=await fixture(t,'malformed'),result=await launch(f).completion;
+ const outcome=JSON.parse(await readFile(resolve(f.out,'outcome.json'),'utf8'));
+ await writeFile(resolve(f.out,'report.json'),json(report));
+ let verification;try{verification={ok:true,result:await bodyVerify(f,true)};}catch(error){verification={ok:false,error:error.message};}
+ let events;try{events=(await readFile(resolve(f.out,'events.jsonl'),'utf8')).trim().split('\n').filter(Boolean).map(JSON.parse);}catch(error){events={error:error.message};}
+ const files=await readdir(f.out),quarantines=files.filter(name=>name.startsWith('malformed-stdout-'));
+ await observation(f,'malformed-observation',{result,outcome,events,files,verification});
+ assert.equal(result.code,1);assert.equal(outcome.attempts[0].stop_reason,'worker_output_error');
+ assert(Array.isArray(events),'events.jsonl must contain only valid JSON events');
+ assert.equal(quarantines.length,1);assert.equal(await readFile(resolve(f.out,quarantines[0]),'utf8'),'{not JSON}\n');
+ assert.equal(verification.ok,true,JSON.stringify(verification));assert.equal(outcome.attempts[0].incomplete_stdout,false);
+});
+
+test('a formal runner holds the real lifecycle lock through its final checkpoint',async t=>{
+ const f=await fixture(t,'lifecycle'),running=launch(f);f.beforeRemove.push(async()=>{await writeFile(resolve(f.root,'release'),'release');await running.completion;});
+ await until(()=>exists(resolve(f.root,'ready')),'second worker ready');
+ const prefix=JSON.parse(await readFile(resolve(f.out,'outcome.json'),'utf8'));
+ // Seed a synthetic saved report before the competing finalizer; its operation
+ // itself must acquire the real lock before any verification/publication reads.
+ await writeFile(resolve(f.out,'report.json'),json(report));
+ const {withExperimentLock}=await import(pathToFileURL(resolve(f.root,E,'experiment-lock.mjs')));
+ let competitor;try{competitor={ok:true,result:await (verificationBody.includes('verifyExperimentUnlocked')?bodyVerify(f,true):withExperimentLock(f.root,'freeze',()=>bodyVerify(f,true)))};}catch(error){competitor={ok:false,code:error.code,error:error.message};}
+ const publishedBeforeEnd=await exists(resolve(f.root,E,'result-manifest.json'));
+ await writeFile(resolve(f.root,'release'),'release');const result=await running.completion;
+ let finalVerification;try{finalVerification={ok:true,result:await bodyVerify(f,false)};}catch(error){finalVerification={ok:false,error:error.message};}
+ await observation(f,'lifecycle-observation',{prefix,competitor,publishedBeforeEnd,result,finalVerification});
+ assert.equal(prefix.attempts.length,1);assert.equal(competitor.ok,false);assert.equal(competitor.code,'EEXIST');
+ assert.equal(publishedBeforeEnd,false,'Cannot seal the prefix of an active attempt');
+ assert.equal(result.code,1);assert.equal((await bodyVerify(f,true)).status,'PASS');
+ assert.equal((await bodyVerify(f,false)).status,'PASS');
+ assert.equal(await exists(resolve(f.root,E,'.experiment.lock/owner.json')),false);
+});
+
+test('a partial second checkpoint write preserves the previous complete outcome',async t=>{
+ const f=await fixture(t,'checkpoint');
+ const preload=resolve(f.root,'checkpoint-fault.mjs');
+ await writeFile(preload, `import fs from 'node:fs/promises';import {syncBuiltinESMExports} from 'node:module';import {resolve,basename} from 'node:path';
+ const native=fs.writeFile;let writes=0;fs.writeFile=async function(path,data,options){const name=basename(String(path));
+ if((name==='outcome.json'||name.startsWith('.outcome.json.'))&&++writes===2){const old=await fs.readFile(resolve(process.env.PROBE_OUT,'outcome.json'));await native(resolve(process.env.PROBE_OUT,'../previous-outcome.snapshot'),old);await native(path,String(data).slice(0,23),options);throw Object.assign(new Error('Injected partial checkpoint write'),{code:'EIO'});}return native(path,data,options);};syncBuiltinESMExports();`);
+ const result=await launch(f,{NODE_OPTIONS:`--import=${JSON.stringify(pathToFileURL(preload).href)}`,PROBE_OUT:f.out}).completion;
+ const previous=await readFile(resolve(f.out,'../previous-outcome.snapshot')),after=await readFile(resolve(f.out,'outcome.json'));
+ const stages=(await readdir(f.out)).filter(name=>name.startsWith('.outcome.json.'));
+ await observation(f,'checkpoint-observation',{result,previous_sha256:sha(previous),after_sha256:sha(after),previous_text:previous.toString(),after_text:after.toString(),stages});
+ assert.equal(result.code,1);assert.match(result.stderr,/Injected partial checkpoint write/);
+ assert(after.equals(previous),'Failed replacement must leave the previous valid JSON receipt byte-for-byte intact');
+ assert.equal(JSON.parse(after).attempts.length,1);assert.equal(stages.length,1);
+ assert.equal((await readFile(resolve(f.out,stages[0]))).length,23,'Preserve the failed partial staging artifact');
+});
+
+
+test('malformed line retains the remaining decoded chunk outside events and preserves the earlier result',async t=>{
+ const f=await fixture(t,'malformed-tail'),result=await launch(f).completion;
+ const events=(await readFile(resolve(f.out,'events.jsonl'),'utf8')).trim().split('\n').map(JSON.parse);
+ const rows=(await readFile(resolve(f.out,'results.jsonl'),'utf8')).trim().split('\n').map(JSON.parse);
+ assert.equal(result.code,1);assert.equal(events.length,1);assert.equal(events[0].type,'result');
+ assert.equal(rows.length,1);assert.equal(rows[0].original_finish_reason,'fixture_error');assert.equal(rows[0].finish_reason,'worker_output_error');
+ assert.equal(await readFile(resolve(f.out,'malformed-stdout-1.txt'),'utf8'),'{not JSON}\nuntrusted tail');
+ assert.equal(JSON.parse(await readFile(resolve(f.out,'outcome.json'))).attempts[0].incomplete_stdout,false);
+ await writeFile(resolve(f.out,'report.json'),json(report));assert.equal((await bodyVerify(f,true)).status,'PASS');
+});
+
+test('a failed checkpoint rename retains its complete stage and the previous valid outcome',async t=>{
+ const f=await fixture(t,'rename-failure'),preload=resolve(f.root,'rename-fault.mjs');
+ await writeFile(preload,`import fs from 'node:fs/promises';import {syncBuiltinESMExports} from 'node:module';import {resolve,basename} from 'node:path';
+ const native=fs.rename;let replacements=0;fs.rename=async function(from,to){if(basename(String(to))==='outcome.json'&&++replacements===2){await fs.copyFile(to,resolve(process.env.PROBE_OUT,'../previous-outcome.snapshot'));throw Object.assign(new Error('Injected checkpoint rename failure'),{code:'EACCES'});}return native(from,to);};syncBuiltinESMExports();`);
+ const result=await launch(f,{NODE_OPTIONS:`--import=${JSON.stringify(pathToFileURL(preload).href)}`,PROBE_OUT:f.out}).completion;
+ assert.equal(result.code,1);assert.match(result.stderr,/Injected checkpoint rename failure/);
+ assert.deepEqual(await readFile(resolve(f.out,'outcome.json')),await readFile(resolve(f.out,'../previous-outcome.snapshot')));
+ const stages=(await readdir(f.out)).filter(name=>name.startsWith('.outcome.json.'));assert.equal(stages.length,1);
+ assert.equal(JSON.parse(await readFile(resolve(f.out,stages[0]))).attempts.length,2);
+});
+
+test('complete sequential checkpoints replace the receipt, remove stage names and reject attempt reuse',async t=>{
+ const f=await fixture(t,'ordinary'),result=await launch(f).completion;
+ const bytes=await readFile(resolve(f.out,'outcome.json')),outcome=JSON.parse(bytes);
+ assert.equal(result.code,1,'Synthetic worker deliberately returns non-stop fixture_error, not model success');
+ assert.equal(outcome.attempts.length,2);assert(outcome.attempts.every(row=>row.code===0&&row.stop_reason===null));
+ assert.equal((await readdir(f.out)).filter(name=>name.startsWith('.outcome.json.')).length,0);
+ const retry=await launch(f).completion;assert.equal(retry.code,1);assert.match(retry.stderr,/EEXIST/);
+ assert.deepEqual(await readFile(resolve(f.out,'outcome.json')),bytes);
+});
+
+test('an existing publication lock blocks formal attempt allocation without modifying prior artifacts',async t=>{
+ const f=await fixture(t,'blocked');const {withExperimentLock}=await import(pathToFileURL(resolve(f.root,E,'experiment-lock.mjs')));
+ await withExperimentLock(f.root,'freeze',async()=>{const result=await launch(f).completion;assert.equal(result.code,1);assert.match(result.stderr,/Experiment lock already exists/);assert.equal(await exists(resolve(f.out,'protocol.json')),false);});
+ assert.equal(await exists(resolve(f.root,E,'.experiment.lock/owner.json')),false);
+});
+
+
+for(const kind of ['null','array','missing_type','unexpected_id','duplicate','missing_backend','bad_result'])test('invalid event is quarantined before append: '+kind,async t=>{
+ const f=await fixture(t,'invalid-'+kind),result=await launch(f).completion;
+ const events=(await readFile(resolve(f.out,'events.jsonl'),'utf8')).trim().split('\n').map(JSON.parse);
+ const outcome=JSON.parse(await readFile(resolve(f.out,'outcome.json')));
+ assert.equal(result.code,1);assert.equal(outcome.attempts[0].stop_reason,'worker_output_error');
+ assert(events.every(event=>event&&typeof event==='object'&&!Array.isArray(event)&&typeof event.type==='string'&&event.id!=='unplanned'));
+ assert.equal(events.filter(event=>event.type==='result').length,kind==='duplicate'?1:0);
+ const invalid=await readFile(resolve(f.out,'malformed-stdout-1.txt'),'utf8');assert(invalid.endsWith('\n'));assert(invalid.length>1);
+ await writeFile(resolve(f.out,'report.json'),json(report));assert.equal((await bodyVerify(f,true)).status,'PASS');
+});
+
+
+test('overlapping requesting event is kept outside the DeepSeek event protocol',async t=>{
+ const f=await fixture(t,'overlap');f.out=resolve(f.root,E,'results/holdout-deepseek-1');
+ await writeFile(resolve(f.root,'synthetic-key'),'not-a-real-credential\n',{mode:0o600});
+ const result=await launch(f,{},'deepseek').completion;
+ const events=(await readFile(resolve(f.out,'events.jsonl'),'utf8')).trim().split('\n').map(JSON.parse),outcome=JSON.parse(await readFile(resolve(f.out,'outcome.json')));
+ assert.equal(result.code,1);assert.equal(outcome.attempts[0].stop_reason,'worker_output_error');assert.equal(events.length,1);
+ assert.equal(events[0].type,'requesting');assert.equal(await readFile(resolve(f.out,'malformed-stdout-1.txt'),'utf8'),JSON.stringify(events[0])+'\n');
+ // Basic original outcome/events validators run here; DeepSeek HTTP payload,
+ // transport identity/budget verification is intentionally outside this fixture.
+ const prefix=(ids,expected)=>ids.every((id,n)=>id===expected[n]),same=(a,b,message)=>assert.deepEqual(a,b,message);
+ const checkOutcome=new Function('assert','prefix','same',outcomeBody+';return checkOutcome;')(assert,prefix,same);
+ const checkEvents=new Function('assert','same',eventBodies+';return checkEvents;')(assert,same);
+ checkOutcome('deepseek',outcome,[],f.inputs.map(row=>row.id));checkEvents('deepseek',events,[],outcome,f.inputs.map(row=>row.id));
+});
+
+for(const scenario of ['out-of-order-request','mismatched-result'])test('DeepSeek planned request/result prefix is enforced before append: '+scenario,async t=>{
+ const f=await fixture(t,scenario);f.out=resolve(f.root,E,'results/holdout-deepseek-1');
+ await writeFile(resolve(f.root,'synthetic-key'),'not-a-real-credential\n',{mode:0o600});
+ const result=await launch(f,{},'deepseek').completion;
+ const events=(await readFile(resolve(f.out,'events.jsonl'),'utf8')).trim().split('\n').map(JSON.parse),outcome=JSON.parse(await readFile(resolve(f.out,'outcome.json')));
+ assert.equal(result.code,1);assert.equal(outcome.attempts[0].stop_reason,'worker_output_error');assert.equal(events.length,1);
+ assert.equal(events[0].type,scenario==='out-of-order-request'?'telemetry':'requesting');
+ const invalid=JSON.parse((await readFile(resolve(f.out,'malformed-stdout-1.txt'),'utf8')).trim());
+ assert.equal(invalid.id,f.inputs[1].id);assert.equal(invalid.type,scenario==='out-of-order-request'?'requesting':'result');
+ assert.equal(await readFile(resolve(f.out,'results.jsonl'),'utf8'),'','Invalid result must not become a persisted result row');
+ // These are the original basic validators, not the HTTP payload/budget checks.
+ const prefix=(ids,expected)=>ids.every((id,n)=>id===expected[n]),same=(a,b,message)=>assert.deepEqual(a,b,message);
+ const checkOutcome=new Function('assert','prefix','same',outcomeBody+';return checkOutcome;')(assert,prefix,same);
+ const checkEvents=new Function('assert','same',eventBodies+';return checkEvents;')(assert,same);
+ checkOutcome('deepseek',outcome,[],f.inputs.map(row=>row.id));checkEvents('deepseek',events,[],outcome,f.inputs.map(row=>row.id));
+});

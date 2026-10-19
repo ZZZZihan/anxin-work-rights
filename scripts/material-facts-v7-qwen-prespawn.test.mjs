@@ -111,6 +111,7 @@ import {resolve,relative} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {verifyPreflight} from './verify.mjs';
 import {publishImmutableFile} from './immutable-artifact-publication.mjs';
+import {withExperimentLock} from './experiment-lock.mjs';
 const ROOT=fileURLToPath(new URL('../../',import.meta.url));
 const EXPERIMENT=${JSON.stringify(E)}, BACKENDS=['qwen'], COUNTS={holdout:12}, GIB=1024**3;
 const QWEN_MEMORY=${JSON.stringify(memoryPolicy)}, RUN_HASH_FILES=[${JSON.stringify(`${E}/run.mjs`)}];

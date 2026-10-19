@@ -1,0 +1,110 @@
+{
+  "schema": "material-facts-v7/run-preservation-default-cleanup-addendum/1",
+  "created_at": "2026-10-19T00:49:24.438898+00:00",
+  "previous_receipt_sha256": "37bf869260c7c29eaa0964664008b914258b3458955b217e728ea0ad4eb3d747",
+  "previous_copy_index_sha256": "3f1e0ce7fce46cd32442f6700487efc04aa5c42541e7359a2dd156ccaa064cfa",
+  "product_run_unchanged": {
+    "path": "experiments/material-facts-v7/run.mjs",
+    "sha256": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4"
+  },
+  "final_test": {
+    "path": "scripts/material-facts-v7-run-preservation.test.mjs",
+    "sha256": "87db0eb5e8f798501630f07f922ef5f0e133ea87c0856d0d8843729dad302331"
+  },
+  "diagnosis": "Previous 3e5 retained-fixture mode skipped the fixture rm hook; default CI registered rm before lifecycle release hook, producing ENOENT in cleanup. This is a real test-fixture cleanup defect, not a runner protocol failure.",
+  "fix": "One fixture after-hook executes registered owned lifecycle release/wait operations before removing the temporary tree. Original 17 behavior assertions remain unchanged.",
+  "actual_runs": {
+    "default-cleanup-before": {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=formal runner holds",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/.scratch/round43-default-cleanup-before/test.mjs"
+      ],
+      "exit_code": 1,
+      "seconds": 0.9604137080023065,
+      "retain_env_present": false,
+      "run_sha256": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4",
+      "test_sha256": "3e5edf16f8420ede1c31f9445c4be3fc2c6d6c4384f022455993a7d1c610a282",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1
+      }
+    },
+    "default-cleanup-final-node24": {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-concurrency=1",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-run-preservation.test.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 8.818580833030865,
+      "retain_env_present": false,
+      "run_sha256": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4",
+      "test_sha256": "87db0eb5e8f798501630f07f922ef5f0e133ea87c0856d0d8843729dad302331",
+      "counts": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0
+      }
+    },
+    "default-cleanup-final-node26": {
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-run-preservation.test.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 14.942093917052262,
+      "retain_env_present": false,
+      "run_sha256": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4",
+      "test_sha256": "87db0eb5e8f798501630f07f922ef5f0e133ea87c0856d0d8843729dad302331",
+      "counts": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0
+      }
+    }
+  },
+  "static": {
+    "lint": {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/node_modules/eslint/bin/eslint.js",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-run-preservation.test.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.8207474169903435,
+      "stdout": "",
+      "stderr": ""
+    },
+    "syntax": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "test_sha256": "87db0eb5e8f798501630f07f922ef5f0e133ea87c0856d0d8843729dad302331"
+  },
+  "root_focused_failure_originals": [
+    {
+      "source": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round43/run-focused.receipt.json",
+      "sha256": "ca95ec015cfda76bc8cfde901a2ed7468c4153bdad6f4d7d760738569fb01779",
+      "copy": "experiments/material-facts-v7/postfreeze-evidence/round43/run-author/root-run-focused.receipt.json.snapshot"
+    },
+    {
+      "source": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round43/run-focused.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copy": "experiments/material-facts-v7/postfreeze-evidence/round43/run-author/root-run-focused.stderr.log.snapshot"
+    },
+    {
+      "source": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round43/run-focused.stdout.log",
+      "sha256": "e0194973c3b3b824ac0ee148acb72b292358b9a37acc95a6535dce4e6ee95d66",
+      "copy": "experiments/material-facts-v7/postfreeze-evidence/round43/run-author/root-run-focused.stdout.log.snapshot"
+    }
+  ],
+  "limits": "No model, network, original experiment, scorer CLI or historical chain executed. Earlier author receipts/logs remain append-only and their 3e5 final designation is superseded by this test-only addendum."
+}

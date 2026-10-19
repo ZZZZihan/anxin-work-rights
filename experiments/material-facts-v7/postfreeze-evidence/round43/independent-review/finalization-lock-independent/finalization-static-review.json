@@ -1,0 +1,20 @@
+{
+  "scope": "non-implementer source review of assessment/summary/verify lifecycle lock",
+  "read_only": true,
+  "checks": [
+    "Assessment CLI acquires the experiment lifecycle lock before readJsonl/assess/publish and retains it until publication returns; library export does not acquire a lock.",
+    "Selection resolves actual result read path and output parent with realpath and uses path.relative containment, covering existing symlink aliases without relying on substring prefixes.",
+    "Generic temporary result/input/output files outside this experiment do not participate in its lifecycle.",
+    "Summary CLI wraps buildSummary plus exclusive publication or check as one operation. The buildSummary library function remains unlocked for callers already holding the lock.",
+    "verifyExperiment outer wrapper takes verify lock only for non-preflight; original validation, enumeration and publication stay together. Preflight remains unlocked to avoid deadlock inside active runner; preflight cannot write manifest.",
+    "The same lock sits outside results so it does not become an immutable result artifact; failed callbacks preserve error and ownership-checked finally release. No automatic stale lock removal added."
+  ],
+  "limitations": [
+    "Tests use real unchanged CLI modules in owned temporary dependency trees and synthetic empty assessment/report fixtures.",
+    "Active holdout is represented by a real filesystem lock with synthetic owner metadata. This is not a model holdout run.",
+    "Busy manifest refusal is tested before preflight. After release the intentionally absent freeze stops verification immediately, so no historical verifier or scoring chain executes.",
+    "The publication barrier instruments fs.promises.link and delegates to the real native hard link after release; it does not replace the publication result.",
+    "Concurrency requires cooperating entry points; this review does not claim protection against malicious filesystem symlink races or external writers ignoring the lock."
+  ],
+  "blockers_in_scope": []
+}

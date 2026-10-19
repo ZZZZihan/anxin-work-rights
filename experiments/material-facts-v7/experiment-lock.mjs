@@ -1,19 +1,19 @@
 import { randomUUID } from 'node:crypto';
-import { lstat, mkdir, readFile, readdir, rmdir, unlink, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile, readdir, realpath, rmdir, unlink, writeFile } from 'node:fs/promises';
 import { hostname } from 'node:os';
-import { resolve } from 'node:path';
+import { dirname, isAbsolute, relative, resolve } from 'node:path';
 
 export const EXPERIMENT_LOCK_NAME = '.experiment.lock';
 export const experimentLockPath = root => resolve(root, 'experiments/material-facts-v7', EXPERIMENT_LOCK_NAME);
 const sameFile = (left, right) => left.dev === right.dev && left.ino === right.ino;
 
-/** Serialize diagnostic attempts and freeze publication, outside results/.
- * Diagnostics hold this lock until all terminal artifacts are saved. A kill or
+/** Serialize attempts and freeze/result publication, outside results/.
+ * Attempts hold this lock until all terminal artifacts are saved. A kill or
  * interrupted acquisition can leave a lock: never infer staleness or delete it
  * automatically. Reconcile owner PID/host and attempt artifacts before manual
  * recovery; age alone does not prove an owner is dead. */
 export async function withExperimentLock(root, operation, callback) {
-  if (!['diagnostic', 'freeze'].includes(operation) || typeof callback !== 'function') throw new Error('Invalid experiment lock operation');
+  if (!['diagnostic', 'holdout', 'freeze', 'assessment', 'summary', 'verify'].includes(operation) || typeof callback !== 'function') throw new Error('Invalid experiment lock operation');
   const directory = resolve(root, 'experiments/material-facts-v7');
   const parent = await lstat(directory);
   if (!parent.isDirectory() || parent.isSymbolicLink()) throw new Error('Experiment lock requires a real experiment directory');
@@ -21,7 +21,7 @@ export async function withExperimentLock(root, operation, callback) {
   try { await mkdir(lock, { mode: 0o700 }); }
   catch (error) {
     if (error.code !== 'EEXIST') throw error;
-    const blocked = new Error('Experiment lock already exists; an active or interrupted diagnostic/freeze requires manual reconciliation. Never remove a live lock.', { cause: error });
+    const blocked = new Error('Experiment lock already exists; an active or interrupted experiment operation requires manual reconciliation. Never remove a live lock.', { cause: error });
     blocked.code = 'EEXIST';
     throw blocked;
   }
@@ -50,4 +50,19 @@ export async function withExperimentLock(root, operation, callback) {
   }
   if (failed) throw failure;
   return result;
+}
+
+/** The generic assessment CLI also supports unrelated temporary inputs. Only
+ * reads/writes in this experiment's results participate in its lifecycle. Resolve
+ * existing paths (including symlink aliases) before deciding, then read and
+ * publish inside the lock; the scoring library remains side-effect free. */
+export async function withAssessmentLock(root, results, output, callback) {
+  const resultRoot = await realpath(resolve(root, 'experiments/material-facts-v7/results'))
+    .catch(error => { if (error.code === 'ENOENT') return resolve(root, 'experiments/material-facts-v7/results'); throw error; });
+  const paths = [await realpath(results), await realpath(dirname(resolve(output)))];
+  const scoped = paths.some(path => {
+    const part = relative(resultRoot, path);
+    return part === '' || (part !== '..' && !part.startsWith('../') && !part.startsWith('..\\') && !isAbsolute(part));
+  });
+  return scoped ? withExperimentLock(root, 'assessment', callback) : callback();
 }

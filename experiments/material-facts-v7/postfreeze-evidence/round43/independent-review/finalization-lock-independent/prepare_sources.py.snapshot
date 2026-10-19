@@ -1,0 +1,20 @@
+from pathlib import Path
+import subprocess,json,hashlib,re
+ROOT=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+OWN=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+P=Path(__file__).parent
+base=OWN/'.scratch/round43-finalization-baseline-source'
+head='b199f52154d0eab731cb7d562ca02cff53021fe8'
+paths=subprocess.check_output(['git','ls-tree','-r','--name-only',head,'lib'],cwd=ROOT).decode().splitlines()
+paths += ['experiments/material-facts-v7/'+n for n in ['assess.mjs','experiment-lock.mjs','immutable-artifact-publication.mjs','summarize.mjs','verify.mjs','freeze.mjs']]+['experiments/material-facts-v6/freeze.mjs']
+rows=[]
+for rel in paths:
+ if not re.search(r'\.(?:ts|mjs|json)$',rel):continue
+ data=subprocess.check_output(['git','show',head+':'+rel],cwd=ROOT)
+ f=base/rel;f.parent.mkdir(parents=True,exist_ok=True)
+ f.write_bytes(data)
+ if rel.startswith('experiments/'):
+  s=P/'baseline-snapshots'/(rel+'.snapshot');s.parent.mkdir(parents=True,exist_ok=True);s.write_bytes(data)
+ rows.append({'path':rel,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
+(P/'baseline-source-manifest.json').write_text(json.dumps({'head':head,'source':str(base),'files':rows},ensure_ascii=False,indent=2)+'\n')
+print(json.dumps({'files':len(rows),'source':str(base)}))

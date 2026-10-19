@@ -62,7 +62,7 @@ test('concurrent publication has one complete winner and cannot follow an existi
     assert.equal(failed.reason.code, 'EEXIST');
     const winner = results.findIndex(x => x.status === 'fulfilled');
     assert.deepEqual(await readFile(target), payloads[winner]);
-    assert.equal((await readdir(directory)).filter(x => x.endsWith('.stage')).length, 1, 'Losing stage stays diagnostic evidence');
+    assert.equal((await readdir(directory)).filter(x => x.endsWith('.stage')).length, 0, 'Complete EEXIST loser stage is removed');
     await assert.rejects(publishImmutableFile(target, 'replacement'), { code: 'EEXIST' });
     assert.deepEqual(await readFile(target), payloads[winner]);
 

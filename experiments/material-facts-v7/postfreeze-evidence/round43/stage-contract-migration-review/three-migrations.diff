@@ -1,0 +1,50 @@
+--- b199f52154d0eab731cb7d562ca02cff53021fe8/scripts/material-facts-v7-round41-failure-independent.test.mjs
++++ ROOT-current/scripts/material-facts-v7-round41-failure-independent.test.mjs
+@@ -62,7 +62,7 @@
+     assert.equal(failed.reason.code, 'EEXIST');
+     const winner = results.findIndex(x => x.status === 'fulfilled');
+     assert.deepEqual(await readFile(target), payloads[winner]);
+-    assert.equal((await readdir(directory)).filter(x => x.endsWith('.stage')).length, 1, 'Losing stage stays diagnostic evidence');
++    assert.equal((await readdir(directory)).filter(x => x.endsWith('.stage')).length, 0, 'Complete EEXIST loser stage is removed');
+     await assert.rejects(publishImmutableFile(target, 'replacement'), { code: 'EEXIST' });
+     assert.deepEqual(await readFile(target), payloads[winner]);
+ 
+--- b199f52154d0eab731cb7d562ca02cff53021fe8/scripts/material-facts-v7-assessment-publication.test.mjs
++++ ROOT-current/scripts/material-facts-v7-assessment-publication.test.mjs
+@@ -122,14 +122,13 @@
+   assert.deepEqual(JSON.parse(await fs.readFile(file.output, 'utf8')), observation.report);
+ });
+ 
+-test('concurrent assessment CLIs leave one immutable complete report and one preserved losing stage', async t => {
++test('concurrent assessment CLIs leave one immutable complete report and no losing stage', async t => {
+   const file = await fixture(t), attempts = await Promise.all([execute(file), execute(file)]);
+   t.diagnostic(JSON.stringify({ exit_codes: attempts.map(row => row.code) }));
+   assert.equal(attempts.filter(row => row.code === 0).length, 1);
+   assert.equal(attempts.filter(row => row.code !== 0 && /EEXIST/u.test(row.stderr)).length, 1);
+   const report = JSON.parse(await fs.readFile(file.output, 'utf8')); assertReport(report);
+-  const remaining = await stages(file); assert.equal(remaining.length, 1);
+-  assert.deepEqual(JSON.parse(remaining[0].bytes.toString()), report);
++  assert.deepEqual(await stages(file), []);
+ });
+ 
+ test('stage cleanup failure keeps the published report successful and explicitly reports published state', async t => {
+--- b199f52154d0eab731cb7d562ca02cff53021fe8/scripts/material-facts-v7-result-manifest-publication.test.mjs
++++ ROOT-current/scripts/material-facts-v7-result-manifest-publication.test.mjs
+@@ -137,7 +137,7 @@
+     assert.equal((await run(destination)).failure.code, 'EEXIST');
+   });
+ 
+-  test('concurrent publishers have exactly one complete winner and preserve the losing stage', async t => {
++  test('concurrent publishers have exactly one complete winner and remove the complete losing stage', async t => {
+     const { destination } = await fixture(t);
+     const other = payload.replace('synthetic-results/1', 'concurrent-results/1');
+     const attempts = await Promise.all([run(destination, 'plain', payload), run(destination, 'plain', other)]);
+@@ -146,7 +146,7 @@
+     const actual = await fs.readFile(destination, 'utf8');
+     assert([payload, other].includes(actual)); assert.doesNotThrow(() => JSON.parse(actual));
+     const names = (await fs.readdir(dirname(destination))).filter(name => name.endsWith('.stage'));
+-    assert.equal(names.length, 1); assert([payload, other].includes(await fs.readFile(join(dirname(destination), names[0]), 'utf8')));
++    assert.deepEqual(names, []);
+   });
+ 
+   test('an existing symlink is never followed or replaced', async t => {

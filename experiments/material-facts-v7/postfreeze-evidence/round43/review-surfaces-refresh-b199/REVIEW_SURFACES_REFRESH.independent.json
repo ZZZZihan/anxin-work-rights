@@ -1,0 +1,153 @@
+{
+  "schema": "issue42-r43-review-surfaces-refresh/1",
+  "status": "NO_NEW_FINDING_SINCE_CANCELLED_CHECKPOINT",
+  "requested_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "captured_until": "2026-10-19T00:56:40.628049+00:00",
+  "repo": "ZZZZihan/anxin-work-rights",
+  "PR46": {
+    "head": "b199f52154d0eab731cb7d562ca02cff53021fe8",
+    "reviews": 20,
+    "nonempty_review_bodies": 5,
+    "ordinary_comments": 3,
+    "inline_comments": 30,
+    "threads": 15,
+    "unresolved_threads": 0,
+    "known_non_thread_findings": [
+      {
+        "round": "R41",
+        "surface": "ordinary_issue_comment",
+        "id": 6255010524,
+        "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#issuecomment-6255010524",
+        "finding_count": 3,
+        "topics": [
+          "full evidence tree recursive copy",
+          "Qwen pre-spawn stop verifiability",
+          "atomic result manifest publication"
+        ],
+        "current_status": "Existing review text unchanged. Local source/independent R41 evidence retained; not a new remote CI acceptance.",
+        "body_sha256": "7451429f4999a53b46207da807032899c60b8b61289b12364147f8d754fab93d"
+      },
+      {
+        "round": "R42",
+        "surface": "review_body",
+        "id": 5561620840,
+        "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#pullrequestreview-5561620840",
+        "finding_count": 1,
+        "topics": [
+          "assessment CLI must not replace immutable report"
+        ],
+        "current_status": "Existing review body unchanged. R42 repair and independent actual CLI evidence retained; later collision defect is separately R43.",
+        "body_sha256": "f31911b43d6912966667e015934961ead1190ea0733c3c31292767da9c2dd7a4"
+      },
+      {
+        "round": "R43",
+        "surface": "ordinary_issue_comment",
+        "id": 6257085416,
+        "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#issuecomment-6257085416",
+        "finding_count": 4,
+        "topics": [
+          "collision stage cleanup",
+          "malformed stdout quarantine",
+          "holdout-finalizer serialization",
+          "atomic outcome checkpoint"
+        ],
+        "current_status": "Still present and unchanged. Remote b199 checkpoint has these defects; current unpushed ROOT candidate has separate 14-case dual-runtime independent pass. New exact-head integration CI is pending.",
+        "body_sha256": "d9fd3084ba3bff687315e76a676be73cad18688fe698eed2b0a374801280e1f0"
+      }
+    ],
+    "new_or_edited_finding_since_previous_snapshot": false,
+    "state": "OPEN",
+    "merged": false
+  },
+  "PR45": {
+    "head": "6d081321b24b9fadd0088d6cc5b6c60e985eda26",
+    "reviews": 188,
+    "ordinary_comments": 3,
+    "inline_comments": 298,
+    "threads": 149,
+    "unresolved_threads": 3,
+    "known_unresolved_first_comment_ids": [
+      4308585072,
+      4308585077,
+      4308585082
+    ],
+    "known_unresolved_titles": [
+      "When an explicit RMB symbol prefixes a Chinese numeral without a trailing unit, `normalizeMoneyValueV4('¥四千')`, `normalizeMoneyValueV4('￥四千')`, and `normalizeMoneyValueV4('¥肆仟')` all return `unsupported`, although the token grammar accepts these forms and equivalent `RMB四千`, `人民币四千`, and `￥4000` values normalize to `4000.00`. The omitted-yuan handling recognizes only `RMB_NAME`, so include `¥/￥` in this parsing path to avoid dropping an unambiguous amount.",
+      "Fresh evidence beyond the separate yearless-payment and `到账` fixes is that their combination still fails: `王甲工资于1月15日到账` (and the corresponding `收到` form) returns false from `hasSupportedCandidateAttribution`, so runtime adds `source_relation_unresolved` to a valid `payment_date`. The new month/day grammar is used only by the payment-verb branch, while this receipt branch still requires a full `calendarDate`; allow the same bounded `monthDayPaymentDate` here without inventing a year.",
+      "Explicit rates written as `王甲月工资为400元`, `王甲日工资为400元`, `王甲小时工资为400元`, or `王甲计件工资为400元` fail `hasSupportedCandidateAttribution` even when the candidate declares the corresponding `rateUnit`. The downstream source-rate grammar already recognizes these finite prefix forms, but this role whitelist admits only alternatives such as `月薪`, `日薪`, `时薪`, and `每月`, so runtime adds `source_relation_unresolved` to otherwise unambiguous rates; align the attribution vocabulary with the supported prefix-rate grammar."
+    ],
+    "new_P1_since_previous_snapshot": false,
+    "state": "OPEN",
+    "merged": false
+  },
+  "pagination": {
+    "all_pages_exhausted": true,
+    "REST_page_counts": {
+      "45": {
+        "reviews": 2,
+        "ordinary": 1,
+        "inline": 3
+      },
+      "46": {
+        "reviews": 1,
+        "ordinary": 1,
+        "inline": 1
+      }
+    },
+    "thread_pages": {
+      "45": 2,
+      "46": 1
+    },
+    "nested_comment_pagination_implemented": true,
+    "REST_inline_vs_GraphQL_comment_ID_sets_equal": true
+  },
+  "CI_checkpoint": {
+    "run_id": 39179544661,
+    "head": "b199f52154d0eab731cb7d562ca02cff53021fe8",
+    "status": "completed",
+    "conclusion": "cancelled",
+    "url": "https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39179544661",
+    "interpretation": "Voluntarily superseded after confirmed R43 defect; neither PASS nor product test FAIL. New ROOT candidate is not pushed and is not proven by this CI."
+  },
+  "current_ROOT_readonly_source_hashes": [
+    {
+      "path": "experiments/material-facts-v7/run.mjs",
+      "sha256": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4"
+    },
+    {
+      "path": "experiments/material-facts-v7/assess.mjs",
+      "sha256": "0a8da9456a23dc57b5eda4278e022b9ceb63e140d20c25ffefe238f5bf33a9d6"
+    },
+    {
+      "path": "experiments/material-facts-v7/experiment-lock.mjs",
+      "sha256": "32343639d8f378206a32f4f6d60c6f9d316be4aa53bfcc6bef669aeaa7a2e655"
+    },
+    {
+      "path": "experiments/material-facts-v7/verify.mjs",
+      "sha256": "d5ac82b2968a962ddd9751622de2c8b77960e318e349b27a57e3207b3ab641de"
+    },
+    {
+      "path": "experiments/material-facts-v7/summarize.mjs",
+      "sha256": "77f9a2ccd2fb348fe5aadc86dae8f98f10551d8860b99a178fe2c289e6942dcb"
+    },
+    {
+      "path": "experiments/material-facts-v7/immutable-artifact-publication.mjs",
+      "sha256": "70ee51e28f65684b703e6031aa0f4b6be96dfaf94114d69bacfc13caadafdb48"
+    }
+  ],
+  "independent_R43_receipt": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round43/R43_FINAL_REVIEW.independent.json",
+    "sha256": "5120d56e9ba0582ed0f959f8e38b47c4520440a07b70c1b51872c58bd33f5975",
+    "index_sha256": "9bf8cbfaf5d5f4b082e24c488307bd7209178489a2cb4b88e321cc5aa1d8ef33"
+  },
+  "boundaries": [
+    "Only read existing PR review bodies, ordinary comments, REST inline comments and GraphQL review threads; no new fuzz or grammar scan.",
+    "Review bodies and ordinary comments have no thread-resolved state; zero unresolved PR46 inline threads does not remove the eight finding occurrences across the three known non-thread sources.",
+    "No GitHub write, review request, comment, resolution, rerun, model call or local historical/full check performed.",
+    "Comparison is to archived cancelled-b199 terminal snapshot and is time-bounded to the fresh API observations; later reviews may arrive."
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-10-19T00:38:54.120829+00:00",
+  "comment_id": 6257085416,
+  "baseline_commit": "b199f52154d0eab731cb7d562ca02cff53021fe8",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning_effort": "ultra",
+  "actual_backend_independently_verified": false,
+  "reviewer_role": "既有publisher与本次修复作者；作者自检，不称非实现者审查或业务验收。",
+  "production_files": {
+    "experiments/material-facts-v7/immutable-artifact-publication.mjs": "70ee51e28f65684b703e6031aa0f4b6be96dfaf94114d69bacfc13caadafdb48",
+    "scripts/material-facts-v7-publication-existing-target.test.mjs": "82f12224f574f25c62c1db8655a8b72917ab65a65ba52a48c6611a8a50c338be"
+  },
+  "confirmed_original_behavior": {
+    "real_cli": "固定b199真实assess CLI、三空JSONL；首次新报告成功，重发exit1/EEXIST、报告SHA相同，但多完整stage。",
+    "strict_inventory": "原filesUnder导出函数枚举包含新stage，旧保存目录清单相等断言真实失败。",
+    "baseline_observation": "baseline-observation.json",
+    "baseline_stdout": "baseline-red.stdout.log",
+    "baseline_stderr": "baseline-red.stderr.log"
+  },
+  "fixed_behavior": [
+    "lstat普通文件/目录/有效或悬空链接预检，拒绝前零stage写入。",
+    "最终仍由真实native no-replace link决定唯一赢家，预检不作为并发保障。",
+    "真正并发EEXIST只删除本次完整stage；错误对象/code仍EEXIST，临时路径与清理状态附到错误。",
+    "若loser清理失败，保stage、EEXIST、cleanup code及path；message也包含cleanup信息，覆盖verify的message-only错误回执。",
+    "write/sync/close真实路径故障stage保留；写与关闭双失败原契约保留；清净重试不覆盖旧stage。",
+    "link成功后的unlink失败仍返回published true+warning，不撤销已发布状态。"
+  ],
+  "checks": [
+    {
+      "log": "author-final-fixed-b199-red.stdout.tap",
+      "exit_code": 1,
+      "tests": 10,
+      "pass": 4,
+      "fail": 6,
+      "skipped": 0
+    },
+    {
+      "log": "author-final-node24-green.stdout.tap",
+      "exit_code": 0,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "log": "author-final-node26-green.stdout.tap",
+      "exit_code": 0,
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "log": "existing-result-publication-retained-contracts.stdout.tap",
+      "exit_code": 1,
+      "tests": 8,
+      "pass": 7,
+      "fail": 1,
+      "skipped": 0
+    },
+    {
+      "log": "existing-assessment-publication-retained-contracts.stdout.tap",
+      "exit_code": 1,
+      "tests": 8,
+      "pass": 7,
+      "fail": 1,
+      "skipped": 0
+    }
+  ],
+  "additional_checks": {
+    "final_real_cli_probe": {
+      "exit_code": 0,
+      "log": "final-real-cli-green.stdout.log",
+      "directory_unchanged": true,
+      "original_report_unchanged": true
+    },
+    "syntax": "Node24两文件 --check exit0",
+    "scoped_lint": "使用ROOT配置stdin对两final文件检查，均exit0/0errors/0warnings；空日志已保留。"
+  },
+  "test_instrumentation": {
+    "race": "两个独立进程各自完成stage后到达外部barrier；放行后调用真实native fs.link；控制文件与日志在results外。",
+    "cleanup_fault": "仅对真实link EEXIST loser注入unlink EACCES；赢家清理正常。",
+    "faults": "新测试分别注入write部分写、sync、close异常；旧native RLIMIT_FSIZE=128与write+close双错误契约另实际通过。",
+    "business_data": "真实CLI只评分三空合成集合；无新模型/网络请求，无自然材料/业务验收主张。"
+  },
+  "old_contract_migrations_required": [
+    {
+      "path": "scripts/material-facts-v7-result-manifest-publication.test.mjs",
+      "lines": [
+        140,
+        149,
+        150
+      ],
+      "original": "preserve the losing stage / stages.length === 1",
+      "replacement_contract": "完整并发loser清除，stages.length===0；真实I/O故障stage保留。"
+    },
+    {
+      "path": "scripts/material-facts-v7-assessment-publication.test.mjs",
+      "lines": [
+        125,
+        131,
+        132
+      ],
+      "original": "one preserved losing stage / remaining.length===1",
+      "replacement_contract": "完整并发loser清除，remaining.length===0；报告内容及单赢家断言不变。"
+    }
+  ],
+  "old_suite_result_explanation": "两旧suite各7P1F，唯一失败就是上述并发loser保留断言；测试名过滤未排除该旧断言，实际运行16而非仅14。日志未覆写，旧测试未修改。",
+  "current_frozen_results": {
+    "manifest_sha256": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+    "expected_count": 60,
+    "actual_count": 60,
+    "matches": true,
+    "missing": [],
+    "extra": [],
+    "changed": []
+  },
+  "limitations": [
+    "不提供硬件断电/文件系统目录fsync保证。",
+    "若进程在stage创建后被强杀，仍可能留stage；本修复不是kill恢复协议。",
+    "真正write/sync/close/link非EEXIST故障仍故意留stage；若在冻结results发生，会造成strict inventory差异并失败，不能称无副作用。",
+    "loser cleanup失败也会留stage，必须通过显式失败回执对账。",
+    "ROOT整合、当前版本绑定和旧断言迁移由主Agent处理；本修复未跑完整项目检查。"
+  ],
+  "not_changed": [
+    "ROOT/CODE",
+    "run.mjs",
+    "verify.mjs",
+    "版本控制器/冻结快照",
+    "评分规则/标签/原始结果",
+    "旧测试/旧日志"
+  ],
+  "not_executed": [
+    "完整项目检查",
+    "HTTP",
+    "历史CLI",
+    "模型/训练/部署",
+    "提交/推送"
+  ],
+  "cross_review": "DATA已静读83c9中间逻辑无scope阻塞；final70ee仅补message可观测性，已通知DATA刷新SHA，另由主侧安排最终复核。"
+}

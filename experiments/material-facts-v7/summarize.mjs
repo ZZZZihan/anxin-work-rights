@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { BACKENDS, COUNTS, EXPERIMENT, ROOT, isMainModule, json, jsonl, same } from './freeze.mjs';
+import { withExperimentLock } from './experiment-lock.mjs';
 
 const counts = values => values.reduce((result, value) => { result[value] = (result[value] ?? 0) + 1; return result; }, {});
 const optionalLines = async path => { try { return await jsonl(path); } catch (error) { if (error.code === 'ENOENT') return []; throw error; } };
@@ -70,9 +71,11 @@ if (await isMainModule(import.meta.url)) {
   try {
     const options = process.argv.slice(2);
     assert(options.length <= 1 && options.every(value => value === '--check'), 'Expected no arguments or --check');
-    const summary = await buildSummary(), destination = resolve(ROOT, EXPERIMENT, 'comparison.json');
-    if (options.includes('--check')) same(await json(destination), summary, 'Comparison changed');
-    else await writeFile(destination, JSON.stringify(summary, null, 2) + '\n', { flag: 'wx' });
-    console.log(JSON.stringify(summary, null, 2));
+    await withExperimentLock(ROOT, 'summary', async () => {
+      const summary = await buildSummary(), destination = resolve(ROOT, EXPERIMENT, 'comparison.json');
+      if (options.includes('--check')) same(await json(destination), summary, 'Comparison changed');
+      else await writeFile(destination, JSON.stringify(summary, null, 2) + '\n', { flag: 'wx' });
+      console.log(JSON.stringify(summary, null, 2));
+    });
   } catch (error) { console.error(JSON.stringify({ status: 'FAIL', error: error.message })); process.exitCode = 1; }
 }

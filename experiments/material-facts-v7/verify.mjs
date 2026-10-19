@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { BACKENDS, COUNTS, EXPERIMENT, QWEN_MEMORY, REQUIRED_FILES, ROOT, RUN_HASH_FILES, isMainModule, loadPolicy, deepseekReservation, priorDeepseekReservation, validateQwenIdentity, validateDevelopment, checkFileHashes, filesUnder, json, jsonl, messageBytes, same, sha, validateData, verifyLegacy } from './freeze.mjs';
 import { buildSummary } from './summarize.mjs';
 import { publishImmutableFile } from './immutable-artifact-publication.mjs';
+import { withExperimentLock } from './experiment-lock.mjs';
 
 const GIB = 1024 ** 3;
 const pythonJson = value => Array.isArray(value) ? `[${value.map(pythonJson).join(', ')}]` : value && typeof value === 'object' ? `{${Object.entries(value).map(([key, entry]) => `${JSON.stringify(key)}: ${pythonJson(entry)}`).join(', ')}}` : JSON.stringify(value);
@@ -211,6 +212,11 @@ async function checkDeepseek(root, dir, protocol, messages, events, rows, ids) {
 }
 
 export async function verifyExperiment(root = ROOT, { preflight = false, writeManifest = false } = {}) {
+  if (!preflight) return withExperimentLock(root, 'verify', () => verifyExperimentUnlocked(root, { writeManifest }));
+  return verifyExperimentUnlocked(root, { preflight, writeManifest });
+}
+
+async function verifyExperimentUnlocked(root, { preflight = false, writeManifest = false } = {}) {
   assert(!(preflight && writeManifest), 'Preflight cannot write a result manifest');
   const validation = await verifyPreflight(root), { freeze, sets } = validation;
   if (preflight) return { status: 'PASS', preflight: true, ...validation.summary, frozen_files: Object.keys(freeze.files).length, inference: false, training: false };

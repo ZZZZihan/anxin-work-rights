@@ -1,0 +1,209 @@
+{
+  "schema": "round43-legacy-stage-contract-migration-independent/1",
+  "status": "SCOPED_TEST_CONTRACT_MIGRATION_PASS",
+  "created_at": "2026-10-19T02:00:20.839518+00:00",
+  "parent_full_check_observation": {
+    "source": "parent report, not independently rerun",
+    "seconds": 3860.472597,
+    "tests_total": 10346,
+    "pass": 10344,
+    "fail": 1,
+    "platform_skip": 1,
+    "failure": "R41 failure-independent.test.mjs:65 expected one complete EEXIST loser stage but actual zero"
+  },
+  "change": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round41-failure-independent.test.mjs",
+    "line": 65,
+    "before_sha256": "c2dc8fe838b631e95044502a47f50f67acdfd2cfe4abfccc39166c8e28cfbd55",
+    "after_sha256": "e933cb7433c58c05174e60b75546181403ed32524801fbac01855afca67666d8",
+    "diff": "stage count 1 -> 0; assertion message updated to Complete EEXIST loser stage is removed",
+    "production_edits": false,
+    "frozen_artifact_edits": false,
+    "other_assertions_changed": false
+  },
+  "scope_review": [
+    {
+      "scope": "single-file immutable-artifact-publication.mjs",
+      "old_conflict": "scripts/material-facts-v7-round41-failure-independent.test.mjs:65",
+      "decision": "Only migrate complete EEXIST loser stage count 1 to 0; preserve winner bytes, exactly-one-winner, EEXIST and no-follow symlink assertions."
+    },
+    {
+      "scope": "result-manifest-publication / assessment-publication concurrency",
+      "decision": "Already correctly expect no complete EEXIST loser stage; no edits required."
+    },
+    {
+      "scope": "publication-existing-target real fs faults",
+      "decision": "Keep stage=1 for injected write/sync/close faults and EEXIST loser cleanup failure. Selected 4 tests passed."
+    },
+    {
+      "scope": "result-manifest native partial write/sync/close/cleanup faults",
+      "decision": "Keep native partial-stage bytes=128, sync payload, primary write error vs close error, and cleanup state evidence. Selected 4 tests passed."
+    },
+    {
+      "scope": "publish-artifacts.mjs directory publication",
+      "decision": "Different API/contract: retain unpublished directory and .publication-failure.json after a mid-write fault or staging destination race. Selected 2 tests passed; do not change these stage-retention assertions."
+    },
+    {
+      "scope": "run-preservation / R43 run-integrity",
+      "decision": "Checkpoint partial write/rename failure stages remain evidence, not completed immutable-file EEXIST losers. Assertions untouched; statically inspected only in this task."
+    },
+    {
+      "scope": "remaining all-scripts rg matches",
+      "decision": "Lock EEXIST, atomic ready JSON stage, transport stage labels, and negotiation status are unrelated. No further same-contract obsolete assertion found by the recorded bounded pattern search."
+    }
+  ],
+  "actual_executions": [
+    {
+      "label": "old-contract-node24-before-red",
+      "argv": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round41-failure-independent.test.mjs"
+      ],
+      "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+      "environment_overrides": {
+        "V7_REVIEW_ROOT": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards"
+      },
+      "exit_code": 1,
+      "duration_seconds": 0.1029,
+      "counts": {
+        "tests": 3,
+        "pass": 2,
+        "fail": 1,
+        "skipped": 0
+      },
+      "node_version": "v24.22.0",
+      "note": "Counts read from the original spec-reporter output; original unparsed receipt is retained unchanged."
+    },
+    {
+      "label": "migrated-contract-node24-after-green",
+      "argv": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round41-failure-independent.test.mjs"
+      ],
+      "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+      "environment_overrides": {
+        "V7_REVIEW_ROOT": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.094169,
+      "counts": {
+        "tests": 3,
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0
+      },
+      "node_version": "v24.22.0"
+    },
+    {
+      "label": "migrated-contract-node26-after-green",
+      "argv": [
+        "/opt/homebrew/bin/node",
+        "--test",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round41-failure-independent.test.mjs"
+      ],
+      "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+      "environment_overrides": {
+        "V7_REVIEW_ROOT": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.257356,
+      "counts": {
+        "tests": 3,
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0
+      },
+      "node_version": "v26.11.0"
+    },
+    {
+      "label": "native-io-stage-preservation-node24",
+      "argv": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-name-pattern=actual (write|sync|close) path failure|loser cleanup failure",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/scripts/material-facts-v7-publication-existing-target.test.mjs"
+      ],
+      "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+      "environment_overrides": {
+        "MATERIAL_FACT_PUBLICATION_ROOT": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.381179,
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "skipped": 0
+      },
+      "node_version": "v24.22.0"
+    },
+    {
+      "label": "manifest-io-stage-preservation-node24",
+      "argv": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-name-pattern=native partial write|sync failure|close failure|cleanup failure",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/scripts/material-facts-v7-result-manifest-publication.test.mjs"
+      ],
+      "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+      "environment_overrides": {
+        "MATERIAL_FACT_PUBLICATION_ROOT": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.382993,
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "skipped": 0
+      },
+      "node_version": "v24.22.0"
+    },
+    {
+      "label": "directory-stage-contract-control-node24",
+      "argv": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-name-pattern=destination created while staging|mid-write fault",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/scripts/material-facts-v7-experiment-integrity-independent.test.mjs"
+      ],
+      "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+      "environment_overrides": {
+        "MATERIAL_FACTS_V7_ENGINEERING_ROOT": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.093581,
+      "counts": {
+        "tests": 2,
+        "pass": 2,
+        "fail": 0,
+        "skipped": 0
+      },
+      "node_version": "v24.22.0"
+    }
+  ],
+  "protection": {
+    "paths_in_test_window": 16,
+    "all_unchanged_during_test_window": true,
+    "later_parent_test_adoption": [
+      {
+        "path": "scripts/material-facts-v7-round41-failure-independent.test.mjs",
+        "before_sha256": "c2dc8fe838b631e95044502a47f50f67acdfd2cfe4abfccc39166c8e28cfbd55",
+        "now_sha256": "e933cb7433c58c05174e60b75546181403ed32524801fbac01855afca67666d8"
+      }
+    ]
+  },
+  "limitations": [
+    "No complete npm check, model, HTTP, historical CLI, scorer computation, GitHub mutation, commit or push was performed.",
+    "The result authorizes the narrow obsolete assertion migration; it does not convert the preserved prior full-check failure into a pass. The parent final complete rerun remains separate.",
+    "write/sync/close fault checks combine real filesystem paths with explicitly injected faults; manifest partial-write additionally exercises native RLIMIT_FSIZE/EFBIG."
+  ],
+  "evidence_preparation_notes": [
+    "Initial snapshot preparation referenced nonexistent artifact-integrity.mjs; corrected to publish-artifacts.mjs. Partial snapshots and preparation note retained.",
+    "Original Node24 default spec reporter counters required evidence parser adaptation; original 2P1F stdout/stderr/receipt remain unchanged. Final parser reads original log without rerunning the failing old contract."
+  ],
+  "model_requested": "gpt-6.1-sol/ultra",
+  "actual_backend_independently_verified": false
+}

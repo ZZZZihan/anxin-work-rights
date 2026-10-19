@@ -122,14 +122,13 @@ test('real CLI links only complete report bytes while the final name is absent',
   assert.deepEqual(JSON.parse(await fs.readFile(file.output, 'utf8')), observation.report);
 });
 
-test('concurrent assessment CLIs leave one immutable complete report and one preserved losing stage', async t => {
+test('concurrent assessment CLIs leave one immutable complete report and no losing stage', async t => {
   const file = await fixture(t), attempts = await Promise.all([execute(file), execute(file)]);
   t.diagnostic(JSON.stringify({ exit_codes: attempts.map(row => row.code) }));
   assert.equal(attempts.filter(row => row.code === 0).length, 1);
   assert.equal(attempts.filter(row => row.code !== 0 && /EEXIST/u.test(row.stderr)).length, 1);
   const report = JSON.parse(await fs.readFile(file.output, 'utf8')); assertReport(report);
-  const remaining = await stages(file); assert.equal(remaining.length, 1);
-  assert.deepEqual(JSON.parse(remaining[0].bytes.toString()), report);
+  assert.deepEqual(await stages(file), []);
 });
 
 test('stage cleanup failure keeps the published report successful and explicitly reports published state', async t => {

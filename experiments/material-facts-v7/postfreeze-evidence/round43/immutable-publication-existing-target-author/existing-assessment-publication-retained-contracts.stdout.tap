@@ -1,0 +1,78 @@
+TAP version 13
+# Subtest: real assessment CLI publishes a complete new report and keeps its stdout summary contract
+ok 1 - real assessment CLI publishes a complete new report and keeps its stdout summary contract
+  ---
+  duration_ms: 91.507083
+  type: 'test'
+  ...
+# Subtest: real assessment CLI never overwrites an existing report
+ok 2 - real assessment CLI never overwrites an existing report
+  ---
+  duration_ms: 86.497042
+  type: 'test'
+  ...
+# {"exit":1,"original_unchanged":true}
+# Subtest: real assessment CLI does not follow or replace an existing report symlink
+ok 3 - real assessment CLI does not follow or replace an existing report symlink
+  ---
+  duration_ms: 86.817625
+  type: 'test'
+  ...
+# {"exit":1,"original_unchanged":true}
+# Subtest: native CLI partial write preserves its stage, leaves no final report and allows a clean retry
+ok 4 - native CLI partial write preserves its stage, leaves no final report and allows a clean retry
+  ---
+  duration_ms: 192.073333
+  type: 'test'
+  ...
+# {"exit":1,"final_exists":false,"stage_bytes":[128],"native_error":true}
+# Subtest: real CLI links only complete report bytes while the final name is absent
+ok 5 - real CLI links only complete report bytes while the final name is absent
+  ---
+  duration_ms: 89.012125
+  type: 'test'
+  ...
+# Subtest: concurrent assessment CLIs leave one immutable complete report and one preserved losing stage
+not ok 6 - concurrent assessment CLIs leave one immutable complete report and one preserved losing stage
+  ---
+  duration_ms: 92.60225
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/scripts/material-facts-v7-assessment-publication.test.mjs:125:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/scripts/material-facts-v7-assessment-publication.test.mjs:131:48)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# {"exit_codes":[0,1]}
+# Subtest: stage cleanup failure keeps the published report successful and explicitly reports published state
+ok 7 - stage cleanup failure keeps the published report successful and explicitly reports published state
+  ---
+  duration_ms: 172.961417
+  type: 'test'
+  ...
+# Subtest: library-only scorer fixtures do not require the CLI publication helper
+ok 8 - library-only scorer fixtures do not require the CLI publication helper
+  ---
+  duration_ms: 75.855792
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 7
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 932.241625

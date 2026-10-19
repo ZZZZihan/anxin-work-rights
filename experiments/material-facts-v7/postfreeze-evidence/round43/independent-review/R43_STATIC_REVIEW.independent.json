@@ -1,0 +1,59 @@
+{
+  "scope": "non-implementer review of R43 collision cleanup, runner preservation and shared finalization lock",
+  "source_identity": [
+    {
+      "path": "experiments/material-facts-v7/assess.mjs",
+      "baseline_b199_sha256": "5d96722e5d6ec46ed5b8218c769d934b6ad5af390a2b830ced8624d6ff7aa3d7",
+      "current_ROOT_sha256": "0a8da9456a23dc57b5eda4278e022b9ceb63e140d20c25ffefe238f5bf33a9d6"
+    },
+    {
+      "path": "experiments/material-facts-v7/experiment-lock.mjs",
+      "baseline_b199_sha256": "eccebd49c4c2d8391878322c982992a1ea297cc1a81489c869d9b2b83a98b94f",
+      "current_ROOT_sha256": "32343639d8f378206a32f4f6d60c6f9d316be4aa53bfcc6bef669aeaa7a2e655"
+    },
+    {
+      "path": "experiments/material-facts-v7/summarize.mjs",
+      "baseline_b199_sha256": "4590768f0c42a2d5ea1d4b0fb812c8d2fc9068642d82bc0661daaf44b2eaa63d",
+      "current_ROOT_sha256": "77f9a2ccd2fb348fe5aadc86dae8f98f10551d8860b99a178fe2c289e6942dcb"
+    },
+    {
+      "path": "experiments/material-facts-v7/verify.mjs",
+      "baseline_b199_sha256": "af22fc4c41b396a03b09b536f061e04e76424c2ad7812ebae06933abe30c4cae",
+      "current_ROOT_sha256": "d5ac82b2968a962ddd9751622de2c8b77960e318e349b27a57e3207b3ab641de"
+    },
+    {
+      "path": "experiments/material-facts-v7/immutable-artifact-publication.mjs",
+      "baseline_b199_sha256": "2dad271198a54cdebb47b43a4d8dde720a6bfccb4dfda8139fb2581916f2f084",
+      "current_ROOT_sha256": "70ee51e28f65684b703e6031aa0f4b6be96dfaf94114d69bacfc13caadafdb48"
+    },
+    {
+      "path": "experiments/material-facts-v7/run.mjs",
+      "baseline_b199_sha256": "55611f9dbae3eb2ee9c1c93c913f8bd20ac4a130f9da44a953feecb01760fc34",
+      "current_ROOT_sha256": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4"
+    },
+    {
+      "path": "experiments/material-facts-v7/freeze.mjs",
+      "baseline_b199_sha256": "d22db14dd6a2ff03fcefade032b2f6dcae9ae28d2d0a1d604392789e258a90c7",
+      "current_ROOT_sha256": "d22db14dd6a2ff03fcefade032b2f6dcae9ae28d2d0a1d604392789e258a90c7"
+    }
+  ],
+  "reviewed_behaviors": [
+    "Publisher lstat rejects existing regular/symlink/directory targets before creating a stage; native link remains the atomic no-overwrite operation.",
+    "Only link EEXIST cleans this invocation owned stage; cleanup failure retains original EEXIST plus cleanup metadata; failed write/sync/close stages remain failure evidence.",
+    "Runner parses and validates an event before append, rejects non-object/unknown-id/result-shape/duplicate events, and quarantines the offending line plus its buffered decoded tail.",
+    "DeepSeek requesting is checked against batch[requestedIds.size] and a result must match both activeRequestId and batch[resultRows.length] before append; these two latest order guards were source-reviewed, not directly exercised by the independent three-case Qwen byte-producer fixture.",
+    "Outcome is written to a unique same-directory wx stage and renamed only after write completion. The first complete checkpoint remains readable if a subsequent write fails.",
+    "Both diagnostic and formal holdout paths enter the same owned experiment lock for all allocation and terminal writes.",
+    "Assessment takes the shared lock across result reads, synthetic scoring and immutable publication when result-read realpath or output-parent realpath lies under this experiment results; generic unrelated tmp CLI/library remains compatible.",
+    "Summary CLI build+publish/check and full verifier enumeration+manifest publication use the same lock. verifyPreflight stays read-only and unlocked to avoid recursive lock acquisition in a runner.",
+    "Lock directory remains outside immutable results, with no stale inference/removal and existing ownership-checked release."
+  ],
+  "blockers_in_scope": [],
+  "limitations": [
+    "No model worker, network inference, frozen-data recomputation, historical CLI, full check, HTTP or deployment was run. The assessment CLI executes only zero-document synthetic inputs; summary uses synthetic report fixtures.",
+    "Finalizer busy tests use a real filesystem lock with synthetic holdout owner metadata. The separate runner test uses the actual runner CLI with a local Node byte producer, synthetic two-case hash/prompt preflight, and no model.",
+    "Native fs operations remain real; barriers/faults intercept selected calls and delegate native operations. They are bounded injected failure cases, not operating-system disk failure observations.",
+    "Cooperative lock scope does not authenticate arbitrary external filesystem writers or eliminate symlink TOCTOU races. No automatic recovery of an interrupted lock is claimed.",
+    "Independent run3 does not claim full original verifier/reseal validation; the author separate 17-case suite and parent future integration/CI remain distinct evidence."
+  ]
+}

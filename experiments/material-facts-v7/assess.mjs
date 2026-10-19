@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseCandidateOutput, validateCandidateOutput, getCandidateRepresentation } from '../../lib/material-facts-v3.ts';
 import { validateRuntimeCandidateOutput } from '../../lib/material-fact-runtime-ingest.ts';
 import { reviewCandidateAgainstSource } from '../../lib/material-fact-source-review.ts';
@@ -200,9 +200,12 @@ export function assess(inputs, labels, results) {
 export const readJsonl = async path => (await readFile(path, 'utf8')).trim().split('\n').filter(Boolean).map(line => JSON.parse(line));
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [inputs, labels, results, output] = process.argv.slice(2);
-  const report = assess(await readJsonl(inputs), await readJsonl(labels), await readJsonl(results));
   const { publishImmutableFile } = await import('./immutable-artifact-publication.mjs');
-  const publication = await publishImmutableFile(output, JSON.stringify(report, null, 2) + '\n');
-  if (!publication.temporary_removed) console.error(JSON.stringify({ publication }));
-  console.log(JSON.stringify({ ...report, cases: undefined }, null, 2));
+  const { withAssessmentLock } = await import('./experiment-lock.mjs');
+  await withAssessmentLock(fileURLToPath(new URL('../../', import.meta.url)), results, output, async () => {
+    const report = assess(await readJsonl(inputs), await readJsonl(labels), await readJsonl(results));
+    const publication = await publishImmutableFile(output, JSON.stringify(report, null, 2) + '\n');
+    if (!publication.temporary_removed) console.error(JSON.stringify({ publication }));
+    console.log(JSON.stringify({ ...report, cases: undefined }, null, 2));
+  });
 }

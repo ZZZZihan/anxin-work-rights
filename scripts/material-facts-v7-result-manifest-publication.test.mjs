@@ -137,7 +137,7 @@ if (process.argv[2] === '--publication-worker') {
     assert.equal((await run(destination)).failure.code, 'EEXIST');
   });
 
-  test('concurrent publishers have exactly one complete winner and preserve the losing stage', async t => {
+  test('concurrent publishers have exactly one complete winner and remove the complete losing stage', async t => {
     const { destination } = await fixture(t);
     const other = payload.replace('synthetic-results/1', 'concurrent-results/1');
     const attempts = await Promise.all([run(destination, 'plain', payload), run(destination, 'plain', other)]);
@@ -146,7 +146,7 @@ if (process.argv[2] === '--publication-worker') {
     const actual = await fs.readFile(destination, 'utf8');
     assert([payload, other].includes(actual)); assert.doesNotThrow(() => JSON.parse(actual));
     const names = (await fs.readdir(dirname(destination))).filter(name => name.endsWith('.stage'));
-    assert.equal(names.length, 1); assert([payload, other].includes(await fs.readFile(join(dirname(destination), names[0]), 'utf8')));
+    assert.deepEqual(names, []);
   });
 
   test('an existing symlink is never followed or replaced', async t => {

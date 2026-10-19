@@ -1,0 +1,54 @@
+from pathlib import Path
+import datetime,difflib,hashlib,json,os,re,subprocess,time
+OWN=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+ROOT=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+E=Path(__file__).resolve().parent
+TEST='scripts/material-facts-v7-round41-failure-independent.test.mjs'
+NODE24='/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node'
+NODE26='/opt/homebrew/bin/node'
+paths=[TEST,'scripts/material-facts-v7-result-manifest-publication.test.mjs','scripts/material-facts-v7-assessment-publication.test.mjs','scripts/material-facts-v7-publication-existing-target.test.mjs','scripts/material-facts-v7-experiment-integrity-independent.test.mjs','scripts/material-facts-v7-round43-publication-collision-independent.test.mjs','scripts/material-facts-v7-run-preservation.test.mjs','scripts/material-facts-v7-round43-run-integrity-independent.test.mjs','experiments/material-facts-v7/immutable-artifact-publication.mjs','experiments/material-facts-v7/publish-artifacts.mjs','experiments/material-facts-v7/verify.mjs','experiments/material-facts-v7/run.mjs','experiments/material-facts-v7/assess.mjs','experiments/material-facts-v7/summarize.mjs','experiments/material-facts-v7/experiment-lock.mjs','experiments/material-facts-v7/freeze.json']
+def sha(b): return hashlib.sha256(b).hexdigest()
+def jswrite(name,x): (E/name).write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n')
+def inventory(): return [{'path':p,'sha256':sha((ROOT/p).read_bytes()),'bytes':(ROOT/p).stat().st_size} for p in paths]
+before=inventory();jswrite('root-protected-before.json',before)
+for p in paths:
+ f=E/'readonly-snapshots'/(p+'.snapshot');f.parent.mkdir(parents=True,exist_ok=True)
+ if f.exists(): assert f.read_bytes()==(ROOT/p).read_bytes()
+ else: f.write_bytes((ROOT/p).read_bytes())
+command=['rg','-n','-i','(stage|loser|losing).*(assert|equal|length|evidence)|assert.*(stage|loser|losing)|EEXIST','scripts','--glob','*test.mjs']
+r=subprocess.run(command,cwd=ROOT,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=20)
+(E/'all-script-stage-assertions.stdout.log').write_bytes(r.stdout);(E/'all-script-stage-assertions.stderr.log').write_bytes(r.stderr)
+jswrite('all-script-stage-assertions.command.json',{'argv':command,'cwd':str(ROOT),'exit_code':r.returncode})
+records=[]
+def run(label,node,args,env):
+ start=time.monotonic();argv=[node,*args]
+ p=subprocess.run(argv,cwd=OWN,env={**os.environ,**env},stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30)
+ (E/(label+'.stdout.log')).write_bytes(p.stdout);(E/(label+'.stderr.log')).write_bytes(p.stderr)
+ out=p.stdout.decode();counts={key:int(m.group(1)) for key in ['tests','pass','fail','skipped'] if (m:=re.search(r'^(?:#|ℹ) '+key+r' (\d+)$',out,re.M))}
+ row={'label':label,'argv':argv,'cwd':str(OWN),'environment_overrides':env,'exit_code':p.returncode,'duration_seconds':round(time.monotonic()-start,6),'counts':counts,'node_version':subprocess.check_output([node,'--version'],text=True).strip()}
+ jswrite(label+'.receipt.json',row);records.append(row);print(json.dumps(row,ensure_ascii=False),flush=True);return row
+old=(E/'round41-failure-before.snapshot').read_bytes();assert (OWN/TEST).read_bytes()==old
+r=json.loads((E/'old-contract-node24-before-red.receipt.json').read_text())
+out=(E/'old-contract-node24-before-red.stdout.log').read_text()
+r['counts']={key:int(re.search(r'^(?:#|ℹ) '+key+r' (\d+)$',out,re.M).group(1)) for key in ['tests','pass','fail','skipped']}
+r['note']='Counts read from the original spec-reporter output; original unparsed receipt is retained unchanged.'
+jswrite('old-contract-node24-before-red.parsed.receipt.json',r);records.append(r)
+assert r['exit_code']==1 and r['counts']=={'tests':3,'pass':2,'fail':1,'skipped':0},r
+oldline="assert.equal((await readdir(directory)).filter(x => x.endsWith('.stage')).length, 1, 'Losing stage stays diagnostic evidence');"
+newline="assert.equal((await readdir(directory)).filter(x => x.endsWith('.stage')).length, 0, 'Complete EEXIST loser stage is removed');"
+s=old.decode();assert s.count(oldline)==1;s=s.replace(oldline,newline)
+(OWN/TEST).write_text(s)
+(E/'round41-failure-after.snapshot').write_text(s)
+(E/'minimal-test-only.patch').write_text(''.join(difflib.unified_diff(old.decode().splitlines(keepends=True),s.splitlines(keepends=True),fromfile='before/'+TEST,tofile='after/'+TEST)))
+for node,label in [(NODE24,'migrated-contract-node24-after-green'),(NODE26,'migrated-contract-node26-after-green')]:
+ row=run(label,node,['--test',str(OWN/TEST)],{'V7_REVIEW_ROOT':str(ROOT)})
+ assert row['exit_code']==0 and row['counts']=={'tests':3,'pass':3,'fail':0,'skipped':0},row
+for file,pattern,label in [
+ ('scripts/material-facts-v7-publication-existing-target.test.mjs','actual (write|sync|close) path failure|loser cleanup failure','native-io-stage-preservation-node24'),
+ ('scripts/material-facts-v7-result-manifest-publication.test.mjs','native partial write|sync failure|close failure|cleanup failure','manifest-io-stage-preservation-node24')]:
+ row=run(label,NODE24,['--test','--test-name-pattern='+pattern,str(ROOT/file)],{'MATERIAL_FACT_PUBLICATION_ROOT':str(ROOT)})
+ assert row['exit_code']==0 and row['counts']['pass']==4 and row['counts']['fail']==0,row
+row=run('directory-stage-contract-control-node24',NODE24,['--test','--test-name-pattern=destination created while staging|mid-write fault',str(ROOT/'scripts/material-facts-v7-experiment-integrity-independent.test.mjs')],{'MATERIAL_FACTS_V7_ENGINEERING_ROOT':str(ROOT)})
+assert row['exit_code']==0 and row['counts']['pass']==2 and row['counts']['fail']==0,row
+after=inventory();jswrite('root-protected-after.json',after);assert before==after
+jswrite('execution-summary.json',{'created_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'records':records,'root_protected_paths':len(before),'all_protected_bytes_unchanged':before==after,'test_before_sha256':sha(old),'test_after_sha256':sha(s.encode()),'source_root':str(ROOT),'no_product_edits':True,'model_requested':'gpt-6.1-sol/ultra','backend_independently_verified':False})
