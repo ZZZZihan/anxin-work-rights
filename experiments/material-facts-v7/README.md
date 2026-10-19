@@ -1,6 +1,6 @@
 # v7：Issue #42 修复、新材料与首次模型对比
 
-本次交付分为依赖的两个 PR：[PR #45](https://github.com/ZZZZihan/anxin-work-rights/pull/45) 修复解析、金额可用性和事件评分；[PR #46](https://github.com/ZZZZihan/anxin-work-rights/pull/46) 保存新材料、标注协议、首次回答、失败、冻结结果和后验复评。Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 保持打开。两个 PR 未合并，未训练或部署生产，人工业务验收尚未完成。
+本次交付分为依赖的两个 PR：[PR #45](https://github.com/ZZZZihan/anxin-work-rights/pull/45) 修复解析、金额可用性和事件评分；[PR #46](https://github.com/ZZZZihan/anxin-work-rights/pull/46) 保存新材料、标注协议、首次回答、失败、冻结结果和后验复评。Issue [#42](https://github.com/ZZZZihan/anxin-work-rights/issues/42) 保持打开。本次用户已授权验证通过后按 #45 → #46 合并并部署展示服务器；当前处于合并前验证阶段，未训练或部署生产，人工业务验收尚未完成。
 
 ## 当前结论与证据入口
 
@@ -14,9 +14,13 @@
 - [标注协议](ANNOTATION.md)、[来源复核](SOURCE_REVIEW.md)、[首跑后标签审计](POSTRUN_LABEL_AUDIT.md)：非专家分类与案件隔离边界。
 - `postfreeze-evidence/round40/`：作者、非实现者及精确应用 CI 的原始日志、独立回执和文件摘要。早期各轮 `POSTRUN_*` 与冻结目录继续保留。
 
-应用提交 `6d081321b24b9fadd0088d6cc5b6c60e985eda26` 的 [CI 39161803412](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39161803412) 已通过独立原件审计：27 步成功，Vitest 1789/46 文件、runtime 9720、材料 68、HTTP 481、OCR 17 全部通过，Linux 无平台跳过。该次历史读取时 146 个审查线程均已解决；随后新增的3项P2仍保持未解决，详见当前验收限制。应用 CI 不代替 PR46 精确整合提交的 CI；后者以 PR 检查和独立最终回执为准。
+应用提交 `6d081321b24b9fadd0088d6cc5b6c60e985eda26` 的 [CI 39161803412](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39161803412) 已通过独立原件审计：27 步成功，Vitest 1789/46 文件、runtime 9720、材料 68、HTTP 481、OCR 17 全部通过，Linux 无平台跳过。该次历史读取时 146 个审查线程均已解决；随后新增的3项P2已由320341e修复并完成本地及独立检查，本次精确远端CI另行核对。应用 CI 不代替 PR46 精确整合提交的 CI；后者以 PR 检查和独立最终回执为准。
 
-当前 v34 复评 manifest 为 `971396f01fe7c8ec9c6457dec36de3097b8f45c1749a1389d87c13ec97e5359e`，绑定122项当前代码、119项v33归档代码和原60项结果。三路逐案报告与v33逐字节相同。本轮只修复汇总文件部分写失败占住正式目标的问题，原回答、标签、聚合内容和评分规则不变。实际write163.974秒退出0；只读check、完整工程检查、HTTP和精确远端CI分别记录。原v1–v33及全部失败保留。
+历史 v34 复评 manifest 为 `971396f01fe7c8ec9c6457dec36de3097b8f45c1749a1389d87c13ec97e5359e`，绑定122项当前代码、119项v33归档代码和原60项结果。三路逐案报告与v33逐字节相同。本轮只修复汇总文件部分写失败占住正式目标的问题，原回答、标签、聚合内容和评分规则不变。实际write163.974秒退出0；只读check、完整工程检查、HTTP和精确远端CI分别记录。原v1–v33及全部失败保留。
+
+当前 v35 manifest 为 `6da5d6f371ab6189fd7cbfd2639a19fa28b5ae1adc93cefe74ec33588c57c74b`，绑定125项当前代码和122项v34归档。三项输入形式修复后，对相同首次输出另存复评；三路逐案报告与v34逐字节一致，表中指标不变。已实际完成不可覆盖write；只读check、完整工程检查和精确远端CI正在执行。原始标签、回答、v1–v34结果及失败记录全部保留，没有新推理或新盲测。
+
+本轮应用本地最终 `npm run check` 退出0：Vitest1789/46文件、材料67通过/1平台跳过、runtime9896通过/1平台跳过、0失败；新增HTTP14条连同原481条共495全部通过，496份合成回答和494份重启存储快照保留，cleanup通过。独立76项先发现并闭环期间末尾被裁剪而误认费率的退化，最终76/76；不把合成测试称为真实模型或业务验收。
 
 ## 新材料和结果含义
 
@@ -24,7 +28,7 @@
 
 标注状态为 `provisional_non_expert`。输入、标签及初始协议在首跑前冻结；作者与非实现者完成的是技术复核，尚无业务专家或用户的正式验收。Qwen、DeepSeek 各 12 份首次回答及规则 12 份输出完整保留，没有按空输出、低分或格式错误重试挑选答案。后续修复只另存复评，不覆盖原始分数，不追加 gold 别名。
 
-下表为当前 v34 的 F1（%），不是准确率。raw 保留非法、重复及证据错误候选；accepted 仅表示协议接受，不等于可用事实、人工确认或可计算金额。六层均先要求唯一事件、一对一匹配，再逐层增加属性要求。
+下表为当前 v35 的 F1（%），不是准确率。raw 保留非法、重复及证据错误候选；accepted 仅表示协议接受，不等于可用事实、人工确认或可计算金额。六层均先要求唯一事件、一对一匹配，再逐层增加属性要求。
 
 | 系统 | raw 基本 | accepted 基本 | raw 关联 | accepted 关联 | raw 严格 | accepted 严格 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -49,9 +53,9 @@ Qwen 推理记录合计 468.097 秒、含准备墙钟 516.278 秒；DeepSeek 分
 node experiments/material-facts-v7/verify-frozen.mjs
 # 核对最新历史检查点；递归核验既有版本。
 node experiments/material-facts-v7/verify-correction-v29.mjs
-# 归档 v33 与当前 v34 使用同一首次输出重新计算并逐字比较。
-node experiments/material-facts-v7/verify-correction-v33.mjs
-node experiments/material-facts-v7/corrective-assessment-v34.mjs --check
+# 归档 v34 与当前 v35 使用同一首次输出重新计算并逐字比较。
+node experiments/material-facts-v7/verify-correction-v34.mjs
+node experiments/material-facts-v7/corrective-assessment-v35.mjs --check
 # 项目完整工程检查，包括历史门禁与当前整合检查。
 npm run check
 ```
@@ -70,6 +74,7 @@ npm run check
 | v32 manifest | `b7f53ed2a32f9b68f4031f63addfe1e00a22f3b2323c9bf8969fb55d47b6e074` |
 | v33 manifest | `00a764d4f810af7e0a13fe1ae186807fd7503673a6cc19f7d0d15c6f28c6d6cf` |
 | v34 manifest | `971396f01fe7c8ec9c6457dec36de3097b8f45c1749a1389d87c13ec97e5359e` |
+| v35 manifest | `6da5d6f371ab6189fd7cbfd2639a19fa28b5ae1adc93cefe74ec33588c57c74b` |
 
 精确应用 CI、隔离服务合成回归、真实模型首跑、非实现者技术复核与人工业务验收分别记录。自然材料仍缺真实 OCR、明确零金额、明确部分应付和两笔同人同期同额实际付款；合成回归不能补成自然业务证据。当前不构成自动采用金额、训练或生产发布的依据。
 
