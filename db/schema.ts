@@ -1,4 +1,4 @@
-import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { blob, index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const profiles = sqliteTable('profiles', {
   userId: text('user_id').primaryKey(),
@@ -129,3 +129,32 @@ export const documentDrafts = sqliteTable(
     uniqueIndex('documents_owner_case_type_idx').on(table.userId, table.caseId, table.type),
   ],
 );
+
+export const agentHarnessCheckpoints = sqliteTable('agent_harness_checkpoints', {
+  ownerId: text('owner_id').notNull(),
+  caseId: text('case_id').notNull(),
+  runId: text('run_id').notNull(),
+  checkpointNs: text('checkpoint_ns').notNull(),
+  checkpointId: text('checkpoint_id').notNull(),
+  parentCheckpointId: text('parent_checkpoint_id'),
+  checkpointType: text('checkpoint_type').notNull(),
+  checkpoint: blob('checkpoint', { mode: 'buffer' }).notNull(),
+  metadataType: text('metadata_type').notNull(),
+  metadata: blob('metadata', { mode: 'buffer' }).notNull(),
+}, table => [primaryKey({ columns: [table.ownerId, table.caseId, table.runId, table.checkpointNs, table.checkpointId] })]);
+
+export const agentHarnessCheckpointWrites = sqliteTable('agent_harness_checkpoint_writes', {
+  ownerId: text('owner_id').notNull(),
+  caseId: text('case_id').notNull(),
+  runId: text('run_id').notNull(),
+  checkpointNs: text('checkpoint_ns').notNull(),
+  checkpointId: text('checkpoint_id').notNull(),
+  taskId: text('task_id').notNull(),
+  writeIndex: integer('write_index').notNull(),
+  taskPath: text('task_path').notNull(),
+  channel: text('channel').notNull(),
+  valueType: text('value_type').notNull(),
+  value: blob('value', { mode: 'buffer' }).notNull(),
+}, table => [primaryKey({ columns: [
+  table.ownerId, table.caseId, table.runId, table.checkpointNs, table.checkpointId, table.taskId, table.writeIndex,
+] })]);

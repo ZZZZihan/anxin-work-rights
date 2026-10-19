@@ -55,6 +55,13 @@ jobs:
       - name: Install Chinese OCR and PDF tools
         run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim poppler-utils
       - run: npm run check
+      - name: LangGraph Worker and D1 persistence across process restart
+        run: npm run test:harness:http
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: harness-persistence-regression
+          path: output/harness/persistence.json
       - name: HTTP persistence and failure regressions
         shell: bash
         run: |

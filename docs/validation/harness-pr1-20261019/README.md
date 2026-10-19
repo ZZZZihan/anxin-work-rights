@@ -1,0 +1,38 @@
+# Harness PR 1 验证记录
+
+日期：2026-10-19。首轮基线为 `ecd1db0ba32dad97c2b05f78e6608d1c3d2a03c9`，首轮提交为 `b0e80a0`，关联 [Issue #47](https://github.com/ZZZZihan/anxin-work-rights/issues/47)。下表和原报告保留首轮结果；最新主分支整合结果另列于文末。范围为状态/工具契约、D1 checkpoint 存储与本地 Worker 恢复。输入和工具均为合成夹具，没有真实案件、模型推理或训练。本机 Node 为 `v26.11.0`，CI 配置使用 Node 24。
+
+| 证据 | 命令与结果 |
+| --- | --- |
+| 必需全量检查 | `npm run check`，exit 0；类型、ESLint、44 个 Vitest 文件的 1209 项测试、生产构建、数据完整性/索引、材料与事实运行测试通过 |
+| 本次针对性检查 | 上述 Vitest 中包含 14 项合同/策略测试和 7 项 Miniflare D1 saver 测试；独立复核 Agent 也运行这 21 项并通过 |
+| 真实进程恢复 HTTP | `npm run test:harness:http`，exit 0，15/15 通过；[persistence.json](./persistence.json) |
+| 既有材料事实 HTTP | `ANXIN_MATERIAL_REPORT=output/harness/material-facts-http.json node scripts/material-http-runner.mjs --facts`，exit 0，10/10 通过；[material-facts-http.json](./material-facts-http.json) |
+| Diff 与迁移 | `git diff --check` 通过；0006 只新增两表，Drizzle snapshot 原有表未改变 |
+
+`npm run check` 中材料运行测试为 67 项通过、1 项按平台跳过：Linux Tesseract/Poppler 用例在 macOS 不运行，macOS 的真实 Apple Vision OCR 由现有 material-service 测试覆盖。事实运行的 Python 测试分别 11/11 和 16/16，通过的 Node 测试为 30/30；公开数据 Python 检查 9/9。这里的全量通过包括该明确的平台跳过，不代表本机执行过 Linux OCR。
+
+持久化报告记录两个不同 wrapper PID 和 Worker boot ID。runner 先暂停图、读取状态和父链；确认另一条并行运行已持久保存成功节点的具体 pending output 后，强制终止整个 Worker 进程组，并对同一份落盘 D1 启动新 Worker。恢复后 harness 结构和值相同，正常流程的准备步骤累计一次，失败流程的成功并行节点累计一次。另覆盖旧业务版本拒绝、非法恢复字段、重复开始/恢复、跨用户/案件读取和限定作用域删除。完整验证语义见 [PERSISTENCE.md](../../agent-harness/PERSISTENCE.md)。
+
+既有应用 HTTP 回归验证了规则候选保留原文、owner 隔离、未知付款不能补零、冲突需用户说明、显式零及分值精度、并发修订单胜者、材料变化失效、删除清理和案件范围变更失效。它使用构建后的现有应用与隔离 D1/R2；与独立 harness Worker 分开执行。
+
+独立技术复核检查合同授权、预算传递、工具结果与原调用绑定、实际安装版 LangGraph 的 saver 语义、serde type/字节偏移、pending writes 顺序和原子批次、Worker 异步上下文，以及失败夹具的完成前置条件。复核发现的预算返回、结果绑定和并行测试竞态已修正，最终没有 PR 1 范围内的阻塞性发现。
+
+本次由主 Agent 集成及验证，3 个子 Agent 分别负责合同/策略实现、D1 saver 实现和独立技术复核；子 Agent 的请求配置均为 `gpt-6.1-sol / ultra`。工具未独立暴露每次底层运行配置，故不把请求参数当作实际运行配置核验。技术复核不是用户人工验收。
+
+依赖审计与基线 lock 比较：npm audit 报告的 24 项（moderate 6 / high 15 / critical 3）对应节点在基线已有且版本相同，本次新增依赖没有增加该次 audit 报告的漏洞节点；本 PR 未修复这些既有问题。该结果不代表依赖不存在其他风险。
+
+截至这份本地记录，尚未执行云端部署、真实鉴权/工具接入、同 run 并发调度、外部副作用幂等验收、模型质量评测或用户人工验收。GitHub CI 的结果以 PR 对应 commit 的实际检查为准。首轮提交的源码及复现脚本 SHA-256 见 [manifest.json](./manifest.json)，该文件保留 `b0e80a0` 的证据，不随主分支整合覆盖。
+
+## 最新主分支整合
+
+首轮 [CI](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39256786805) 在 `b0e80a0` 上全部通过；其 artifact 已下载核对，Linux / Node 24.21.0 下持久化 15/15 通过。随后发现 `main` 已合入 PR #45，故将 `434035ac8b7e3575223778e751014de881450fb9` 合并到本工作分支。唯一内容冲突位于 package.json：完整保留 main 的 `test:fact-runtime` 176 个脚本及本 PR 的 harness 命令。CI 自动合并，保留 main 的冻结 v6 检查替换和 v7 HTTP 回归。另将本 PR probe 的匿名默认导出改为具名变量导出，消除新增 lint 提示。
+
+整合后重新执行，结果单独保留：
+
+- `npm run check`：exit 0，49 个 Vitest 文件、1810 项通过；材料 67 通过 / 1 平台跳过，事实运行 Node 9896 通过 / 1 平台跳过，Python 11/11 与 16/16，公开数据 9/9。类型、构建、索引检查通过。Lint 为新 main 既有的 22 条 warning、0 error，本 PR probe 无新增 warning。
+- `ANXIN_HARNESS_REPORT=output/harness/integrated-persistence.json npm run test:harness:http`：15/15 通过，见 [整合后持久化报告](./integrated-persistence.json)。
+- `ANXIN_MATERIAL_REPORT=output/harness/integrated-material-facts-http.json node scripts/material-http-runner.mjs --facts`：10/10 通过，见 [整合后既有事实 HTTP](./integrated-material-facts-http.json)。
+- 独立 Agent 复核了两个分支的脚本、依赖、CI 和材料事实公共接口：完整脚本与 main 逐字符相同，harness 的四状态/版本/计算门槛仍兼容，没有新阻塞。
+
+最新源码、复现脚本和本地整合检查日志的 SHA-256 另存 [integrated-manifest.json](./integrated-manifest.json)。整合提交的 GitHub CI 结果仍以 PR checks 为准，首轮 CI 不作为整合版本通过的证据。
