@@ -5,14 +5,16 @@
 ## 当前结论与证据入口
 
 - [技术验收与模型比较](ISSUE42_ACCEPTANCE.md)：当前状态、评分口径、结果与业务限制。
+- [ROUND42 评分报告不可覆盖发布](POSTRUN_ROUND42_ASSESSMENT_PUBLICATION.md)：真实CLI覆盖复现、修复与独立检查。
+- [ROUND41 实验流程修复](POSTRUN_ROUND41_EXECUTION.md)：启动前停止收据、原子清单发布、直接历史核验复制范围与保留证据。
 - [ROUND40 应用修复](POSTRUN_ROUND40_APPLICATION.md)：八条最新审查的最小反例、同脚本红→绿、实际隔离 HTTP、错误夹具和失败原件。
 - [剩余问题](ERROR_REVIEW.md)：模型语义错误、保守误警、标签争议及自然材料覆盖空缺。
 - [标注协议](ANNOTATION.md)、[来源复核](SOURCE_REVIEW.md)、[首跑后标签审计](POSTRUN_LABEL_AUDIT.md)：非专家分类与案件隔离边界。
 - `postfreeze-evidence/round40/`：作者、非实现者及精确应用 CI 的原始日志、独立回执和文件摘要。早期各轮 `POSTRUN_*` 与冻结目录继续保留。
 
-应用提交 `6d081321b24b9fadd0088d6cc5b6c60e985eda26` 的 [CI 39161803412](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39161803412) 已通过独立原件审计：27 步成功，Vitest 1789/46 文件、runtime 9720、材料 68、HTTP 481、OCR 17 全部通过，Linux 无平台跳过。读取时 146 个审查线程均已解决。应用 CI 不代替 PR46 精确整合提交的 CI；后者以 PR 检查和独立最终回执为准。
+应用提交 `6d081321b24b9fadd0088d6cc5b6c60e985eda26` 的 [CI 39161803412](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39161803412) 已通过独立原件审计：27 步成功，Vitest 1789/46 文件、runtime 9720、材料 68、HTTP 481、OCR 17 全部通过，Linux 无平台跳过。该次历史读取时 146 个审查线程均已解决；随后新增的3项P2仍保持未解决，详见当前验收限制。应用 CI 不代替 PR46 精确整合提交的 CI；后者以 PR 检查和独立最终回执为准。
 
-当前 v30 复评 manifest 为 `e1b8b03588dc4f8de70e8f85156c370f4776219e9d14268b5df259027d8b56ba`，绑定 109 项当前代码、106 项 v29 归档代码和原 60 项结果。三路逐案报告与 v29 逐字节相同。这是对同一批首次回答的后验复评，既不是新模型实验，也不增加自然材料数量。write 381.250 秒、只读 check 384.294 秒均实际退出 0，2122 条主侧保护路径字节未变；非实现者独立计数另附回执。
+当前 v32 复评 manifest 为 `b7f53ed2a32f9b68f4031f63addfe1e00a22f3b2323c9bf8969fb55d47b6e074`，绑定116项当前代码、113项v31归档代码和原60项结果。三路逐案报告与v31逐字节相同。继ROUND41后，本轮修复评分CLI覆盖既存报告的问题；仅发布方式改变，原回答、标签和评分规则不变。实际write150.841秒、只读check157.283秒均退出0；完整本地检查已通过（见文末），远端CI另按精确提交核对。原v1–v31及失败全部保留。
 
 ## 新材料和结果含义
 
@@ -20,7 +22,7 @@
 
 标注状态为 `provisional_non_expert`。输入、标签及初始协议在首跑前冻结；作者与非实现者完成的是技术复核，尚无业务专家或用户的正式验收。Qwen、DeepSeek 各 12 份首次回答及规则 12 份输出完整保留，没有按空输出、低分或格式错误重试挑选答案。后续修复只另存复评，不覆盖原始分数，不追加 gold 别名。
 
-下表为当前 v30 的 F1（%），不是准确率。raw 保留非法、重复及证据错误候选；accepted 仅表示协议接受，不等于可用事实、人工确认或可计算金额。六层均先要求唯一事件、一对一匹配，再逐层增加属性要求。
+下表为当前 v32 的 F1（%），不是准确率。raw 保留非法、重复及证据错误候选；accepted 仅表示协议接受，不等于可用事实、人工确认或可计算金额。六层均先要求唯一事件、一对一匹配，再逐层增加属性要求。
 
 | 系统 | raw 基本 | accepted 基本 | raw 关联 | accepted 关联 | raw 严格 | accepted 严格 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -45,8 +47,9 @@ Qwen 推理记录合计 468.097 秒、含准备墙钟 516.278 秒；DeepSeek 分
 node experiments/material-facts-v7/verify-frozen.mjs
 # 核对最新历史检查点；递归核验既有版本。
 node experiments/material-facts-v7/verify-correction-v29.mjs
-# 当前 v30 使用同一首次输出重新计算并逐字比较。
-node experiments/material-facts-v7/corrective-assessment-v30.mjs --check
+# 归档 v31 与当前 v32 使用同一首次输出重新计算并逐字比较。
+node experiments/material-facts-v7/verify-correction-v31.mjs
+node experiments/material-facts-v7/corrective-assessment-v32.mjs --check
 # 项目完整工程检查，包括历史门禁与当前整合检查。
 npm run check
 ```
@@ -61,7 +64,15 @@ npm run check
 | 留出标签 | `abac05fa2c3de7d8e83e866345bf5edaec61c65f8f706bb7d5f0c0d98fa27b64` |
 | v29 manifest | `d66b3c2ccb1897c08168fc16372d2aafc35ca75d3ced64debbe5fa6fd536c74c` |
 | v30 manifest | `e1b8b03588dc4f8de70e8f85156c370f4776219e9d14268b5df259027d8b56ba` |
+| v31 manifest | `5b52b921216a651e28bbac183be4c0c14edbfc6a58e03d931b84a683cb196b4f` |
+| v32 manifest | `b7f53ed2a32f9b68f4031f63addfe1e00a22f3b2323c9bf8969fb55d47b6e074` |
 
 精确应用 CI、隔离服务合成回归、真实模型首跑、非实现者技术复核与人工业务验收分别记录。自然材料仍缺真实 OCR、明确零金额、明确部分应付和两笔同人同期同额实际付款；合成回归不能补成自然业务证据。当前不构成自动采用金额、训练或生产发布的依据。
 
-独立只读计数已完成：重新枚举3248条保护路径、原124项绑定及60原结果、29份代码归档目录和30份修正结果目录，216分区与18指标核算一致。它没有运行CLI或模型，不替代主侧实际write/check；详见[独立LIGHT回执](postfreeze-evidence/round40/v30-light/V30_LIGHT_INDEPENDENT_REVIEW.md)。
+历史v30独立只读计数已完成：重新枚举3248条保护路径、原124项绑定及60原结果、29份代码归档目录和30份修正结果目录，216分区与18指标核算一致。它没有运行CLI或模型，不替代主侧实际write/check；详见[独立LIGHT回执](postfreeze-evidence/round40/v30-light/V30_LIGHT_INDEPENDENT_REVIEW.md)。
+
+历史v31的数据Agent只读LIGHT已逐摘要核对113项当前/109项归档代码、原124项冻结绑定和60份结果，以及全部v1–v31结果与v1–v30代码归档；12781个读取路径前后稳定。216保存分区与18指标核算一致，三份report与v30逐字节相同；这次LIGHT未运行语义评分器或模型。详见[历史v31 LIGHT回执](postfreeze-evidence/round41/v31-light-independent/review.md)。
+
+当前v32的数据Agent只读LIGHT核对116份当前代码、113份v31归档、原124项冻结绑定、60份首跑结果及全部旧档案，13405条读取路径在核对期间和再次复核时稳定。216保存分区、18指标一致；三份report与v31逐字节相同。第一次遇主侧追加37项证据的时序失败原样保留，稳定目录后使用同一脚本/断言重核通过。该Agent参与过标注和run实现；本核算不执行语义评分，不属于标签或整个实现的非作者独审。详见[当前v32 LIGHT回执](postfreeze-evidence/round42/v32-data-agent-light/review.md)。
+
+最终本地 `npm run check` 已实际退出0，用时3559.505秒（59分19.505秒）：类型、构建和数据检查通过，Vitest1789/46文件通过，材料67通过/1平台跳过，runtime10292通过/1平台跳过/0失败，Python9/11/16通过。本机lint原日志31 warnings、0 errors（既有、本地scratch及一份随后按原字节改存.snapshot的诊断测试原件）；当前新增源码/测试局部lint0错误0警告。最终完整日志已保留，精确新提交的远端CI仍待推送后核对。

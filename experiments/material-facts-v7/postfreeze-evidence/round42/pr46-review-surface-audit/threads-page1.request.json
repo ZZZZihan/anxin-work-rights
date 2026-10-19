@@ -1,0 +1,11 @@
+{
+  "command": [
+    "gh",
+    "api",
+    "graphql",
+    "-f",
+    "query=query($cursor:String) { repository(owner:\"ZZZZihan\",name:\"anxin-work-rights\") { pullRequest(number:46) { number url state headRefOid baseRefOid mergeStateStatus reviewDecision reviews(first:1) { totalCount } comments(first:1) { totalCount } reviewThreads(first:100,after:$cursor) { totalCount pageInfo { hasNextPage endCursor } nodes { id isResolved isOutdated path line startLine diffSide comments(first:100) { totalCount pageInfo { hasNextPage endCursor } nodes { id databaseId body url createdAt updatedAt path line originalLine diffHunk author { login } pullRequestReview { id databaseId state submittedAt url commit { oid } } } } } } } } }"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 1.8258649589843117
+}

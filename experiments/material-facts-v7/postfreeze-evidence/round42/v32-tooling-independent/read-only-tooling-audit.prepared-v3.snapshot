@@ -1,0 +1,114 @@
+from pathlib import Path
+import hashlib,json,re,subprocess,datetime
+ROOT=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+OUT=Path(__file__).resolve().parent
+E='experiments/material-facts-v7'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+read=lambda p:(ROOT/p).read_bytes()
+write=lambda name,obj:(OUT/name).write_text(json.dumps(obj,ensure_ascii=False,indent=2)+'\n')
+paths=[f'{E}/historical-v31-execution.mjs',f'{E}/verify-correction-v31.mjs',f'{E}/corrective-assessment-v32.mjs','scripts/material-facts-v7-historical-v31-execution.test.mjs','scripts/material-facts-v7-correction-v31-gates-author.test.mjs','scripts/material-facts-v7-correction-v32-gates-author.test.mjs']
+archive=ROOT/E/'correction-code-v31'
+a=json.loads((archive/'manifest.json').read_bytes())
+mbytes=read(f'{E}/corrections-v31/manifest.json'); m=json.loads(mbytes)
+assert sha(mbytes)=='5b52b921216a651e28bbac183be4c0c14edbfc6a58e03d931b84a683cb196b4f'
+assert a['schema']=='material-facts-v7-correction-code/31'
+assert a['correction_directory']=='corrections-v31' and a['storage_suffix']=='.snapshot'
+assert a['correction_manifest_sha256']==sha(mbytes)
+assert a['files']==m['code_sha256'] and len(a['files'])==113
+wanted={'manifest.json'}|{p+'.snapshot' for p in a['files']}
+actual={p.relative_to(archive).as_posix() for p in archive.rglob('*') if p.is_file()}
+assert actual==wanted,(sorted(actual-wanted),sorted(wanted-actual))
+regular={}
+for p,h in a['files'].items():
+    parts=Path(p).parts
+    assert not Path(p).is_absolute() and '..' not in parts and '.' not in parts
+    f=archive/(p+'.snapshot')
+    assert f.is_file() and not f.is_symlink(),p
+    assert sha(f.read_bytes())==h,p
+    live=ROOT/p
+    assert live.is_file() and not live.is_symlink(),p
+    regular[p]={'archived_sha256':h,'current_sha256':sha(live.read_bytes())}
+changed={p:v for p,v in regular.items() if v['current_sha256']!=v['archived_sha256']}
+assert set(changed)=={f'{E}/assess.mjs'},changed
+assert changed[f'{E}/assess.mjs']=={'archived_sha256':'2c14d8b7c2de5fd397a570f01cd34d8019a7caa66ed8d2f217c0b9ad6382dbb4','current_sha256':'5d96722e5d6ec46ed5b8218c769d934b6ad5af390a2b830ced8624d6ff7aa3d7'}
+union=set(a['files'])|set(paths[:3])|{f'{E}/immutable-artifact-publication.mjs'}
+assert len(union)==116
+assert f'{E}/immutable-artifact-publication.mjs' in a['files']
+assert sha(read(f'{E}/immutable-artifact-publication.mjs'))=='2dad271198a54cdebb47b43a4d8dde720a6bfccb4dfda8139fb2581916f2f084'
+policy={f'{E}/historical-execution-policy-v1.mjs':'cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea',f'{E}/historical-execution-v1.mjs':'0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c',f'{E}/historical-v9-execution.mjs':'d02aa0b5881a9699d71478ed8e2a78f9b7f17dfda7c806cda58c788e1c3df10e'}
+for p,h in policy.items(): assert sha(read(p))==h and a['files'][p]==h,p
+original=sha(read(f'{E}/result-manifest.json'))
+assert original=='3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee'
+versions={}
+for v in range(1,32):
+    p=f'{E}/corrections'+('' if v==1 else f'-v{v}')+'/manifest.json'
+    b=read(p); obj=json.loads(b)
+    versions[str(v)]={'path':p,'sha256':sha(b),'bindings':len(obj['code_sha256'])}
+    assert obj['first_result_manifest_sha256']==original
+    if v>=2: assert obj['previous_correction_manifest_sha256']==versions[str(v-1)]['sha256'],v
+assert versions['31']['bindings']==113
+sources={p:read(p) for p in paths}
+for p,b in sources.items():
+    t=OUT/'sources'/Path(p+'.snapshot');t.parent.mkdir(parents=True,exist_ok=True);t.write_bytes(b)
+    assert sha(t.read_bytes())==sha(b)
+# Verify no new execution module imports an unbound local dependency.
+local_imports={}
+for p in paths[:3]:
+    local_imports[p]=[]
+    for relative in re.findall(r"from ['\"](\.[^'\"]+)['\"]",sources[p].decode()):
+        target=(ROOT/p).parent.joinpath(relative).resolve().relative_to(ROOT).as_posix()
+        assert target in union,(p,target)
+        local_imports[p].append(target)
+# The version bridge is mechanically identical to v30 except version markers.
+previous_bridge=read(f'{E}/historical-v30-execution.mjs').decode()
+current_bridge=sources[paths[0]].decode()
+assert current_bridge.replace('v31','v30').replace('V31','V30')==previous_bridge
+wrapper=sources[paths[1]].decode(); controller=sources[paths[2]].decode()
+assert "filter: source => resolve(source) !== resolve(root, EXPERIMENT, 'postfreeze-evidence')" in wrapper
+assert 'runHistoricalV31CheckSync' in wrapper and "['--check']" in wrapper
+assert 'finally { await rm(temporary, { recursive: true, force: true }); }' in wrapper
+assert controller.index('const previous = await withCorrectionV31Code')<controller.index('await computeCorrection(root)')
+assert controller.count('await computeCorrection(root)')==1
+assert 'runHistoricalV31CheckSync' in controller and "['--check']" in controller
+assert "await publishArtifacts(directory, { ...artifacts, 'manifest.json': manifest })" in controller
+assert 'Correction v32 manifest bytes changed' in controller and 'Correction v32 recomputation differs' in controller
+native=sources[paths[3]].decode(); historical=sources[paths[4]].decode(); current=sources[paths[5]].decode()
+assert len(re.findall(r'^test\(',native,re.M))==7
+for text in [historical,current]:
+    assert "assert.equal(failure.status, 1, 'Refusal must be a verifier result, not fixture timeout.')" in text
+    assert 'for (const [path, digest] of Object.entries(before))' in text
+assert 'Object.keys(manifest.code_sha256).length, 113' in historical
+assert 'correction-code-v31/${path}.snapshot' in historical
+assert 'Object.keys(manifest.code_sha256).length, 116' in current
+assert "withCorrectionV31Code" in current and "error => error === expected" in current
+assert "historicalV31Target(resolve(ROOT, E, 'corrective-assessment-v32.mjs'), ['--check']), null" in current
+assert "historicalTarget(resolve(ROOT, E, 'corrective-assessment-v31.mjs'), ['--check']), null" in current
+assert 'timeout: 1980000' in current and 'timeout: 960000' in current
+package=json.loads(read('package.json'))
+cmd=package['scripts']['test:fact-runtime']
+registered=re.findall(r'scripts/[^\s]+\.mjs',cmd)
+required=paths[3:]+['scripts/material-facts-v7-assessment-publication.test.mjs','scripts/material-facts-v7-round42-assessment-publication-independent.test.mjs']
+for p in required: assert registered.count(p)==1,(p,registered.count(p))
+assert '--test-concurrency=2' in cmd
+workflow=read('.github/workflows/ci.yml').decode()
+assert f'node {E}/verify-correction-v31.mjs' in workflow
+assert f'node {E}/corrective-assessment-v32.mjs --check' in workflow
+assert f'node {E}/corrective-assessment-v31.mjs --check' not in workflow
+old_workflow=subprocess.run(['git','show','HEAD:.github/workflows/ci.yml'],cwd=ROOT,capture_output=True,check=True).stdout.decode()
+old_commands=[line.strip() for line in old_workflow.splitlines() if line.strip().startswith('node experiments/material-facts-v')]
+new_commands=[line.strip() for line in workflow.splitlines() if line.strip().startswith('node experiments/material-facts-v')]
+assert old_commands[-1]==f'node {E}/corrective-assessment-v31.mjs --check'
+assert new_commands[:-2]==old_commands[:-1]
+assert new_commands[-2:]==[f'node {E}/verify-correction-v31.mjs',f'node {E}/corrective-assessment-v32.mjs --check']
+write('workflow-command-migration.json',{'old':old_commands,'new':new_commands,'old_historical_commands_preserved':True,'note':'Existing workflow does not list v10/v11 separately. This migration preserves all previous commands and the nested restored chain; it does not assert every prior version had a separate top-level workflow command.'})
+assert not any(marker in read('package.json').decode() for marker in ['<<<<<<<','=======','>>>>>>>'])
+# Retain exact integration patches without executing commands in the workflow.
+for name,args in [('integration.diff',['.github/workflows/ci.yml','package.json',paths[4]]),('v31-historical-gate.diff',[paths[4]])]:
+    proc=subprocess.run(['git','diff','--',*args],cwd=ROOT,capture_output=True)
+    assert proc.returncode==0
+    (OUT/name).write_bytes(proc.stdout)
+    assert not proc.stderr
+write('archive113-and-current-delta.json',{'archive_manifest_sha256':sha((archive/'manifest.json').read_bytes()),'correction_manifest_sha256':sha(mbytes),'archive_file_count':len(actual),'archive_code_count':len(a['files']),'bindings':regular,'changed_active_from_v31':changed,'current_union_count':len(union),'current_union':{p:sha(read(p)) for p in sorted(union)}})
+write('historical-manifests.json',{'original_manifest_sha256':original,'versions':versions,'immutable_policy':policy})
+write('static-checks.json',{'status':'PASS','mode':'read-only hashes and source inspection; no module import, scoring or CLI execution','six_files':{p:sha(b) for p,b in sources.items()},'local_import_closure':local_imports,'version_bridge_mechanical_equivalence':'v30 to v31 markers only','native_declared_tests':7,'required_registration':{p:registered.count(p) for p in required},'fact_runtime_mjs_entries':len(registered),'test_concurrency':2,'archive113_regular_files_and_digest_match':True,'archive_manifest_exact_file_set':True,'current_previous113_delta_only_assess':True,'expected_current_union':116,'actual_history_cli_executed_by_reviewer':False,'actual_native_tests_executed_by_reviewer':False,'actual_gate_tests_executed_by_reviewer':False,'actual_scorer_or_compute_executed_by_reviewer':False,'reviewed_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()})
+print(json.dumps({'status':'PASS','archive':len(a['files']),'expected_union':len(union),'active_delta':list(changed),'native_test_definitions':7,'runtime_entries':len(registered)}))

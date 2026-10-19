@@ -1,0 +1,13 @@
+{
+  "command": [
+    "gh",
+    "api",
+    "graphql",
+    "-f",
+    "query=query($cursor:String) { repository(owner:\"ZZZZihan\",name:\"anxin-work-rights\") { pullRequest(number:45) { number headRefOid state reviewThreads(first:100,after:$cursor) { totalCount pageInfo { hasNextPage endCursor } nodes { id isResolved isOutdated path comments(first:100) { totalCount pageInfo { hasNextPage endCursor } nodes { databaseId body url createdAt updatedAt } } } } } } }",
+    "-f",
+    "cursor=Y3Vyc29yOnYyOpK0MjAyNi0xMC0xOFQxNDozNTo0OFrOra2Pyw=="
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 0.9623231249861419
+}

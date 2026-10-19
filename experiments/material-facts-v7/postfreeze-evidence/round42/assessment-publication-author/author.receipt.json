@@ -1,0 +1,92 @@
+{
+  "schema": "round42-assessment-cli-publication-author/1",
+  "created_at": "2026-10-18T22:59:36.728182+00:00",
+  "status": "targeted_author_checks_passed",
+  "requested_model": "gpt-6.1-sol/ultra; actual backend not independently verified",
+  "baseline": {
+    "root_head_at_snapshot": "a8d0b70448a11e62c8b2abe1d02298a3e4d3c04e",
+    "assessment_sha256": "2c14d8b7c2de5fd397a570f01cd34d8019a7caa66ed8d2f217c0b9ad6382dbb4",
+    "helper_sha256": "2dad271198a54cdebb47b43a4d8dde720a6bfccb4dfda8139fb2581916f2f084",
+    "current_root_untouched": true
+  },
+  "copy_whitelist": {
+    "experiments/material-facts-v7/assess.mjs": "5d96722e5d6ec46ed5b8218c769d934b6ad5af390a2b830ced8624d6ff7aa3d7",
+    "scripts/material-facts-v7-assessment-publication.test.mjs": "eb12bf926a8fff46626ff820741d60cf2dcd233be2f3583ba9ebc522ae3634b6"
+  },
+  "existing_dependency": {
+    "path": "experiments/material-facts-v7/immutable-artifact-publication.mjs",
+    "sha256": "2dad271198a54cdebb47b43a4d8dde720a6bfccb4dfda8139fb2581916f2f084",
+    "modified": false,
+    "copy_required_for_root": false
+  },
+  "change": "Only CLI output publication uses a dynamic import of the existing R41 helper. Same-directory exclusive stage, complete write/sync/close, no-replace atomic link. Cleanup warning is observable while publication remains successful. Normal stdout summary is unchanged.",
+  "library_scoring_body_byte_identical_except_unused_import": true,
+  "actual_checks": {
+    "same_author_script_fixed_baseline_node24": {
+      "pass": 2,
+      "fail": 6,
+      "exit_code": 1,
+      "log": "fixed-baseline-node24.stdout.tap"
+    },
+    "same_author_script_patched_node24": {
+      "pass": 8,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "patched-node24.stdout.tap"
+    },
+    "same_author_script_patched_node26": {
+      "pass": 8,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "patched-node26.stdout.tap"
+    },
+    "native_retained_probe": "retained-cli-observations.json plus retained-native-artifacts/ hold original overwrite, symlink target modification and 128-byte EFBIG report; patched partial stage remains after clean retry.",
+    "syntax": {
+      "files": 2,
+      "exit_codes": [
+        0,
+        0
+      ]
+    },
+    "scoped_eslint": {
+      "files": 2,
+      "errors": 0,
+      "warnings": 0
+    },
+    "protected_root_paths": {
+      "count": 179,
+      "unchanged": true,
+      "includes": "113 v31-bound live paths, 60 original result-manifest paths, four v31 correction files and two manifests; all matched recorded bindings before and after."
+    }
+  },
+  "tested_contracts": [
+    "Complete new target report and unchanged stdout summary",
+    "Existing report fails EEXIST and remains byte-identical",
+    "Existing symlink and its target remain unchanged",
+    "Native RLIMIT_FSIZE=128 EFBIG leaves no final name, preserves failed stage and permits retry",
+    "Link sees complete report while final path is absent",
+    "Two real CLI processes yield one complete winner and one EEXIST with preserved losing stage",
+    "Injected post-publication unlink failure reports published:true without rollback or false failure",
+    "Library-only fixture imports assess and invokes the actual empty-collection scorer without the helper present"
+  ],
+  "evidence_classes": {
+    "actual_cli": true,
+    "synthetic_inputs": "Three empty JSONL collections. The real assess module executes; no scorer, preflight, prompt, parser or validation implementation is stubbed. These publication fixtures provide no business/semantic coverage.",
+    "native_fault": "RLIMIT_FSIZE=128 via Python preexec/exec, child SIGXFSZ handler; no fs mocking for partial write.",
+    "injected_faults": "Child --import preload wraps actual fs.link to observe publication and fs.unlink to force cleanup failure.",
+    "independent_review": "Requested from DATA and INDEP; separate receipts, not claimed complete in this author receipt."
+  },
+  "not_run": [
+    "Models, training, external network",
+    "Real holdout rescoring or report regeneration",
+    "Historical CLI chain or fullcheck/build/HTTP",
+    "Power-loss persistence testing",
+    "Commit, push, merge or deployment"
+  ],
+  "limitations": [
+    "Atomic visibility/no replacement rely on same-filesystem hard-link semantics; hardware power-loss durability is not claimed.",
+    "Failed or losing stages intentionally remain for diagnosis and can consume disk space.",
+    "No output-directory creation or overwrite option was added. Re-running an assessment requires a new target path.",
+    "Existing immutable reports and all previous failures remain unchanged. These tests do not establish expert label or user business acceptance."
+  ]
+}

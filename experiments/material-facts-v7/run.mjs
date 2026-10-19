@@ -153,7 +153,12 @@ if (backend === 'rules') {
   let before;
   if (backend === 'qwen') {
     try { before = await memory(); if (before.level !== 1) throw new Error('Initial pressure'); }
-    catch { attempts.push({ ids: batch.map(row => row.id), completed: false, stop_reason: 'initial_memory_state' }); await save('outcome.json', { completed: false, attempts }); break; }
+    catch {
+      // No worker or stdout stream exists on this path. Preserve that state
+      // explicitly; incomplete_stdout=false does not claim a stream was drained.
+      attempts.push({ ids: batch.map(row => row.id), completed: false, stop_reason: 'initial_memory_state', worker_started: false, stdout_state: 'not_started', incomplete_stdout: false });
+      await save('outcome.json', { completed: false, attempts }); break;
+    }
   }
   const child = spawn(python, argv, { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HF_HUB_OFFLINE: '1', TRANSFORMERS_OFFLINE: '1', HF_HUB_DISABLE_IMPLICIT_TOKEN: '1', HF_HUB_DISABLE_TELEMETRY: '1', PYTHONUNBUFFERED: '1' } });
   let requestTimer = null, activeRequestId = null, interruptedRequestId = null;

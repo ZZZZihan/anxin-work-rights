@@ -1,0 +1,12 @@
+--- locked-independent-before
++++ portable-final
+@@ -88,7 +88,8 @@
+   assert.equal(first.status, 0, first.stderr);
+   const original = await readFile(output);
+   const report = completeEmptyReport(original);
+-  const { cases, ...summary } = report;
++  const summary = { ...report };
++  delete summary.cases;
+   assert.deepEqual(JSON.parse(first.stdout), summary);
+   const second = await invoke('second-publication', paths, output);
+   assert.notEqual(second.status, 0);

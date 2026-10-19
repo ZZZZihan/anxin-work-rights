@@ -1,0 +1,96 @@
+{
+  "head_sha": [
+    "6d081321b24b9fadd0088d6cc5b6c60e985eda26"
+  ],
+  "total_threads": 149,
+  "unresolved_threads": [
+    {
+      "id": "PRRT_kwDOVApLyM6tuJiu",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-money-v4.ts",
+      "comments": {
+        "totalCount": 2,
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0xMC0xOFQyMDo0ODo0M1rPAAAAAQDRJpU="
+        },
+        "nodes": [
+          {
+            "databaseId": 4308585072,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Parse symbol-prefixed Chinese numerals without 元**\n\nWhen an explicit RMB symbol prefixes a Chinese numeral without a trailing unit, `normalizeMoneyValueV4('¥四千')`, `normalizeMoneyValueV4('￥四千')`, and `normalizeMoneyValueV4('¥肆仟')` all return `unsupported`, although the token grammar accepts these forms and equivalent `RMB四千`, `人民币四千`, and `￥4000` values normalize to `4000.00`. The omitted-yuan handling recognizes only `RMB_NAME`, so include `¥/￥` in this parsing path to avoid dropping an unambiguous amount.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308585072",
+            "createdAt": "2026-10-18T20:22:00Z",
+            "updatedAt": "2026-10-18T20:22:01Z"
+          },
+          {
+            "databaseId": 4308674197,
+            "body": "已在精确6d081与旧5374上用同一夹具确认：¥四千、￥四千、¥肆仟的候选仍accepted且raw保留，派生金额unsupported/null；RMB四千与外币控制结果符合当前守护。这是旧有的有限语法漏支持，不是本轮退化，也不是候选被删除。本轮未修复，保留unresolved，列为可用性P2；不将当前交付表述为支持该写法。\n\n本次有限分诊使用同15输入×完整/最小引文，各30条观察，未发现本轮退化、raw丢失或错误放行；不构成任意语法、UI或人工业务验收。独立收据SHA-256：909cd75ca5fe589faa3225b9ec00ef48ae701b25a75c76f6d67e7c348a4487f8，原始失败与有效观察均保留。当前PR未合并。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308674197",
+            "createdAt": "2026-10-18T20:48:43Z",
+            "updatedAt": "2026-10-18T20:48:43Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tuJix",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-fact-event-review.ts",
+      "comments": {
+        "totalCount": 2,
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0xMC0xOFQyMDo0ODo0NFrPAAAAAQDRJuw="
+        },
+        "nodes": [
+          {
+            "databaseId": 4308585077,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept yearless dates for explicit wage receipts**\n\nFresh evidence beyond the separate yearless-payment and `到账` fixes is that their combination still fails: `王甲工资于1月15日到账` (and the corresponding `收到` form) returns false from `hasSupportedCandidateAttribution`, so runtime adds `source_relation_unresolved` to a valid `payment_date`. The new month/day grammar is used only by the payment-verb branch, while this receipt branch still requires a full `calendarDate`; allow the same bounded `monthDayPaymentDate` here without inventing a year.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308585077",
+            "createdAt": "2026-10-18T20:22:00Z",
+            "updatedAt": "2026-10-18T20:22:01Z"
+          },
+          {
+            "databaseId": 4308674284,
+            "body": "已在精确6d081与旧5374上动态确认：1月15日到账/收到仍保留日期候选并增加source_relation_unresolved，完整年月日到账控制通过，否定/错误日期角色仍受保护。两版本同输入行为一致。本轮未修复，保留unresolved，列为可用性P2；不会将这项额外核对提示表述为已支持或错误金额放行。\n\n本次有限分诊使用同15输入×完整/最小引文，各30条观察，未发现本轮退化、raw丢失或错误放行；不构成任意语法、UI或人工业务验收。独立收据SHA-256：909cd75ca5fe589faa3225b9ec00ef48ae701b25a75c76f6d67e7c348a4487f8，原始失败与有效观察均保留。当前PR未合并。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308674284",
+            "createdAt": "2026-10-18T20:48:44Z",
+            "updatedAt": "2026-10-18T20:48:45Z"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tuJi2",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-fact-event-review.ts",
+      "comments": {
+        "totalCount": 2,
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOnYyOpK0MjAyNi0xMC0xOFQyMDo0ODo0NlrPAAAAAQDRJ0U="
+        },
+        "nodes": [
+          {
+            "databaseId": 4308585082,
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Recognize prefix-named wage rates during attribution**\n\nExplicit rates written as `王甲月工资为400元`, `王甲日工资为400元`, `王甲小时工资为400元`, or `王甲计件工资为400元` fail `hasSupportedCandidateAttribution` even when the candidate declares the corresponding `rateUnit`. The downstream source-rate grammar already recognizes these finite prefix forms, but this role whitelist admits only alternatives such as `月薪`, `日薪`, `时薪`, and `每月`, so runtime adds `source_relation_unresolved` to otherwise unambiguous rates; align the attribution vocabulary with the supported prefix-rate grammar.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308585082",
+            "createdAt": "2026-10-18T20:22:00Z",
+            "updatedAt": "2026-10-18T20:22:01Z"
+          },
+          {
+            "databaseId": 4308674373,
+            "body": "已在精确6d081与旧5374上动态确认月工资/日工资/小时工资的相邻形式：正确rateUnit仍可解析400.00，但保留关系核对；月薪正控通过，冒充due_total仍rate_unit_mismatch/null。两版本同输入行为一致。本轮未修复，保留unresolved，列为可用性P2；计件形式仅有本条源码审查证据，未扩大声称已动态覆盖。\n\n本次有限分诊使用同15输入×完整/最小引文，各30条观察，未发现本轮退化、raw丢失或错误放行；不构成任意语法、UI或人工业务验收。独立收据SHA-256：909cd75ca5fe589faa3225b9ec00ef48ae701b25a75c76f6d67e7c348a4487f8，原始失败与有效观察均保留。当前PR未合并。",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308674373",
+            "createdAt": "2026-10-18T20:48:46Z",
+            "updatedAt": "2026-10-18T20:48:46Z"
+          }
+        ]
+      }
+    }
+  ],
+  "no_new_dynamic_cases_executed": true
+}

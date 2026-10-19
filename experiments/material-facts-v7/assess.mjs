@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { parseCandidateOutput, validateCandidateOutput, getCandidateRepresentation } from '../../lib/material-facts-v3.ts';
 import { validateRuntimeCandidateOutput } from '../../lib/material-fact-runtime-ingest.ts';
@@ -201,6 +201,8 @@ export const readJsonl = async path => (await readFile(path, 'utf8')).trim().spl
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [inputs, labels, results, output] = process.argv.slice(2);
   const report = assess(await readJsonl(inputs), await readJsonl(labels), await readJsonl(results));
-  await writeFile(output, JSON.stringify(report, null, 2) + '\n');
+  const { publishImmutableFile } = await import('./immutable-artifact-publication.mjs');
+  const publication = await publishImmutableFile(output, JSON.stringify(report, null, 2) + '\n');
+  if (!publication.temporary_removed) console.error(JSON.stringify({ publication }));
   console.log(JSON.stringify({ ...report, cases: undefined }, null, 2));
 }

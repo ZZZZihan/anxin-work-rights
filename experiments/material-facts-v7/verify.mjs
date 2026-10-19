@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { BACKENDS, COUNTS, EXPERIMENT, QWEN_MEMORY, REQUIRED_FILES, ROOT, RUN_HASH_FILES, isMainModule, loadPolicy, deepseekReservation, priorDeepseekReservation, validateQwenIdentity, validateDevelopment, checkFileHashes, filesUnder, json, jsonl, messageBytes, same, sha, validateData, verifyLegacy } from './freeze.mjs';
 import { buildSummary } from './summarize.mjs';
+import { publishImmutableFile } from './immutable-artifact-publication.mjs';
 
 const GIB = 1024 ** 3;
 const pythonJson = value => Array.isArray(value) ? `[${value.map(pythonJson).join(', ')}]` : value && typeof value === 'object' ? `{${Object.entries(value).map(([key, entry]) => `${JSON.stringify(key)}: ${pythonJson(entry)}`).join(', ')}}` : JSON.stringify(value);
@@ -80,6 +81,15 @@ function checkOutcome(backend, outcome, rows, ids) {
   const attempted = new Set(outcome.attempts.flatMap(attempt => attempt.ids));
   assert(rows.every(row => attempted.has(row.id)), `${backend} result has no process attempt`);
   for (const attempt of outcome.attempts) {
+    if (attempt.worker_started === false || attempt.stdout_state === 'not_started' || attempt.stop_reason === 'initial_memory_state') {
+      assert.equal(backend, 'qwen', 'Only Qwen has a pre-spawn memory guard');
+      assert.equal(attempt.worker_started, false, 'Pre-spawn stop must explicitly record no worker');
+      assert.equal(attempt.stdout_state, 'not_started', 'Pre-spawn stop must not claim a drained stream');
+      assert.equal(attempt.stop_reason, 'initial_memory_state', 'Pre-spawn stop requires its memory-guard reason');
+      assert.equal(attempt.code, undefined, 'An unstarted worker cannot have an exit code');
+      assert.equal(attempt.signal, undefined, 'An unstarted worker cannot have an exit signal');
+      assert(!rows.some(row => attempt.ids.includes(row.id)), 'An unstarted worker cannot have result rows');
+    }
     assert.equal(attempt.incomplete_stdout, false, `${backend} incomplete or missing stdout termination evidence`);
     const completed = attempt.code === 0 && !attempt.stop_reason && attempt.ids.every(id => rows.some(row => row.id === id && row.finish_reason === 'stop'));
     assert.equal(attempt.completed, completed, `${backend} process completion receipt is inconsistent`);
@@ -88,6 +98,9 @@ function checkOutcome(backend, outcome, rows, ids) {
 }
 
 function checkEvents(backend, events, rows, outcome, ids) {
+  for (const attempt of outcome.attempts ?? []) if (attempt.worker_started === false) {
+    assert(!events.some(event => attempt.ids.includes(event.id)), 'An unstarted worker cannot have worker events');
+  }
   for (const event of events) if (event.id !== undefined) assert(ids.includes(event.id), `${backend} event has an unexpected id`);
   const results = events.filter(event => event.type === 'result');
   assert.equal(new Set(results.map(row => row.id)).size, results.length, `${backend} duplicate terminal event`);
@@ -247,9 +260,10 @@ export async function verifyExperiment(root = ROOT, { preflight = false, writeMa
   for (const path of artifactPaths.sort()) files[path.slice(`${EXPERIMENT}/`.length)] = sha(await readFile(resolve(root, path)));
   const manifest = { schema: 'material-facts-v7-results/1', training: false, freeze_sha256: sha(await readFile(resolve(root, EXPERIMENT, 'freeze.json'))), runs, files };
   const destination = resolve(root, EXPERIMENT, 'result-manifest.json');
-  if (writeManifest) await writeFile(destination, JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx' });
+  let publication;
+  if (writeManifest) publication = await publishImmutableFile(destination, JSON.stringify(manifest, null, 2) + '\n');
   else same(await json(destination), manifest, 'Result manifest differs or omits artifacts');
-  return { status: 'PASS', preflight: false, planned_per_backend: COUNTS.holdout, runs, budget, result_files: Object.keys(files).length, result_manifest_sha256: sha(await readFile(destination)), inference: false, training: false };
+  return { status: 'PASS', preflight: false, planned_per_backend: COUNTS.holdout, runs, budget, result_files: Object.keys(files).length, result_manifest_sha256: sha(await readFile(destination)), inference: false, training: false, ...(publication ? { publication } : {}) };
 }
 
 if (await isMainModule(import.meta.url)) {

@@ -1,0 +1,133 @@
+import hashlib
+import json
+import os
+from pathlib import Path
+import resource
+import subprocess
+import time
+
+ROOT = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+OUT = Path(__file__).resolve().parent
+E = Path('experiments/material-facts-v7')
+BASE = 'a8d0b70448a11e62c8b2abe1d02298a3e4d3c04e'
+NODE = '/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node'
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+def save(name, data):
+    path = OUT / name
+    with path.open('x') as stream:
+        json.dump(data, stream, ensure_ascii=False, indent=2)
+        stream.write('\n')
+
+def git_bytes(path):
+    return subprocess.check_output(['git', 'show', f'{BASE}:{path}'], cwd=ROOT)
+
+source_paths = [E / 'verify.mjs', E / 'verify-frozen.mjs', E / 'verify-correction-v29.mjs',
+                E / 'corrective-assessment-v30.mjs', Path('.github/workflows/ci.yml')]
+sources = {}
+for rel in source_paths:
+    data = git_bytes(rel)
+    destination = OUT / ('snapshot-' + str(rel).replace('/', '__'))
+    destination.write_bytes(data)
+    sources[str(rel)] = {'sha256': sha(data), 'actual_current_matches_fixed_base': (ROOT / rel).read_bytes() == data}
+
+verify = git_bytes(E / 'verify.mjs').decode()
+statement = next(line.strip() for line in verify.splitlines() if line.strip().startswith('if (writeManifest) await writeFile(destination,'))
+assert statement == "if (writeManifest) await writeFile(destination, JSON.stringify(manifest, null, 2) + '\\n', { flag: 'wx' });"
+original_path = ROOT / E / 'result-manifest.json'
+original = json.loads(original_path.read_bytes())
+current = json.loads((ROOT / E / 'corrections-v30/manifest.json').read_bytes())
+archive = json.loads((ROOT / E / 'correction-code-v29/manifest.json').read_bytes())
+protected = set(source_paths) | {E / 'result-manifest.json', E / 'freeze.json', E / 'corrections-v30/manifest.json', E / 'correction-code-v29/manifest.json'}
+protected |= {E / rel for rel in original['files']}
+protected |= {Path(rel) for rel in current['code_sha256']}
+protected |= {E / 'corrections-v30' / rel for rel in current['files']}
+protected |= {E / 'correction-code-v29' / f'{rel}.snapshot' for rel in archive['files']}
+before = {str(rel): sha((ROOT / rel).read_bytes()) for rel in sorted(protected)}
+save('protected-before.json', before)
+
+payload = OUT / 'payload.original-manifest.json'
+payload.write_bytes(original_path.read_bytes())
+child = OUT / 'publish-exact-statement.mjs'
+child.write_text("""import { readFile, writeFile } from 'node:fs/promises';
+process.on('SIGXFSZ', () => {});
+const destination = process.argv[2];
+const manifest = JSON.parse(await readFile(process.argv[3], 'utf8'));
+const writeManifest = true;
+try {
+  """ + statement + """
+  console.log(JSON.stringify({ status: 'PASS' }));
+} catch (error) {
+  console.log(JSON.stringify({ status: 'FAIL', code: error.code, name: error.name }));
+  process.exitCode = 1;
+}
+""")
+
+def execute(label, destination, limit=None):
+    def impose_limit():
+        resource.setrlimit(resource.RLIMIT_FSIZE, (limit, limit))
+    started = time.monotonic()
+    result = subprocess.run([NODE, str(child), str(destination), str(payload)], capture_output=True, text=True,
+                            timeout=15, preexec_fn=impose_limit if limit is not None else None)
+    record = {'label': label, 'argv': [NODE, str(child), str(destination), str(payload)],
+              'fault': None if limit is None else {'mechanism': 'native RLIMIT_FSIZE', 'limit_bytes': limit, 'SIGXFSZ': 'handled so native writeFile returns EFBIG'},
+              'exit_code': result.returncode, 'stdout': result.stdout, 'stderr': result.stderr,
+              'elapsed_seconds': time.monotonic() - started}
+    (OUT / f'{label}.stdout.log').write_text(result.stdout)
+    (OUT / f'{label}.stderr.log').write_text(result.stderr)
+    save(f'{label}.execution.json', record)
+    return record
+
+for directory in ['control', 'fault']:
+    (OUT / directory).mkdir()
+control = OUT / 'control/result-manifest.json'
+fault = OUT / 'fault/result-manifest.json'
+ok = execute('01-control-first-publication', control)
+assert ok['exit_code'] == 0 and json.loads(control.read_bytes()) == original
+control_sha = sha(control.read_bytes())
+repeat = execute('02-control-repeat-no-overwrite', control)
+assert repeat['exit_code'] == 1 and json.loads(repeat['stdout'])['code'] == 'EEXIST'
+assert sha(control.read_bytes()) == control_sha
+failed = execute('03-native-partial-write', fault, 128)
+assert failed['exit_code'] == 1 and json.loads(failed['stdout'])['code'] == 'EFBIG'
+fragment = fault.read_bytes()
+assert len(fragment) == 128 and len(payload.read_bytes()) > len(fragment)
+try:
+    json.loads(fragment)
+    raise AssertionError('Expected truncated manifest JSON to be invalid')
+except json.JSONDecodeError as error:
+    parse_error = str(error)
+retry = execute('04-retry-after-write-failure', fault)
+assert retry['exit_code'] == 1 and json.loads(retry['stdout'])['code'] == 'EEXIST'
+assert fault.read_bytes() == fragment
+
+checks = {
+    'first_result_manifest_sha256': sha(original_path.read_bytes()),
+    'first_result_manifest_expected_sha256': '3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee',
+    'first_result_artifacts': {'count': len(original['files']), 'all_match': all(sha((ROOT / E / rel).read_bytes()) == digest for rel, digest in original['files'].items())},
+    'current_v30_code': {'count': len(current['code_sha256']), 'all_match': all(sha((ROOT / rel).read_bytes()) == digest for rel, digest in current['code_sha256'].items())},
+    'current_v30_reports_and_comparison': {'count': len(current['files']), 'all_match': all(sha((ROOT / E / 'corrections-v30' / rel).read_bytes()) == digest for rel, digest in current['files'].items())},
+    'v29_archive_code': {'count': len(archive['files']), 'all_match': all(sha((ROOT / E / 'correction-code-v29' / f'{rel}.snapshot').read_bytes()) == digest for rel, digest in archive['files'].items())}
+}
+assert checks['first_result_manifest_sha256'] == checks['first_result_manifest_expected_sha256']
+assert all(entry['all_match'] for entry in checks.values() if isinstance(entry, dict) and 'all_match' in entry)
+after = {str(rel): sha((ROOT / rel).read_bytes()) for rel in sorted(protected)}
+save('protected-after.json', after)
+assert before == after
+receipt = {
+    'schema': 'issue42-a8d0-result-manifest-fault-triage/1',
+    'scope': 'Exact a8d0 publication statement with native fs/promises.writeFile; no full verifier/preflight/scorer/model/network execution',
+    'baseline_commit': BASE, 'node': subprocess.check_output([NODE, '--version'], text=True).strip(),
+    'source_files': sources, 'publication_statement': statement,
+    'control': {'successful_publication': True, 'repeat_refused_without_overwrite': True},
+    'fault': {'native_error': 'EFBIG', 'partial_bytes': len(fragment), 'expected_bytes': len(payload.read_bytes()), 'json_parse_error': parse_error,
+              'retry_error': 'EEXIST', 'fragment_retained_unchanged': True,
+              'limitation': 'Native bounded-file I/O failure, not a reproduced SIGKILL or whole verifier crash'},
+    'current_frozen_artifact_checks': checks,
+    'protected_root_paths': len(before), 'all_root_bytes_unchanged': before == after,
+    'source_or_root_modified': False, 'inference': False, 'network': False
+}
+save('probe.receipt.json', receipt)
+print(json.dumps(receipt, ensure_ascii=False, indent=2))

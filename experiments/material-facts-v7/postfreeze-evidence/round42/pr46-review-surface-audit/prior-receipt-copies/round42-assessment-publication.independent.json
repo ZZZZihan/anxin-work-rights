@@ -1,0 +1,150 @@
+{
+  "schema": "issue42-assessment-cli-publication-independent/1",
+  "status": "SCOPE_PASS_ON_EXACT_ISOLATED_FINAL_ASSESSMENT_CLI",
+  "recorded_at_utc": "2026-10-18T23:02:18.574396+00:00",
+  "root_read_only": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+  "execution_location": "OWN isolated exact ROOT lib/helper with either baseline or final assess; no ROOT output",
+  "finding": {
+    "surface": "PullRequestReview.body",
+    "graphql_id": "PRR_kwDOVApLyM8AAAABS3-ZaA",
+    "database_id": 5561620840,
+    "review_url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#pullrequestreview-5561620840",
+    "review_commit": "3e14bd781a230b3fc937fd6e46a62b8b87232bab",
+    "submitted_at": "2026-10-18T05:41:34Z",
+    "body_preserved": "original-pull-request-review.json",
+    "severity": "P1",
+    "observed_pre_fix_reachability": true,
+    "historical_0abcea_still_contains_writeFile": true
+  },
+  "baseline_assess_sha256": "2c14d8b7c2de5fd397a570f01cd34d8019a7caa66ed8d2f217c0b9ad6382dbb4",
+  "final_assess_sha256": "5d96722e5d6ec46ed5b8218c769d934b6ad5af390a2b830ced8624d6ff7aa3d7",
+  "helper_sha256": "2dad271198a54cdebb47b43a4d8dde720a6bfccb4dfda8139fb2581916f2f084",
+  "locked_independent_test": {
+    "source": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round42-assessment-publication-independent.test.mjs",
+    "sha256": "b54ef91abd33ba58d40fb4e8c8cd22d2c8005d0dac9bb37ee465d2f5d138f16b",
+    "cases": 5
+  },
+  "actual_runs": {
+    "baseline-node24": {
+      "exit_code": 1,
+      "elapsed_seconds": 0.6294207909959368,
+      "node": "v24.22.0",
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "scripts/material-facts-v7-round42-assessment-publication-independent.test.mjs"
+      ],
+      "execution_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/.scratch/round42-assessment-baseline-source",
+      "source_assess_sha256": "2c14d8b7c2de5fd397a570f01cd34d8019a7caa66ed8d2f217c0b9ad6382dbb4",
+      "tests": 5,
+      "pass": 1,
+      "fail": 4,
+      "skip": 0,
+      "timeout": false
+    },
+    "final-node24": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.6102362499805167,
+      "node": "v24.22.0",
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "scripts/material-facts-v7-round42-assessment-publication-independent.test.mjs"
+      ],
+      "execution_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/.scratch/round42-assessment-final-source",
+      "source_assess_sha256": "5d96722e5d6ec46ed5b8218c769d934b6ad5af390a2b830ced8624d6ff7aa3d7",
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skip": 0,
+      "timeout": false
+    },
+    "final-node26": {
+      "exit_code": 0,
+      "elapsed_seconds": 1.1836057910113595,
+      "node": "v26.11.0",
+      "command": [
+        "/opt/homebrew/bin/node",
+        "--test",
+        "scripts/material-facts-v7-round42-assessment-publication-independent.test.mjs"
+      ],
+      "execution_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/.scratch/round42-assessment-final-source",
+      "source_assess_sha256": "5d96722e5d6ec46ed5b8218c769d934b6ad5af390a2b830ced8624d6ff7aa3d7",
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skip": 0,
+      "timeout": false
+    }
+  },
+  "direct_observations": [
+    "Baseline actual CLI overwrote existing sentinel and a symlink target, each exited zero and printed success.",
+    "Baseline two actual CLI writers both exited zero; final has exactly one complete winner and one EEXIST refusal.",
+    "Final existing destinations, symlink victim, and second publication retain exact original bytes; failure stdout does not claim success.",
+    "Fresh final output is a complete six-metric empty report and stdout is its matching summary.",
+    "Malformed JSON input remains an ordinary nonzero input error and creates no output."
+  ],
+  "static_review": {
+    "assessment_non_cli_exported_body_identical_after_removing_unused_write_import": true,
+    "cli_only_dynamic_helper_import": true,
+    "publication_helper_sha256": "2dad271198a54cdebb47b43a4d8dde720a6bfccb4dfda8139fb2581916f2f084",
+    "final_assess_sha256": "5d96722e5d6ec46ed5b8218c769d934b6ad5af390a2b830ced8624d6ff7aa3d7",
+    "dependency_files_unchanged_except_assess": true
+  },
+  "root_protection": {
+    "checked_paths": 152,
+    "unchanged_at_test_completion": true,
+    "scope": "78 lib files; 59 results paths; v30 and v31 five-file artifacts each; current assess/helper/freeze plus one prior technical receipt",
+    "before": "protected-before.json",
+    "after": "protected-after.json",
+    "all_repository_files_claimed": false,
+    "subsequent_parent_integration_not_part_of_snapshot": true
+  },
+  "failure_retention": {
+    "baseline_real_failures": "baseline-node24.stdout.log",
+    "node26_initial_launcher_path_error": "final-node26-initial-launcher-error.json",
+    "receipt_preparation_tool_error": "receipt-preparation-error.json",
+    "tool_errors_not_product_failures": true,
+    "prior_rounds_not_modified": true
+  },
+  "limited_checks": [
+    {
+      "name": "independent-script-syntax",
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--check",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round42-assessment-publication-independent.test.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "assessment-exact-diff-whitespace",
+      "command": [
+        "git",
+        "diff",
+        "--no-index",
+        "--check",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round42/assessment-publication-independent/assess.mjs.before.snapshot",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round42/assessment-publication-independent/assess.mjs.final.snapshot"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "scope_limits": [
+    "Inputs are three synthetic empty JSONL files, not frozen material inputs/gold/results; this verifies the real CLI output boundary without reevaluating materials.",
+    "No original frozen output was intentionally overwritten; all output targets and symlink victims were OWN temporary files.",
+    "No history CLI, actual material scoring, full check, HTTP, model inference, training, deployment or GitHub write was executed.",
+    "This isolated final review is not a ROOT integrated test or exact-head CI result.",
+    "Atomic hard-link publication protects complete visibility and no replacement; it is not a power-loss/directory durability claim.",
+    "Review threads and ordinary issue comments do not exhaust review findings: PullRequestReview.body is a separate required audit surface."
+  ],
+  "model_configuration": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "ultra",
+    "actual_backend_independently_verified": false
+  }
+}

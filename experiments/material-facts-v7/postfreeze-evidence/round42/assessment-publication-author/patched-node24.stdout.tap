@@ -1,0 +1,62 @@
+TAP version 13
+# Subtest: real assessment CLI publishes a complete new report and keeps its stdout summary contract
+ok 1 - real assessment CLI publishes a complete new report and keeps its stdout summary contract
+  ---
+  duration_ms: 93.857792
+  type: 'test'
+  ...
+# Subtest: real assessment CLI never overwrites an existing report
+ok 2 - real assessment CLI never overwrites an existing report
+  ---
+  duration_ms: 86.884208
+  type: 'test'
+  ...
+# {"exit":1,"original_unchanged":true}
+# Subtest: real assessment CLI does not follow or replace an existing report symlink
+ok 3 - real assessment CLI does not follow or replace an existing report symlink
+  ---
+  duration_ms: 86.942208
+  type: 'test'
+  ...
+# {"exit":1,"original_unchanged":true}
+# Subtest: native CLI partial write preserves its stage, leaves no final report and allows a clean retry
+ok 4 - native CLI partial write preserves its stage, leaves no final report and allows a clean retry
+  ---
+  duration_ms: 188.776417
+  type: 'test'
+  ...
+# {"exit":1,"final_exists":false,"stage_bytes":[128],"native_error":true}
+# Subtest: real CLI links only complete report bytes while the final name is absent
+ok 5 - real CLI links only complete report bytes while the final name is absent
+  ---
+  duration_ms: 86.876083
+  type: 'test'
+  ...
+# Subtest: concurrent assessment CLIs leave one immutable complete report and one preserved losing stage
+ok 6 - concurrent assessment CLIs leave one immutable complete report and one preserved losing stage
+  ---
+  duration_ms: 92.876458
+  type: 'test'
+  ...
+# {"exit_codes":[1,0]}
+# Subtest: stage cleanup failure keeps the published report successful and explicitly reports published state
+ok 7 - stage cleanup failure keeps the published report successful and explicitly reports published state
+  ---
+  duration_ms: 170.354333
+  type: 'test'
+  ...
+# Subtest: library-only scorer fixtures do not require the CLI publication helper
+ok 8 - library-only scorer fixtures do not require the CLI publication helper
+  ---
+  duration_ms: 77.281834
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 927.4125

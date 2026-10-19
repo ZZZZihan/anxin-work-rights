@@ -32,7 +32,12 @@ export async function withCorrectionV7Code(action, root = ROOT) {
   }
   const temporary = await realpath(await mkdtemp(join(tmpdir(), 'anxin-v7-correction-v7-')));
   try {
-    for (const path of ['lib', 'scripts', 'experiments', 'docs', 'package.json']) await cp(resolve(root, path), resolve(temporary, path), { recursive: true });
+    // Diagnostic audit attachments are never execution inputs. Keep every frozen
+    // result, code snapshot, data file and review-evidence file in the copy.
+    // Exclude only this exact subtree, including before archived wrappers recurse.
+    for (const path of ['lib', 'scripts', 'experiments', 'docs', 'package.json']) await cp(resolve(root, path), resolve(temporary, path), {
+      recursive: true, filter: source => resolve(source) !== resolve(root, EXPERIMENT, 'postfreeze-evidence'),
+    });
     for (const [path, bytes] of archived) {
       const target = resolve(temporary, path);
       await mkdir(dirname(target), { recursive: true });

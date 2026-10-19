@@ -1,0 +1,127 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, readFile, writeFile, symlink, lstat, rm } from 'node:fs/promises';
+import { spawn, spawnSync } from 'node:child_process';
+import { resolve, join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? fileURLToPath(new URL('../', import.meta.url)));
+const CLI = resolve(ROOT, 'experiments/material-facts-v7/assess.mjs');
+const TEMP_ROOT = resolve(process.env.V7_ASSESSMENT_TEMP_ROOT ?? tmpdir());
+const RECORD_ROOT = process.env.V7_ASSESSMENT_RECORD_ROOT && resolve(process.env.V7_ASSESSMENT_RECORD_ROOT);
+let sequence = 0;
+const sentinel = Buffer.from('{"original_frozen_report":"preserve byte-for-byte","raw":"😀原件"}\n');
+
+async function fixture(action) {
+  await mkdir(TEMP_ROOT, { recursive: true });
+  const directory = await mkdtemp(join(TEMP_ROOT, 'anxin-assessment-publication-'));
+  const paths = ['inputs.jsonl', 'labels.jsonl', 'results.jsonl'].map(name => join(directory, name));
+  try {
+    await Promise.all(paths.map(path => writeFile(path, '')));
+    return await action({ directory, paths });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+async function record(label, result, output) {
+  if (!RECORD_ROOT) return;
+  await mkdir(RECORD_ROOT, { recursive: true });
+  const prefix = join(RECORD_ROOT, `${String(++sequence).padStart(2, '0')}-${label}`);
+  await writeFile(`${prefix}.json`, JSON.stringify({
+    node: process.version, command: process.execPath, cli: CLI,
+    status: result.status, signal: result.signal,
+    error_code: result.error?.code ?? null,
+    stdout: result.stdout, stderr: result.stderr,
+  }, null, 2) + '\n');
+  try { await writeFile(`${prefix}.target.snapshot`, await readFile(output)); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+}
+
+async function invoke(label, paths, output) {
+  const result = spawnSync(process.execPath, [CLI, ...paths, output], {
+    encoding: 'utf8', timeout: 15000, maxBuffer: 1024 * 1024,
+  });
+  await record(label, result, output);
+  assert.equal(result.error, undefined, 'A timeout or failed spawn is never a successful refusal');
+  assert.equal(result.signal, null, 'A signal exit is never a successful refusal');
+  return result;
+}
+
+function completeEmptyReport(bytes) {
+  const report = JSON.parse(bytes);
+  assert.equal(report.planned_documents, 0);
+  assert.equal(report.expected_facts, 0);
+  assert.deepEqual(report.cases, []);
+  assert.equal(Object.keys(report.metrics).length, 6);
+  for (const metric of Object.values(report.metrics)) {
+    assert.deepEqual(metric, { tp: 0, fp: 0, fn: 0, precision: null, recall: null, f1: null });
+  }
+  return report;
+}
+
+test('the actual assessment CLI cannot overwrite an already published report', async () => fixture(async ({ directory, paths }) => {
+  const output = join(directory, 'report.json');
+  await writeFile(output, sentinel);
+  const result = await invoke('existing-report', paths, output);
+  assert.notEqual(result.status, 0, 'Existing destination must be rejected, not reported as successful publication');
+  assert.deepEqual(await readFile(output), sentinel);
+  assert.equal(result.stdout, '', 'Rejected publication cannot print the success report');
+}));
+
+test('an existing output symlink is rejected without modifying its target', async () => fixture(async ({ directory, paths }) => {
+  const victim = join(directory, 'original-report.json');
+  const output = join(directory, 'report-link.json');
+  await writeFile(victim, sentinel);
+  await symlink(victim, output);
+  const result = await invoke('existing-symlink', paths, output);
+  assert.notEqual(result.status, 0);
+  assert.equal((await lstat(output)).isSymbolicLink(), true);
+  assert.deepEqual(await readFile(victim), sentinel);
+  assert.equal(result.stdout, '');
+}));
+
+test('a fresh destination is complete and a second actual CLI publication refuses replacement', async () => fixture(async ({ directory, paths }) => {
+  const output = join(directory, 'fresh-report.json');
+  const first = await invoke('fresh-report', paths, output);
+  assert.equal(first.status, 0, first.stderr);
+  const original = await readFile(output);
+  const report = completeEmptyReport(original);
+  const { cases, ...summary } = report;
+  assert.deepEqual(JSON.parse(first.stdout), summary);
+  const second = await invoke('second-publication', paths, output);
+  assert.notEqual(second.status, 0);
+  assert.deepEqual(await readFile(output), original);
+  assert.equal(second.stdout, '');
+}));
+
+test('invalid input fails before publication and cannot create an output report', async () => fixture(async ({ directory, paths }) => {
+  const output = join(directory, 'invalid-report.json');
+  await writeFile(paths[0], '{not valid json}\n');
+  const result = await invoke('invalid-input', paths, output);
+  assert.notEqual(result.status, 0);
+  await assert.rejects(readFile(output), { code: 'ENOENT' });
+  assert.equal(result.stdout, '');
+}));
+
+test('two actual CLI writers have exactly one complete winner', async () => fixture(async ({ directory, paths }) => {
+  const output = join(directory, 'concurrent-report.json');
+  const start = () => new Promise((done, fail) => {
+    const child = spawn(process.execPath, [CLI, ...paths, output], { stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '';
+    child.stdout.setEncoding('utf8').on('data', chunk => { stdout += chunk; });
+    child.stderr.setEncoding('utf8').on('data', chunk => { stderr += chunk; });
+    const timeout = setTimeout(() => { child.kill('SIGKILL'); }, 15000);
+    child.on('error', error => { clearTimeout(timeout); fail(error); });
+    child.on('close', (status, signal) => { clearTimeout(timeout); done({ status, signal, stdout, stderr }); });
+  });
+  const results = await Promise.all([start(), start()]);
+  await Promise.all(results.map((result, index) => record(`concurrent-${index}`, result, output)));
+  assert(results.every(result => result.signal === null), 'Timeouts and signals cannot satisfy rejection');
+  assert.equal(results.filter(result => result.status === 0).length, 1);
+  const refused = results.find(result => result.status !== 0);
+  assert.equal(refused.stdout, '');
+  assert.match(refused.stderr, /EEXIST/);
+  completeEmptyReport(await readFile(output));
+}));

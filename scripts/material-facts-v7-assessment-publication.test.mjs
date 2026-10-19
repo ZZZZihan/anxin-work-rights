@@ -1,0 +1,152 @@
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import fs from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { basename, join, resolve } from 'node:path';
+import test from 'node:test';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const ROOT = resolve(process.env.MATERIAL_FACT_ASSESSMENT_PUBLICATION_ROOT ?? fileURLToPath(new URL('../', import.meta.url)));
+const E = 'experiments/material-facts-v7';
+const CLI = resolve(ROOT, E, 'assess.mjs');
+const preloadSource = `
+import fs from 'node:fs/promises';
+import { syncBuiltinESMExports } from 'node:module';
+process.on('SIGXFSZ', () => {});
+const nativeLink = fs.link;
+if (process.env.ASSESSMENT_PUBLICATION_SCENARIO === 'inspect-link') {
+  fs.link = async (stage, target) => {
+    let absent = false;
+    try { await fs.lstat(target); } catch (error) { if (error.code === 'ENOENT') absent = true; else throw error; }
+    const content = await fs.readFile(stage, 'utf8');
+    await fs.writeFile(process.env.ASSESSMENT_PUBLICATION_OBSERVATION, JSON.stringify({ absent, report: JSON.parse(content) }));
+    return nativeLink(stage, target);
+  };
+}
+if (process.env.ASSESSMENT_PUBLICATION_SCENARIO === 'unlink-failure') {
+  fs.unlink = async () => { throw Object.assign(new Error('injected stage cleanup failure'), { code: 'EACCES' }); };
+}
+syncBuiltinESMExports();
+`;
+
+async function fixture(t) {
+  const directory = await fs.mkdtemp(join(tmpdir(), 'anxin-assessment-publication-'));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  // Empty synthetic JSONL collections exercise the actual CLI and scorer without
+  // models, external data, frozen outputs, or stubbing any scoring implementation.
+  const inputs = join(directory, 'inputs.jsonl'), labels = join(directory, 'labels.jsonl'), results = join(directory, 'results.jsonl');
+  await Promise.all([inputs, labels, results].map(path => fs.writeFile(path, '\n')));
+  const preload = join(directory, 'preload.mjs');
+  await fs.writeFile(preload, preloadSource);
+  return { directory, inputs, labels, results, preload, output: join(directory, 'report.json'), observation: join(directory, 'link-observation.json') };
+}
+
+async function execute(file, { bounded = false, scenario = 'plain', args } = {}) {
+  const nodeArgs = ['--import', pathToFileURL(file.preload).href, CLI, file.inputs, file.labels, file.results, file.output];
+  const command = bounded ? 'python3' : process.execPath;
+  const commandArgs = args ?? (bounded
+    ? ['-c', 'import os,resource,sys; resource.setrlimit(resource.RLIMIT_FSIZE,(128,128)); os.execv(sys.argv[1],sys.argv[1:])', process.execPath, ...nodeArgs]
+    : nodeArgs);
+  const child = spawn(command, commandArgs, {
+    env: { ...process.env, ASSESSMENT_PUBLICATION_SCENARIO: scenario, ASSESSMENT_PUBLICATION_OBSERVATION: file.observation },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let stdout = '', stderr = '';
+  child.stdout.setEncoding('utf8').on('data', chunk => { stdout += chunk; });
+  child.stderr.setEncoding('utf8').on('data', chunk => { stderr += chunk; });
+  const timer = setTimeout(() => child.kill('SIGKILL'), 10000);
+  const exit = await new Promise((resolveExit, reject) => {
+    child.once('error', reject);
+    child.once('close', (code, signal) => resolveExit({ code, signal }));
+  }).finally(() => clearTimeout(timer));
+  return { ...exit, stdout, stderr };
+}
+
+function assertReport(report) {
+  assert.equal(report.planned_documents, 0);
+  assert.equal(report.expected_facts, 0);
+  assert.deepEqual(report.cases, []);
+  assert.equal(Object.keys(report.metrics).length, 6);
+}
+async function stages(file) {
+  const names = (await fs.readdir(file.directory)).filter(name => name.startsWith(`.${basename(file.output)}.`) && name.endsWith('.stage'));
+  return Promise.all(names.sort().map(async name => ({ name, bytes: await fs.readFile(join(file.directory, name)) })));
+}
+
+test('real assessment CLI publishes a complete new report and keeps its stdout summary contract', async t => {
+  const file = await fixture(t), result = await execute(file);
+  assert.equal(result.code, 0, result.stderr); assert.equal(result.signal, null);
+  assertReport(JSON.parse(await fs.readFile(file.output, 'utf8')));
+  const summary = JSON.parse(result.stdout);
+  assert.equal(summary.planned_documents, 0); assert.equal('cases' in summary, false);
+  assert.deepEqual(await stages(file), []);
+});
+
+test('real assessment CLI never overwrites an existing report', async t => {
+  const file = await fixture(t), original = '{"planned_documents":99,"immutable":true}\n';
+  await fs.writeFile(file.output, original);
+  const result = await execute(file), actual = await fs.readFile(file.output, 'utf8');
+  t.diagnostic(JSON.stringify({ exit: result.code, original_unchanged: actual === original }));
+  assert.notEqual(result.code, 0, 'An already published report must reject another CLI invocation');
+  assert.match(result.stderr, /EEXIST/u); assert.equal(result.stdout, ''); assert.equal(actual, original);
+});
+
+test('real assessment CLI does not follow or replace an existing report symlink', async t => {
+  const file = await fixture(t), original = join(file.directory, 'original-report.json'), bytes = '{"immutable_symlink_target":true}\n';
+  await fs.writeFile(original, bytes); await fs.symlink(original, file.output);
+  const result = await execute(file), actual = await fs.readFile(original, 'utf8');
+  t.diagnostic(JSON.stringify({ exit: result.code, original_unchanged: actual === bytes }));
+  assert.notEqual(result.code, 0); assert.match(result.stderr, /EEXIST/u);
+  assert.equal((await fs.lstat(file.output)).isSymbolicLink(), true); assert.equal(actual, bytes);
+});
+
+test('native CLI partial write preserves its stage, leaves no final report and allows a clean retry', { skip: process.platform === 'win32' }, async t => {
+  const file = await fixture(t), failed = await execute(file, { bounded: true });
+  const partial = await stages(file);
+  let finalExists = true;
+  try { await fs.lstat(file.output); } catch (error) { if (error.code === 'ENOENT') finalExists = false; else throw error; }
+  t.diagnostic(JSON.stringify({ exit: failed.code, final_exists: finalExists, stage_bytes: partial.map(row => row.bytes.length), native_error: failed.stderr.includes('EFBIG') }));
+  assert.notEqual(failed.code, 0); assert.equal(failed.signal, null); assert.match(failed.stderr, /EFBIG/u);
+  assert.equal(finalExists, false); assert.equal(partial.length, 1); assert.equal(partial[0].bytes.length, 128);
+  assert.throws(() => JSON.parse(partial[0].bytes.toString()));
+  const retry = await execute(file); assert.equal(retry.code, 0, retry.stderr);
+  assertReport(JSON.parse(await fs.readFile(file.output, 'utf8')));
+  assert.deepEqual(await stages(file), partial, 'The failed stage must remain unchanged after retry');
+});
+
+test('real CLI links only complete report bytes while the final name is absent', async t => {
+  const file = await fixture(t), result = await execute(file, { scenario: 'inspect-link' });
+  assert.equal(result.code, 0, result.stderr);
+  const observation = JSON.parse(await fs.readFile(file.observation, 'utf8'));
+  assert.equal(observation.absent, true); assertReport(observation.report);
+  assert.deepEqual(JSON.parse(await fs.readFile(file.output, 'utf8')), observation.report);
+});
+
+test('concurrent assessment CLIs leave one immutable complete report and one preserved losing stage', async t => {
+  const file = await fixture(t), attempts = await Promise.all([execute(file), execute(file)]);
+  t.diagnostic(JSON.stringify({ exit_codes: attempts.map(row => row.code) }));
+  assert.equal(attempts.filter(row => row.code === 0).length, 1);
+  assert.equal(attempts.filter(row => row.code !== 0 && /EEXIST/u.test(row.stderr)).length, 1);
+  const report = JSON.parse(await fs.readFile(file.output, 'utf8')); assertReport(report);
+  const remaining = await stages(file); assert.equal(remaining.length, 1);
+  assert.deepEqual(JSON.parse(remaining[0].bytes.toString()), report);
+});
+
+test('stage cleanup failure keeps the published report successful and explicitly reports published state', async t => {
+  const file = await fixture(t), result = await execute(file, { scenario: 'unlink-failure' });
+  assert.equal(result.code, 0, result.stderr); assertReport(JSON.parse(await fs.readFile(file.output, 'utf8')));
+  const warning = JSON.parse(result.stderr.trim());
+  assert.equal(warning.publication.published, true); assert.equal(warning.publication.temporary_removed, false);
+  assert.equal(warning.publication.cleanup_error_code, 'EACCES'); assert.equal((await stages(file)).length, 1);
+  const retry = await execute(file); assert.notEqual(retry.code, 0); assert.match(retry.stderr, /EEXIST/u);
+});
+
+test('library-only scorer fixtures do not require the CLI publication helper', async t => {
+  const file = await fixture(t), libraryRoot = join(file.directory, 'library-only');
+  await fs.mkdir(join(libraryRoot, E), { recursive: true });
+  await fs.cp(resolve(ROOT, 'lib'), join(libraryRoot, 'lib'), { recursive: true });
+  const library = join(libraryRoot, E, 'assess.mjs'); await fs.copyFile(CLI, library);
+  await assert.rejects(fs.access(join(libraryRoot, E, 'immutable-artifact-publication.mjs')), { code: 'ENOENT' });
+  const imported = await import(pathToFileURL(library).href);
+  assertReport(imported.assess([], [], []));
+});
