@@ -1,0 +1,113 @@
+{
+  "round": 13,
+  "finding": "4306192877 / PRRT_kwDOVApLyM6tociw",
+  "created_at_utc": "2026-10-18T07:41:23.743282+00:00",
+  "baseline_commit": "25bc6e0074cb435e59cf3d89e1092e1891a04239",
+  "baseline_money_sha256": "128319f7bc7415c4e46aa1e70ab4135437a6f74d97f3275db3aa1b1793176f45",
+  "delivery_rule": "Apply parse-only unified hunk; do not overwrite concurrent root classifier work.",
+  "production_scope": "lib/material-money-v4.ts parseArabicSubunits only; TOKEN, classifier, currency/source guards and old tests unchanged by this subagent.",
+  "files_sha256": {
+    "lib/material-money-v4.ts": "a4cc5aafc9fe16268744d1eb7a2ef19aa34ede6bc80db06c11020f1ae824d0d8",
+    "scripts/material-fact-mixed-subunits.test.mjs": "4f7b83a7540c26309b5b8eb540d30a053f468eedfeb780eb0c66809985fa6799",
+    "experiments/material-facts-v7/postfreeze-evidence/round13/mixed-subunits.parse-only.patch": "3c6f1902feb3e6d398c0ab0d6cc8bffb705320de8d59ef848e73803cb186dd81"
+  },
+  "grammar": [
+    "ASCII integer yuan (existing valid comma grouping) followed by exactly one supported ASCII/Chinese lowercase/financial digit in each explicitly named jiao/fen subunit.",
+    "Jiao precedes fen; with no jiao, a single leading 零 before a nonzero fen digit is permitted.",
+    "No extra zero bridge after explicit jiao, no redundant zero-zero fen, omitted positions are never inferred beyond named subunits.",
+    "Exact BigInt cents feed the unchanged parseAmount range check; raw tokens and code-point spans remain original."
+  ],
+  "checks": [
+    {
+      "kind": "same_final_author_test_fixed_baseline",
+      "tests": 191,
+      "pass": 80,
+      "fail": 111,
+      "exit_code": 1,
+      "command": "V7_BASELINE_ROOT=/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin-round13-baseline-iaq2kmxh V7_MONEY_TEST_FILE=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round13/material-money-v4.baseline.snapshot node --test scripts/material-fact-mixed-subunits.test.mjs",
+      "log": "mixed-subunits.before-red.txt"
+    },
+    {
+      "kind": "author_green",
+      "tests": 191,
+      "pass": 191,
+      "fail": 0,
+      "exit_code": 0,
+      "command": "V7_BASELINE_ROOT=/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin-round13-baseline-iaq2kmxh node --test scripts/material-fact-mixed-subunits.test.mjs",
+      "log": "mixed-subunits.after-green.txt"
+    },
+    {
+      "kind": "existing_native_before_authorized_contract_migration",
+      "tests": 400,
+      "pass": 398,
+      "fail": 2,
+      "exit_code": 1,
+      "log": "existing-native.unmigrated.txt"
+    },
+    {
+      "kind": "existing_vitest_before_authorized_contract_migration",
+      "tests": 550,
+      "pass": 549,
+      "fail": 1,
+      "exit_code": 1,
+      "log": "existing-money.unmigrated.txt"
+    },
+    {
+      "kind": "scoped_eslint",
+      "exit_code": 0,
+      "command": "node node_modules/eslint/bin/eslint.js lib/material-money-v4.ts scripts/material-fact-mixed-subunits.test.mjs",
+      "log": "scoped-lint.txt"
+    }
+  ],
+  "required_old_contract_migrations": [
+    {
+      "path": "lib/material-money-v4.test.ts",
+      "line_at_25bc": 140,
+      "literal": "40000元五角",
+      "old": "unsupported/null",
+      "new": "exact 40000.50",
+      "reason": "Whole ASCII integer yuan with one supported Chinese single-digit jiao is now intentionally supported. Move the whole literal to exact positives; keep cropped bare40000 source tests unchanged."
+    },
+    {
+      "path": "scripts/material-fact-named-arithmetic-subunits.test.mjs",
+      "line_at_25bc": 78,
+      "literal": "5元五角",
+      "old": "invalid whole-token null",
+      "new": "exact 5.50",
+      "reason": "The prior all-mixed-subunits restriction is superseded only for ASCII integer yuan plus SINGLE_DIGIT subunits. Decimal/scaled/fullwidth/multi-digit/order negatives stay unchanged."
+    },
+    {
+      "path": "scripts/material-facts-v7-round11-money-independent.test.mjs",
+      "line_at_25bc": 148,
+      "literal": "5元五角",
+      "old": "unsupported whole value/fresh runtime amount null",
+      "new": "exact 5.50 for whole literal and fresh extraction",
+      "reason": "Move the full-value case to a positive exact contract. Leave line143 yuan-only crop test in the unavailable table and keep historical no-upgrade assertions."
+    }
+  ],
+  "initial_exploratory_log": "mixed-subunits.initial-exploratory-red.txt preserves the original run before removing an unnecessary duplicate currency prefix from an embedded-value test fixture; final fixed-baseline and green use exactly the same final test bytes.",
+  "limits": [
+    "Only ASCII integer yuan plus current SINGLE_DIGIT subunits are added; Chinese integer yuan mixed-financial spelling, decimals, scaled yuan and fullwidth monetary digits remain outside this helper.",
+    "Existing lexical guards remain responsible for minute/ordinary-word/fraction/arithmetic boundaries; those controls were included in author tests.",
+    "New extraction can be precise; existing unavailable history is never silently upgraded and an inconsistent persisted amount is downgraded.",
+    "No full project check, HTTP/live service or new model run was executed by this subagent.",
+    "950 existing tests are not claimed all green until ROOT migrates the three intentional old whole-literal expectations."
+  ],
+  "no_model_training_deployment": true,
+  "no_commits_or_pushes": true,
+  "no_root_or_frozen_artifact_changes": true,
+  "evidence_sha256": {
+    "existing-money.unmigrated.txt": "af9fc3f3a7b1bf137bf078bbf2947dc5979ce122f9e073a7425f3b18c0ea551b",
+    "existing-native.unmigrated.txt": "a9a2ddc41b78d8cc3b26f14b1f6b4bde37d820e02f21053f465f62bf9c5293f1",
+    "fixed-baseline.json": "f9d90246aa6d81daeea4e91ce36fad79e4ea24b018319f1a830a0926859ac001",
+    "material-money-v4.baseline.snapshot": "128319f7bc7415c4e46aa1e70ab4135437a6f74d97f3275db3aa1b1793176f45",
+    "material-money-v4.pre-task-owned.snapshot": "20af6a71a23494ec975afca8a509fa3728fde857d3e9cb4c0a28d958ea7b4024",
+    "mixed-subunits.after-green.txt": "58535f112aef7dc3fe7f4ca73dd45c7a7285c12d518d72dfbf9429b691691953",
+    "mixed-subunits.before-red.txt": "853b3bc979f836863f900049df902040a865b7512edfda095b3884aac79e6ced",
+    "mixed-subunits.contract-migrations.md": "59bbcf5fad8e993d5f912fa0ea184da481f16dc84d764ff1ff302cc0c7b203fd",
+    "mixed-subunits.initial-exploratory-red.txt": "7e8074c0a55e5a248989d16ed79d45fc482bf166ff6a3fa475be5b919c756abf",
+    "mixed-subunits.parse-only.patch": "3c6f1902feb3e6d398c0ab0d6cc8bffb705320de8d59ef848e73803cb186dd81",
+    "regression-overlay.json": "9835181099c4556a5222178c932d8962891f1ec4d170e965b28b59789331c0c9",
+    "scoped-lint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

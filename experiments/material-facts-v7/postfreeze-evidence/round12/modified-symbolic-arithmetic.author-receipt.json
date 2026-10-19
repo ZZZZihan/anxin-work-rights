@@ -1,0 +1,100 @@
+{
+  "review_round": 12,
+  "finding": "4306120468 / PRRT_kwDOVApLyM6toRhz",
+  "created_at_utc": "2026-10-18T07:15:40.485633+00:00",
+  "baseline_code_head": "7f3a79bf8b01a5982e9039b1b83e4c428d7197a5",
+  "baseline_helper_sha256": "3b299b4449c0311516c211bd5ef6253360fc3c45585a7cb6c7123c4002d5eed7",
+  "implementation_scope": [
+    "lib/material-fact-arithmetic-review.ts"
+  ],
+  "new_author_test": "scripts/material-fact-modified-symbolic-arithmetic.test.mjs",
+  "files_sha256": {
+    "lib/material-fact-arithmetic-review.ts": "09e91a8462dfffb1bd2e0ea2f3ec3fb7dea57cca1f4fdd18260ef8c53ace1ba1",
+    "scripts/material-fact-modified-symbolic-arithmetic.test.mjs": "0c60756e5b7a17cb8315fea6230e554a2266ad5e2293e9d21cd177fbff8c7635"
+  },
+  "behavior": [
+    "Named operands include 工龄系数 plus existing coefficient/ratio/day-count nouns with up to two finite modifiers and optional 的.",
+    "Modifiers: 实际 应当 应 约定 核定 核算 适用 有效 本月 当月 当期 本期.",
+    "Unknown bounded ASCII identifiers (1-32 characters, lexical boundaries) or a single Greek variable are recognized only beside an explicit operator, multiplier or fraction construction.",
+    "Detection views normalize NFKC/remove Cf and horizontal spaces; original evidence, source spans and raw storage stay untouched.",
+    "Whole values, candidate full quotes, original source with cropped quote/value, OCR next blocks, runtime and forced persisted v2/v3 precision are covered.",
+    "Direct payment prose, 加班费, independent punctuation/newline events, true Chinese /月 /日 /小时 /件 rates, counts and stated multiplier totals are preserved by controls."
+  ],
+  "checks": [
+    {
+      "kind": "final_test_baseline_red",
+      "exit_code": 1,
+      "tests": 59,
+      "pass": 17,
+      "fail": 42,
+      "command": "MATERIAL_FACT_TEST_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review MATERIAL_ARITHMETIC_TEST_HELPER=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round12/material-fact-arithmetic-review.ts.baseline.snapshot node --test scripts/material-fact-modified-symbolic-arithmetic.test.mjs",
+      "log": "modified-symbolic.before-red.txt"
+    },
+    {
+      "kind": "author_green",
+      "exit_code": 0,
+      "tests": 59,
+      "pass": 59,
+      "fail": 0,
+      "command": "MATERIAL_FACT_TEST_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review node --test scripts/material-fact-modified-symbolic-arithmetic.test.mjs",
+      "log": "modified-symbolic.after-green.txt"
+    },
+    {
+      "kind": "existing_arithmetic_native",
+      "exit_code": 0,
+      "tests": 350,
+      "pass": 350,
+      "fail": 0,
+      "command": "node --test scripts/material-fact-arithmetic-source-review.test.mjs scripts/material-fact-arithmetic-noun.test.mjs scripts/material-facts-v7-arithmetic-independent.test.mjs scripts/material-fact-named-arithmetic-subunits.test.mjs",
+      "cwd": "temporary overlay recorded in regression-overlay.json",
+      "log": "existing-arithmetic.native-green.txt"
+    },
+    {
+      "kind": "existing_money_vitest",
+      "exit_code": 0,
+      "tests": 550,
+      "pass": 550,
+      "fail": 0,
+      "command": "node node_modules/vitest/vitest.mjs run lib/material-money-v4.test.ts lib/material-money-v4.independent.test.ts lib/material-money-v4.review-regression.test.ts --config vitest.config.ts",
+      "cwd": "temporary overlay recorded in regression-overlay.json",
+      "log": "existing-money.vitest-green.txt"
+    },
+    {
+      "kind": "scoped_lint",
+      "exit_code": 0,
+      "command": "node node_modules/eslint/bin/eslint.js lib/material-fact-arithmetic-review.ts scripts/material-fact-modified-symbolic-arithmetic.test.mjs",
+      "log": "scoped-lint.txt"
+    }
+  ],
+  "exploratory_logs": {
+    "modified-symbolic.initial-exploratory-red.txt": "Original 59-test run before implementation: 16 pass/43 fail. Includes one ordinary-prose fixture that was already rejected by the pre-existing comma amount-boundary guard.",
+    "modified-symbolic.attempt1-failed.txt": "First implementation run: 57 pass/2 fail. A v2 test incorrectly assumed current ingest must preserve a historical exact amount; changed fixture to explicitly force persisted exact amount, not change its assertion. Ordinary prose fixture was also still invalid under existing comma guard.",
+    "modified-symbolic.fixture-adjustment-red.txt": "Intermediate final-fixture baseline 16 pass/43 fail; prose fixture retained adjacent comma and thus still hit pre-existing unrelated boundary.",
+    "modified-symbolic.attempt2-failed.txt": "Second implementation run: 58 pass/1 fail, remaining pre-existing comma boundary in prose control. Control then uses amount noun + sentence boundary and final baseline/green reruns above preserve all final assertions."
+  },
+  "limits": [
+    "Finite named modifiers and symbolic forms are deliberately bounded; this is not an evaluator or a full natural-language arithmetic grammar.",
+    "No new precise calculated value is derived; attached arithmetic is unsupported/null.",
+    "Existing parser rejection of a whole value whose amount is immediately followed by a comma is out of scope and unchanged.",
+    "Author self-check and execution of previously existing independent tests are distinct from fresh non-implementer round12 review.",
+    "No full npm check, HTTP acceptance or live model run performed by this subagent."
+  ],
+  "no_model_calls": true,
+  "no_training_or_deployment": true,
+  "no_frozen_data_labels_results_changed": true,
+  "no_commits_or_pushes": true,
+  "evidence_sha256": {
+    "existing-arithmetic.native-green.txt": "224f16790906df928377af9910dc97eebfa5a2b7393258e34d78b3b25004954c",
+    "existing-money.vitest-green.txt": "5e29067fbb8c8d580dce4a430f9ddb17eccffab7bb23e6696fd7cfa3f0002fa8",
+    "material-fact-arithmetic-review.ts.baseline.snapshot": "3b299b4449c0311516c211bd5ef6253360fc3c45585a7cb6c7123c4002d5eed7",
+    "modified-symbolic-arithmetic.patch": "9a08fe6220f76909f2d8ead8bab6987e1de3ef99e0f50a59a5ca03e583e9deab",
+    "modified-symbolic.after-green.txt": "d8e83a48ab10511d2546290c789738a8f8b0676765a19385a6fabf5c23b9d4a3",
+    "modified-symbolic.attempt1-failed.txt": "5b58a8f08ac0f1941427a3c2d831912ff151df744c2a63ffa2511f9329756d8f",
+    "modified-symbolic.attempt2-failed.txt": "4ada6234ed60197e0b35177ab06e1d37870e5cc3f2c44c856605cc8ebab9a2c9",
+    "modified-symbolic.before-red.txt": "38705c5a35d2858b68a64a435f890f5f9a7bfae212a504a42bb1104bc3a4c5c0",
+    "modified-symbolic.fixture-adjustment-red.txt": "13a3a2c6639ee9aecd3d2f1561f65c5b036dfa16f3134ed0926fe1ae23d20f8a",
+    "modified-symbolic.initial-exploratory-red.txt": "7d99c7cd0ca0b44363314ff492b2146a9d46b4ae5c64c718dadd18c9be229b92",
+    "regression-overlay.json": "e0a13cfa38ff2fba0aec5dc3129df0de3a7e620483d1e52144357a841ac61802",
+    "scoped-lint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

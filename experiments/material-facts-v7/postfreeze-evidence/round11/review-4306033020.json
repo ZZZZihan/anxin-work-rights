@@ -1,0 +1,10 @@
+{
+  "id": 4306033020,
+  "html_url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306033020",
+  "path": "lib/material-fact-currency-review.ts",
+  "line": 40,
+  "commit_id": "24812ce6ca16f3f0893ba18c54f8b9ce0530d93a",
+  "created_at": "2026-10-18T06:38:36Z",
+  "updated_at": "2026-10-18T06:38:36Z",
+  "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Reject currencies linked by bare valuation verbs**\n\nFresh evidence after the earlier attribution fix: when the source says `王甲的工资以港币计四万元` and the model crops both `value` and `quote` to `四万元`, the bridge fails because bare `计` (and likewise `计算`/`折算`) is absent from this vocabulary. `validateRuntimeCandidateOutput` consequently retains `amount: \"40000.00\"` with `status: \"exact\"`, representing an HKD amount as RMB; extend the finite bridge to cover these same-event valuation constructions.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+}

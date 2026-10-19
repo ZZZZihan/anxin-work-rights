@@ -1,0 +1,82 @@
+{
+  "baseline": {
+    "codeReviewHead": "36ad5680c6626409e961be80cbc6b479497370b6",
+    "file": "lib/material-fact-source-review.ts",
+    "sha256": "1da900cf5c9ddaa62dec8548eff8c528ade853549853a248bb647e18cf06b035"
+  },
+  "files": {
+    "lib/material-fact-source-review.ts": "315e2baa38ab5d9d30a581246bca57f3f740ae2586057d3bc5721e2d502ca6fd",
+    "scripts/material-fact-relative-day-source-review.test.mjs": "f6fd444eb97488cd2678275bcb0abb3944bafb4afe5397f46787aba2799b4af5"
+  },
+  "integratedParser": {
+    "sha256": "912f97c3c3bb43210dfb367afd8f2553c7ff18053a955d553a2b66f855181bcf",
+    "owner": "v7_money; copied only to temporary integration fixture"
+  },
+  "patchSha256": "62a340a20d64c39d0319ef065f032a715fe34d0ccf63505dc5b5e9450ae3be67",
+  "checks": [
+    {
+      "receipt": "relative-day-some-day-before-red.receipt.json",
+      "exitCode": 1,
+      "logSha256": "469f30f96b134053facfef2cc2f7f421d642169123551ff0f9720522814c685c"
+    },
+    {
+      "receipt": "relative-day-source-final-v2-before-red.receipt.json",
+      "exitCode": 1,
+      "logSha256": "dc783238f6ece2871c45e8f6fa45400bb05998d0088f82305550e083c2914888"
+    },
+    {
+      "receipt": "relative-day-source-final-v2-after-green.receipt.json",
+      "exitCode": 0,
+      "logSha256": "62ba7482e6ee2e759faba738075e1055e5cf8de587882eb43a7b06d7b9c8b8f7"
+    },
+    {
+      "receipt": "relative-day-source-final-v2-integrated-green.receipt.json",
+      "exitCode": 0,
+      "logSha256": "e255fed7a30a48b4d8463e15e322fb1e3adb82c11198d4fa1d5274315b6f5d14"
+    },
+    {
+      "receipt": "relative-day-source-final-v2-existing-regression.receipt.json",
+      "exitCode": 0,
+      "logSha256": "8706bedf94dbf8c0b77c9efa759e46dde0741dc2e0b6ab897ba0521c33e990da"
+    },
+    {
+      "receipt": "relative-day-source-final-v2-scoped-eslint.receipt.json",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "counts": {
+    "baselineSameFinalAuthorTest": {
+      "pass": 72,
+      "fail": 85
+    },
+    "previousFixWithNewSomeDayCases": {
+      "pass": 153,
+      "fail": 4
+    },
+    "finalAuthorTest": {
+      "pass": 157,
+      "fail": 0
+    },
+    "integratedNodeTests": {
+      "pass": 387,
+      "fail": 0
+    },
+    "existingVitestTests": {
+      "pass": 724,
+      "fail": 0
+    }
+  },
+  "earlierEvidence": "All initial draft, c528-source and 0d4-parser logs/receipts are retained. Early draft had a full-quote CP assertion error; corrected final test binds quote CP. Only final-v2 logs bind the final source/parser/test combination.",
+  "behavior": [
+    "Only finite day prefixes before bare 日/基本工资 bypass daily-rate detection; 某日 names a particular unspecified day without inventing its date.",
+    "Explicit 每日/每天, 日薪, 日工资标准 and suffix daily units retain rate precedence.",
+    "Subject suffix boundary prevents a name ending in a matching character from hiding a genuine daily rate.",
+    "Original source, raw answer, representation, quote CP and stored fields are preserved; source read review never upgrades historically unavailable values."
+  ],
+  "limits": [
+    "Synthetic fresh runtime/read-time fixtures and local related regressions only.",
+    "No model, build, HTTP, training, deployment, commit or push.",
+    "No old freeze, correction archive, gold label or result modified."
+  ]
+}

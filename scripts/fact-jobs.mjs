@@ -2,7 +2,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { buildExtractionMessages, extractRuleCandidates, validateFactSource } from '../lib/material-facts-v3.ts';
+import { extractRuleCandidates, validateFactSource } from '../lib/material-facts-v3.ts';
+import { buildExtractionMessagesV4 as buildExtractionMessages } from '../lib/material-fact-extraction-v4.ts';
 
 // Persisted callers can resume a job for 31 minutes. Give every completed job
 // that full recovery window, measured after it finishes rather than admission.

@@ -1,0 +1,257 @@
+Original captured tool stdout (not a replay)
+Captured at: 2026-10-18T03:54:16.116Z
+Tool chunk: 7890bd
+Exit code: 1
+Context: 17 regression failures; existing 218 tests passed.
+
+--- original stdout follows unmodified ---
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money
+
+··························································································································································································································xxxxxxxxxxxxxxxxx
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 17 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not convert the foreign literal 四万元港幣 to RMB
+AssertionError: expected { rawValue: '四万元港幣', …(5) } to match object { rawValue: '四万元港幣', amount: null }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "rawValue": "四万元港幣",
+  }
+
+ ❯ lib/material-money-v4.test.ts:186:42
+    184| describe('PR45 minimal literal and modifier regressions', () => {
+    185|   it.each(['四万元港幣', '新台币1000元', '加拿大元1000元', '新台币工资1000元'])('does not …
+    186|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    187|     expect(canonicalMonetaryExpression(value)).toBeNull();
+    188|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/17]⎯
+
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not convert the foreign literal 新台币1000元 to RMB
+AssertionError: expected { rawValue: '新台币1000元', …(5) } to match object { rawValue: '新台币1000元', amount: null }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "1000.00",
+    "rawValue": "新台币1000元",
+  }
+
+ ❯ lib/material-money-v4.test.ts:186:42
+    184| describe('PR45 minimal literal and modifier regressions', () => {
+    185|   it.each(['四万元港幣', '新台币1000元', '加拿大元1000元', '新台币工资1000元'])('does not …
+    186|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    187|     expect(canonicalMonetaryExpression(value)).toBeNull();
+    188|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/17]⎯
+
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not convert the foreign literal 加拿大元1000元 to RMB
+AssertionError: expected { rawValue: '加拿大元1000元', …(5) } to match object { rawValue: '加拿大元1000元', amount: null }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "1000.00",
+    "rawValue": "加拿大元1000元",
+  }
+
+ ❯ lib/material-money-v4.test.ts:186:42
+    184| describe('PR45 minimal literal and modifier regressions', () => {
+    185|   it.each(['四万元港幣', '新台币1000元', '加拿大元1000元', '新台币工资1000元'])('does not …
+    186|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    187|     expect(canonicalMonetaryExpression(value)).toBeNull();
+    188|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/17]⎯
+
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not convert the foreign literal 新台币工资1000元 to RMB
+AssertionError: expected { rawValue: '新台币工资1000元', …(5) } to match object { Object (rawValue, amount) }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "1000.00",
+    "rawValue": "新台币工资1000元",
+  }
+
+ ❯ lib/material-money-v4.test.ts:186:42
+    184| describe('PR45 minimal literal and modifier regressions', () => {
+    185|   it.each(['四万元港幣', '新台币1000元', '加拿大元1000元', '新台币工资1000元'])('does not …
+    186|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    187|     expect(canonicalMonetaryExpression(value)).toBeNull();
+    188|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/17]⎯
+
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not select a positive exact tail from 数十万元
+AssertionError: expected { rawValue: '数十万元', …(5) } to match object { rawValue: '数十万元', amount: null }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "100000.00",
+    "rawValue": "数十万元",
+  }
+
+ ❯ lib/material-money-v4.test.ts:190:42
+    188|   });
+    189|   it.each(['数十万元', '几十万元', '负数四万元', '负值四万元'])('does not select a posit…
+    190|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    191|     expect(canonicalMonetaryExpression(value)).toBeNull();
+    192|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/17]⎯
+
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not select a positive exact tail from 几十万元
+AssertionError: expected { rawValue: '几十万元', …(5) } to match object { rawValue: '几十万元', amount: null }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "100000.00",
+    "rawValue": "几十万元",
+  }
+
+ ❯ lib/material-money-v4.test.ts:190:42
+    188|   });
+    189|   it.each(['数十万元', '几十万元', '负数四万元', '负值四万元'])('does not select a posit…
+    190|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    191|     expect(canonicalMonetaryExpression(value)).toBeNull();
+    192|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/17]⎯
+
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not select a positive exact tail from 负数四万元
+AssertionError: expected { rawValue: '负数四万元', …(5) } to match object { rawValue: '负数四万元', amount: null }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "rawValue": "负数四万元",
+  }
+
+ ❯ lib/material-money-v4.test.ts:190:42
+    188|   });
+    189|   it.each(['数十万元', '几十万元', '负数四万元', '负值四万元'])('does not select a posit…
+    190|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    191|     expect(canonicalMonetaryExpression(value)).toBeNull();
+    192|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/17]⎯
+
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not select a positive exact tail from 负值四万元
+AssertionError: expected { rawValue: '负值四万元', …(5) } to match object { rawValue: '负值四万元', amount: null }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "rawValue": "负值四万元",
+  }
+
+ ❯ lib/material-money-v4.test.ts:190:42
+    188|   });
+    189|   it.each(['数十万元', '几十万元', '负数四万元', '负值四万元'])('does not select a posit…
+    190|     expect(normalizeMoneyValueV4(value)).toMatchObject({ rawValue: val…
+       |                                          ^
+    191|     expect(canonicalMonetaryExpression(value)).toBeNull();
+    192|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/17]⎯
+
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > keeps the source modifier outside the cropped value in 数十万元
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > keeps the source modifier outside the cropped value in 几十万元
+AssertionError: expected '100000.00' to be null
+
+- Expected: 
+null
+
++ Received: 
+"100000.00"
+
+ ❯ lib/material-money-v4.test.ts:194:97
+    192|   });
+    193|   it.each(['数十万元', '几十万元'])('keeps the source modifier outside the cro…
+    194|     expect(normalizeCandidateValueV4(money({ value: '十万元', quote: `王甲工…
+       |                                                                                                 ^
+    195|   });
+    196|   it.each(['2024年元月工资', '元月份工资', '元旦工资', '圆满完成工资发放', '元月', '元旦', '圆满']…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/17]⎯
+
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not treat the ordinary phrase 2024年元月工资 as money
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not treat the ordinary phrase 元月份工资 as money
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not treat the ordinary phrase 元旦工资 as money
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not treat the ordinary phrase 圆满完成工资发放 as money
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not treat the ordinary phrase 元月 as money
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not treat the ordinary phrase 元旦 as money
+ FAIL  lib/material-money-v4.test.ts > PR45 minimal literal and modifier regressions > does not treat the ordinary phrase 圆满 as money
+AssertionError: expected { kind: 'monetary', …(1) } to match object { kind: 'not_monetary', …(1) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "kind": "not_monetary",
++   "kind": "monetary",
+    "normalization": {
+      "amount": null,
+-     "status": "not_money",
++     "status": "unsupported",
+    },
+  }
+
+ ❯ lib/material-money-v4.test.ts:197:47
+    195|   });
+    196|   it.each(['2024年元月工资', '元月份工资', '元旦工资', '圆满完成工资发放', '元月', '元旦', '圆满']…
+    197|     expect(classifyMonetaryExpression(value)).toMatchObject({ kind: 'n…
+       |                                               ^
+    198|   });
+    199| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/17]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  17 failed | 218 passed (235)
+   Start at  11:54:15
+   Duration  488ms (transform 62ms, setup 0ms, collect 71ms, tests 36ms, environment 0ms, prepare 39ms)
+

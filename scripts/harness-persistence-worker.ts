@@ -109,7 +109,7 @@ function makeParallelGraph(db: D1Database, scope: Fixture, runId: string, saver:
     .compile({ checkpointer: saver });
 }
 
-export default {
+const worker = {
   async fetch(request: Request, env: Env): Promise<Response> {
     initializeHarnessRuntime();
     bootId ??= crypto.randomUUID();
@@ -182,3 +182,5 @@ export default {
     }
   },
 };
+
+export default worker;

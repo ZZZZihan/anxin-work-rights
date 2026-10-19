@@ -1,0 +1,61 @@
+--- a/lib/material-fact-runtime-ingest.ts
++++ b/lib/material-fact-runtime-ingest.ts
+@@ -13,7 +13,7 @@
+   const parsed = parseCandidateOutput(raw).parsed as { schemaVersion: 3; candidates: unknown[] };
+   const candidates: CandidateBatchV3['candidates'] = [], rejected: CandidateBatchV3['rejected'] = [];
+   type Occurrence = { blockId: string; start: number; end: number };
+-  const seen = new Map<string, Array<{ occurrence: Occurrence | null; fallback: string }>>();
++  const seen = new Map<string, Occurrence[]>();
+   parsed.candidates.forEach((entry, index) => {
+     const single = validateCandidateOutput(JSON.stringify({ schemaVersion: 3, candidates: [entry] }), source);
+     const accepted = single.candidates[0];
+@@ -44,7 +44,6 @@
+     const anchorStart = uniqueAnchor ? Array.from(block.text.slice(0, quoteAt + valueAt)).length : null;
+     const occurrence = anchorStart !== null ? { blockId: candidate.blockId, start: anchorStart,
+       end: anchorStart + Array.from(value.value).length } : null;
+-    const fallback = JSON.stringify([candidate.blockId, candidate.start, candidate.end, candidate.quote]);
+     const key = JSON.stringify([value.kind, value.meaning, normalization.status,
+       normalization.amount ?? normalization.rawValue, value.subject, value.scope, value.period,
+       value.completeness, value.assertion, value.rateUnit,
+@@ -53,19 +52,32 @@
+       isV3Candidate(reviewed) ? reviewed.reviewIssues.map(issue => String(issue.code))
+         .filter(code => code !== 'source_amount_context_mismatch').sort() : []]);
+     const observations = seen.get(key) ?? [];
+-    const duplicate = observations.some(previous => occurrence && previous.occurrence
+-      ? occurrence.blockId === previous.occurrence.blockId
+-        && ((occurrence.start <= previous.occurrence.start && occurrence.end >= previous.occurrence.end)
+-          || (previous.occurrence.start <= occurrence.start && previous.occurrence.end >= occurrence.end))
+-      : !occurrence && !previous.occurrence && fallback === previous.fallback);
+-    // Equivalent nested literals (人民币四万元 / 四万元) refer to the same
+-    // uniquely located amount. Non-overlapping occurrences remain separate.
++    const duplicate = occurrence !== null && observations.some(previous => {
++      if (occurrence.blockId !== previous.blockId) return false;
++      if (occurrence.start === previous.start && occurrence.end === previous.end) return true;
++      if (value.kind !== 'money') return false;
++      const contains = (outer: Occurrence, inner: Occurrence) => outer.start <= inner.start && outer.end >= inner.end;
++      if (!contains(occurrence, previous) && !contains(previous, occurrence)) return false;
++      const outer = contains(occurrence, previous) ? occurrence : previous;
++      const inner = outer === occurrence ? previous : occurrence;
++      const points = Array.from(block?.text ?? '');
++      const before = points.slice(outer.start, inner.start).join('');
++      const after = points.slice(inner.end, outer.end).join('');
++      // Sharing an exact parsed amount does not make an arbitrary narrative a
++      // duplicate of its minimal literal. Only these finite wrappers may nest.
++      return /^\s*(?:(?:人民币|RMB|CNY|[¥￥])\s*)?$/iu.test(before)
++        && /^\s*(?:整|正)?\s*(?:(?:工资|劳务费|劳动报酬)\s*)?$/u.test(after);
++    });
++    // A non-unique quote/value has no proven occurrence identity. Retain every
++    // such observation for review instead of deduplicating a fallback position.
+     if (duplicate) {
+       rejected.push({ index, reason: '同一源文位置、同一事实属性及规范化状态的候选重复；不同发生位置及待核金额分别保留' });
+       return;
+     }
+-    observations.push({ occurrence, fallback });
+-    seen.set(key, observations);
++    if (occurrence !== null) {
++      observations.push(occurrence);
++      seen.set(key, observations);
++    }
+     candidates.push(isV3Candidate(reviewed) ? reviewed : candidate);
+   });
+   const batch = { ...original, candidates, rejected };
