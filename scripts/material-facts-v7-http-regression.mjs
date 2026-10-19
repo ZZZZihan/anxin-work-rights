@@ -1796,6 +1796,56 @@ try {
     durableSnapshots.push({name: `round40-date-${meaning}`, item, state: before}); return {sourceRelationSupported: true, noInventedYear: true, dateDoesNotConfirmAmount: true};
   });
   // End ROUND40 additions.
+  // PR45 P2 additions: keep previous scenarios and their assertions unchanged.
+  // Each fixture traverses upload, analysis and the real fact-job HTTP queue;
+  // derived values and attribution are checked again without rewriting D1.
+  const pr45P2Scenarios = [
+    {name: 'symbol-lowercase', text: '测试王甲2026年1月完整应付工资合计¥四千。', value: '¥四千', amount: '4000.00', status: 'exact', supported: true},
+    {name: 'symbol-fullwidth-uppercase', text: '测试王甲2026年1月完整应付工资合计￥肆仟。', value: '￥肆仟', amount: '4000.00', status: 'exact', supported: true},
+    {name: 'symbol-repeated-currency', text: '测试王甲2026年1月完整应付工资合计¥￥四千。', value: '¥￥四千', amount: null, status: 'unsupported', supported: false},
+    {name: 'symbol-cropped-foreign-currency', text: '测试王甲2026年1月完整应付工资合计USD¥四千。', value: '¥四千', amount: null, status: 'unsupported', supported: false},
+    {name: 'yearless-arrival', text: '测试王甲工资于1月15日到账。', value: '1月15日', date: true, meaning: 'payment_date', amount: null, status: 'not_money', supported: true},
+    {name: 'yearless-receipt', text: '测试王甲工资于1月15日收到。', value: '1月15日', date: true, meaning: 'payment_date', amount: null, status: 'not_money', supported: true},
+    {name: 'yearless-wrong-role', text: '测试王甲工资于1月15日到账。', value: '1月15日', date: true, meaning: 'employment_period', amount: null, status: 'not_money', supported: false},
+    {name: 'yearless-invalid-day', text: '测试王甲工资于1月32日到账。', value: '1月32日', date: true, meaning: 'payment_date', amount: null, status: 'not_money', supported: false},
+    {name: 'rate-month', text: '测试王甲月工资为400元。', value: '400元', rateUnit: 'month', amount: '400.00', status: 'exact', supported: true},
+    {name: 'rate-day', text: '测试王甲日工资为400元。', value: '400元', rateUnit: 'day', amount: '400.00', status: 'exact', supported: true},
+    {name: 'rate-hour', text: '测试王甲小时工资为400元。', value: '400元', rateUnit: 'hour', amount: '400.00', status: 'exact', supported: true},
+    {name: 'rate-piece', text: '测试王甲计件工资为400元。', value: '400元', rateUnit: 'piece', amount: '400.00', status: 'exact', supported: true},
+    {name: 'rate-wrong-unit', text: '测试王甲小时工资为400元。', value: '400元', rateUnit: 'day', amount: null, status: 'rate_unit_mismatch', supported: false},
+    {name: 'rate-as-complete-total', text: '测试王甲2026年1月月工资为400元。', value: '400元', amount: null, status: 'rate_unit_mismatch', supported: false},
+  ];
+  for (const spec of pr45P2Scenarios) await scenario(`pr45_p2_${spec.name}`, async () => {
+    const candidate = spec.date
+      ? {kind: 'date', value: spec.value, quote: spec.value, subject: '测试王甲', scope: 'individual', meaning: spec.meaning,
+        completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated'}
+      : money(spec.value, spec.value, spec.rateUnit
+        ? {meaning: 'rate', completeness: 'not_applicable', period: null, rateUnit: spec.rateUnit} : {});
+    const [item] = await fixture(`pr45-p2-${spec.name}`, [{text: spec.text, exactSource: true, candidates: [candidate]}]);
+    const response = await extract(item), material = rawAndLocations(item, response);
+    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
+    const fact = material.candidates[0];
+    assert.equal(fact.amount, spec.amount); assert.equal(fact.normalization.amount, spec.amount);
+    assert.equal(fact.normalization.status, spec.status);
+    assert.equal(fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !spec.supported);
+    assert.equal(fact.value, spec.value); assert.equal(fact.quote, spec.value);
+    assert.equal(JSON.parse(material.raw).candidates[0].value, spec.value);
+    const before = stored(item.caseId), read = await request(item.path);
+    assert.equal(read.status, 200); unconfirmed(read.body);
+    const reread = rawAndLocations(item, read.body), checked = reread.candidates[0];
+    assert.equal(reread.candidates.length, 1); assert.equal(reread.rejected.length, 0);
+    assert.equal(checked.amount, spec.amount); assert.equal(checked.normalization.amount, spec.amount);
+    assert.equal(checked.normalization.status, spec.status);
+    assert.equal(checked.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !spec.supported);
+    assert.equal(checked.value, spec.value); assert.equal(checked.quote, spec.value); assert.equal(reread.raw, material.raw);
+    assert.deepEqual(checked.representation, fact.representation);
+    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+    durableSnapshots.push({name: `pr45-p2-${spec.name}`, item, state: before});
+    return {amount: spec.amount, normalization: spec.status, sourceRelationSupported: spec.supported,
+      rawAndCodepointLocationsPreserved: true, storedRawAndHistoryUnchangedOnRead: true,
+      noInventedYear: spec.date === true, automaticCalculation: false};
+  });
+  // End PR45 P2 additions.
   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
     const quote = '测试王甲2026年1月完整应付工资四万元';
     const [first, bad] = await fixture('raw-failure-history', [

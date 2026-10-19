@@ -338,6 +338,10 @@ function normalizeMoneyValueWithSubject(rawValue: string, subject: string | null
       parseText = parseText.slice(0, postfix.index).trimEnd();
       if (!/[元圆角分整正]$/u.test(parseText)) parseText += '元';
     }
+    // A prefix RMB symbol supplies the same omitted yuan unit as a named
+    // marker. Apply it only to this guarded parse copy, so Chinese integer
+    // parsers receive a complete unit without changing the original evidence.
+    if (/^[¥￥]/u.test(parseText) && !/[元圆角分整正]$/u.test(parseText)) parseText += '元';
     const onlyLower = new RegExp(`^(?:人民币\\s*)?[¥￥]?\\s*[${LOWER}]+\\s*[元圆][0-9${LOWER}${SINGLE_DIGIT}角分整正]*$`, 'u').test(parseText);
     const onlyFinancial = new RegExp(`^(?:人民币\\s*)?[¥￥]?\\s*[零壹贰叁肆伍陆柒捌玖拾佰仟万亿]+\\s*[元圆][0-9${SINGLE_DIGIT}角分整正]*$`, 'u').test(parseText);
     const parsed = subunitAmount ?? (onlyLower ? parseLowerAmount(parseText) : onlyFinancial ? parseFinancialSubunits(parseText) : parseArabicSubunits(parseText) ?? normalizeMoneyValue(parseText).amount);

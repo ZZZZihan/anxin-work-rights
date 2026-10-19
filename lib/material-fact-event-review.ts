@@ -14,7 +14,7 @@ const dateNumber = '[0-9〇零一二三四五六七八九十百千两]';
 const calendarDate = `(?:${dateNumber}{2,4}年(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?)?|[0-9]{4}[-/.][0-9]{1,2}(?:[-/.][0-9]{1,2})?)`;
 const shortDate = `(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?|${dateNumber}{1,3}日)`;
 // Preserve a complete source month/day without inventing a missing year. This
-// finite point form is used only by the existing explicit wage-payment layout.
+// finite point form is used only by explicit wage-payment/receipt layouts.
 const monthDayPaymentDate = /^(?:[1-9]|1[0-2]|[一二三四五六七八九]|十[一二]?)月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)日$/u;
 const intervalEnd = `(?:${calendarDate}|${shortDate}|今)`;
 const dateInterval = (start: string) => `(?:自|从|截至|截止至|截止到|截止|到|至)?${start}(?:(?:起)?(?:至|到|—|–|-|~|～)${intervalEnd})?(?:以前|以后|之前|之后|为止|起|止|前|后)?`;
@@ -110,14 +110,15 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
     return left === '' && new RegExp(`^${payment}${wage}$`, 'u').test(right);
   }
   const point = new RegExp(`^${calendarDate}$`, 'u');
+  const paymentPoint = point.test(value) || monthDayPaymentDate.test(value);
   // The wage belongs to the already located owner. No new person, calendar
   // fragment, negation or procedural command can be absorbed by these layouts.
-  if (point.test(value) && new RegExp(`^(?:的)?${wage}(?:于|在)?$`, 'u').test(left)
+  if (paymentPoint && new RegExp(`^(?:的)?${wage}(?:于|在)?$`, 'u').test(left)
     && /^(?:实际)?(?:收到|领取|到账|入账)$/u.test(right)) return true;
   // An explicit wage payment date is supported without inferring that payment
   // happened. The date role, located beneficiary and whole verb envelope stay
   // separate from money receipt and complete paid-total authorization.
-  if ((point.test(value) || monthDayPaymentDate.test(value)) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)
+  if (paymentPoint && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)
     && /^(?:支付|发放|给付|付清)$/u.test(right)) return true;
   const deadline = new RegExp(`^${calendarDate}(?:以前|之前|前)$`, 'u');
   if (deadline.test(value) && new RegExp(`^(?:的)?${wage}(?:应|须|需|必须)?(?:于|在)$`, 'u').test(left)
@@ -205,6 +206,24 @@ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: stri
     // This branch recognizes an explicitly declared rate in the same event;
     // it does not make that rate a complete total or accept arbitrary 按 prose.
     || (raw.meaning === 'rate' && /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*按(?:(?:小时|月|日|天|件)(?:计算|计酬|计[价價]|计薪|计)?|时(?:计算|计酬|计[价價]|计薪|计))[）)】\]]*$/iu.test(suffix.replace(/\p{Cf}/gu, '')));
+  // Match the finite naked wage-rate labels already recognized by source-rate
+  // review. Keep them out of the generic money vocabulary: a calendar period,
+  // another owner, non-rate role or mismatching declared/suffix unit is no proof.
+  const prefixRate = role.replace(/\p{Cf}/gu, '').replace(/約/gu, '约').replace(/價/gu, '价')
+    .match(/^(?:的)?(?:(月|日|时)(?:基本)?工资|(小时)工资|(计件)(?:单价|工资)?)(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|[¥￥:=])*$/u);
+  if (prefixRate) {
+    // A cropped period such as 2026年1 must not leave its 月 to masquerade as
+    // 月工资. Rejoin only for detection; a complete period plus its separate
+    // 月工资/日工资 label does not form this calendar continuation.
+    const periodWithUnit = raw.period && prefixRate[1] ? `${dateRole(raw.period)}${prefixRate[1]}` : null;
+    if (periodWithUnit && (completeDate.test(periodWithUnit) || new RegExp(`^${shortDate}$`, 'u').test(periodWithUnit))) return false;
+    const units: Record<string, string> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece', 计件: 'piece' };
+    const unit = units[prefixRate[1] ?? prefixRate[2] ?? prefixRate[3]];
+    const suffixRate = suffix.replace(/\p{Cf}/gu, '')
+      .match(/(?:[/／]|每|按)(小时|月|日|天|时|件)(?:计算|计酬|计[价價]|计薪|计)?[）)】\]]*$/u)?.[1];
+    return raw.meaning === 'rate' && raw.rateUnit === unit && supportedSuffix
+      && (!suffixRate || units[suffixRate] === unit);
+  }
   // These explicit non-wage receipts keep their supplied other_money role.
   // Never add their nouns to the generic wage envelope: receiving compensation
   // or materials money does not establish a wage payment or complete total.
