@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "issue": 42,
+  "status": "passed_independent_pre_run_technical_review",
+  "recorded_at": "2026-10-18T04:03:45.828314+00:00",
+  "reviewer": {
+    "role": "independent_subagent_not_module_implementer",
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "ultra",
+    "actual_runtime_configuration_independently_verified": false
+  },
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "04d2683bcbf4c1cb1f7056127e9ebe1eb7d9bf5f691f546ca6a12640f84375a0",
+    "lib/material-fact-runtime-ingest.ts": "6fa40a9ac5f26a8add6e3fe88877d2f9bd55e3017b01ed12470bcfd74e6be63c",
+    "lib/material-fact-source-review.ts": "1c240e21600663f3cb52d2194edefedf509325e684954a6c23884076a6abf05a",
+    "lib/material-fact-extraction-v4.ts": "319f4f94073f6d5e18a307e5498c2704cac3639586a24f1e48b7da14301f26d2",
+    "lib/material-fact-store.ts": "761c94a52512954137b506e596e2ea777bad80a616f4468b095af05ee3f2dc72",
+    "scripts/fact-jobs.mjs": "41f67c0158e60148269c61f2d085a918a6049acb0024d3fb5c6723d31bb280d2",
+    "experiments/material-facts-v7/assess.mjs": "048d10eea491bddd8bc5c8d4a2ad065ba5231e0778418d03fc19efc3f0b0d77b",
+    "lib/material-money-v4.independent.test.ts": "776d7008a3fad661ebefe18d776f114fb80ad4579f9a46438838b57927d26b38",
+    "lib/material-facts-v7-runtime-independent.test.ts": "d884cde37b859e04a138f9c7ec2321caf078cc5012e79373ae620f408f1d3b03",
+    "scripts/material-facts-v7-assessment-independent.test.mjs": "0527eb86e6cdd437224daea198cb27c4fd95e3ea51cf33fda1ab62d3e4c28737",
+    "lib/material-fact-currency-review.ts": "a34e9381fa3454f6c735f08c94864f8a3663433d71e81ecce940f7c12d5d3200",
+    "lib/material-money-v4.test.ts": "9d2e1f441c114821ad0f548bde291d244aa25e50e426b5ce163114e1a21a56d9",
+    "lib/material-money-v4.review-regression.test.ts": "0c5a790a24489eb476f378aa615a99e1cbd3c5731938edfbf0555174d2b086da",
+    "experiments/material-facts-v7/technical-review.initial.json": "9284a9748bd926fb54dfc5ebf7902dc654f884a955bb990d88d571218e9a7c2c"
+  },
+  "frozen_unchanged_checks": [
+    {
+      "path": "lib/material-facts-v3.ts",
+      "sha256": "b1e5fbe9829cd677c98315070fd3406dfadd6305a3291dfa601a3df64874cbdd",
+      "equals_current_HEAD": true
+    },
+    {
+      "path": "lib/material-facts-v3.test.ts",
+      "sha256": "877834c264814b3d29f4a3c684381e111984ae2cc5e43f71efc3fbb0d9b58487",
+      "equals_current_HEAD": true
+    },
+    {
+      "path": "experiments/material-facts-v6/assess.mjs",
+      "sha256": "df85cbfdc9a1720b9aad314298f0f55d91f2131fc206082b33af6ffc923cca6c",
+      "equals_current_HEAD": true
+    },
+    {
+      "path": "experiments/material-facts-v6/ANNOTATION.md",
+      "sha256": "12dbdd4f2da2f9615ec0dfa490c7d4d03bad34515a2a7f246157818d220c1ec5",
+      "equals_current_HEAD": true
+    },
+    {
+      "path": "experiments/material-facts-v6/ERROR_REVIEW.md",
+      "sha256": "bf1050afb551fd57e10922760e7e30faaf001ae0eaf1ca4cc4be9573e8a8f7e5",
+      "equals_current_HEAD": true
+    }
+  ],
+  "checks_executed": [
+    {
+      "kind": "final_integrated_synthetic_parser_runtime_and_review_regressions",
+      "command": "node_modules/.bin/vitest run lib/material-money-v4.review-regression.test.ts lib/material-money-v4.independent.test.ts lib/material-facts-v7-runtime-independent.test.ts lib/material-money-v4.test.ts",
+      "passed": 398,
+      "failed": 0,
+      "independent_authored_tests": 112,
+      "components": {
+        "new_PR45_independent_cross_layer": 55,
+        "existing_independent_runtime_and_prompt": 47,
+        "existing_independent_money": 10,
+        "module_author_parser_regressions": 286
+      }
+    },
+    {
+      "kind": "final_independent_native_scorer_and_benchmark_gates",
+      "command": "node --test scripts/material-facts-v7-assessment-independent.test.mjs scripts/material-facts-v7-freeze-independent.test.mjs",
+      "passed": 46,
+      "failed": 0,
+      "components": {
+        "scorer": 30,
+        "benchmark_gates": 16
+      },
+      "model_calls": 0,
+      "worker_starts": 0
+    },
+    {
+      "kind": "typescript",
+      "command": "node_modules/.bin/tsc --noEmit --pretty false --incremental false",
+      "exit_code": 0
+    },
+    {
+      "kind": "changed_module_and_independent_test_lint",
+      "command": "node_modules/.bin/eslint lib/material-money-v4.review-regression.test.ts lib/material-money-v4.ts lib/material-fact-currency-review.ts lib/material-fact-runtime-ingest.ts scripts/material-facts-v7-freeze-independent.test.mjs",
+      "exit_code": 0
+    }
+  ],
+  "closed_findings": [
+    "Frozen v6 matched a same-value asset event as wages even in basic/strict; v7 binds all six layers to independently anchored source events.",
+    "Clipped lowercase Chinese decimals, fraction/arithmetic tails, currency, rate units and omitted cents could appear exact; independent probes now stay unavailable.",
+    "Six finite wage-description patterns were accepted as money; they now reject while explicit masked/unknown wage amounts remain reviewable.",
+    "Native Node import compatibility and complete-source review on fresh extraction were verified; reviewed candidates are persisted.",
+    "Different source positions survive runtime deduplication; exact same-position duplicates retain their full raw observations.",
+    "Historical unsupported monetary candidates are not upgraded by read-time source review; re-extraction clears scope and amount authorizations.",
+    "Calendar month/day wage-period text is not mistaken for a rate, including horizontal OCR spacing; actual monthly/daily/hourly rates mislabeled as totals remain unavailable.",
+    "Complete foreign-currency literals now use the shared source currency vocabulary and lexical unit boundaries. 港幣, 新台币, 加拿大元, fullwidth CAD and postfixed currency cannot compare equal to clipped RMB tails; literal foreign extraction can still score while calculation amount remains null.",
+    "Indefinite counts and signed literals no longer yield positive exact suffixes. Whole/cropped source/scorer regressions cover 数十万, 几十万, 负数/负值, punctuation/的 bridges and invisible format controls. Detection-only folding preserves raw text and code-point offsets.",
+    "元月, 元旦 and 圆满 are positively non-monetary in their finite grammar. They remain visible raw false positives and are rejected from accepted candidates; masked or genuinely unknown wage evidence remains retained.",
+    "Equivalent exact nested literals at one unique source position now deduplicate in either order, preserving both raw observations. Equal non-overlapping payments, different assertions, non-exact range/endpoints and unresolved repeated quotations remain separate.",
+    "The original 三个员工工资共四万元 positive parser example was restored. Both finite count branches recognize only enumerated 个/名/位 plus 工人/员工/劳动者; standalone headcounts reject without manufacturing an amount. Its four before-red probes are preserved."
+  ],
+  "source_event_review": {
+    "unicode_code_point_half_open_spans": true,
+    "all_quote_and_value_occurrences_enumerated": true,
+    "unregistered_or_multiple_event_positions_cannot_match": true,
+    "self_reported_attributes_do_not_disambiguate_events": true,
+    "malformed_raw_candidates_remain_false_positives": true,
+    "one_to_one_maximum_matching": true
+  },
+  "annotation_review_receipt": "experiments/material-facts-v7/annotation-review.independent.json",
+  "synthetic_http_script_review": {
+    "path": "scripts/material-facts-v7-http-regression.mjs",
+    "author_tree": "anxin-facts-v7-data",
+    "static_review_only": true,
+    "executed_by_this_reviewer": false,
+    "blocking_findings": [],
+    "scope": "Loopback production Worker with temporary D1/R2, real TXT service and rules queue, synthetic fact results replaced only after genuine ready GET; exact source bytes/codepoints, same-value two payments, failure/empty raw, history/restart, exclusive report creation and cleanup assertions reviewed."
+  },
+  "retained_failure_evidence": [
+    {
+      "path": "experiments/material-facts-v7/review-evidence/frozen-v6-independent-scorer-red.txt",
+      "sha256": "2e0f2c36783efc8d6ef671f712767da17cd272d14b9105b81640f3f36938d132"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/v7-noamount-independent-before-red.txt",
+      "sha256": "efcc33887d0d126fa1f0fb5d6657302612c44b2a00a55ea187b1e975fe79deae"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/v7-calendar-ocr-independent-before-red.txt",
+      "sha256": "6f4679061e990fa232bc67a0e0be1bc5b5c23cdb1e40bf1e4b4b9b3b04cdb79f"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/pr45-independent-review-before-red.txt",
+      "sha256": "318f2a709f5bfaf046e874a44f0f3a641a9a71f5ba1841ddaa07fd0842a7c7d9",
+      "producer": "independent_reviewer"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/pr45-modifier-format-control-before-red.txt",
+      "sha256": "223dadeb7374e61b9c033db9abbcc4605cef99eb1c8e089238c6345d302f3b44",
+      "producer": "independent_reviewer"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/pr45-negative-prefix-before-red.json",
+      "sha256": "5d4d250c66183d946c87c34f50e218164ae02c34e1006a67feeee0f01aa169cc",
+      "producer": "independent_reviewer"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/pr45-nested-position-dedup-before-after.json",
+      "sha256": "5604f5f8fbc207c84a6046c503cd2284cd475aefe923a774ed7c47005cc9874f",
+      "producer": "independent_reviewer"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/pr45-finite-count-before-red.txt",
+      "sha256": "2a1d8b956f38967bba00a2d2be0a6658dc00d7c3d623fb0d5c93f7fa614977f0",
+      "producer": "root_implementer"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/pr45-money-minimal-before-red.txt",
+      "sha256": "a658ab52879a1ca83537021b61bf96fa27d588ce9b44d57ff71a3f280aafff85",
+      "producer": "money_module_implementer"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/pr45-money-qualifiers-before-red.txt",
+      "sha256": "614f1cc07949b234bee9aa083f12edfa2c93dca299c9fb54a2aced8b68630012",
+      "producer": "money_module_implementer"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/pr45-money-negative-bridge-before-red.txt",
+      "sha256": "ac926fce4ded89d4faafefa1d3ab277508b36b1a97d8caf5faa1d3b512162e4f",
+      "producer": "money_module_implementer"
+    },
+    {
+      "path": "experiments/material-facts-v7/review-evidence/pr45-money-format-control-before-red.txt",
+      "sha256": "be7169e9f557f36d85609bac92afad9d4e12bab81cc869ee1cc5c2e340fd9319",
+      "producer": "money_module_implementer"
+    }
+  ],
+  "blocking_findings": [],
+  "limits": [
+    "This hash-bound follow-up reviews synthetic/parser/scorer behavior; it does not establish real-model or legal accuracy.",
+    "No model invocation, candidate response inspection, Worker start, production deployment, training, commit, push or merge by this reviewer. The root previously completed development runs; this receipt is before formal holdout freeze and makes no claim about their answers.",
+    "Annotations remain non-expert provisional technical labels; their independent source review is bound by the separate annotation receipt.",
+    "The initial technical receipt is preserved unchanged. Final project-wide check, actual isolated HTTP execution, final-code development readiness and independent formal-result recomputation are separate root-coordinated evidence.",
+    "Full/cropped equivalence is limited to uniquely located nested spans with equal semantic fields, normalization state and review issues; ambiguous locations and non-exact raw values are not merged by guess.",
+    "Receipt applies only to the listed code/test hashes; subsequent changes require review of their effect."
+  ],
+  "review_round": "PR45 automated review follow-up; before formal holdout freeze",
+  "initial_review": {
+    "path": "experiments/material-facts-v7/technical-review.initial.json",
+    "sha256": "9284a9748bd926fb54dfc5ebf7902dc654f884a955bb990d88d571218e9a7c2c",
+    "preserved_byte_for_byte": true
+  },
+  "final_check_stdout_receipt": {
+    "path": "experiments/material-facts-v7/review-evidence/pr45-independent-final-after-green.txt",
+    "sha256": "6e0fe28a58e3fdbcff0625e4418bcf4a30d28eb366adc2538907b2d58b3c2dfa",
+    "listed_code_hashes_unchanged_during_checks": true
+  },
+  "PR45_review_contract": {
+    "new_independent_cross_layer_tests": 55,
+    "all_six_scorer_layers_checked": true,
+    "raw_observations_preserved": true,
+    "full_source_guard_checked_beyond_helper": true,
+    "runtime_nested_dedup_both_orders_checked": true,
+    "different_source_events_preserved": true,
+    "reviewer_changed_implementation": false,
+    "original_headcount_positive_restored_and_finite_regex_branches_reviewed": true
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "round": 11,
+  "status": "author_targeted_checks_passed",
+  "recorded_at_utc": "2026-10-18T06:52:11.525214+00:00",
+  "issues": [
+    "PR45 review 4306033022 / PRRT_kwDOVApLyM6toEZi",
+    "PR45 review 4306033032 / PRRT_kwDOVApLyM6toEZr"
+  ],
+  "base": {
+    "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+    "head": "24812ce6ca16f3f0893ba18c54f8b9ce0530d93a",
+    "money_sha256": "912f97c3c3bb43210dfb367afd8f2553c7ff18053a955d553a2b66f855181bcf",
+    "arithmetic_sha256": "a53e57f19fb0375b1016f54c05dc5763e36661ca4bb4a4acfd16d28364801363"
+  },
+  "final_sha256": {
+    "lib/material-money-v4.ts": "20af6a71a23494ec975afca8a509fa3728fde857d3e9cb4c0a28d958ea7b4024",
+    "lib/material-fact-arithmetic-review.ts": "3b299b4449c0311516c211bd5ef6253360fc3c45585a7cb6c7123c4002d5eed7",
+    "scripts/material-fact-named-arithmetic-subunits.test.mjs": "c26511892180497775819274b8c1f327d490da814d0ef1eb5aaca610126fa372"
+  },
+  "implementation": [
+    "Finite named coefficient/proportion/day-count/month-count/person-count/piece-count operands only beside existing explicit arithmetic operators, in both prefix and suffix positions; detection copies retain existing NFKC/Cf/line-continuation behavior.",
+    "Complete ASCII whole-yuan plus optional one-digit jiao/fen is captured as one token and parsed in BigInt cents, then checked using the existing amount upper bound.",
+    "Fullwidth extra digits cannot silently pass whole-value numeric boundaries. A separate NFKC validation copy still recognizes unrelated fullwidth dates/counts; raw text and source coordinates are never rewritten."
+  ],
+  "untouched": [
+    "range grammar/constants/branch",
+    "normalizeCandidateValueV4 source-bound checks",
+    "material-fact-source-review.ts",
+    "currency guard",
+    "frozen raw/model outputs/labels/results",
+    "old evidence"
+  ],
+  "checks": [
+    {
+      "log": "named-arithmetic-subunits.before-red.txt",
+      "exit": 1,
+      "tests": 67,
+      "pass": 35,
+      "fail": 32,
+      "meaning": "Original baseline minimum and neighboring cases."
+    },
+    {
+      "log": "named-arithmetic-subunits.after-green.txt",
+      "exit": 0,
+      "tests": 67,
+      "pass": 67,
+      "fail": 0,
+      "meaning": "Initial fix green."
+    },
+    {
+      "log": "fullwidth-remaining.before-red.txt",
+      "exit": 1,
+      "tests": 87,
+      "pass": 86,
+      "fail": 1,
+      "meaning": "Added finite operand enumeration, CP span and remaining fullwidth digit safety; extra fullwidth amount failed."
+    },
+    {
+      "log": "named-arithmetic-subunits.final-after-green.txt",
+      "exit": 0,
+      "tests": 87,
+      "pass": 87,
+      "fail": 0,
+      "meaning": "Intermediate green before discovering a fullwidth-count regression."
+    },
+    {
+      "log": "fullwidth-counts.before-red.txt",
+      "exit": 1,
+      "tests": 91,
+      "pass": 87,
+      "fail": 4,
+      "meaning": "Actual author-discovered regression from the first fullwidth remaining-digit guard, not a baseline failure; known date/count stripping had not folded fullwidth characters."
+    },
+    {
+      "log": "named-arithmetic-subunits.final-v2-baseline-red.txt",
+      "exit": 1,
+      "tests": 91,
+      "pass": 37,
+      "fail": 54,
+      "meaning": "Exact final author test against saved two-file CODE24812ce baseline in a temporary implementation tree."
+    },
+    {
+      "log": "named-arithmetic-subunits.final-v2-after-green.txt",
+      "exit": 0,
+      "tests": 91,
+      "pass": 91,
+      "fail": 0,
+      "meaning": "Final exact files: full/cropped/forced historical/fresh runtime/raw/CP/finite operand enumeration/subunit precision and negative controls."
+    },
+    {
+      "log": "existing-arithmetic.native-final-v2-green.txt",
+      "exit": 0,
+      "tests": 259,
+      "pass": 259,
+      "fail": 0,
+      "meaning": "Existing three arithmetic source/noun/independent suites cross-run against a temporary final two-file overlay; not newly authored independent review."
+    },
+    {
+      "log": "existing-money.vitest-final-v2-green.txt",
+      "exit": 0,
+      "tests": 550,
+      "pass": 550,
+      "fail": 0,
+      "meaning": "Existing money author, independent and review-regression files against the same final overlay."
+    },
+    {
+      "log": "named-arithmetic-subunits.final-v2-eslint.txt",
+      "exit": 0,
+      "meaning": "Scoped lint of the three final changed files."
+    }
+  ],
+  "test_command": "MATERIAL_FACT_TEST_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review node --test scripts/material-fact-named-arithmetic-subunits.test.mjs",
+  "limits": [
+    "No actual model calls, training, deployment, holdout reads, full-project build or HTTP run were performed by this author task.",
+    "Named operands are a finite detection vocabulary, not a natural-language evaluator or an exhaustive grammar. Unknown operations are never computed by this patch.",
+    "Only ASCII integer yuan with ASCII single-digit jiao/fen is newly parsed. Mixed scripts, fullwidth subunits, decimal/scaled yuan plus subunits and malformed/extra subunits remain unavailable.",
+    "Parent owns the independent conjunction-range helper/wiring and candidate source-bound fullwidth edge handling; neither is included in this two-file parser/helper patch.",
+    "Independent peer review and parent integrated full-project/HTTP checks are separate evidence and are pending at author handoff."
+  ],
+  "evidence_sha256": {
+    "existing-arithmetic.native-final-v2-green.txt": "c7ccda9e23df3ed273258da1b048337e6e88232b2dbd8b3556b2f4f2b5884eb3",
+    "existing-arithmetic.native-green.txt": "f3e36453132ee91148377221daf75b1f52fb95907f71effdcbeef1036f028f1f",
+    "existing-money.vitest-final-v2-green.txt": "6ec80d31e45fa59316823ca72bc4c47c0b222e825d4965126860f803e7f6ad2a",
+    "existing-money.vitest-green.txt": "97fdb72e9056eef7b9733b69849504c50186aba35f530c82783482d710896b7f",
+    "fullwidth-counts.before-red.txt": "8981e4a034d279f566e29a1c370eb4c60b6e6f2240b3c3aa9563033c4fcb2d93",
+    "fullwidth-remaining.before-red.txt": "43300ab903e41015f048a1bde74986e77dd280d714c29adb3c17d421957ab73c",
+    "material-fact-arithmetic-review.ts.baseline.snapshot": "a53e57f19fb0375b1016f54c05dc5763e36661ca4bb4a4acfd16d28364801363",
+    "material-money-v4.ts.baseline.snapshot": "912f97c3c3bb43210dfb367afd8f2553c7ff18053a955d553a2b66f855181bcf",
+    "named-arithmetic-subunits.after-green.txt": "c387827e64d71aacdf63c1482889689940295da49395856404b287017d948041",
+    "named-arithmetic-subunits.before-red.txt": "24e3bc9570012fc012afe8314af5d70cdec3d8e291949cb464d5c6263a822bf9",
+    "named-arithmetic-subunits.eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "named-arithmetic-subunits.final-after-green.txt": "2393ccfd4701c31804c054402f2885b7592616a298af038dd598847778aa457e",
+    "named-arithmetic-subunits.final-baseline-red.txt": "1383b41de72f90ee9a575ae38d4f3772b8aefccf4aefc7a64c0c5e366e4e54c4",
+    "named-arithmetic-subunits.final-v2-after-green.txt": "d4bf408ad9a56986e5f7bab471942848777a6fc75791ad216b52a16b32253972",
+    "named-arithmetic-subunits.final-v2-baseline-red.txt": "c65d6b585d04f6887dbbcd2a0996a07e1a1c51fd81c7f49423163c5657148aae",
+    "named-arithmetic-subunits.final-v2-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "named-arithmetic-subunits.patch": "01377cf0dfdcad625148b48fda0f526393768715ea48b43c8cdfff75008cb9ee"
+  }
+}

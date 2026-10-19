@@ -1,0 +1,95 @@
+// Author synthetic tests: current ingestion and immutable historical read-time
+// evidence. Only the owned currency module is overlaid on a configurable tree.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+const OWN = fileURLToPath(new URL('../', import.meta.url));
+const SOURCE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
+const CURRENCY_ROOT = resolve(process.env.MATERIAL_FACT_CURRENCY_ROOT || OWN);
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-currency-names-ordinary-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+await cp(resolve(SOURCE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+await cp(resolve(CURRENCY_ROOT, 'lib/material-fact-currency-review.ts'), resolve(temporary, 'lib/material-fact-currency-review.ts'));
+const load = name => import(pathToFileURL(resolve(temporary, 'lib', name)).href);
+const { normalizeMoneyValueV4 } = await load('material-money-v4.ts');
+const { sourceMoneyHasUnsupportedCurrency, sourceMoneyHasNonCurrencyYuan } = await load('material-fact-currency-review.ts');
+const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates } = await load('material-facts-v3.ts');
+const { reviewCandidateAgainstSource, reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
+const AT = '2026-10-18T00:00:00.000Z';
+function fixture(text, value, subject, style, adjacent = []) {
+  const source = { id: 'synthetic-round20-currency', name: '合成词边界与姓名', sha256: 'a'.repeat(64), analysisRevision: 1, ready: true,
+    blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }, ...adjacent.map((text, i) => ({ id: `b${i + 2}`, page: 1, text, bbox: null, confidence: null }))] };
+  const representation = { kind: 'money', value, quote: style === 'full' ? text : value, blockId: 'b1', subject,
+    scope: 'individual', meaning: 'arrears', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' };
+  return { source, representation, raw: JSON.stringify({ schemaVersion: 3, candidates: [representation] }) };
+}
+function evidence(candidate, f) {
+  assert.equal(candidate.value, f.representation.value); assert.equal(candidate.quote, f.representation.quote);
+  assert.deepEqual(candidate.representation, f.representation);
+  const start = Array.from(f.source.blocks[0].text.slice(0, f.source.blocks[0].text.indexOf(candidate.quote))).length;
+  assert.equal(candidate.start, start); assert.equal(candidate.end, start + Array.from(candidate.quote).length);
+  assert.equal(candidate.sourceSha256, f.source.sha256);
+}
+function check(text, value, subject, style, amount, legacyAmount = amount || '40000.00', adjacent = []) {
+  const f = fixture(text, value, subject, style, adjacent);
+  const fresh = ingestRuntimeCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'synthetic-owner', AT);
+  assert.equal(fresh.materials[0].raw, f.raw); assert.equal(fresh.materials[0].candidates.length, 1);
+  const candidate = fresh.materials[0].candidates[0]; assert.equal(candidate.amount, amount); evidence(candidate, f);
+  assert.deepEqual(fresh.confirmations, emptyFactState(1).confirmations); assert.equal(fresh.calculation, null);
+  const historical = ingestCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'synthetic-owner', AT);
+  const old = historical.materials[0].candidates[0]; assert(old);
+  const token = value.match(/[零〇一二三四五六七八九十百千万亿两0-9]+[元圆圓]/u)?.[0] || value;
+  old.amount = legacyAmount; old.normalization = { rawValue: value, amount: legacyAmount, status: 'exact', matchedText: token,
+    span: { start: 0, end: Array.from(token).length }, reason: 'Synthetic obsolete exact amount for read-time review' };
+  const snapshot = structuredClone({ historical, source: f.source });
+  const reviewed = reviewCandidateAgainstSource(old, f.source); assert.equal(reviewed.amount, amount); evidence(reviewed, f);
+  const view = reviewFactsAgainstSources(historical, [f.source]); assert.equal(view.materials[0].candidates[0].amount, amount);
+  assert.equal(view.materials[0].raw, f.raw); assert.deepEqual(view.history, historical.history);
+  assert.deepEqual({ historical, source: f.source }, snapshot);
+}
+for (const [word, token] of [['二元论', '二元'], ['二元論', '二元'], ['三元催化器', '三元'], ['三元催化剂', '三元']]) {
+  test(`ordinary whole literal is never exact: ${word}`, () => assert.equal(normalizeMoneyValueV4(word).amount, null));
+  for (const style of ['full', 'crop']) {
+    test(`ordinary source blocks a cropped unit (${word}, ${style})`, () => check(`😀王甲材料记载${word}。`, token, '王甲', style, null, token.startsWith('二') ? '2.00' : '3.00'));
+    test(`ordinary whole value preserves raw (${word}, ${style})`, () => check(`😀王甲材料记载${word}。`, word, '王甲', style, null, token.startsWith('二') ? '2.00' : '3.00'));
+  }
+  test(`ordinary word continues over adjacent TXT blocks: ${word}`, () => check(`😀王甲材料记载${token}`, token, '王甲', 'crop', null, token.startsWith('二') ? '2.00' : '3.00', [word.slice(token.length) + '。']));
+}
+for (const [text, value, amount] of [['😀王甲工资二元。', '二元', '2.00'], ['😀王甲工资三元。', '三元', '3.00'], ['😀王甲工资五元组装费。', '五元', '5.00'], ['😀王甲工资五元论文费。', '五元', '5.00'], ['😀王甲工资二元论文费。', '二元', '2.00'], ['😀王甲工资五元催化器维修费。', '五元', '5.00']])
+  for (const style of ['full', 'crop']) test(`real yuan amount remains available (${style}): ${text}`, () => check(text, value, '王甲', style, amount));
+for (const subject of ['王美元', '李港元', '赵港幣', '陈美金', '王ＵＳＤ', '王美\u200b元']) for (const style of ['full', 'crop'])
+  test(`only the anchored subject name is excluded (${subject}, ${style})`, () => check(`😀${subject}工资四万元。`, '四万元', subject, style, '40000.00'));
+for (const [text, subject] of [['😀王美元2026年1月工资四万元。', '王美元'], ['😀员工王美元工资四万元。', '王美元'], ['😀王美元工資人民幣四万元。', '王美元'], ['😀李港元工资人民币四万元。', '李港元']])
+  for (const style of ['full', 'crop']) test(`anchored name and an explicit period/label/RMB remain available (${style}): ${text}`, () => check(text, '四万元', subject, style, '40000.00'));
+for (const [text, subject] of [['😀王美元工资以港币支付四万元。', '王美元'], ['😀李港元美元工资四万元。', '李港元'], ['😀王美元工资四万元币种为港币。', '王美元'], ['😀港币王美元工资四万元。', '王美元'], ['😀李港元港元工资四万元。', '李港元']])
+  for (const style of ['full', 'crop']) test(`real foreign marker outside the subject remains unavailable (${style}): ${text}`, () => check(text, '四万元', subject, style, null));
+for (const separator of ['，', '。', '\n', '\u2028', '\u2029']) for (const style of ['full', 'crop'])
+  test(`another event is not borrowed across ${JSON.stringify(separator)} (${style})`, () => check(`王乙港币工资三万元${separator}😀王美元工资四万元。`, '四万元', '王美元', style, '40000.00'));
+for (const [text, subject] of [['😀王美元在名单中。美元工资四万元。', '王美元'], ['😀王美元与王美元工资四万元。', '王美元'], ['😀周王美元工资四万元。', '王美元'], ['😀美元工资四万元。', '美元'], ['😀港币工资四万元。', '港币'], ['😀王甲港币工资四万元。', '王甲港币'], ['😀王甲以美元支付四万元。', '王甲以美元'], ['😀以美元支付四万元。', '以美元'], ['😀按港元计四万元。', '按港元']])
+  for (const style of ['full', 'crop']) test(`no exemption for a missing, repeated or partial subject (${style}): ${text}`, () => check(text, '四万元', subject, style, null));
+test('a partial subject does not change the pre-existing finite currency bridge', () => {
+  const text = '😀王美元甲工资四万元。', normalized = normalizeMoneyValueV4('四万元');
+  const source = { blockText: text, valueStart: text.indexOf('四万元') };
+  assert.equal(sourceMoneyHasUnsupportedCurrency(source, normalized, '王美元'), sourceMoneyHasUnsupportedCurrency(source, normalized));
+});
+test('no-subject standalone literal never guesses that a foreign word is a name', () => {
+  assert.equal(normalizeMoneyValueV4('王美元工资四万元').amount, null);
+  const text = '😀王美元工资四万元', normalized = normalizeMoneyValueV4('四万元');
+  assert.equal(sourceMoneyHasUnsupportedCurrency({ blockText: text, valueStart: text.indexOf('四万元') }, normalized), true);
+  assert.equal(sourceMoneyHasUnsupportedCurrency({ blockText: text, valueStart: text.indexOf('四万元') }, normalized, '王美元'), false);
+});
+test('direct lexical guard preserves offsets while recognizing an adjacent compound', () => {
+  const text = '😀王甲记录三元催化器。', normalized = normalizeMoneyValueV4('三元');
+  const source = { blockText: text, valueStart: text.indexOf('三元') }, saved = structuredClone({ source, normalized });
+  assert.equal(sourceMoneyHasNonCurrencyYuan(source, normalized), true); assert.deepEqual({ source, normalized }, saved);
+});
+for (const word of ['２元论', '３元催化器', '二元\u200b論', '三元催化劑', '三元\n催化器', '二元\u2028论']) test(`ordinary compound detection preserves Unicode/layout: ${JSON.stringify(word)}`, () => {
+  const token = word.slice(0, word.indexOf('元') + 1);
+  check(`😀王甲材料记载${word}。`, token, '王甲', 'crop', null, word.startsWith('二') || word.startsWith('２') ? '2.00' : '3.00');
+});
+for (const [word, value, amount] of [['2元论', '2', '2.00'], ['3元催化器', '3', '3.00']]) for (const style of ['full', 'crop'])
+  test(`a bare cropped number cannot borrow the unit from ${word} (${style})`, () => check(`😀王甲材料记载${word}。`, value, '王甲', style, null, amount));

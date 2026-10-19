@@ -1,0 +1,78 @@
+修复前最小业务红测，预期两项失败；仅测试，无模型。
+命令：npx vitest run lib/material-money-v4.test.ts -t attached arithmetic minimum regression --reporter=dot
+exit_code: 1
+
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money
+
+xx--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 356 skipped (358)
+   Start at  13:09:59
+   Duration  452ms (transform 62ms, setup 0ms, collect 72ms, tests 15ms, environment 0ms, prepare 41ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/material-money-v4.test.ts > attached arithmetic minimum regression > does not treat an amount operand as the result of its attached multiplier
+AssertionError: expected { rawValue: '四万元的2倍', …(5) } to match object { rawValue: '四万元的2倍', …(4) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
+-   "matchedText": null,
++   "amount": "40000.00",
++   "matchedText": "四万元",
+    "rawValue": "四万元的2倍",
+-   "span": null,
+-   "status": "unsupported",
++   "span": {
++     "end": 3,
++     "start": 0,
++   },
++   "status": "exact",
+  }
+
+ ❯ lib/material-money-v4.test.ts:9:45
+      7| describe('attached arithmetic minimum regression', () => {
+      8|   it('does not treat an amount operand as the result of its attached m…
+      9|     expect(normalizeMoneyValueV4('四万元的2倍')).toMatchObject({ rawValue: …
+       |                                             ^
+     10|   });
+     11|   it('retains a clipped monetary operand as unavailable in its source …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/material-money-v4.test.ts > attached arithmetic minimum regression > retains a clipped monetary operand as unavailable in its source multiplier
+AssertionError: expected { value: '40000.00', …(3) } to match object { value: '四万元', amount: null, …(1) }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": null,
++   "amount": "40000.00",
+    "normalization": {
+      "rawValue": "四万元",
+-     "status": "unsupported",
++     "status": "exact",
+    },
+-   "value": "四万元",
++   "value": "40000.00",
+  }
+
+ ❯ lib/material-money-v4.test.ts:12:71
+     10|   });
+     11|   it('retains a clipped monetary operand as unavailable in its source …
+     12|     expect(normalizeCandidateValueV4(money({ quote: '王甲工资四万元的2倍' }))).…
+       |                                                                       ^
+     13|   });
+     14| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+

@@ -1,0 +1,135 @@
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// Synthetic runtime and historical read-time checks only. Dependencies come
+// from a configurable checkout; only the owned currency guard is overlaid.
+const IMPLEMENTATION = fileURLToPath(new URL('../', import.meta.url));
+const SOURCE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || IMPLEMENTATION);
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-currency-computation-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+await cp(resolve(SOURCE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+await cp(resolve(IMPLEMENTATION, 'lib/material-fact-currency-review.ts'), resolve(temporary, 'lib/material-fact-currency-review.ts'));
+const load = name => import(pathToFileURL(resolve(temporary, 'lib', name)).href);
+const { reviewCandidateAgainstSource, reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
+const { sourceMoneyHasUnsupportedCurrency } = await load('material-fact-currency-review.ts');
+const { ingestRuntimeCandidates, validateRuntimeCandidateOutput } = await load('material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates } = await load('material-facts-v3.ts');
+const { ingestCandidates: ingestV2, validateCandidateOutput: validateV2 } = await load('material-facts-v2.ts');
+const { normalizeMoneyValueV4 } = await load('material-money-v4.ts');
+const ACTOR = 'synthetic-currency-computation', AT = '2026-10-18T00:00:00.000Z';
+
+function fixture(text, quoteStyle, value = '四万元', adjacent = []) {
+  const source = { id: 'synthetic-currency-computation', name: '合成币种归属词桥', sha256: 'd'.repeat(64), analysisRevision: 1, ready: true,
+    blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }, ...adjacent.map((content, index) => ({ id: `b${index + 2}`, page: 1, text: content, bbox: null, confidence: null }))] };
+  const representation = { kind: 'money', value, quote: quoteStyle === 'full' ? text : value, blockId: 'b1', subject: '王甲', scope: 'individual',
+    meaning: 'arrears', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' };
+  const raw = JSON.stringify({ schemaVersion: 3, candidates: [representation] });
+  const state = ingestCandidates(emptyFactState(1), source, { raw }, 'synthetic', ACTOR, AT);
+  const candidate = state.materials[0].candidates[0];
+  assert.ok(candidate, 'the actual store accepts the synthetic source-bound representation');
+  // Historical exact amounts must be downgraded even when the latest parser
+  // already withholds this same literal. Never mutate that historical record.
+  const normalization = normalizeMoneyValueV4(value);
+  assert.equal(normalization.amount, '40000.00');
+  Object.assign(candidate, { amount: '40000.00', normalization });
+  return { source, representation, raw, state, candidate };
+}
+
+function assertEvidence(candidate, f) {
+  const start = Array.from(f.source.blocks[0].text.slice(0, f.source.blocks[0].text.indexOf(f.representation.quote))).length;
+  assert.equal(candidate.value, f.representation.value);
+  assert.equal(candidate.quote, f.representation.quote);
+  assert.equal(candidate.start, start);
+  assert.equal(candidate.end, start + Array.from(f.representation.quote).length);
+  assert.deepEqual(candidate.representation, f.representation);
+}
+
+function assertAvailability(text, quoteStyle, unavailable, value = '四万元', adjacent = []) {
+  const f = fixture(text, quoteStyle, value, adjacent), original = structuredClone({ source: f.source, state: f.state });
+  const reviewed = reviewCandidateAgainstSource(f.candidate, f.source);
+  assert.equal(reviewed.amount, unavailable ? null : '40000.00');
+  assert.equal(reviewed.normalization.status, unavailable ? 'unsupported' : 'exact');
+  if (unavailable) {
+    assert.ok(reviewed.reviewIssues.some(issue => issue.code === 'source_amount_context_mismatch'));
+    assert.match(reviewed.normalization.reason, /币种/u);
+  }
+  assertEvidence(reviewed, f);
+  assert.deepEqual({ source: f.source, state: f.state }, original);
+  assert.deepEqual(reviewCandidateAgainstSource(reviewed, f.source), reviewed);
+  const viewState = reviewFactsAgainstSources(f.state, [f.source]);
+  assert.equal(viewState.materials[0].candidates[0].amount, unavailable ? null : '40000.00');
+  assert.equal(viewState.materials[0].raw, f.raw);
+  assert.deepEqual(viewState.confirmations, f.state.confirmations);
+  assert.deepEqual({ source: f.source, state: f.state }, original);
+  const batch = validateRuntimeCandidateOutput(f.raw, f.source);
+  assert.equal(batch.candidates.length, 1);
+  assert.equal(batch.rejected.length, 0, 'currency risk is retained for review rather than dropped');
+  assert.equal(batch.candidates[0].amount, unavailable ? null : '40000.00');
+  assertEvidence(batch.candidates[0], f);
+  const fresh = ingestRuntimeCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', ACTOR, AT);
+  assert.equal(fresh.materials[0].raw, f.raw);
+  assert.equal(fresh.materials[0].candidates.length, 1);
+  assert.equal(fresh.materials[0].candidates[0].amount, unavailable ? null : '40000.00');
+  assertEvidence(fresh.materials[0].candidates[0], f);
+  assert.deepEqual(fresh.confirmations, emptyFactState(1).confirmations);
+}
+
+const unsafe = [];
+for (const marker of ['港币', '港幣', '美元', 'HKD', 'ＨＫＤ', '港\u200b币']) {
+  for (const verb of ['计', '计算', '折算']) unsafe.push(`😀王甲的工资以${marker}${verb}四万元。`);
+}
+for (const wording of ['計', '計算', ' 计 ', '\t计算\t', '计\u2060算', '折\u200b算', '（计算）', '计算为', '折算的工资为'])
+  unsafe.push(`😀王甲工资以港币${wording}四万元。`);
+for (const suffix of ['计为港币', '计算为港币', '折算为港币', '計算为港幣', '工资按港币计', '工资以ＨＫＤ计算', '折\u2060算为港\u200b币', ' 计算 为 港币 '])
+  unsafe.push(`😀王甲工资四万元${suffix}。`);
+for (const text of unsafe) for (const quote of ['cropped', 'full'])
+  test(`foreign valuation remains unavailable with ${quote} quote: ${JSON.stringify(text)}`, () => assertAvailability(text, quote, true));
+
+for (const marker of ['人民币', '人民幣', 'CNY', 'ＲＭＢ', '￥']) for (const verb of ['计', '计算', '折算']) {
+  for (const quote of ['cropped', 'full']) test(`explicit RMB ${marker}${verb} remains exact (${quote})`, () =>
+    assertAvailability(`😀王甲的工资以${marker}${verb}四万元。`, quote, false));
+}
+for (const text of ['😀王甲工资四万元计算为人民币。', '😀王甲工资四万元折算为CNY。', '😀王甲工资美元换成人民币四万元。', '😀王甲工资港币折算成人民币四万元。'])
+  for (const quote of ['cropped', 'full']) test(`explicit RMB result remains available: ${JSON.stringify(text)} (${quote})`, () => assertAvailability(text, quote, false));
+
+for (const separator of ['，', ',', '。', '；', ';', '\n', '\r\n', '\u2028', '\u2029']) for (const order of ['before', 'after']) {
+  const foreign = '王乙的工资以港币计算三万元', rmb = '😀王甲人民币欠薪四万元';
+  const text = order === 'before' ? foreign + separator + rmb : rmb + separator + foreign;
+  for (const quote of ['cropped', 'full']) test(`another event never supplies currency (${JSON.stringify(separator)}, ${order}, ${quote})`, () => assertAvailability(text, quote, false));
+}
+for (const text of ['😀王乙以港币计算王甲人民币欠薪四万元。', '😀王甲人民币欠薪四万元王乙工资以港币计算三万元。', '😀港币计算三万元后王甲人民币欠薪四万元。'])
+  for (const quote of ['cropped', 'full']) test(`a foreign marker cannot cross another person or amount (${quote}): ${text}`, () => assertAvailability(text, quote, false));
+for (const boundary of ['\n', '\r\n', '\u2028', '\u2029', '，', '；', '。']) for (const side of ['before', 'after']) {
+  const text = side === 'before' ? `😀王甲工资以港币计算${boundary}四万元` : `😀王甲工资四万元${boundary}计算为港币`;
+  for (const quote of ['cropped', 'full']) test(`currency bridge preserves ${JSON.stringify(boundary)} boundary (${side}, ${quote})`, () => assertAvailability(text, quote, false));
+}
+for (const quote of ['cropped', 'full']) test(`another block cannot lend foreign currency (${quote})`, () =>
+  assertAvailability('😀王甲人民币欠薪四万元。', quote, false, '四万元', ['王乙以港币计算三万元。']));
+
+for (const text of ['😀王甲的工资以港币计40000元。', '😀王甲的工资以港币计算40000元。', '😀王甲的工资以港币折算40000元。', '😀王甲工资40000元折算为港币。'])
+  for (const quote of ['cropped', 'full']) test(`v2 historical exact amount is unavailable without changing raw (${quote}): ${text}`, () => {
+    const f = fixture(text, quote, '40000元'), raw = JSON.stringify({ schemaVersion: 2, candidates: [f.representation] });
+    const state = ingestV2(emptyFactState(1), f.source, validateV2(raw, f.source), 'synthetic', ACTOR, AT), original = structuredClone(state);
+    const candidate = state.materials[0].candidates[0];
+    assert.equal(candidate.amount, '40000.00');
+    const reviewed = reviewCandidateAgainstSource(candidate, f.source);
+    assert.equal(reviewed.amount, null);
+    assert.equal(Object.hasOwn(reviewed, 'normalization'), false);
+    assert.ok(reviewed.reviewIssues.some(issue => issue.code === 'source_amount_context_mismatch'));
+    assertEvidence(reviewed, f);
+    assert.equal(state.materials[0].raw, raw);
+    assert.deepEqual(state, original);
+  });
+
+test('direct source guard anchors the original code-point span without modifying it', () => {
+  const value = '四万元', normalization = normalizeMoneyValueV4(value);
+  for (const text of ['😀王甲以港币计四万元。', '😀王甲以港币计算四万元。', '😀王甲以港币折算四万元。', '😀王甲四万元折算为港币。']) {
+    const source = { blockText: text, valueStart: text.indexOf(value) }, before = structuredClone({ source, normalization });
+    assert.equal(sourceMoneyHasUnsupportedCurrency(source, normalization), true);
+    assert.deepEqual({ source, normalization }, before);
+  }
+});

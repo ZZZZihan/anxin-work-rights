@@ -1,0 +1,33 @@
+{"evidence":"production_http_lifecycle_under_test","sha256":"5454204f56a3246e440d841c2bde273abfdb16a7ff3e28be26962a08f8a7f3eb"}
+✔ stop owned HTTP launcher and listening descendant: default (229.601167ms)
+✔ stop owned HTTP launcher and listening descendant: ignore-term (5228.169792ms)
+✔ stop owned HTTP launcher and listening descendant: launcher-exits (224.303792ms)
+✖ shutdown only signals its own detached process group (335.3365ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6137.307667
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-http-process-tree.test.mjs:80:1
+✖ shutdown only signals its own detached process group (335.3365ms)
+  Error: kill EPERM
+      at process.kill (node:internal/process/per_thread:277:13)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-http-process-tree.test.mjs:84:33)
+      at TestHook.runInAsyncScope (node:async_hooks:226:14)
+      at TestHook.run (node:internal/test_runner/test:1402:25)
+      at TestHook.run (node:internal/test_runner/test:1757:18)
+      at TestHook.run (node:internal/util:581:20)
+      at Test.runHook (node:internal/test_runner/test:1289:20)
+      at async after (node:internal/test_runner/test:1342:9)
+      at async Test.run (node:internal/test_runner/test:1428:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'kill'
+  }

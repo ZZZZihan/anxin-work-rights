@@ -1,0 +1,352 @@
+Independent PR45 review regression before monetary corrections; current root nested-position dedup fix already present.
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards
+
+ ❯ lib/material-money-v4.review-regression.test.ts (40 tests | 29 failed) 44ms
+   × independent PR45 currency boundaries across parsing, source review and scoring > never gives 四万元港幣 the same comparison key or exact amount as RMB 四万元 5ms
+     → expected '40000.00' to be null
+   × independent PR45 currency boundaries across parsing, source review and scoring > never gives 新台币1000元 the same comparison key or exact amount as RMB 1000元 1ms
+     → expected '1000.00' to be null
+   × independent PR45 currency boundaries across parsing, source review and scoring > never gives 加拿大元1000元 the same comparison key or exact amount as RMB 1000元 0ms
+     → expected '1000.00' to be null
+   × independent PR45 currency boundaries across parsing, source review and scoring > never gives ＣＡＤ1000元 the same comparison key or exact amount as RMB 1000元 0ms
+     → expected '1000.00' to be null
+   × independent PR45 currency boundaries across parsing, source review and scoring > never gives 1000元新臺幣 the same comparison key or exact amount as RMB 1000元 0ms
+     → expected '1000.00' to be null
+   ✓ independent PR45 currency boundaries across parsing, source review and scoring > a cropped quote cannot hide the source currency in 四万元港幣 6ms
+   ✓ independent PR45 currency boundaries across parsing, source review and scoring > a cropped quote cannot hide the source currency in 新台币1000元 1ms
+   ✓ independent PR45 currency boundaries across parsing, source review and scoring > a cropped quote cannot hide the source currency in 加拿大元1000元 1ms
+   ✓ independent PR45 currency boundaries across parsing, source review and scoring > a cropped quote cannot hide the source currency in ＣＡＤ1000元 0ms
+   ✓ independent PR45 currency boundaries across parsing, source review and scoring > a cropped quote cannot hide the source currency in 1000元新臺幣 1ms
+   × independent PR45 currency boundaries across parsing, source review and scoring > same-event scoring does not call a clipped RMB-looking value equal to 四万元港幣 3ms
+     → raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+   × independent PR45 currency boundaries across parsing, source review and scoring > same-event scoring does not call a clipped RMB-looking value equal to 新台币1000元 1ms
+     → raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+   × independent PR45 currency boundaries across parsing, source review and scoring > same-event scoring does not call a clipped RMB-looking value equal to 加拿大元1000元 1ms
+     → raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+   × independent PR45 currency boundaries across parsing, source review and scoring > same-event scoring does not call a clipped RMB-looking value equal to ＣＡＤ1000元 1ms
+     → raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+   × independent PR45 currency boundaries across parsing, source review and scoring > same-event scoring does not call a clipped RMB-looking value equal to 1000元新臺幣 1ms
+     → raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+   ✓ independent PR45 currency boundaries across parsing, source review and scoring > still credits literal foreign-currency extraction without providing an RMB amount 1ms
+   × independent PR45 indefinite and signed amounts cannot become exact positive tails > does not parse 数十万元 as a positive exact 十万元 0ms
+     → expected '100000.00' to be null
+   × independent PR45 indefinite and signed amounts cannot become exact positive tails > does not parse 几十万元 as a positive exact 十万元 0ms
+     → expected '100000.00' to be null
+   × independent PR45 indefinite and signed amounts cannot become exact positive tails > does not parse 负数四万元 as a positive exact 四万元 0ms
+     → expected '40000.00' to be null
+   × independent PR45 indefinite and signed amounts cannot become exact positive tails > does not parse 负值四万元 as a positive exact 四万元 0ms
+     → expected '40000.00' to be null
+   × independent PR45 indefinite and signed amounts cannot become exact positive tails > full source prevents a cropped 数十万元 quote from losing its modifier 2ms
+     → expected '100000.00' to be null
+   × independent PR45 indefinite and signed amounts cannot become exact positive tails > full source prevents a cropped 几十万元 quote from losing its modifier 0ms
+     → expected '100000.00' to be null
+   ✓ independent PR45 indefinite and signed amounts cannot become exact positive tails > full source prevents a cropped 负数四万元 quote from losing its modifier 0ms
+   ✓ independent PR45 indefinite and signed amounts cannot become exact positive tails > full source prevents a cropped 负值四万元 quote from losing its modifier 0ms
+   × independent PR45 indefinite and signed amounts cannot become exact positive tails > all six scorer layers distinguish 数十万元 from its cropped positive tail 1ms
+     → raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+   × independent PR45 indefinite and signed amounts cannot become exact positive tails > all six scorer layers distinguish 几十万元 from its cropped positive tail 1ms
+     → raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+   × independent PR45 indefinite and signed amounts cannot become exact positive tails > all six scorer layers distinguish 负数四万元 from its cropped positive tail 1ms
+     → raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+   × independent PR45 indefinite and signed amounts cannot become exact positive tails > all six scorer layers distinguish 负值四万元 from its cropped positive tail 1ms
+     → raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+   × independent PR45 ordinary words containing 元 or 圆 remain raw false positives > positively identifies 元月 as a non-money word 1ms
+     → expected 'monetary' to be 'not_monetary' // Object.is equality
+   × independent PR45 ordinary words containing 元 or 圆 remain raw false positives > positively identifies 元旦 as a non-money word 0ms
+     → expected 'monetary' to be 'not_monetary' // Object.is equality
+   × independent PR45 ordinary words containing 元 or 圆 remain raw false positives > positively identifies 圆满 as a non-money word 0ms
+     → expected 'monetary' to be 'not_monetary' // Object.is equality
+   × independent PR45 ordinary words containing 元 or 圆 remain raw false positives > rejects 元月 from accepted candidates while retaining the original response 2ms
+     → expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+   × independent PR45 ordinary words containing 元 or 圆 remain raw false positives > rejects 元旦 from accepted candidates while retaining the original response 1ms
+     → expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+   × independent PR45 ordinary words containing 元 or 圆 remain raw false positives > rejects 圆满 from accepted candidates while retaining the original response 1ms
+     → expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+   × independent PR45 ordinary words containing 元 or 圆 remain raw false positives > retains the 元月 raw FP against an empty gold label instead of hiding it 1ms
+     → expected [ +0, 1, +0 ] to deeply equal [ +0, +0, +0 ]
+   × independent PR45 ordinary words containing 元 or 圆 remain raw false positives > retains the 元旦 raw FP against an empty gold label instead of hiding it 0ms
+     → expected [ +0, 1, +0 ] to deeply equal [ +0, +0, +0 ]
+   × independent PR45 ordinary words containing 元 or 圆 remain raw false positives > retains the 圆满 raw FP against an empty gold label instead of hiding it 0ms
+     → expected [ +0, 1, +0 ] to deeply equal [ +0, +0, +0 ]
+   ✓ independent PR45 equivalent nested values retain one accepted source observation > deduplicates 人民币四万元 and 四万元 inside one unique quote in full-first order 1ms
+   ✓ independent PR45 equivalent nested values retain one accepted source observation > deduplicates 人民币四万元 and 四万元 inside one unique quote in cropped-first order 1ms
+   ✓ independent PR45 equivalent nested values retain one accepted source observation > keeps two non-overlapping equal payments even when one value includes a currency prefix 2ms
+
+ Test Files  1 failed (1)
+      Tests  29 failed | 11 passed (40)
+   Start at  11:51:31
+   Duration  483ms (transform 80ms, setup 0ms, collect 96ms, tests 44ms, environment 0ms, prepare 52ms)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 29 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 currency boundaries across parsing, source review and scoring > never gives 四万元港幣 the same comparison key or exact amount as RMB 四万元
+AssertionError: expected '40000.00' to be null
+
+- Expected: 
+null
+
++ Received: 
+"40000.00"
+
+ ❯ lib/material-money-v4.review-regression.test.ts:55:51
+     53| describe('independent PR45 currency boundaries across parsing, source …
+     54|   it.each(foreign)('never gives %s the same comparison key or exact am…
+     55|     expect(normalizeMoneyValueV4(literal).amount).toBeNull();
+       |                                                   ^
+     56|     expect(canonicalMonetaryExpression(literal)).not.toBe(canonicalMon…
+     57|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/29]⎯
+
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 currency boundaries across parsing, source review and scoring > never gives 新台币1000元 the same comparison key or exact amount as RMB 1000元
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 currency boundaries across parsing, source review and scoring > never gives 加拿大元1000元 the same comparison key or exact amount as RMB 1000元
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 currency boundaries across parsing, source review and scoring > never gives ＣＡＤ1000元 the same comparison key or exact amount as RMB 1000元
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 currency boundaries across parsing, source review and scoring > never gives 1000元新臺幣 the same comparison key or exact amount as RMB 1000元
+AssertionError: expected '1000.00' to be null
+
+- Expected: 
+null
+
++ Received: 
+"1000.00"
+
+ ❯ lib/material-money-v4.review-regression.test.ts:55:51
+     53| describe('independent PR45 currency boundaries across parsing, source …
+     54|   it.each(foreign)('never gives %s the same comparison key or exact am…
+     55|     expect(normalizeMoneyValueV4(literal).amount).toBeNull();
+       |                                                   ^
+     56|     expect(canonicalMonetaryExpression(literal)).not.toBe(canonicalMon…
+     57|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/29]⎯
+
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 currency boundaries across parsing, source review and scoring > same-event scoring does not call a clipped RMB-looking value equal to 四万元港幣
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 currency boundaries across parsing, source review and scoring > same-event scoring does not call a clipped RMB-looking value equal to 新台币1000元
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 currency boundaries across parsing, source review and scoring > same-event scoring does not call a clipped RMB-looking value equal to 加拿大元1000元
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 currency boundaries across parsing, source review and scoring > same-event scoring does not call a clipped RMB-looking value equal to ＣＡＤ1000元
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 currency boundaries across parsing, source review and scoring > same-event scoring does not call a clipped RMB-looking value equal to 1000元新臺幣
+AssertionError: raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+
+- Expected
++ Received
+
+  [
+-   0,
+-   1,
+    1,
++   0,
++   0,
+  ]
+
+ ❯ allCounts lib/material-money-v4.review-regression.test.ts:46:86
+     44| }
+     45| function allCounts(row: Record<string, { tp: number; fp: number; fn: n…
+     46|   for (const mode of modes) expect([row[mode].tp, row[mode].fp, row[mo…
+       |                                                                                      ^
+     47| }
+     48| 
+ ❯ lib/material-money-v4.review-regression.test.ts:69:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/29]⎯
+
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 indefinite and signed amounts cannot become exact positive tails > does not parse 数十万元 as a positive exact 十万元
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 indefinite and signed amounts cannot become exact positive tails > does not parse 几十万元 as a positive exact 十万元
+AssertionError: expected '100000.00' to be null
+
+- Expected: 
+null
+
++ Received: 
+"100000.00"
+
+ ❯ lib/material-money-v4.review-regression.test.ts:85:51
+     83| describe('independent PR45 indefinite and signed amounts cannot become…
+     84|   it.each(indefiniteOrSigned)('does not parse %s as a positive exact %…
+     85|     expect(normalizeMoneyValueV4(literal).amount).toBeNull();
+       |                                                   ^
+     86|     expect(canonicalMonetaryExpression(literal)).not.toBe(canonicalMon…
+     87|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/29]⎯
+
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 indefinite and signed amounts cannot become exact positive tails > does not parse 负数四万元 as a positive exact 四万元
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 indefinite and signed amounts cannot become exact positive tails > does not parse 负值四万元 as a positive exact 四万元
+AssertionError: expected '40000.00' to be null
+
+- Expected: 
+null
+
++ Received: 
+"40000.00"
+
+ ❯ lib/material-money-v4.review-regression.test.ts:85:51
+     83| describe('independent PR45 indefinite and signed amounts cannot become…
+     84|   it.each(indefiniteOrSigned)('does not parse %s as a positive exact %…
+     85|     expect(normalizeMoneyValueV4(literal).amount).toBeNull();
+       |                                                   ^
+     86|     expect(canonicalMonetaryExpression(literal)).not.toBe(canonicalMon…
+     87|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/29]⎯
+
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 indefinite and signed amounts cannot become exact positive tails > full source prevents a cropped 数十万元 quote from losing its modifier
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 indefinite and signed amounts cannot become exact positive tails > full source prevents a cropped 几十万元 quote from losing its modifier
+AssertionError: expected '100000.00' to be null
+
+- Expected: 
+null
+
++ Received: 
+"100000.00"
+
+ ❯ lib/material-money-v4.review-regression.test.ts:93:43
+     91|     expect(material.raw).toBe(output(entries));
+     92|     expect(material.candidates).toHaveLength(1);
+     93|     expect(material.candidates[0].amount).toBeNull();
+       |                                           ^
+     94|     expect(material.candidates[0].representation).toEqual(entries[0]);
+     95|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/29]⎯
+
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 indefinite and signed amounts cannot become exact positive tails > all six scorer layers distinguish 数十万元 from its cropped positive tail
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 indefinite and signed amounts cannot become exact positive tails > all six scorer layers distinguish 几十万元 from its cropped positive tail
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 indefinite and signed amounts cannot become exact positive tails > all six scorer layers distinguish 负数四万元 from its cropped positive tail
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 indefinite and signed amounts cannot become exact positive tails > all six scorer layers distinguish 负值四万元 from its cropped positive tail
+AssertionError: raw_basic: expected [ 1, +0, +0 ] to deeply equal [ +0, 1, 1 ]
+
+- Expected
++ Received
+
+  [
+-   0,
+-   1,
+    1,
++   0,
++   0,
+  ]
+
+ ❯ allCounts lib/material-money-v4.review-regression.test.ts:46:86
+     44| }
+     45| function allCounts(row: Record<string, { tp: number; fp: number; fn: n…
+     46|   for (const mode of modes) expect([row[mode].tp, row[mode].fp, row[mo…
+       |                                                                                      ^
+     47| }
+     48| 
+ ❯ lib/material-money-v4.review-regression.test.ts:99:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/29]⎯
+
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 ordinary words containing 元 or 圆 remain raw false positives > positively identifies 元月 as a non-money word
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 ordinary words containing 元 or 圆 remain raw false positives > positively identifies 元旦 as a non-money word
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 ordinary words containing 元 or 圆 remain raw false positives > positively identifies 圆满 as a non-money word
+AssertionError: expected 'monetary' to be 'not_monetary' // Object.is equality
+
+Expected: "not_monetary"
+Received: "monetary"
+
+ ❯ lib/material-money-v4.review-regression.test.ts:106:52
+    104| describe('independent PR45 ordinary words containing 元 or 圆 remain raw…
+    105|   it.each(['元月', '元旦', '圆满'])('positively identifies %s as a non-money…
+    106|     expect(classifyMonetaryExpression(value).kind).toBe('not_monetary'…
+       |                                                    ^
+    107|   });
+    108|   it.each(['元月', '元旦', '圆满'])('rejects %s from accepted candidates whi…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/29]⎯
+
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 ordinary words containing 元 or 圆 remain raw false positives > rejects 元月 from accepted candidates while retaining the original response
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 ordinary words containing 元 or 圆 remain raw false positives > rejects 元旦 from accepted candidates while retaining the original response
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 ordinary words containing 元 or 圆 remain raw false positives > rejects 圆满 from accepted candidates while retaining the original response
+AssertionError: expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "amount": null,
++     "assertion": "narrated",
++     "blockId": "b1",
++     "end": 12,
++     "evidenceId": "independent-pr45-review-source",
++     "id": "independent-pr45-review-source:7:0",
++     "kind": "due_total",
++     "normalization": {
++       "amount": null,
++       "matchedText": null,
++       "rawValue": "元月",
++       "reason": "未找到唯一且受支持的精确金额，保留原文供核对。",
++       "span": null,
++       "status": "unsupported",
++     },
++     "outputFormat": "json",
++     "page": 1,
++     "period": null,
++     "qualifier": "unknown",
++     "quote": "王甲材料中的原词为元月。",
++     "representation": {
++       "assertion": "narrated",
++       "blockId": "b1",
++       "completeness": "unknown",
++       "kind": "money",
++       "meaning": "due_total",
++       "period": null,
++       "quote": "王甲材料中的原词为元月。",
++       "rateUnit": null,
++       "scope": "unknown",
++       "subject": null,
++       "value": "元月",
++     },
++     "reviewIssues": [
++       {
++         "code": "source_relation_unresolved",
++         "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。",
++       },
++     ],
++     "schemaVersion": 3,
++     "sourceSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
++     "start": 0,
++     "subject": null,
++     "value": "元月",
++   },
++ ]
+
+ ❯ lib/material-money-v4.review-regression.test.ts:112:33
+    110|     const material = stored(source, entries);
+    111|     expect(material.raw).toBe(output(entries));
+    112|     expect(material.candidates).toEqual([]);
+       |                                 ^
+    113|     expect(validateRuntimeCandidateOutput(output(entries), source).cov…
+    114|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/29]⎯
+
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 ordinary words containing 元 or 圆 remain raw false positives > retains the 元月 raw FP against an empty gold label instead of hiding it
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 ordinary words containing 元 or 圆 remain raw false positives > retains the 元旦 raw FP against an empty gold label instead of hiding it
+ FAIL  lib/material-money-v4.review-regression.test.ts > independent PR45 ordinary words containing 元 or 圆 remain raw false positives > retains the 圆满 raw FP against an empty gold label instead of hiding it
+AssertionError: expected [ +0, 1, +0 ] to deeply equal [ +0, +0, +0 ]
+
+- Expected
++ Received
+
+  [
+    0,
+-   0,
++   1,
+    0,
+  ]
+
+ ❯ lib/material-money-v4.review-regression.test.ts:117:82
+    115|   it.each(['元月', '元旦', '圆满'])('retains the %s raw FP against an empty …
+    116|     const text = `王甲材料中的原词为${value}。`, source = sourceFor(text), row =…
+    117|     for (const mode of modes) expect([row[mode].tp, row[mode].fp, row[…
+       |                                                                                  ^
+    118|     expect(row.raw_count).toBe(1); expect(row.accepted_count).toBe(0);…
+    119|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/29]⎯
+

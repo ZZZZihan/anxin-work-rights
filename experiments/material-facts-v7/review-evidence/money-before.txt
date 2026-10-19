@@ -1,0 +1,95 @@
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money
+
+ ❯ lib/material-money-v4.test.ts (4 tests | 3 failed) 7ms
+   × v4 minimum Chinese-money regression > parses strict lowercase amount 人民币四万元 5ms
+     → expected { rawValue: '人民币四万元', …(5) } to match object { status: 'exact', amount: '40000.00' }
+(4 matching properties omitted from actual)
+   × v4 minimum Chinese-money regression > parses strict lowercase amount 四万元 1ms
+     → expected { rawValue: '四万元', …(5) } to match object { status: 'exact', amount: '40000.00' }
+(4 matching properties omitted from actual)
+   × v4 minimum Chinese-money regression > parses strict lowercase amount 四万零三元五角零分 1ms
+     → expected { rawValue: '四万零三元五角零分', …(5) } to match object { status: 'exact', amount: '40003.50' }
+(4 matching properties omitted from actual)
+   ✓ v4 minimum Chinese-money regression > retains approximation on lowercase values 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/material-money-v4.test.ts > v4 minimum Chinese-money regression > parses strict lowercase amount 人民币四万元
+AssertionError: expected { rawValue: '人民币四万元', …(5) } to match object { status: 'exact', amount: '40000.00' }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": "40000.00",
+-   "status": "exact",
++   "amount": null,
++   "status": "unsupported",
+  }
+
+ ❯ lib/material-money-v4.test.ts:6:42
+      4| describe('v4 minimum Chinese-money regression', () => {
+      5|   it.each(['人民币四万元', '四万元', '四万零三元五角零分'])('parses strict lowercase amo…
+      6|     expect(normalizeMoneyValueV4(value)).toMatchObject({ status: 'exac…
+       |                                          ^
+      7|   });
+      8|   it('retains approximation on lowercase values', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  lib/material-money-v4.test.ts > v4 minimum Chinese-money regression > parses strict lowercase amount 四万元
+AssertionError: expected { rawValue: '四万元', …(5) } to match object { status: 'exact', amount: '40000.00' }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": "40000.00",
+-   "status": "exact",
++   "amount": null,
++   "status": "unsupported",
+  }
+
+ ❯ lib/material-money-v4.test.ts:6:42
+      4| describe('v4 minimum Chinese-money regression', () => {
+      5|   it.each(['人民币四万元', '四万元', '四万零三元五角零分'])('parses strict lowercase amo…
+      6|     expect(normalizeMoneyValueV4(value)).toMatchObject({ status: 'exac…
+       |                                          ^
+      7|   });
+      8|   it('retains approximation on lowercase values', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  lib/material-money-v4.test.ts > v4 minimum Chinese-money regression > parses strict lowercase amount 四万零三元五角零分
+AssertionError: expected { rawValue: '四万零三元五角零分', …(5) } to match object { status: 'exact', amount: '40003.50' }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "amount": "40003.50",
+-   "status": "exact",
++   "amount": null,
++   "status": "multiple_amounts",
+  }
+
+ ❯ lib/material-money-v4.test.ts:6:42
+      4| describe('v4 minimum Chinese-money regression', () => {
+      5|   it.each(['人民币四万元', '四万元', '四万零三元五角零分'])('parses strict lowercase amo…
+      6|     expect(normalizeMoneyValueV4(value)).toMatchObject({ status: 'exac…
+       |                                          ^
+      7|   });
+      8|   it('retains approximation on lowercase values', () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  11:19:37
+   Duration  452ms (transform 60ms, setup 0ms, collect 61ms, tests 7ms, environment 0ms, prepare 72ms)
+

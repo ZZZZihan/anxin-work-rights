@@ -1,0 +1,69 @@
+{
+  "baseline": {
+    "codeReviewHead": "36ad5680c6626409e961be80cbc6b479497370b6",
+    "file": "lib/material-fact-source-review.ts",
+    "sha256": "1da900cf5c9ddaa62dec8548eff8c528ade853549853a248bb647e18cf06b035"
+  },
+  "files": {
+    "lib/material-fact-source-review.ts": "c5284b7f32f029cd7cf6b25a443fff6bfb2ff7fcb0b5a7b9df0e4729038eba07",
+    "scripts/material-fact-relative-day-source-review.test.mjs": "cbaad332d677a72548ccbe2b322225a374ab27782f7be807b35d6cf8525f9e66"
+  },
+  "patchSha256": "ec874f34a556434c4275530aecb4f7810233c198286e816611b61afc340066f7",
+  "checks": [
+    {
+      "receipt": "relative-day-source-final-before-red.receipt.json",
+      "exitCode": 1,
+      "logSha256": "5dbcb29e608d19c2fb30bf1c7094025bc21188456ea671f9aac1f73276e0da6f"
+    },
+    {
+      "receipt": "relative-day-source-final-after-green.receipt.json",
+      "exitCode": 0,
+      "logSha256": "da4b32a12c85c537ac3e6df872597338cd42cb76098a4ce2123432cda5a6a106"
+    },
+    {
+      "receipt": "relative-day-source-integrated-green.receipt.json",
+      "exitCode": 0,
+      "logSha256": "51146c8025c3f365ee65145b6d68571741d7af1b8534abeccc0bf71e4ac4d8c9"
+    },
+    {
+      "receipt": "relative-day-source-existing-regression.receipt.json",
+      "exitCode": 0,
+      "logSha256": "f10bc863016688b56d26d9f934b9e0dbc9211f7df3e211a2fc7fe487773532dd"
+    },
+    {
+      "receipt": "relative-day-source-scoped-eslint.receipt.json",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "counts": {
+    "baselineSameFinalAuthorTest": {
+      "pass": 72,
+      "fail": 81
+    },
+    "finalAuthorTest": {
+      "pass": 153,
+      "fail": 0
+    },
+    "integratedNodeTests": {
+      "pass": 368,
+      "fail": 0
+    },
+    "existingVitestTests": {
+      "pass": 724,
+      "fail": 0
+    }
+  },
+  "earlierDraftEvidence": "relative-day-source-before-red and after-probe logs retained; draft incorrectly asserted full-quote CP as value CP. Corrected final test binds quote CP, then reran exact same final test against original baseline and fix. Do not count draft test errors as production defects.",
+  "behavior": [
+    "Only finite relative-day prefixes before bare 日/基本工资 bypass daily-rate detection",
+    "Explicit 每日/每天, 日薪, 日工资标准 and suffix daily units retain rate precedence",
+    "Complete subject suffix boundary prevents name endings from hiding genuine daily rates",
+    "Original source, raw answer, model representation, quote CP and stored state remain unchanged; read review does not upgrade previously unavailable historical stored amounts"
+  ],
+  "limits": [
+    "Synthetic fresh runtime/read-time fixtures and existing local regressions only",
+    "No model, build, HTTP, training, deployment, commit or push",
+    "No old freeze, correction archive, gold label or result modified"
+  ]
+}

@@ -1,0 +1,46 @@
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -31,5 +31,5 @@
+ const RANGE_BEFORE = new RegExp(`${RANGE_NUMBER}${RANGE_LINK}$`, 'iu');
+ const RANGE_AFTER = new RegExp(`^${RANGE_LINK}[${NUMERALS}]`, 'iu');
+-const TOKEN = new RegExp(`(?:人民币\\s*)?[¥￥]?\\s*(?:(?:\\d[\\d,，]*(?:\\.\\d+)?)\\s*(?:万|亿)?|[${LOWER}壹贰叁肆伍陆柒捌玖拾佰仟]+)\\s*[元圆](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`, 'gu');
++const TOKEN = new RegExp(`(?:人民[币幣]\\s*)?[¥￥]?\\s*(?:(?:\\d[\\d,，]*(?:\\.\\d+)?)\\s*(?:万|亿)?|[${LOWER}壹贰叁肆伍陆柒捌玖拾佰仟]+)\\s*[元圆圓](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`, 'gu');
+ const PREFIX_CURRENCY_PART = String.raw`(?:[^\S\r\n\u2028\u2029]|人民币|人民幣|[¥￥:：=()（）])`;
+ const SIGNED_PREFIX = new RegExp(`(?:负数|負數|负值|負值|正数|正數|正值|[负負+＋\\-－−﹣±])(?:${PREFIX_CURRENCY_PART}|的|为|為|是|金额|金額|数值|數值|工资|薪资|薪酬|计|計|共|合计|合計)*$`, 'u');
+@@ -177,13 +177,16 @@
+     const qualifierStatus = attachedQualifierStatus(before, after);
+     if (qualifierStatus) return result(rawValue, qualifierStatus, '完整金额带有数量不定、概数界限或正负限定，未截取其中的精确正数。');
+-    if (!isRmbCurrencyUnitAt(rawValue, index + text.search(/[元圆]/u))) return result(rawValue, 'unsupported', '匹配到的元或圆属于普通词语，不能截成金额单位。');
++    if (!isRmbCurrencyUnitAt(rawValue, index + text.search(/[元圆圓]/u))) return result(rawValue, 'unsupported', '匹配到的元或圆属于普通词语，不能截成金额单位。');
+     if (new RegExp(`[${NUMERALS}０-９,.，负負+＋\\-－−﹣¥￥]$`, 'u').test(before)
+-      || new RegExp(`^[${NUMERALS}０-９,.，元圆角分整正]`, 'u').test(after)) return result(rawValue, 'unsupported', '完整金额的数字、单位或符号边界不合法，未截取其中有效片段。');
++      || new RegExp(`^[${NUMERALS}０-９,.，元圆圓角分整正]`, 'u').test(after)) return result(rawValue, 'unsupported', '完整金额的数字、单位或符号边界不合法，未截取其中有效片段。');
+     const rest = remainingNumbers(rawValue, index, text)
+       .replace(/(?:一共|一次性|一并|同一|唯一|统一|另一笔|一笔)/gu, '')
+       .replace(new RegExp(`第[${NUMERALS}]+(?:笔|次|项|条|人)`, 'gu'), '');
+     if (new RegExp(`[${NUMERALS}０-９]`, 'u').test(rest)) return result(rawValue, 'multiple_amounts', '原文仍有无法解释为日期、计数或倍数的数字，可能存在省略币种的另一笔金额或复杂中文数表达。');
+-    const onlyLower = new RegExp(`^(?:人民币\\s*)?[¥￥]?\\s*[${LOWER}]+\\s*[元圆][${LOWER}角分整正]*$`, 'u').test(text);
+-    const parsed = onlyLower ? parseLowerAmount(text) : parseArabicSubunits(text) ?? normalizeMoneyValue(text).amount;
++    // Currency spelling aliases exist only in this parse copy after the raw
++    // token is anchored. Returned evidence and code-point spans use text/rawValue.
++    const parseText = text.replace(/^人民幣/u, '人民币').replace(/圓/gu, '圆');
++    const onlyLower = new RegExp(`^(?:人民币\\s*)?[¥￥]?\\s*[${LOWER}]+\\s*[元圆][${LOWER}角分整正]*$`, 'u').test(parseText);
++    const parsed = onlyLower ? parseLowerAmount(parseText) : parseArabicSubunits(parseText) ?? normalizeMoneyValue(parseText).amount;
+     return parsed ? result(rawValue, 'exact', '唯一完整人民币金额已精确解析；原文和位置保持不变。', { text, index, amount: parsed })
+       : result(rawValue, 'unsupported', '金额语法、精度或数值范围不受支持，未猜测省略位数。');
+@@ -244,5 +247,5 @@
+ export function classifyMonetaryExpression(value: string): MonetaryExpressionClassification {
+   const normalization = normalizeMoneyValueV4(value);
+-  const explicit = /人民币|[¥￥]/u.test(value) || monetaryExpressionHasUnsupportedCurrency(value)
++  const explicit = /人民[币幣]|[¥￥]/u.test(value) || monetaryExpressionHasUnsupportedCurrency(value)
+     || [...value.matchAll(/[元圆圓]/gu)].some(match => isRmbCurrencyUnitAt(value, match.index))
+     || new RegExp(`[${NUMERALS}]+[角分](?!钟)`, 'u').test(value);
+@@ -258,6 +261,6 @@
+   const relativeDay = '(?:(?:今|昨|明|前|后|当)(?:日|天)|本日|该日|(?:这|那)(?:日|天|一天)|同(?:日|一天)|(?:前|后|上|下)一(?:日|天)|次日|翌日)';
+   const dayStage = `(?:${relativeDay}|每(?:日|天)|日|某日|该天)`;
+-  const wageStage = `(?:${date}(?:\\s*(?:至|到|[~～—–-])\\s*${date})?|[${NUMERALS}]+月份?|元月份?|元旦|${relativeMonth}|${dayStage}|离职前|入职前|入职后|试用期)`;
+-  const wageDescription = new RegExp(`^(?:${wageStage}\\s*)?(?:的)?(?:基本|其他|其余|全部|正常|岗位|绩效|应付|已付|实付|税前|税后)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:合计|总额)?$`, 'u');
++  const wageStage = `(?:${date}(?:\\s*(?:至|到|[~～—–-])\\s*${date})?|[${NUMERALS}]+月份?|元月份?|元旦|${relativeMonth}|月|${dayStage}|离职前|入职前|入职后|试用期)`;
++  const wageDescription = new RegExp(`^(?:${wageStage}\\s*)?(?:的)?(?:基本|其他|其余|全部|正常|岗位|绩效|应付|已付|实付|税前|税后)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:合计|总额|标准)?$`, 'u');
+   if (wageDescription.test(value.trim()) && !MASKED.test(value)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为工资名称或期间描述，未表述金额。') };
+   const ordinaryWord = /^(?:元月份?|元旦|元宵(?:节)?|元年|元素|元件|元音|[圆圓](?:满|滿|形|圈|周))$/u;

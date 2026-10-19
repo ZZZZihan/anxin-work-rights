@@ -1,0 +1,88 @@
+{
+  "schema": "material-facts-v7-round13-application-independent-review/1",
+  "created_at": "2026-10-18T07:47:13.822202+00:00",
+  "status": "passed_with_documented_limits",
+  "scope": "PR45 two round13 findings: finite Arabic-yuan/Chinese-subunit parsing and definite noncurrency-unit candidate rejection, including directly introduced financial-word false-rejection regression. Not a whole-PR or business/legal acceptance.",
+  "baseline_commit": "25bc6e0074cb435e59cf3d89e1092e1891a04239",
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "543fdbfb40e6e4a6aecbdcfd5b8e46eff1b908ea45fc281014279d14ba52986d",
+    "lib/material-fact-currency-review.ts": "9031c5977ff9b7814b8cb33394a7a0916efa2173c94306af53c2f1cf7ae828e6",
+    "lib/material-fact-source-review.ts": "d7fd4f6508a1158721b27c3cc3b4e7014cf35ade48b2695e0b47ec748cf97210",
+    "lib/material-fact-runtime-ingest.ts": "a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f",
+    "experiments/material-facts-v7/assess.mjs": "d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"
+  },
+  "independent_script": {
+    "path": "scripts/material-facts-v7-round13-money-independent.test.mjs",
+    "sha256": "5fe059165679eb522eba63ca5c91ba0201b09f266b86d639984a9d31c8ea5fbc",
+    "same_final_script_baseline": {
+      "pass": 28,
+      "fail": 18,
+      "exit_code": 1,
+      "log": "final46-before-red.txt"
+    },
+    "current_code": {
+      "pass": 46,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "final46-code-green.txt"
+    },
+    "financial_followup": {
+      "pass": 0,
+      "fail": 4,
+      "exit_code": 1,
+      "log": "financial-four-before-red.txt",
+      "fixture": "Actual initial integrated CODE snapshots a21169/089364 over otherwise exact 25bc dependencies; includes the newly supported mixed parser and must not be presented as the original baseline."
+    }
+  },
+  "verification_contracts": [
+    "Single supported digit glyphs normalize via exact cents; original value/quote and codepoint spans remain intact.",
+    "Multi-digit, decimal/scaled/fullwidth subunits stay unavailable in this finite extension.",
+    "Complete minutes/length/angle phrases are rejected as candidates while raw remains, distinct from an accepted unavailable amount.",
+    "Currency-only subunits and ambiguous or unknown financial wording remain reviewable; financial-word exclusion from cents is not proof of no monetary content.",
+    "New extraction can use the supported literal; stored unsupported or wrong derived history is never silently upgraded/repaired.",
+    "Complete source and quote cropping still constrain mixed subunits, foreign currency, rates and formulas.",
+    "Equal-value separate occurrences remain separate events; a unique first event cannot score twice and ambiguous quotes cannot guess an event in any score layer."
+  ],
+  "source_review": "Reviewer did not implement parser or classifier. Read the actual two implementation diffs and the three directly affected old-test migrations; complete 5元五角 support changes those old expectations, while source-cropped 5元 and unsupported precision controls remain. No unresolved blocking finding within this stated scope.",
+  "blocking_findings": [],
+  "fixture_corrections": {
+    "first_code_run": {
+      "pass": 41,
+      "fail": 1
+    },
+    "reason": "Independent test initially used nonexistent assessCase.rejected_count; corrected to rejected.length. Initial file and logs are preserved, principal red/green uses the same final 46 script."
+  },
+  "evidence": {
+    "own_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round13",
+    "merged_relative_root": "experiments/material-facts-v7/postfreeze-evidence/round13/independent",
+    "files_sha256": {
+      "minimal-baseline-probe.json": "4e95fd848c1edc94bf5503b99bc979d915ee0d1da4d1991b9f01abc35fec0688",
+      "final46-before-red.txt": "e3d7b641a42474712cad1a353fb92820b0753ebfe0410e612e6a6220fac83d14",
+      "final46-code-green.txt": "bb1c3aafa1a0de8b8e2f8ac43148d7606d56f41701d1ab57cb978ef3c5dfefc8",
+      "financial-four-before-red.txt": "137f629d87b50c37e9f5dc7b3cc4b35fe7323e5c1764aa8fc77dd04838433c30",
+      "classifier-before-overlay.receipt.json": "b2521140174f8b97920909ac5c7988183a653f027ec0488cb33469edfb0e9e7a",
+      "material-money-v4.ts.classifier-before.snapshot": "a21169a1dd989c17dffb4bfec270a56dc13fcba70fd24a8e99789f90773c3351",
+      "material-fact-currency-review.ts.classifier-before.snapshot": "08936447940ed456a9536239efb2858917b0d360d41296bc1311d3e772cfe114",
+      "fixture-correction-context.json": "9cab8f55be95e6fd645a8ead7ea9e7026e1020194df1196015f8c823f0862c6e",
+      "final-independent-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "limits": [
+    "Finite supported glyph grammar; does not broadly normalize arbitrary mixed spellings or unknown amounts.",
+    "Accepted counts and amount availability are asserted separately; neither grants calculation authorization.",
+    "Old frozen outputs and historical receipts are unchanged.",
+    "Current build/full-check/HTTP/remote CI and v11 experiment audit are pending separately at this receipt time; no claims for them are made here."
+  ],
+  "reviewer_actions": {
+    "model_requests": 0,
+    "worker_services_started": 0,
+    "builds": 0,
+    "implementation_edits": 0,
+    "git_writes": 0
+  },
+  "requested_reviewer_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_configuration_independently_verified": false
+  }
+}

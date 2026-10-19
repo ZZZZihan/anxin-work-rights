@@ -1,0 +1,15 @@
+--- experiments/material-facts-v7/postfreeze-evidence/round9/material-money-v4.ts.baseline.snapshot	2026-10-18 14:18:56
++++ lib/material-money-v4.ts	2026-10-18 14:23:43
+@@ -241,7 +241,11 @@
+   // Keep the definite relative-month forms aligned with sourceRateUnit's
+   // calendar-period boundary; the anchored wage grammar still requires no amount.
+   const relativeMonth = '(?:上(?:一?个)?|下(?:一?个)?|本|当|该|这(?:个)?|某|每)月';
+-  const wageStage = `(?:${date}(?:\\s*(?:至|到|[~～—–-])\\s*${date})?|[${NUMERALS}]+月份?|元月份?|元旦|${relativeMonth}|离职前|入职前|入职后|试用期)`;
++  // These definite day references name a wage period only inside the complete
++  // amount-free description below; never remove them from an unknown amount.
++  const relativeDay = '(?:(?:今|昨|明|前|后|当)(?:日|天)|本日|该日|(?:这|那)(?:日|天|一天)|同(?:日|一天)|(?:前|后|上|下)一(?:日|天)|次日|翌日)';
++  const dayStage = `(?:${relativeDay}|每(?:日|天)|日|某日|该天)`;
++  const wageStage = `(?:${date}(?:\\s*(?:至|到|[~～—–-])\\s*${date})?|[${NUMERALS}]+月份?|元月份?|元旦|${relativeMonth}|${dayStage}|离职前|入职前|入职后|试用期)`;
+   const wageDescription = new RegExp(`^(?:${wageStage}\\s*)?(?:的)?(?:基本|其他|其余|全部|正常|岗位|绩效|应付|已付|实付|税前|税后)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:合计|总额)?$`, 'u');
+   if (wageDescription.test(value.trim()) && !MASKED.test(value)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为工资名称或期间描述，未表述金额。') };
+   const ordinaryWord = /^(?:元月份?|元旦|元宵(?:节)?|元年|元素|元件|元音|[圆圓](?:满|滿|形|圈|周))$/u;

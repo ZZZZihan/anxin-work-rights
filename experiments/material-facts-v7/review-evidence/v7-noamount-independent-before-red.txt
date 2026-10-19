@@ -1,0 +1,112 @@
+
+ RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards
+
+ ❯ lib/material-facts-v7-runtime-independent.test.ts (22 tests | 6 failed) 36ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 2024年7月工资 6ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 其他工资 0ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 工作3个月 1ms
+   × v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 某月工资 6ms
+     → expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+   × v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 7月份工资 1ms
+     → expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+   × v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 七月份工资 1ms
+     → expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+   × v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 本月工资 1ms
+     → expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+   × v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 离职前工资 1ms
+     → expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+   × v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 工资合计 1ms
+     → expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > keeps an explicitly unknown wage amount for review and never turns it into zero 2ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > makes a supported lowercase Chinese total available only after scope review and never confirms it 7ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > does not make a group or partial total an available personal complete amount: '王甲等三名工人2024年7月完整应付工资八千元。' 2ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > does not make a group or partial total an available personal complete amount: '王甲2024年7月部分应付工资八千元。' 0ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > does not upgrade a historical unsupported Chinese amount during read-time source review 1ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > invalidates explicit prior scope and amount confirmations when a new extraction is ingested 1ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > persists two same-attribute Chinese payments at different Unicode source positions 1ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > collapses a repeated extraction of one uniquely anchored amount while keeping both raw observations 0ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > preserves an admission and a later ruling as separate source observations even at the same amount 1ms
+   ✓ v7 independent runtime chain: raw evidence and authorization boundaries > does not give a repeated bare quote an available amount by guessing its first occurrence 0ms
+   ✓ v7 independent prompt contract > contains a literal eleven-field example accepted by the actual candidate validator 3ms
+   ✓ v7 independent prompt contract > passes only unmodified text blocks to the model and keeps source data out of system instructions 0ms
+   ✓ v7 independent prompt contract > states separate assertion/event evidence and the recurring-date, balance-cutoff and annual-leave boundaries 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/material-facts-v7-runtime-independent.test.ts > v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 某月工资
+ FAIL  lib/material-facts-v7-runtime-independent.test.ts > v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 7月份工资
+ FAIL  lib/material-facts-v7-runtime-independent.test.ts > v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 七月份工资
+ FAIL  lib/material-facts-v7-runtime-independent.test.ts > v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 本月工资
+ FAIL  lib/material-facts-v7-runtime-independent.test.ts > v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 离职前工资
+ FAIL  lib/material-facts-v7-runtime-independent.test.ts > v7 independent runtime chain: raw evidence and authorization boundaries > rejects a positive non-money expression while retaining the exact raw response: 工资合计
+AssertionError: expected [ { kind: 'due_total', …(19) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "amount": null,
++     "assertion": "narrated",
++     "blockId": "b1",
++     "end": 17,
++     "evidenceId": "v7-independent-source",
++     "id": "v7-independent-source:7:0",
++     "kind": "due_total",
++     "normalization": {
++       "amount": null,
++       "matchedText": null,
++       "rawValue": "某月工资",
++       "reason": "未找到唯一且受支持的精确金额，保留原文供核对。",
++       "span": null,
++       "status": "unsupported",
++     },
++     "outputFormat": "json",
++     "page": 1,
++     "period": "2024年7月",
++     "qualifier": "unknown",
++     "quote": "王甲2024年7月说明：某月工资。",
++     "representation": {
++       "assertion": "narrated",
++       "blockId": "b1",
++       "completeness": "unknown",
++       "kind": "money",
++       "meaning": "due_total",
++       "period": "2024年7月",
++       "quote": "王甲2024年7月说明：某月工资。",
++       "rateUnit": null,
++       "scope": "individual",
++       "subject": "王甲",
++       "value": "某月工资",
++     },
++     "reviewIssues": [
++       {
++         "code": "source_relation_unresolved",
++         "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。",
++       },
++     ],
++     "schemaVersion": 3,
++     "sourceSha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
++     "start": 0,
++     "subject": "王甲",
++     "value": "某月工资",
++   },
++ ]
+
+ ❯ lib/material-facts-v7-runtime-independent.test.ts:35:33
+     33|     expect(material.raw).toBe(raw);
+     34|     expect(JSON.parse(material.raw!).candidates).toEqual(entries);
+     35|     expect(material.candidates).toEqual([]);
+       |                                 ^
+     36|     expect(material.rejected).toEqual([expect.objectContaining({ index…
+     37|     expect(validateRuntimeCandidateOutput(raw, source).coverage).toMat…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 16 passed (22)
+   Start at  11:35:25
+   Duration  473ms (transform 74ms, setup 0ms, collect 87ms, tests 36ms, environment 0ms, prepare 38ms)
+

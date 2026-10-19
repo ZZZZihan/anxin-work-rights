@@ -1,0 +1,93 @@
+// ROUND36 late fixed review: bare fullwidth RMB symbols and traditional payment instructions.
+// Synthetic module checks only: no scorer, HTTP, model or historical CLI.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const OWN = fileURLToPath(new URL('../', import.meta.url));
+const BASE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
+const PATCH = resolve(process.env.MATERIAL_FACT_PATCH_ROOT || OWN);
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-round36-late-money-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+await cp(resolve(BASE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+for (const name of ['material-money-v4.ts', 'material-fact-range-review.ts', 'material-fact-source-review.ts'])
+  await cp(resolve(PATCH, 'lib', name), resolve(temporary, 'lib', name));
+const load = name => import(pathToFileURL(resolve(temporary, 'lib', name)).href);
+const { emptyFactState, ingestCandidates, validateCandidateOutput } = await load('material-facts-v3.ts');
+const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest.ts');
+const { reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
+const cpLength = text => Array.from(text).length;
+const AT = '2026-10-19T00:00:00.000Z';
+
+function fixture(expression, { value = expression, fullQuote = false, rate = false, rateUnit = 'month', next = null, page = 1 } = {}) {
+  const source = { id: 'round36-money', name: '合成上下界与月份分母', sha256: 'a'.repeat(64), analysisRevision: 36, ready: true,
+    blocks: [{ id: 'b1', page: 1, text: '😀王甲工资' + expression + (next === null ? '。' : ''), bbox: null, confidence: null }] };
+  if (next !== null) source.blocks.push({ id: 'b2', page, text: next, bbox: null, confidence: null });
+  const candidate = { kind: 'money', value, quote: fullQuote ? source.blocks[0].text : value, blockId: 'b1', subject: '王甲', scope: 'individual',
+    meaning: rate ? 'rate' : 'due_total', completeness: rate ? 'not_applicable' : 'complete',
+    period: null, rateUnit: rate ? rateUnit : null, assertion: 'narrated' };
+  return { source, candidate, raw: JSON.stringify({ schemaVersion: 3, candidates: [candidate] }) };
+}
+
+function pipeline(f, wanted, wantedStatus = null) {
+  const original = structuredClone(f);
+  const schema = validateCandidateOutput(f.raw, f.source);
+  assert.equal(schema.rejected.length, 0, 'fixture must satisfy the real candidate schema');
+  const fresh = ingestRuntimeCandidates(emptyFactState(36), f.source, { raw: f.raw }, 'synthetic', 'round36-author', AT);
+  const observations = [];
+  function inspect(state, label, expected) {
+    assert.equal(state.materials[0].candidates.length, 1, label + ': original observation retained');
+    assert.equal(state.materials[0].raw, f.raw); assert.equal(state.materials[0].rejected.length, 0);
+    assert.equal(state.calculation, null); assert.deepEqual(state.confirmations, { due: null, paid: null });
+    const fact = state.materials[0].candidates[0], text = f.source.blocks[0].text;
+    assert.equal(fact.amount, expected, label + ': amount'); assert.equal(fact.value, f.candidate.value); assert.equal(fact.quote, f.candidate.quote);
+    assert.deepEqual(fact.representation, f.candidate);
+    const start = cpLength(text.slice(0, text.indexOf(f.candidate.quote)));
+    assert.deepEqual([fact.start, fact.end], [start, start + cpLength(f.candidate.quote)]);
+    assert.equal(Array.from(text).slice(fact.start, fact.end).join(''), f.candidate.quote);
+    if (expected === null) assert.notEqual(fact.normalization.status, 'exact');
+    if (label !== 'stored-null' && wantedStatus) assert.equal(fact.normalization.status, wantedStatus, label + ': status');
+    observations.push(fact);
+  }
+  inspect(fresh, 'fresh', wanted);
+  for (const oldAmount of ['4000.00', null]) {
+    const stored = ingestCandidates(emptyFactState(36), f.source, { raw: f.raw }, 'synthetic', 'round36-author', AT);
+    const fact = stored.materials[0].candidates[0];
+    fact.amount = oldAmount;
+    fact.normalization = { rawValue: f.candidate.value, status: oldAmount === null ? 'unsupported' : 'exact', amount: oldAmount,
+      matchedText: f.candidate.value, span: { start: 0, end: cpLength(f.candidate.value) }, reason: 'Unconfirmed synthetic persisted state.' };
+    const before = structuredClone(stored), reviewed = reviewFactsAgainstSources(stored, [f.source]);
+    assert.deepEqual(stored, before); assert.deepEqual(reviewed.history, before.history);
+    inspect(reviewed, oldAmount === null ? 'stored-null' : 'stored-exact', oldAmount === null ? null : wanted);
+  }
+  assert.deepEqual(f, original); return observations;
+}
+
+
+
+for (const unit of ['个月', '個月']) {
+  test('explicit per marker before a layout break cannot authorize a total: ' + unit, () => {
+    pipeline(fixture('4000元每\n' + unit, { value: '4000元' }), null);
+    pipeline(fixture('4000元每', { value: '4000元', next: unit + '。' }), null);
+  });
+  test('explicit per marker before a layout break retains supported source when available: ' + unit, () => {
+    pipeline(fixture('4000元每\n' + unit, { value: '4000元', rate: true }), '4000.00');
+  });
+  test('unresolved explicit denominator is never promoted through an unknown next row: ' + unit, () => {
+    for (const rate of [false, true]) pipeline(fixture('4000元每', { value: '4000元', next: '李乙' + unit + '？', rate }), null);
+  });
+}
+for (const tail of ['待定', '？']) test('new month alias keeps uncertainty across attached layout: ' + tail, () => {
+  for (const fullQuote of [false, true])
+    pipeline(fixture('4000元每\n个月' + tail, { value: '4000元', fullQuote, rate: true }), null);
+});
+test('a later-row bare monthly expression does not retroactively attach to total', () => {
+  pipeline(fixture('4000元', { value: '4000元', next: '每月。' }), '4000.00');
+});
+test('supported monthly aliases preserve bounded calendar payment schedules', () => {
+  for (const suffix of ['每个月15日支付', '每個月十五日支付'])
+    pipeline(fixture('4000元' + suffix, { value: '4000元' }), '4000.00');
+});

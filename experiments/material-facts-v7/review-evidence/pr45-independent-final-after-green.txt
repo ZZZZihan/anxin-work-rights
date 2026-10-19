@@ -1,0 +1,72 @@
+{
+  "recorded_at": "2026-10-18T04:02:59.325117+00:00",
+  "code_sha256_before": {
+    "lib/material-money-v4.ts": "04d2683bcbf4c1cb1f7056127e9ebe1eb7d9bf5f691f546ca6a12640f84375a0",
+    "lib/material-money-v4.test.ts": "9d2e1f441c114821ad0f548bde291d244aa25e50e426b5ce163114e1a21a56d9",
+    "lib/material-fact-currency-review.ts": "a34e9381fa3454f6c735f08c94864f8a3663433d71e81ecce940f7c12d5d3200",
+    "lib/material-fact-runtime-ingest.ts": "6fa40a9ac5f26a8add6e3fe88877d2f9bd55e3017b01ed12470bcfd74e6be63c",
+    "experiments/material-facts-v7/freeze.mjs": "69fe8640389a60cff409cb7f32c9e02bcb65136b068252a175fd2bcef7057362"
+  },
+  "code_sha256_after": {
+    "lib/material-money-v4.ts": "04d2683bcbf4c1cb1f7056127e9ebe1eb7d9bf5f691f546ca6a12640f84375a0",
+    "lib/material-money-v4.test.ts": "9d2e1f441c114821ad0f548bde291d244aa25e50e426b5ce163114e1a21a56d9",
+    "lib/material-fact-currency-review.ts": "a34e9381fa3454f6c735f08c94864f8a3663433d71e81ecce940f7c12d5d3200",
+    "lib/material-fact-runtime-ingest.ts": "6fa40a9ac5f26a8add6e3fe88877d2f9bd55e3017b01ed12470bcfd74e6be63c",
+    "experiments/material-facts-v7/freeze.mjs": "69fe8640389a60cff409cb7f32c9e02bcb65136b068252a175fd2bcef7057362"
+  },
+  "unchanged_during_checks": true,
+  "checks": [
+    {
+      "command": [
+        "node_modules/.bin/vitest",
+        "run",
+        "lib/material-money-v4.review-regression.test.ts",
+        "lib/material-money-v4.independent.test.ts",
+        "lib/material-facts-v7-runtime-independent.test.ts",
+        "lib/material-money-v4.test.ts"
+      ],
+      "exit_code": 0,
+      "stdout": "\n RUN  v3.2.7 /Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards\n\n ✓ lib/material-money-v4.independent.test.ts (10 tests) 10ms\n ✓ lib/material-money-v4.test.ts (286 tests) 35ms\n ✓ lib/material-facts-v7-runtime-independent.test.ts (47 tests) 47ms\n ✓ lib/material-money-v4.review-regression.test.ts (55 tests) 47ms\n\n Test Files  4 passed (4)\n      Tests  398 passed (398)\n   Start at  12:02:56\n   Duration  566ms (transform 136ms, setup 0ms, collect 315ms, tests 139ms, environment 0ms, prepare 191ms)\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "scripts/material-facts-v7-assessment-independent.test.mjs",
+        "scripts/material-facts-v7-freeze-independent.test.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "✔ all six layers require the same source event, including basic (12.75025ms)\n✔ the correct second occurrence matches; first-index location is forbidden (1.457958ms)\n✔ a whole paragraph containing two equal amounts from different events is ambiguous (0.449042ms)\n✔ a bare amount quote repeated at two source locations cannot borrow the first location (0.359875ms)\n✔ unannotated repeated locations remain unresolved rather than disappearing (0.317ms)\n✔ a whole paragraph with a unique matching value is usable evidence (0.93475ms)\n✔ identical words in another block cannot match the expected block event (1.578ms)\n✔ a quote assembled across blocks is invalid and remains a raw false positive (0.306958ms)\n✔ multiple identical source occurrences may match only when all belong to the same registered event (1.524792ms)\n✔ source anchor offsets are Unicode code points even after astral and combining characters (1.22525ms)\n✔ registered containment supports a literal currency prefix within the same event (0.87625ms)\n✔ event identity does not use a self-reported subject to resolve a two-event quote (0.51375ms)\n✔ a party admission cannot impersonate a later same-value court order by self-reporting decided (1.20925ms)\n✔ schema or literal evidence violation is a raw FP: missing quote (0.203042ms)\n✔ schema or literal evidence violation is a raw FP: missing blockId (0.161167ms)\n✔ schema or literal evidence violation is a raw FP: missing required rateUnit (0.146042ms)\n✔ schema or literal evidence violation is a raw FP: extra field (0.143541ms)\n✔ schema or literal evidence violation is a raw FP: invalid scope enum (0.118542ms)\n✔ schema or literal evidence violation is a raw FP: invalid payment completeness (0.119167ms)\n✔ schema or literal evidence violation is a raw FP: empty quote (0.112042ms)\n✔ schema or literal evidence violation is a raw FP: fabricated quote (0.107417ms)\n✔ schema or literal evidence violation is a raw FP: wrong blockId (0.113167ms)\n✔ schema or literal evidence violation is a raw FP: unsupported subject (0.11825ms)\n✔ malformed raw values are counted and do not abort a valid neighboring candidate (0.664958ms)\n✔ raw duplicate predictions do not inflate recall (0.901625ms)\n✔ two real same-value same-attribute payments preserve two source events in raw and accepted layers (1.278042ms)\n✔ event matching preserves the separate basic and relational attribute contract (0.81475ms)\n✔ different semantic facts may inherit a shared registered event without duplicating the amount (0.341542ms)\n✔ finite alternatives inherit their expected event and cannot authorize another same-value event (0.422833ms)\n✔ non-stop output retains raw observation but supplies no accepted facts (0.381541ms)\n✔ native rules diagnostic rejects the real holdout before creating any attempt (282.636167ms)\n✔ native diagnostic rejects a changed development source even when all three IDs remain unchanged (275.707916ms)\n✔ native freeze CLI executes its argument guard through a temporary-directory path alias (142.386208ms)\n✔ native verify CLI executes its argument guard through a temporary-directory path alias (134.764709ms)\n✔ native summarize CLI executes its argument guard through a temporary-directory path alias (131.469792ms)\n✔ a complete development-only fixture passes the independent pre-freeze binding check (54.975416ms)\n✔ pre-freeze development check rejects altered model messages (24.780166ms)\n✔ pre-freeze development check rejects a non-development case_ids receipt (21.093667ms)\n✔ pre-freeze development check rejects a non-development input_sha256 receipt (22.022083ms)\n✔ freeze rejects a formal attempt directory before reading or freezing any new labels (13.903375ms)\n✔ development binding rejects a disguised pre-freeze formal attempt (19.981542ms)\n✔ native runner never overwrites an existing attempt directory (166.338625ms)\n✔ freeze creation and later diagnostic runs both preserve an existing freeze byte for byte (163.717792ms)\n✔ prior budget counts both development and stopped formal attempts without refunding unreturned cases (24.968333ms)\n✔ an existing atomic DeepSeek budget lock blocks native runner before inference and is left for reconciliation (163.398459ms)\n✔ native runner reserves the entire next development batch before spending the remaining budget (176.192208ms)\nℹ tests 46\nℹ suites 0\nℹ pass 46\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1947.681625\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node_modules/.bin/tsc",
+        "--noEmit",
+        "--pretty",
+        "false",
+        "--incremental",
+        "false"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node_modules/.bin/eslint",
+        "lib/material-money-v4.review-regression.test.ts",
+        "lib/material-money-v4.ts",
+        "lib/material-fact-currency-review.ts",
+        "lib/material-fact-runtime-ingest.ts",
+        "scripts/material-facts-v7-freeze-independent.test.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "model_calls": 0,
+  "worker_starts": 0
+}
