@@ -1,0 +1,31 @@
+✔ summary publication is complete, byte-identical to stdout, and a retry cannot replace it (141.221583ms)
+✖ a native file-size failure retains its stage without occupying the immutable summary name; retry succeeds (110.549958ms)
+✔ an existing summary symlink is refused without changing the original target (46.325083ms)
+✔ an active holdout lock still refuses summary before publication, and release permits the real CLI (83.048875ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 425.776167
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-round44-summary-publication-independent.test.mjs:85:1
+✖ a native file-size failure retains its stage without occupying the immutable summary name; retry succeeds (110.549958ms)
+  AssertionError [ERR_ASSERTION]: Failed summary bytes must not reserve comparison.json
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round44-summary-publication-independent.test.mjs:97:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

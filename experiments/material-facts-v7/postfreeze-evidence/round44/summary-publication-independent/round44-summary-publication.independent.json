@@ -1,0 +1,65 @@
+{
+  "schema": "round44-summary-publication-nonimplementer/1",
+  "at": "2026-10-19T03:28:07.343147+00:00",
+  "status": "SCOPED_TECHNICAL_PASS",
+  "requested_model": "gpt-6.1-sol / ultra",
+  "backend_independently_verified": false,
+  "baseline_head": "60ac605ab28a1b2e4f9a179d841c632b91343136",
+  "baseline_summary_sha256": "77f9a2ccd2fb348fe5aadc86dae8f98f10551d8860b99a178fe2c289e6942dcb",
+  "final_summary_sha256": "7c0aa6ab92f1b84f4af73a487941fcd93fc65cba08529610e68370cc1ef80562",
+  "helper_sha256": "70ee51e28f65684b703e6031aa0f4b6be96dfaf94114d69bacfc13caadafdb48",
+  "test": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round44-summary-publication-independent.test.mjs",
+    "sha256": "3e85576b77b3560df68206f7cbce4d54bdd8c5fd008534edc49d225e50d2b374",
+    "unchanged_between_before_and_after": true
+  },
+  "actual_runs": [
+    {
+      "node": "24.22.0",
+      "version_role": "baseline",
+      "tests": 4,
+      "pass": 3,
+      "fail": 1,
+      "exit": 1,
+      "stdout": "baseline-node24.stdout.log"
+    },
+    {
+      "node": "24.22.0",
+      "version_role": "final",
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "exit": 0,
+      "stdout": "final-node24.stdout.log"
+    },
+    {
+      "node": "26.11.0",
+      "version_role": "final",
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "exit": 0,
+      "stdout": "final-node26.stdout.log"
+    }
+  ],
+  "native_fault": {
+    "mechanism": "Python resource.RLIMIT_FSIZE 2048 bytes then exec actual Node summarize CLI; SIGXFSZ ignored to obtain native EFBIG",
+    "old": "exit1 EFBIG leaves truncated comparison.json; real retry exit1 EEXIST",
+    "final": "exit1 EFBIG leaves owned 2048-byte stage and no comparison.json; real retry succeeds, retained stage unchanged"
+  },
+  "controls": [
+    "successful publication bytes exactly equal JSON stdout serialization",
+    "same destination retry cannot replace existing bytes",
+    "existing symlink refused without touching target",
+    "active holdout lock refuses before publication; release permits actual CLI",
+    "--check succeeds for complete synthetic summary"
+  ],
+  "fixtures": "actual summarize/freeze/lock/helper literal module closure copied into owned temp; three synthetic zero-result reports with the real 12/43 denominators; no frozen inputs, labels, scorer, history or model invoked",
+  "source_review": "publication import/call plus post-commit cleanup warning only; aggregation, lock, stdout and --check logic unchanged",
+  "limits": [
+    "No kernel crash/power-loss durability proof",
+    "No real-data scoring, model calls, historical CLI, fullcheck, build or HTTP executed",
+    "Original ROOT/CODE and frozen experiment assets were not modified by this reviewer",
+    "Pending final integrated remote CI is separate evidence"
+  ]
+}

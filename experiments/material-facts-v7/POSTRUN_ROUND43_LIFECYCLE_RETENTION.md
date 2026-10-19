@@ -28,3 +28,5 @@ v33 manifest 为 `00a764d4f810af7e0a13fe1ae186807fd7503673a6cc19f7d0d15c6f28c6d6
 首轮v33完整检查实际退出1，用时3860.473秒：Vitest1789/46文件通过，材料67通过/1平台跳过，运行时10344通过、1失败、1平台跳过（共10346）。唯一失败是旧ROUND41并发发布用例仍要求保留完整EEXIST失败方stage；按ROUND43新合同仅将数量断言1改为0。独立复跑同3项旧2通过1失败→修后Node24/26各3通过，真实write/sync/close及清理失败保留检查继续通过。原完整失败日志和旧测试字节保留于[ROOT整合证据](postfreeze-evidence/round43/root-integration/)。产品119项代码绑定、v33及原始结果均未改变；第二次完整检查最终通过，实际结果见上文；首轮失败仍保留。
 
 第三条旧断言迁移后，ROOT同32项发布相关检查通过（2.122秒），该单行改动局部lint0/0。另一Agent逐字复核三处旧合同迁移，确认原I/O失败保留及winner安全断言未弱化；其为helper原作者，故此项只称合同一致性复核，详见[复核回执](postfreeze-evidence/round43/stage-contract-migration-review/review.md)。非实现者的原失败与双Node行为回执见[迁移证据](postfreeze-evidence/round43/legacy-stage-contract-migration/LEGACY_STAGE_CONTRACT_MIGRATION.independent.md)。
+
+后续状态（ROUND44）：60ac远端CI因普通评论6258861046的summary部分写发布问题主动取消，未执行完整check/OCR/HTTP；本轮已有本地通过、首次失败及v33冻结仍保留。该新入口修复和后续精确验收见[ROUND44](POSTRUN_ROUND44_SUMMARY_PUBLICATION.md)。

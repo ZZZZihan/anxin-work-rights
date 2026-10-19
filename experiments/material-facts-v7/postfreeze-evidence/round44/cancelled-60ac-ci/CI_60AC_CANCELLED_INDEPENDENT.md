@@ -1,0 +1,13 @@
+# PR46 exact 60ac cancelled CI independent checkpoint
+
+Run 39193050791 tested head `60ac605ab28a1b2e4f9a179d841c632b91343136` through checkout merge `637e9d693e41a5ac29410f1346540e8360c112e1`. Head and merge tree are both `aeb53a083ce63f6c9ba95b4c972e6f9a6a5ec881`. The terminal conclusion is **cancelled**, voluntarily superseded by confirmed summary-publication P2 ordinary comment `6258861046`. This checkpoint is neither a full CI PASS nor a product assertion failure.
+
+The runner used Node v24.21.0. The original full-tree static step and frozen early baselines completed. The public-material historical step was cancelled; its final complete execution receipt was `archived_correction_v19_code` at `2026-10-19T03:23:44.0480685Z`. One later policy line is truncated and cannot establish another completed version. Full npm check, current-v33 native gates/negative CLI, OCR and every HTTP group were skipped. Their test, raw, restart and cleanup counts remain unverified in this run.
+
+The always-run restoration step succeeded. Only one artifact exists: `diagnostic-archive-retention`, API/upload/download ZIP SHA256 `cabf3ea9371344ca247ed3481f3295335d70d6eb82fbb7f6b3d4ae3bfc5f9e18`. Its manifest and restore receipt enumerate 9678 files and 898 directories (10576 entries); tracked file set, byte hashes and Git file modes match the exact head. Directory-mode restoration is the remote receipt's assertion; the artifact does not contain restored payloads. The two other upload actions reported no files and produced no artifact.
+
+Of 2641 before-protected ROOT paths, 2640 remain identical. The sole current-source change is the parent's intended R44 summary repair (`7c0aa6…`); original material/results, all archived source and historical manifests remain unchanged. This reviewer did not write ROOT.
+
+All review surfaces were read with pagination: PR45 has 149 threads, three known unresolved P2, 39 nonempty review bodies and three ordinary comments; PR46 has 15 threads, zero unresolved threads, five nonempty review bodies and four ordinary comments. Zero unresolved threads does not dispose of ordinary-comment R44. Exact-head and checkout-merge deployment lists are empty at the captured terminal snapshot.
+
+Raw API replies, original log ZIP and extracted log inventory, exact commit/tree records, all three review surfaces and the diagnostic artifact are retained beside this report. R44's separate fixed-code dual-runtime independent receipt must not be attributed to 60ac. No historical/scoring/model/HTTP work was rerun. Requested configuration was GPT-6.1 Sol / ultra; actual service backend could not be independently verified. Technical evidence does not constitute legal, production, UI authorization or human acceptance.
