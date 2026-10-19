@@ -1,0 +1,76 @@
+{
+  "status": "TARGETED_AUTHOR_CHECKS_PASS",
+  "baseline_commit": "d963425ef16831768395ba6a233df272dbaee196",
+  "files": {
+    "lib/material-fact-range-review.ts": "25ccc83f024934e40d76c01cbeb14c6b6a836287f741d3380168d21f384942b6",
+    "lib/material-fact-arithmetic-review.ts": "3b3f0536484e5be4c73bbb3c9f31093245fc3ed5731120d1048209c4e914f329",
+    "scripts/material-facts-v7-round38-bounds-multiplier-author.test.mjs": "74278c90e939e4a8c6f425de6f34af79691d6a8c528b4acf20e1bac3ff0b4837"
+  },
+  "scope": [
+    "shared attached 高达/高達/低至 bound grammar only",
+    "existing numeric factor after 翻/加 before 倍; no arithmetic evaluation",
+    "literal/fullquote/minimalquote/same-page adjacent fragments/forced persisted exact/raw and code-point retention",
+    "page metadata and ordinary prose boundaries"
+  ],
+  "executions": {
+    "initial_minimal": {
+      "pass": 0,
+      "fail": 8
+    },
+    "initial_full_old_script_baseline": {
+      "pass": 21,
+      "fail": 73
+    },
+    "initial_full_old_script_patched": {
+      "pass": 92,
+      "fail": 2
+    },
+    "revised_same_94_baseline": {
+      "pass": 23,
+      "fail": 71
+    },
+    "revised_same_94_patched": {
+      "pass": 94,
+      "fail": 0
+    },
+    "old_arithmetic_source_and_round37": {
+      "pass": 173,
+      "fail": 0
+    },
+    "scoped_eslint": {
+      "files": 3,
+      "exit_code": 0
+    }
+  },
+  "author_fixture_correction": {
+    "old_script_sha256": "c484feafb6cd4d96844ede7ef18d035ecb8a5468b591de69829626852684495e",
+    "revised_script_sha256": "74278c90e939e4a8c6f425de6f34af79691d6a8c528b4acf20e1bac3ff0b4837",
+    "two_cases": [
+      "高达三个月工资合计4000元",
+      "工作低至三个月工资合计4000元"
+    ],
+    "explanation": "Both fixed baseline and patch parse the literal exactly but unchanged source review conservatively treats 裸月工资 as a monthly rate. Only these runtime control expectations were corrected to the already-existing null behavior; original failed evidence is preserved. No source production edit."
+  },
+  "semantic_limits": [
+    "高达 may emphasize an exact figure; absent stronger event interpretation this parser conservatively returns approximate/null and may reduce availability.",
+    "The parser never calculates a multiplier result or validates whether 翻一倍 means double or an increase by one base.",
+    "Existing strict factor grammar is reused; unlisted natural-language formulas are not claimed exhaustive.",
+    "Saved unsupported/null values remain null; source-page boundaries prevent lexical composition but do not confirm relation or business usability.",
+    "No scorer/label implementation or semantic acceptance claim."
+  ],
+  "not_run": [
+    "fullcheck",
+    "HTTP",
+    "build",
+    "historical CLI",
+    "scorer",
+    "model inference",
+    "training",
+    "deployment"
+  ],
+  "shared_root_code_writes": 0,
+  "commit_push_merge": false,
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning_effort": "ultra",
+  "actual_backend_independently_verified": false
+}

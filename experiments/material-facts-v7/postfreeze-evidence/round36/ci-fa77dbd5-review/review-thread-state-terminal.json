@@ -1,0 +1,140 @@
+{
+  "observed_at": "2026-10-18T18:06:19.563718+00:00",
+  "head_at_review_read": "fa77dbd5bd9942ed1a94d74293b35160aae1e91b",
+  "threads": 125,
+  "unresolved": [
+    {
+      "id": "PRRT_kwDOVApLyM6tsgfw",
+      "isResolved": false,
+      "isOutdated": true,
+      "path": "lib/material-fact-range-review.ts",
+      "line": null,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMU1nQ",
+            "databaseId": 4307891613,
+            "createdAt": "2026-10-18T17:01:59Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307891613",
+            "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Treat conjunction-linked suffixes as bounds**\n\nWhen `以上` or `以下` is introduced by the common conjunctions `及` or `或`, this suffix grammar no longer attaches the qualifier to the amount. Both `normalizeMoneyValueV4('4000元及以上')` and a cropped `4000元` candidate quoted from `王甲工资4000元或以下` return `exact` with `4000.00`, so a lower or upper bound can become an exact production amount. Allow the bounded conjunction before these suffixes while retaining the existing ordinary-prose continuation guards.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6tsgfx",
+      "isResolved": false,
+      "isOutdated": true,
+      "path": "lib/material-money-v4.ts",
+      "line": null,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMU1og",
+            "databaseId": 4307891618,
+            "createdAt": "2026-10-18T17:01:59Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4307891618",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept 个月 as a monthly rate denominator**\n\nCommon monthly-rate forms using the explicit classifier `个`, such as `4000元每个月` and `4000元/个月` (and traditional `每個月`), are classified as unsupported because the captured denominator must begin directly with `月`. The otherwise equivalent `4000元每月` and `4000元/月` remain exact, so a valid candidate declared with `meaning: \"rate\"` and `rateUnit: \"month\"` loses its amount solely because of this ordinary unit spelling. Recognize the complete `个月`/`個月` alias without accepting longer words such as `月份` or `月亮`.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ts0bI",
+      "isResolved": false,
+      "isOutdated": true,
+      "path": "lib/material-fact-event-review.ts",
+      "line": null,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMc0cg",
+            "databaseId": 4308022386,
+            "createdAt": "2026-10-18T17:42:44Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308022386",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept classifier and ordinal recurring payment dates**\n\nWhen a payment schedule uses the common forms `每个月15日`, `每個月十五號`, or `每月第15日`, this exact regex rejects the date while `每月15日` passes. Runtime ingestion consequently adds `source_relation_unresolved` to an otherwise explicit `payment_date`, preventing it from being used; allow the optional `个/個` classifier and `第` within the same validated 1–31 day grammar.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ts0bJ",
+      "isResolved": false,
+      "isOutdated": true,
+      "path": "lib/material-money-v4.ts",
+      "line": null,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMc0cw",
+            "databaseId": 4308022387,
+            "createdAt": "2026-10-18T17:42:44Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308022387",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Parse fullwidth bare amounts after RMB symbols**\n\nFresh evidence beyond the repaired fullwidth yuan-token cases is that `normalizeMoneyValueV4('￥４０００')` and `normalizeMoneyValueV4('¥４０００')` still return `unsupported` with no amount, although `￥4000` and `人民币４０００` both return exact `4000.00`. The symbol-prefixed token alternative requires a yuan tail, so these unambiguous currency-marked values fall through to the legacy ASCII-only bare-number parser; admit fullwidth digits on this complete symbol-prefixed path.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ts0bM",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-money-v4.ts",
+      "line": 206,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMc0eQ",
+            "databaseId": 4308022393,
+            "createdAt": "2026-10-18T17:42:44Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308022393",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept traditional spellings of the one-time payment suffix**\n\nFresh evidence beyond the repaired simplified `一并支付` continuation is that `4000元一並支付`, `4000元一併支付`, and their `給付`/`發放` variants still normalize as `unsupported`, while `4000元一并支付` remains exact. Because the numeral-leading suffix is treated as a truncated amount unless this exception matches, add the traditional `並/併` spellings to the bounded payment-instruction grammar.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ts0bO",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-fact-event-review.ts",
+      "line": 113,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMc0fA",
+            "databaseId": 4308022396,
+            "createdAt": "2026-10-18T17:42:44Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308022396",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept explicit calendar wage-payment events**\n\nFor a concrete payment event such as `王甲工资于2026年1月15日支付` or `王甲工资在2026年1月15日发放`, the point-date branch accepts only `收到/领取`, while payment verbs are accepted only for recurring dates or deadlines. The resulting `payment_date` receives `source_relation_unresolved` even though the source directly binds the worker, wage, date, and payment action; add a bounded point-date payment layout without treating it as proof of receipt.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ts0bQ",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-fact-event-review.ts",
+      "line": 209,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMc0gA",
+            "databaseId": 4308022400,
+            "createdAt": "2026-10-18T17:42:44Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308022400",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Recognize explicit other-money nouns during attribution**\n\nWhen the source directly states an `other_money` receipt using the nouns required by the extraction contract, such as `王甲收到经济补偿金4000元`, `王甲收到赔偿金4000元`, or `甲公司收到材料款4000元`, this finite role grammar rejects the relationship and runtime ingestion adds `source_relation_unresolved`. The same layout passes when the noun is merely `补偿`, so extend the bounded role vocabulary to the supported compensation, bonus, fee, deposit, fine, and material-payment nouns rather than forcing these explicit owner/value events into manual review.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    }
+  ]
+}

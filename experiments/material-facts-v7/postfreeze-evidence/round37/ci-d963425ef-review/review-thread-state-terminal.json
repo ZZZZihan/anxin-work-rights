@@ -1,0 +1,178 @@
+{
+  "observed_at": "2026-10-18T19:00:34.655367+00:00",
+  "head_at_review_read": "d963425ef16831768395ba6a233df272dbaee196",
+  "threads": 134,
+  "unresolved": [
+    {
+      "id": "PRRT_kwDOVApLyM6ttJgg",
+      "isResolved": false,
+      "isOutdated": true,
+      "path": "lib/material-fact-event-review.ts",
+      "line": null,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMlObQ",
+            "databaseId": 4308160109,
+            "createdAt": "2026-10-18T18:21:12Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308160109",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Fold 辭 in employment-date detection**\n\nFresh evidence beyond the repaired traditional date glyphs is that `王甲於2026年1月辭職` receives `source_relation_unresolved`, while the equivalent `辞职` form passes. The cue grammar already treats `辞职` as an employment event, but this detection-only map omits `辭`, so valid traditional-source employment dates become unusable; fold this glyph without changing the original evidence or offsets.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ttJgh",
+      "isResolved": false,
+      "isOutdated": true,
+      "path": "experiments/material-facts-v7/assess.mjs",
+      "line": null,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMlOcA",
+            "databaseId": 4308160112,
+            "createdAt": "2026-10-18T18:21:12Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308160112",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Align all supported date-boundary suffixes**\n\nFresh evidence beyond the repaired `從`/`後`/`間` wrappers is that candidates such as `2026年1月以前`, `2026年1月之后`, and `2026年1月为止` still resolve as `unregistered_position` when the registered event anchor is the inner `2026年1月`. These suffixes are explicitly accepted by the production `dateInterval` grammar, so the scorer records valid predictions as an FP plus FN; allow the same `以前/以后/之前/之后/为止` boundaries in this containment check.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ttJgj",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-fact-arithmetic-review.ts",
+      "line": 12,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMlOdg",
+            "databaseId": 4308160118,
+            "createdAt": "2026-10-18T18:21:12Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308160118",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Reject lexical doubling operations**\n\nWhen the anchored amount is followed by a lexical doubling instruction, `normalizeMoneyValueV4('4000元翻倍')` and `normalizeMoneyValueV4('4000元加倍')` both return exact `4000.00`. In these expressions 4000 is the operand rather than the resulting amount, just as it is in the already guarded `4000元的两倍` form; recognize bounded `翻倍`/`加倍` suffixes as arithmetic so the base amount is not exposed as exact.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ttJgl",
+      "isResolved": false,
+      "isOutdated": true,
+      "path": "lib/material-fact-event-review.ts",
+      "line": null,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMlOeA",
+            "databaseId": 4308160120,
+            "createdAt": "2026-10-18T18:21:12Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308160120",
+            "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Reject coordinated surnames outside the finite list**\n\nWhen two workers are identified by single surnames and the second surname is absent from `commonSurname`, this branch treats the coordinated subject as one person. For example, `王和欧2026年1月全部应付工资合计4000元` with model-supplied subject `王和欧` and `scope: \"individual\"` receives no review issue and exposes `4000.00` as an eligible complete individual total, while `王和赵` is correctly blocked. Do not use an incomplete surname list to prove that an embedded conjunction belongs to a personal name; unknown one-character pairs should remain collective or unresolved.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ttWu4",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-fact-range-review.ts",
+      "line": 4,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMqnaQ",
+            "databaseId": 4308248425,
+            "createdAt": "2026-10-18T18:48:19Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308248425",
+            "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Treat 高达 and 低至 as bounded amounts**\n\n`normalizeMoneyValueV4('高达4000元')`, its traditional equivalent, and `低至4000元` all return `exact` with `4000.00`, even though these phrases describe an upper or lower extreme rather than a confirmed amount. Add these bounded prefixes to the shared qualifier grammar so experiments and runtime normalization cannot canonicalize them as exact values.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ttWu8",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-fact-arithmetic-review.ts",
+      "line": 90,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMqncA",
+            "databaseId": 4308248432,
+            "createdAt": "2026-10-18T18:48:19Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308248432",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Recognize numeric lexical doubling operations**\n\nFresh evidence beyond the repaired `翻倍`/`加倍` forms is that `4000元翻一倍` still returns `exact` with `4000.00`. Here 4000 is the operand of an explicit doubling operation, so extend this finite doubling grammar to cover the common numeric form rather than exposing the base amount as exact.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ttWu_",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-fact-event-review.ts",
+      "line": 102,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMqncw",
+            "databaseId": 4308248435,
+            "createdAt": "2026-10-18T18:48:19Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308248435",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept 发薪 as a recurring payment-date verb**\n\nWhen a schedule says `王甲工资每月15日发薪`, the recurring date itself is valid but this payment-verb list rejects the relationship and runtime review adds `source_relation_unresolved`; the money-side payment-schedule grammar already recognizes `发薪`. Include it here so this explicit same-worker payment date is treated consistently with `支付` and `发放`.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ttWvC",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-money-v4.ts",
+      "line": 234,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMqndg",
+            "databaseId": 4308248438,
+            "createdAt": "2026-10-18T18:48:19Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308248438",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Reject repeated RMB symbols after an amount**\n\nFresh evidence beyond the repaired repeated named labels is that symbol suffixes still bypass this counter: `￥4000￥`, `人民币4000￥`, and `4000元￥` all normalize as exact `4000.00` because the suffix loop recognizes only `RMB_NAME`. Count attached `¥`/`￥` suffixes as currency markers too, so a second symbol cannot be discarded from a malformed monetary token.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PRRT_kwDOVApLyM6ttWvF",
+      "isResolved": false,
+      "isOutdated": false,
+      "path": "lib/material-fact-runtime-ingest.ts",
+      "line": 69,
+      "resolvedBy": null,
+      "comments": {
+        "nodes": [
+          {
+            "id": "PRRC_kwDOVApLyM8AAAABAMqnfA",
+            "databaseId": 4308248444,
+            "createdAt": "2026-10-18T18:48:19Z",
+            "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308248444",
+            "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Collapse nested candidates with a prefixed wage noun**\n\nWhen the model emits both `工资4000元` and `4000元` for the same occurrence with identical attributes, runtime validation retains both candidates because the nesting check permits a wage noun only after the inner span, not before it. Since both normalize to the same amount and point to the same source event, admit the same finite wage vocabulary in the prefix wrapper so this common non-minimal extraction is rejected as a duplicate rather than displayed twice.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+          }
+        ]
+      }
+    }
+  ]
+}

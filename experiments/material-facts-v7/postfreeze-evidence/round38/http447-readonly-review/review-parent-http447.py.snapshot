@@ -1,0 +1,192 @@
+from pathlib import Path
+import collections
+import datetime
+import hashlib
+import json
+import subprocess
+
+P = Path(__file__).resolve().parent
+OWN = P.parents[2]
+CODE = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+R = CODE / '.scratch/issue42/round38'
+BASE = 'd963425ef16831768395ba6a233df272dbaee196'
+sha = lambda value: hashlib.sha256(value).hexdigest()
+
+
+def save(name, value):
+    data = value if isinstance(value, bytes) else (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode()
+    with (P / name).open('xb') as stream:
+        stream.write(data)
+
+
+inputs = []
+
+
+def copy(source, name):
+    data = source.read_bytes()
+    save(name, data)
+    inputs.append({'source': str(source), 'file': name, 'bytes': len(data), 'sha256': sha(data)})
+
+
+for stem in ['http447-before', 'http447-after']:
+    for suffix in ['json', 'receipt.json', 'stdout.log', 'stderr.log']:
+        copy(R / f'{stem}.{suffix}', f'parent-{stem}.{suffix}')
+copy(R / 'http447-baseline-lock.json', 'parent-http447-baseline-lock.json')
+copy(OWN / 'postfreeze-evidence/round37/http428-readonly-review/parent-http428-final.json', 'parent-prior-http428-final.json')
+copy(CODE / 'scripts/material-facts-v7-http-regression.mjs', 'http447-runner.mjs.snapshot')
+old_runner = subprocess.check_output(['git', 'show', f'{BASE}:scripts/material-facts-v7-http-regression.mjs'], cwd=CODE)
+save('exact-d963-http-runner.mjs.snapshot', old_runner)
+
+a = json.loads((P / 'parent-http447-before.json').read_text())
+b = json.loads((P / 'parent-http447-after.json').read_text())
+old = json.loads((P / 'parent-prior-http428-final.json').read_text())
+lock = json.loads((P / 'parent-http447-baseline-lock.json').read_text())
+assert a['status'] == 'FAIL' and b['status'] == 'PASS'
+assert a['cleanup'] == b['cleanup'] == {'status': 'PASS', 'failures': []}
+assert a['interruption'] is None and b['interruption'] is None and b['failure'] is None
+assert len(a['observations']) == len(b['observations']) == 447
+assert collections.Counter(x['status'] for x in a['observations']) == {'PASS': 429, 'FAIL': 18}
+assert collections.Counter(x['status'] for x in b['observations']) == {'PASS': 447}
+assert [x['name'] for x in a['observations']] == [x['name'] for x in b['observations']]
+assert len({x['name'] for x in b['observations']}) == 447
+
+strip = lambda values: [{key: value for key, value in row.items() if key not in {'evidenceId', 'jobId'}} for row in values]
+ao, bo = a['syntheticOutputs'], b['syntheticOutputs']
+assert len(ao) == len(bo) == 448
+assert strip(ao) == strip(bo)
+assert all(list(row) == ['evidenceId', 'jobId', 'raw', 'candidates', 'finish_reason'] for row in ao + bo)
+assert all(left['raw'].encode() == right['raw'].encode() for left, right in zip(ao, bo))
+
+# Inspect verbatim JSON value slices as well as decoded objects. Only the two
+# top-level run identifiers are omitted; nested keys are never removed.
+decoder = json.JSONDecoder()
+
+
+def skip(text, position):
+    while position < len(text) and text[position].isspace():
+        position += 1
+    return position
+
+
+def output_value_slices(path):
+    text = path.read_text()
+    marker = '\n  "syntheticOutputs": ['
+    assert text.count(marker) == 1
+    position = text.index(marker) + len(marker)
+    rows = []
+    while True:
+        position = skip(text, position)
+        if text[position] == ']':
+            return rows
+        assert text[position] == '{'
+        position += 1
+        values = []
+        while True:
+            position = skip(text, position)
+            if text[position] == '}':
+                position += 1
+                break
+            key, position = decoder.raw_decode(text, position)
+            position = skip(text, position)
+            assert text[position] == ':'
+            start = skip(text, position + 1)
+            _, position = decoder.raw_decode(text, start)
+            if key not in {'evidenceId', 'jobId'}:
+                values.append((key, text[start:position].encode()))
+            position = skip(text, position)
+            if text[position] == ',':
+                position += 1
+        rows.append(values)
+        position = skip(text, position)
+        if text[position] == ',':
+            position += 1
+
+
+verbatim_before = output_value_slices(P / 'parent-http447-before.json')
+verbatim_after = output_value_slices(P / 'parent-http447-after.json')
+assert len(verbatim_before) == len(verbatim_after) == 448
+assert verbatim_before == verbatim_after
+
+pa = {x['name']: x for x in old['observations']}
+pb = {x['name']: x for x in b['observations']}
+assert len(pa) == 428 and pa.keys() <= pb.keys()
+changes = [{'name': name, 'old': row, 'new': pb[name]} for name, row in pa.items() if row != pb[name]]
+restart = 'worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots'
+assert len(changes) == 1 and changes[0]['name'] == restart
+assert pa[restart]['checkedCases'] == 427 and pb[restart]['checkedCases'] == 446
+left = dict(pa[restart]); right = dict(pb[restart])
+left.pop('checkedCases'); right.pop('checkedCases')
+assert left == right
+before_restart = next(x for x in a['observations'] if x['name'] == restart)
+assert before_restart['checkedCases'] == 428
+needle, haystack = strip(old['syntheticOutputs']), strip(bo)
+position = 0
+for row in haystack:
+    if position < len(needle) and row == needle[position]:
+        position += 1
+assert position == len(needle) == 429
+
+new = [row for name, row in pb.items() if name not in pa]
+assert len(new) == 19
+money = [row for row in new if row['name'].startswith('round38_money_')]
+assert len(money) == 14
+assert all(row['amount'] is None and row['historicalExactDowngraded'] and row['rawAndStoredHistoryUnchanged'] for row in money)
+for verb in ['发薪', '發薪']:
+    row = pb[f'round38_recurring_{verb}']
+    assert row['sourceRelationSupported'] and row['paymentNotReceiptProof'] and row['rawUnchanged']
+for reverse in ['false', 'true']:
+    row = pb[f'round38_prefix_nested_same_event_{reverse}']
+    assert row['accepted'] == row['rejectedDuplicate'] == 1 and row['rawCandidates'] == 2 and row['rawAndStoredHistoryUnchanged']
+row = pb['round38_prefix_two_same_amount_events_stay_distinct']
+assert row['accepted'] == 2 and row['separateOccurrences'] and row['rawAndStoredHistoryUnchanged']
+for stem, expected in [('before', 1), ('after', 0)]:
+    receipt = json.loads((P / f'parent-http447-{stem}.receipt.json').read_text())
+    assert receipt['exitCode'] == expected
+    for relative, digest in receipt['logs'].items():
+        assert sha((CODE / relative).read_bytes()) == digest
+assert lock['baselineProductCommit'] == BASE
+runner = (P / 'http447-runner.mjs.snapshot').read_bytes()
+assert sha(runner) == lock['runner_sha256']
+start = runner.index(b'  // ROUND38:')
+end = runner.index(b"  await scenario('malformed_raw_failure", start)
+assert runner[:start] + runner[end:] == old_runner
+for fragment in [b'assert.equal(material.raw, injected.raw)', b'assert.deepEqual(candidate.representation, original', b'assert.deepEqual(stored(item.caseId), before)', b'assert.equal(scoped.body.canCalculate, false)']:
+    assert fragment in runner
+for report in [a, b]:
+    assert not report['actualModelInference'] and report['syntheticInputs']
+    assert not report['holdoutRead'] and not report['historicalReportsOverwritten']
+    assert len(report['retiredServiceJobs']) == 896
+    assert all(row['persistedBeforeRetirement'] is True for row in report['retiredServiceJobs'])
+
+source_stability = [{'source': entry['source'], 'sha256': entry['sha256'], 'unchanged': sha(Path(entry['source']).read_bytes()) == entry['sha256']} for entry in inputs]
+assert all(row['unchanged'] for row in source_stability)
+save('source-read-stability.json', source_stability)
+save('observation-deltas.json', {'old_428_changes': changes, 'new_19': new, 'before_18_failures': [row for row in a['observations'] if row['status'] == 'FAIL']})
+normalized_payload = json.dumps(strip(bo), ensure_ascii=False, separators=(',', ':')).encode()
+result = {
+    'schema': 'issue42-round38-http447-readonly-review/1',
+    'observed_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'state': 'READONLY_PARENT_HTTP_EVIDENCE_PASS',
+    'reviewer_ran_http': False,
+    'reviewer_ran_heavy_or_model': False,
+    'requested_model': 'gpt-6.1-sol', 'requested_reasoning': 'ultra', 'actual_backend_independently_verified': False,
+    'code_head_at_read': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=CODE, text=True).strip(),
+    'baseline_product_commit_from_parent_lock': BASE,
+    'before': {'checks': 447, 'pass': 429, 'fail': 18, 'exit': 1, 'cleanup': a['cleanup'], 'restart_checked_cases': 428},
+    'after': {'checks': 447, 'pass': 447, 'fail': 0, 'exit': 0, 'cleanup': b['cleanup'], 'restart_checked_cases': 446, 'durationSeconds': json.loads((P / 'parent-http447-after.receipt.json').read_text())['durationSeconds']},
+    'output_comparison': {'count_each': 448, 'only_removed_fields': ['top-level evidenceId', 'top-level jobId'], 'all_remaining_decoded_fields_equal': True, 'all_raw_utf8_string_bytes_equal': True, 'all_original_JSON_value_slices_raw_candidates_finish_reason_equal': True, 'comparison_payload_sha256': sha(normalized_payload)},
+    'old_428': {'same_names_preserved': 428, 'whole_observations_unchanged': 427, 'only_changed_observation': restart, 'only_changed_field': 'checkedCases', 'old_restart_checked_cases': 427, 'new_restart_checked_cases': 446, 'old_outputs_preserved_ordered_subsequence': 429},
+    'new_19': {'money_full_or_cropped_and_legacy_exact_downgrade': 14, 'recurring_schedule': 2, 'same_event_prefix_dedup_two_orders': 2, 'distinct_same_amount_events_control': 1},
+    'runner': {'sha256': sha(runner), 'parent_before_lock_matches': True, 'exact_d963_runner_sha256': sha(old_runner), 'removing_only_round38_block_restores_exact_d963_bytes': True},
+    'source_files_unchanged_during_review': len(source_stability),
+    'evidence_boundaries': [
+        'HTTP runs and timings belong to the parent; this review independently reads and compares their preserved files.',
+        'Synthetic injected model outputs and disposable local service data do not establish real-model, expert, business, or production acceptance.',
+        'A supported recurring payment date is a schedule, not proof that payment occurred.',
+        'Restart PASS checks stored snapshots; it does not repeat every derived amount assertion after restart.',
+        'The read-only review does not report parent full-check-final as complete or remote CI as passed.'
+    ],
+    'files': inputs,
+}
+save('http447-readonly-review.independent.json', result)
+print(json.dumps({'state': result['state'], 'before': '429P18F', 'after': '447P0F', 'raw_outputs': 448, 'restart_cases': 446, 'old_observations_unchanged': 427, 'source_files_unchanged': len(source_stability)}, ensure_ascii=False))

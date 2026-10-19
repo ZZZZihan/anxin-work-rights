@@ -1,0 +1,222 @@
+--- a/lib/material-fact-source-review.ts
++++ b/lib/material-fact-source-review.ts
+@@ -153,13 +153,27 @@
+   return /(?:每|按)\s*(?:年(?:度)?|周|週|星期|季度|季|次|分钟|分鐘|秒|公里|人|班)\s*(?:(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|RMB|CNY|[¥￥:=])\s*)*$/u.test(before);
+ }
+ 
+-function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null): RateUnit | null {
++function sourcePostposedRate(afterEdge: string): { unit: RateUnit; uncertain: boolean } | null {
++  // Only this explicit 按+unit branch may continue through OCR layout. Its
++  // finite tail excludes payment dates (按月15日) and prose (按时支付/计数).
++  const after = sourceRateDetectionText(afterEdge);
++  const match = after.match(/^\s*(?:[元圆圓]\s*)?(?:[整正]\s*)?按\s*(?:(小时|月|日|天|件)(?:\s*(?:计算|计酬|计价|计薪|计))?|(时)\s*(?:计算|计酬|计价|计薪|计))/u);
++  if (!match) return null;
++  const tail = after.slice(match[0].length), uncertain = hasPostposedMoneyUncertainty(tail);
++  if (!/^\s*(?:$|[，,。；;！!？?）)】\]])/u.test(tail) && !uncertain) return null;
++  const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
++  return { unit: units[match[1] ?? match[2]], uncertain };
++}
++
++function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null, postposedUnit?: RateUnit): RateUnit | null {
+   const edges = monetaryEdges(context, normalized, true);
+   if (!edges) return null;
+   const detectionText = sourceRateDetectionText;
+   const before = detectionText(edges.before.split(/[，,。！？!?；;\n\r\u2028\u2029]/u).at(-1)!);
+   const after = detectionText(edges.after.split(/[，,。！？!?；;\n\r\u2028\u2029]/u)[0]);
+   const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
++  // A model-supplied subject never exempts a postposed source denominator.
++  if (postposedUnit) return postposedUnit;
+   const suffix = after.match(/^(?:[元圆圓]\s*)?(?:[/／]\s*|每\s*)(小时|月|日|天|时|件)/u);
+   if (suffix) return units[suffix[1]];
+   const prefix = before.match(/(?:(?:每|按)(小时|月|日|天|时|件)|(月|日|时)(?:薪|(?:基本)?工资)|小时工资|计件(?:单价|工资)?)(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|[¥￥:=])*$/u);
+@@ -240,6 +254,7 @@
+       // prose cannot attach, and stored quote/positions stay in their own block.
+       const layout = sourceMoneyLayoutEdges(context, sourceNormalized.normalization, source!, candidate.blockId);
+       const qualifierStatus = layout && attachedMoneyQualifierStatus(layout.before, layout.after);
++      const postposedRate = layout && sourcePostposedRate(layout.after);
+       if (sourceMoneyHasNonCurrencyYuan(subunitSource, sourceNormalized.normalization)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文中的元或圆属于普通复合词，未将裁剪片段作为人民币金额。', 'unsupported'),
+       };
+@@ -264,7 +279,7 @@
+       else if (sourceMoneyHasAttachedArithmetic(context, sourceNormalized.normalization, source!, candidate.blockId)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着倍数或算式，候选可能只截取了运算中的基础金额；保留原文且不进行计算。', 'unsupported'),
+       };
+-      else if (layout && hasPostposedMoneyUncertainty(layout.after)) sourceNormalized = {
++      else if (layout && (hasPostposedMoneyUncertainty(layout.after) || postposedRate?.uncertain)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额后直接附着问号、待核或未知标记；保留原文，不将裁剪金额作为确定值。'),
+       };
+       else if (truncatedMoneyToken(context, sourceNormalized.normalization, layout?.after)) sourceNormalized = {
+@@ -273,7 +288,7 @@
+       else if (layout && sourceHasUnsupportedRate(layout.before)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额前明确附着不受支持的费率分母，未换算成总额或现有费率单位，请人工核对。', 'unsupported'),
+       };
+-      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject))) sourceNormalized = {
++      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject, postposedRate?.unit))) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着费率单位，与当前总额角色或已声明费率单位冲突，未生成精确金额。', 'rate_unit_mismatch'),
+       };
+       else if (!sourceMoneyHasExplicitRmbCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
+--- a/lib/material-fact-event-review.ts
++++ b/lib/material-fact-event-review.ts
+@@ -141,6 +141,11 @@
+   }
+   // Finite non-total vocabulary cannot absorb another name, date or amount.
+   // This validates attribution only; the stricter complete-total gate is separate.
++  const suffix = moneyRole(after);
++  const supportedSuffix = /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*(?:(?:[/／]|每)(?:月|日|天|小时|时|件))?$/iu.test(suffix)
++    // This branch recognizes an explicitly declared rate in the same event;
++    // it does not make that rate a complete total or accept arbitrary 按 prose.
++    || (raw.meaning === 'rate' && /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*按(?:(?:小时|月|日|天|件)(?:计算|计酬|计[价價]|计薪|计)?|时(?:计算|计酬|计[价價]|计薪|计))[）)】\]]*$/iu.test(suffix.replace(/\p{Cf}/gu, '')));
+   return /^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|应得|补贴|交通补贴|人民币|RMB|CNY|[¥￥]|完整|全部|部分|总额|总计|合计|共计|累计|应付|已支付|已付|实付|支付|付款|收到|领取|拖欠|欠付|尚欠|欠薪|欠款|裁决|判决|判付|裁判|赔偿|补偿|给付|月薪|日薪|时薪|每月|每日|每天|每小时|每件|单价|标准|费率|本次|此次|该笔|单笔|一笔|先付|预付|预支|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)
+-    && /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*(?:(?:[/／]|每)(?:月|日|天|小时|时|件))?$/iu.test(moneyRole(after));
++    && supportedSuffix;
+ }
+--- /dev/null
++++ b/scripts/material-fact-postposed-unit-source-review.test.mjs
+@@ -0,0 +1,147 @@
++import test, { after } from 'node:test';
++import assert from 'node:assert/strict';
++import { cp, mkdtemp, readFile, rm } from 'node:fs/promises';
++import { createHash } from 'node:crypto';
++import { tmpdir } from 'node:os';
++import { resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++// Synthetic source/event integration only. Point BASE at a fixed checkout and
++// PATCH at the implementation under review; neither tree is changed by tests.
++const HERE = fileURLToPath(new URL('../', import.meta.url));
++const BASE = resolve(process.env.MATERIAL_FACT_RATE_BASE_ROOT || HERE);
++const PATCH = resolve(process.env.MATERIAL_FACT_RATE_PATCH_ROOT || HERE);
++const temp = await mkdtemp(resolve(tmpdir(), 'anxin-postposed-unit-source-'));
++after(() => rm(temp, { recursive: true, force: true }));
++await cp(resolve(BASE, 'lib'), resolve(temp, 'lib'), { recursive: true });
++const files = ['material-fact-source-review.ts', 'material-fact-event-review.ts'];
++for (const file of files) await cp(resolve(PATCH, 'lib', file), resolve(temp, 'lib', file));
++console.log(JSON.stringify({ source_event_sha256: Object.fromEntries(await Promise.all(files.map(async file => [file,
++  createHash('sha256').update(await readFile(resolve(temp, 'lib', file))).digest('hex')])))}));
++const load = file => import(pathToFileURL(resolve(temp, 'lib', file)).href);
++const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest.ts');
++const { emptyFactState, ingestCandidates, buildFactView } = await load('material-facts-v3.ts');
++const { reviewCandidateAgainstSource } = await load('material-fact-source-review.ts');
++const { hasSupportedCandidateAttribution } = await load('material-fact-event-review.ts');
++const { normalizeMoneyValueV4 } = await load('material-money-v4.ts');
++const AT = '2026-10-18T00:00:00.000Z';
++
++function check({ text, texts = [text], full = false, quote, value = '4000元', meaning = 'due_total', rateUnit = null,
++  subject = '王甲', period = null, expected = null, relation, mismatch = expected === null, status, direct = false }) {
++  const block = texts.findIndex(part => part.includes(value));
++  assert.ok(block >= 0);
++  const representation = { kind: 'money', value, quote: quote ?? (full ? texts[block] : value), blockId: `b${block + 1}`,
++    subject, scope: 'individual', meaning, completeness: ['due_total', 'paid_total'].includes(meaning) ? 'complete' : 'not_applicable',
++    rateUnit, period, assertion: 'narrated' };
++  const source = { id: 'postposed-unit-source', name: '合成金额后置按单位费率', sha256: '6'.repeat(64), analysisRevision: 26, ready: true,
++    blocks: texts.map((text, index) => ({ id: `b${index + 1}`, page: index + 1, text, bbox: null, confidence: null })) };
++  const raw = JSON.stringify({ schemaVersion: 3, candidates: [representation] });
++  const fresh = ingestRuntimeCandidates(emptyFactState(26), source, { raw }, 'synthetic', 'owner', AT);
++  assert.equal(fresh.materials[0].candidates.length, 1, 'The monetary fixture must enter the actual candidate store');
++  const stored = ingestCandidates(emptyFactState(26), source, { raw }, 'synthetic', 'owner', AT);
++  const candidate = stored.materials[0].candidates[0];
++  const exact = normalizeMoneyValueV4(value);
++  assert.equal(exact.amount, '4000.00', 'Historical fixture must start from a real exact monetary literal');
++  Object.assign(candidate, { amount: exact.amount, normalization: exact });
++  const snapshot = structuredClone({ source, stored });
++  const checked = reviewCandidateAgainstSource(candidate, source);
++  if (direct) assert.equal(hasSupportedCandidateAttribution(representation, texts[block].replace(/。$/u, ''), exact), relation,
++    'Finite event attribution, independently of the source-review amount guard');
++  for (const [path, item] of [['fresh', fresh.materials[0].candidates[0]], ['historical read', checked]]) {
++    assert.equal(item.amount, expected, `${path}: source amount`);
++    if (status) assert.equal(item.normalization.status, status, `${path}: declared guard status`);
++    else if (mismatch) assert.equal(item.normalization.status, 'rate_unit_mismatch', `${path}: explicit rate mismatch`);
++    else assert.equal(item.normalization.status, 'exact', `${path}: exact preservation`);
++    if (relation !== undefined) assert.equal(item.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !relation,
++      `${path}: same-event relationship`);
++    assert.deepEqual(item.representation, representation, `${path}: original model fields`);
++    assert.equal(item.value, value); assert.equal(item.quote, representation.quote);
++    assert.equal(item.sourceSha256, source.sha256);
++    const quoteStart = texts[block].indexOf(representation.quote);
++    assert.equal(item.start, Array.from(texts[block].slice(0, quoteStart)).length);
++    assert.equal(item.end, item.start + Array.from(representation.quote).length);
++    assert.equal(Array.from(texts[block]).slice(item.start, item.end).join(''), representation.quote);
++  }
++  assert.equal(fresh.materials[0].raw, raw);
++  assert.deepEqual(fresh.confirmations, { due: null, paid: null }); assert.equal(fresh.calculation, null);
++  assert.equal(buildFactView(fresh, [source]).canCalculate, false);
++  assert.deepEqual({ source, stored }, snapshot, 'Historical review never rewrites stored raw/source/history');
++  candidate.amount = null; candidate.normalization = { ...exact, amount: null, status: 'unsupported' };
++  const nullSnapshot = structuredClone(stored);
++  assert.equal(reviewCandidateAgainstSource(candidate, source).amount, null, 'Historical unavailable values are never upgraded');
++  assert.deepEqual(stored, nullSnapshot);
++}
++
++const units = [['月', 'month'], ['日', 'day'], ['天', 'day'], ['小时', 'hour'], ['时', 'hour'], ['件', 'piece']];
++for (const [word, unit] of units) for (const full of [false, true]) {
++  const text = `😀王甲工资4000元按${word}计。`;
++  test(`total cannot borrow a postposed rate ${word}, full=${full}`, () => check({ text, full }));
++  test(`correct postposed rate owns its event ${word}, full=${full}`, () => check({ text, full,
++    meaning: 'rate', rateUnit: unit, expected: '4000.00', relation: true, direct: true }));
++  test(`wrong declared rate unit ${word}, full=${full}`, () => check({ text, full,
++    meaning: 'rate', rateUnit: unit === 'month' ? 'day' : 'month' }));
++}
++for (const tail of ['按月计算', '按日计薪', '按天计价', '按小时计酬', '按件计酬', '按時計', '按小時計', '按件計價']) {
++  const unit = tail.includes('月') ? 'month' : /日|天/u.test(tail) ? 'day' : tail.includes('件') ? 'piece' : 'hour';
++  test(`finite remuneration word ${tail}`, () => check({ text: `王甲工資4000元${tail}。`, meaning: 'rate', rateUnit: unit,
++    expected: '4000.00', relation: true, direct: true }));
++  test(`finite remuneration word is not a total ${tail}`, () => check({ text: `王甲工資4000元${tail}。` }));
++}
++for (const [word, unit] of units.filter(([word]) => word !== '时')) {
++  test(`bare but explicitly bounded by-unit rate 按${word}`, () => check({ text: `王甲工资4000元按${word}。`,
++    meaning: 'rate', rateUnit: unit, expected: '4000.00', relation: true, direct: true }));
++}
++for (const tail of ['按时支付', '按时', '按时间顺序', '按月15日发放', '按日15日发放', '按月计息', '按件计数', '按小时计算机规定',
++  '按原约定', '按2026年1月实际工作结算', '按月度汇总']) {
++  test(`ordinary instruction is not a supported postposed rate: ${tail}`,
++    () => check({ text: `王甲工资4000元${tail}。`, expected: '4000.00', mismatch: false }));
++}
++for (const period of ['2026年1月', '2026年1月15日', '今日', '上月']) {
++  test(`actual wage period remains an amount: ${period}`, () => check({ text: `王甲${period}工资4000元。`, period,
++    expected: '4000.00', mismatch: false }));
++}
++for (const separator of ['，', '。', '；', '\n', '\u2028', '\u2029']) {
++  test(`another subject's following rate is not transferred ${JSON.stringify(separator)}`,
++    () => check({ text: `王甲工资4000元${separator}王乙工资5000元按月计。`, expected: '4000.00', mismatch: false }));
++  test(`punctuation before an unattached rate is a boundary ${JSON.stringify(separator)}`,
++    () => check({ text: `王甲工资4000元${separator}另一人按月计。`, expected: '4000.00', mismatch: false }));
++}
++for (const tail of ['按\n月计', '按\u2028小时计', '按\u2029件计酬', '\n按月计', '按\u200b月计', '按 小 時 計']) {
++  test(`explicit by-unit continuation survives layout/Cf ${JSON.stringify(tail)}`,
++    () => check({ text: `😀王甲工资4000元${tail}。` }));
++}
++for (const texts of [
++  ['😀王甲工资4000元按', '月计。'], ['😀王甲工资4000元', '按小时计。'], ['😀王甲工资4000元按件', '计酬。'],
++]) test(`explicit continuation across source blocks ${JSON.stringify(texts)}`, () => check({ texts }));
++for (const texts of [
++  ['😀王甲工资4000元。', '按月计。'], ['😀王甲工资4000元', '王乙工资5000元按月计。'],
++  ['😀王甲工资4000元', '每月15日发放。'],
++]) test(`layout cannot borrow an independent rate ${JSON.stringify(texts)}`,
++  () => check({ texts, expected: '4000.00', mismatch: false }));
++for (const subject of ['王甲工资', '王甲工资4000元按月']) {
++  test(`model subject cannot exempt source suffix: ${subject}`, () => check({ text: '王甲工资4000元按月计。', subject }));
++}
++for (const [tail, rateUnit] of [['按月计', 'month'], ['按小时计', 'hour']]) {
++  test(`HTTP fixture same-event rate ${tail}`, () => check({ text: `测试王甲工资4000元${tail}`, subject: '测试王甲', full: true,
++    meaning: 'rate', rateUnit, expected: '4000.00', relation: true, direct: true }));
++}
++for (const texts of [
++  ['😀王甲工资4000元按月计\n未知。'], ['😀王甲工资4000元按月计', '未知。'],
++  ['😀王甲工资4000元按件计酬\n（待核实）。'], ['😀王甲工资4000元按件计酬', '（待核实）。'],
++]) test(`a rate cannot discard its attached unknown layout tail ${JSON.stringify(texts)}`, () => check({ texts,
++  meaning: 'rate', rateUnit: texts[0].includes('按月') ? 'month' : 'piece', status: 'uncertain', mismatch: false }));
++
++// Integration cases need the co-developed normalizer's finite 整/正+按 branch.
++// The core fixed-ec8 dependency run above remains independently reproducible.
++if (process.env.MATERIAL_FACT_RATE_COMBINED === '1') {
++  for (const ending of ['整', '正']) for (const full of [false, true]) {
++    for (const value of ['4000元', `4000元${ending}`]) {
++      test(`combined normalizer retains a genuine whole rate ${ending}, full=${full}, value=${value}`,
++        () => check({ text: `😀王甲工资4000元${ending}按月计。`, value, full,
++          meaning: 'rate', rateUnit: 'month', expected: '4000.00', relation: true, direct: true }));
++    }
++  }
++  for (const texts of [['😀王甲工资4000元按月计', '金额未知。'], ['😀王甲工资4000元按小时计\n（数额待核实）。']])
++    test(`combined unknown-label detection stays unavailable ${JSON.stringify(texts)}`, () => check({ texts,
++      meaning: 'rate', rateUnit: texts[0].includes('按月') ? 'month' : 'hour', status: 'uncertain', mismatch: false }));
++}

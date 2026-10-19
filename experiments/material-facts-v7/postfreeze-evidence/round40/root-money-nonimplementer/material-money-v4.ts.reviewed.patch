@@ -1,0 +1,80 @@
+--- fixed5374/lib/material-money-v4.ts
++++ capturedCODE/lib/material-money-v4.ts
+@@ -63,6 +63,14 @@
+ 
+ // Only uncertainty matching joins layout inside its finite existing words;
+ // punctuation and every other character remain barriers between events.
++// An amount enclosed on both edges may be accounting negative notation.
++// Keep the sign unresolved; parentheses around ordinary prose do not qualify.
++function hasAccountingMoneyParentheses(before: string, after: string): boolean {
++  const currency = `(?:${RMB_NAME}|[¥￥])`;
++  return new RegExp(`\\(\\s*(?:${currency}\\s*)?$`, 'iu').test(monetaryDetectionView(before))
++    && new RegExp(`^\\s*(?:[整正]\\s*)?(?:${currency}\\s*)?\\)`, 'iu').test(monetaryDetectionView(after));
++}
++
+ function uncertaintyDetectionView(value: string): string {
+   return monetaryDetectionView(value).replace(/\s/gu, '');
+ }
+@@ -293,6 +301,7 @@
+   if (matches.length === 1) {
+     const match = matches[0], text = match[0].trimStart(), index = match.index + match[0].length - text.length;
+     const before = rawValue.slice(0, index).trimEnd(), after = rawValue.slice(index + text.length);
++    if (hasAccountingMoneyParentheses(before, after)) return result(rawValue, 'unsupported', '括号金额可能表示会计负数，保留原文待核，未推定正负金额。');
+     if (isCalendarYearContinuation(text, after)) return result(rawValue, 'not_money', '币种标签后的四位数字是年份，未补人民币单位或转成金额。');
+     if (moneyTokenHasNonCurrencyYuan(text, after)) return result(rawValue, 'unsupported', '匹配到的元或圆属于完整普通词语，不能截成金额单位。');
+     if (moneyTokenHasNonCurrencySubunit(text, after)) return result(rawValue, 'unsupported', '匹配到的角或分属于时间、计量或普通词语，未作为分币金额。');
+@@ -350,7 +359,7 @@
+   // A supported slash/每 denominator cannot hide the same directly attached
+   // unknown marker. Consume one finite rate wrapper only; clause punctuation
+   // and another person's prose remain barriers in the existing predicate.
+-  const rate = detection.match(/^(?:[元圆圓])?(?:\/|每)(?:小时|[个個]?月|日|天|时|件)(?:计算|计酬|计价|计薪|计)?/u);
++  const rate = detection.match(/^(?:[元圆圓])?(?:\/|每)(?:[个個]?(?:小时|月)|日|天|时|件)(?:计算|计酬|计价|计薪|计)?/u);
+   const text = rate ? detection.slice(rate[0].length) : detection;
+   if (rate && hasAttachedMoneyArithmetic('', text)) return false;
+   return new RegExp(`^\\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\\s*[()[\\]{}【】]*\\s*(?:(?:金[额額]|[数數][额額])\\s*(?:为|為|是|[:=])?\\s*)?(?:${MASKED.source}|${UNCERTAIN.source})`, 'iu').test(text);
+@@ -401,11 +410,11 @@
+   // A denominator is a complete lexical unit. 月亮/月份/小时候 cannot
+   // borrow the enum from a valid prefix. Keep the existing finite pricing or
+   // payment prose, and attached uncertainty, after a complete supported unit.
+-  const unit = text?.match(/^(小时|[个個]?月|日|天|时|件)/u);
++  const unit = text?.match(/^([个個]?(?:小时|月)|日|天|时|件)/u);
+   const remainder = unit ? text!.slice(unit[0].length) : '';
+   const supported = unit && (remainder === '' || hasPostposedMoneyUncertainty(remainder)
+     || attachedQualifierStatus('', remainder) !== null
+-    || /^(?:计算|计酬|计价|计薪|计|支付|发放|付清)$/u.test(remainder)) ? unit[1].replace(/^[个個](?=月$)/u, '') : undefined;
++    || /^(?:计算|计酬|计价|计薪|计|支付|发放|付清)$/u.test(remainder)) ? unit[1].replace(/^[个個](?=小时$|月$)/u, '') : undefined;
+   return { present: suffix !== null, supported, postposedBy: false,
+     uncertain: supported !== undefined && hasPostposedMoneyUncertainty(detection) };
+ }
+@@ -428,10 +437,11 @@
+ /** A single 整/正 may end a complete amount, but cannot hide its continuation.
+  * Only detection edges are joined here. The caller's raw normalization, quote,
+  * source text and CP offsets are never rewritten or returned from this guard. */
+-export function hasUnsafeWholeMoneyContinuation(candidate: Pick<RawCandidateV3, 'meaning' | 'rateUnit'>, normalized: CandidateNormalization, after: string): boolean {
++export function hasUnsafeWholeMoneyContinuation(candidate: Pick<RawCandidateV3, 'meaning' | 'rateUnit'>, normalized: CandidateNormalization, after: string, before = ''): boolean {
+   if (!normalized.span) return false;
+   const token = Array.from(normalized.rawValue).slice(normalized.span.start, normalized.span.end).join('');
+   const tokenView = monetaryDetectionView(token), detection = monetaryDetectionView(after);
++  if (hasAccountingMoneyParentheses(before, after)) return true;
+   if (isCalendarYearContinuation(token, after)) return true;
+   // Source review supplies this complete layout edge even when value and
+   // quote stop before a repeated suffix in the next line or adjacent block.
+@@ -505,7 +515,8 @@
+       // total. The existing finite units keep their following-prose behavior.
+       // Fold only this detection copy; raw value/quote and CP spans stay intact.
+       const suffixRate = attachedSuffixRate(rangeAfter), supportedRate = suffixRate.supported;
+-      if (hasRepeatedRmbCurrency(rangeBefore, rangeToken, rangeAfter)) normalized = result(candidate.value, 'unsupported', '原文金额重复附着币种标记，未把裁剪后的单标签金额作为精确值。');
++      if (hasAccountingMoneyParentheses(rangeBefore, rangeAfter)) normalized = result(candidate.value, 'unsupported', '原文用括号包围金额，正负含义待核，未将裁剪值作为精确正数。');
++      else if (hasRepeatedRmbCurrency(rangeBefore, rangeToken, rangeAfter)) normalized = result(candidate.value, 'unsupported', '原文金额重复附着币种标记，未把裁剪后的单标签金额作为精确值。');
+       else if (sourceMoneyHasNonCurrencyYuan({ blockText: candidate.quote, valueStart: quoteOffset }, normalized)) normalized = result(candidate.value, 'unsupported', '原文中的元或圆属于完整普通词语，裁剪后的片段未作为人民币金额。');
+       else if (sourceMoneyHasNonCurrencySubunit({ blockText: candidate.quote, valueStart: quoteOffset }, normalized)) normalized = result(candidate.value, 'unsupported', '原文中的角或分属于普通词语，裁剪后的片段未作为分币金额。');
+       else if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized, candidate.subject)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
+@@ -616,7 +627,7 @@
+   // Reuse the finite qualifier grammar while retaining each word and its side:
+   // 不满/不少于/不到/开外 must never collapse into each other or an exact key.
+   const wrapped = monetaryDetectionView(value).trim().replace(/\s*(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*$/u, '').trim();
+-  const leadingRmb = wrapped.match(/^人民[币幣]\s*/u)?.[0] ?? '';
++  const leadingRmb = wrapped.match(new RegExp(`^(?:${RMB_NAME}|[¥￥])\\s*`, 'iu'))?.[0] ?? '';
+   const text = wrapped.slice(leadingRmb.length);
+   const prefix = text.match(new RegExp(`^(${MONEY_BOUND_PREFIX}|近|可能|或许|大概|估计|不确定|待核|暂计|暂定)\\s*`, 'u'));
+   const suffix = text.match(new RegExp(`\\s*(${MONEY_BOUND_SUFFIX})$`, 'u'));

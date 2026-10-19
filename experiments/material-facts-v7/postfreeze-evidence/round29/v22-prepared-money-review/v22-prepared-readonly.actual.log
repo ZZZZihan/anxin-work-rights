@@ -1,0 +1,252 @@
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: New bridge must be a minimal versioned recurrence
++ actual - expected
+... Skipped lines
+
+  '// A narrow execution-only bridge for the archived v20 check. The immutable v1\n' +
+    '// preload and older versioned bridges handle older children; neither is expanded here.\n' +
+    "import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync, writeSync } from 'node:fs';\n" +
+    "import { tmpdir } from 'node:os';\n" +
+    "import { basename, dirname, join, resolve, sep } from 'node:path';\n" +
+...
+    '\n' +
++   'export function historicalV21Target(script, args) {\n' +
+-   'export function historicalV20Target(script, args) {\n' +
+    "  if (typeof script !== 'string' || !Array.isArray(args) || args.length !== 1 || args[0] !== '--check') return null;\n" +
+    '  const path = resolve(script);\n' +
+    "  return basename(path) === 'corrective-assessment-v20.mjs'\n" +
+    '    && dirname(path).endsWith(`${sep}experiments${sep}material-facts-v7`)\n' +
+    "    ? 'experiments/material-facts-v7/corrective-assessment-v20.mjs' : null;\n" +
+    '}\n' +
+    '\n' +
++   'export function prepareHistoricalV21Options(script, args, options, state) {\n' +
++   '  const target = historicalV21Target(script, args);\n' +
+-   'export function prepareHistoricalV20Options(script, args, options, state) {\n' +
+-   '  const target = historicalV20Target(script, args);\n' +
+    "  if (!target) throw new Error('Historical v20 execution only accepts the exact read-only v20 assessment check');\n" +
+    '  // Validate inherited state with the unchanged v1 contract before deriving a\n' +
+    '  // child. No state or environment mutation occurs in this process.\n' +
+    "  if (!readExecutionState({ [STATE_ENV]: JSON.stringify(state) })) throw new Error('Invalid historical execution policy state');\n" +
+    '  const deadline = state.deadline_ms - CLEANUP_RESERVE_MS, remaining = deadline - Date.now();\n' +
+...
+    '\n' +
++   "export function runHistoricalV21CheckSync(scriptPath, args = ['--check'], options = {}) {\n" +
+-   "export function runHistoricalV20CheckSync(scriptPath, args = ['--check'], options = {}) {\n" +
+    '  const script = resolve(options.cwd ?? process.cwd(), scriptPath);\n' +
++   "  if (!historicalV21Target(script, args)) throw new Error('Expected the exact read-only historical v20 assessment check');\n" +
+-   "  if (!historicalV20Target(script, args)) throw new Error('Expected the exact read-only historical v20 assessment check');\n" +
+    '  let state = readExecutionState(), directory;\n' +
+    '  if (!state) {\n' +
+    '    const localStartedMs = rootBudgetStartedMs();\n' +
+    "    directory = mkdtempSync(join(tmpdir(), 'anxin-v7-history-v20-policy-'));\n" +
+    "    const receiptPath = join(directory, 'execution.jsonl');\n" +
+...
+    '  try {\n' +
++   '    return nativeExecFileSync(process.execPath, [script, ...args], prepareHistoricalV21Options(script, args, options, state));\n' +
+-   '    return nativeExecFileSync(process.execPath, [script, ...args], prepareHistoricalV20Options(script, args, options, state));\n' +
+    '  } catch (error) {\n' +
+    '    failure = error;\n' +
+    '    throw error;\n' +
+    '  } finally {\n' +
+    '    if (directory) {\n' +
+...
+    '          maximum_root_budget_ms: ROOT_BUDGET_MS, cleanup_reserve_per_level_ms: CLEANUP_RESERVE_MS,\n' +
++   "          target: historicalV21Target(script, args), status: failure ? 'FAIL' : 'PASS',\n" +
+-   "          target: historicalV20Target(script, args), status: failure ? 'FAIL' : 'PASS',\n" +
+    "          scoring_semantics_changed: false, archived_source_bytes_changed: false, events }) + '\\n');\n" +
+    '      } catch (error) {\n' +
+    '        if (failure) failure.executionPolicyReceiptError = error;\n' +
+    '        else throw error;\n' +
+    '      } finally {\n' +
+...
+    "  if (!script) throw new Error('Expected the read-only historical v20 assessment path');\n" +
++   "  const output = runHistoricalV21CheckSync(script, args, { cwd: process.cwd(), encoding: 'utf8', maxBuffer: 16 * 1024 ** 2 });\n" +
+-   "  const output = runHistoricalV20CheckSync(script, args, { cwd: process.cwd(), encoding: 'utf8', maxBuffer: 16 * 1024 ** 2 });\n" +
+    '  process.stdout.write(output);\n' +
+    '}\n'
+
+    at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round29/v22-prepared-readonly.probe.mjs:28:8 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '// A narrow execution-only bridge for the archived v20 check. The immutable v1\n' +
+    '// preload and older versioned bridges handle older children; neither is expanded here.\n' +
+    "import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync, writeSync } from 'node:fs';\n" +
+    "import { tmpdir } from 'node:os';\n" +
+    "import { basename, dirname, join, resolve, sep } from 'node:path';\n" +
+    "import { fileURLToPath } from 'node:url';\n" +
+    'import { CLEANUP_RESERVE_MS, POLICY_ID, POLICY_SHA256, POLICY_URL, ROOT_BUDGET_MS, STATE_ENV,\n' +
+    "  nativeExecFileSync, readExecutionState, recordExecutionEvent, rootBudgetStartedMs } from './historical-execution-policy-v1.mjs';\n" +
+    '\n' +
+    'export function historicalV21Target(script, args) {\n' +
+    "  if (typeof script !== 'string' || !Array.isArray(args) || args.length !== 1 || args[0] !== '--check') return null;\n" +
+    '  const path = resolve(script);\n' +
+    "  return basename(path) === 'corrective-assessment-v20.mjs'\n" +
+    '    && dirname(path).endsWith(`${sep}experiments${sep}material-facts-v7`)\n' +
+    "    ? 'experiments/material-facts-v7/corrective-assessment-v20.mjs' : null;\n" +
+    '}\n' +
+    '\n' +
+    'export function prepareHistoricalV21Options(script, args, options, state) {\n' +
+    '  const target = historicalV21Target(script, args);\n' +
+    "  if (!target) throw new Error('Historical v20 execution only accepts the exact read-only v20 assessment check');\n" +
+    '  // Validate inherited state with the unchanged v1 contract before deriving a\n' +
+    '  // child. No state or environment mutation occurs in this process.\n' +
+    "  if (!readExecutionState({ [STATE_ENV]: JSON.stringify(state) })) throw new Error('Invalid historical execution policy state');\n" +
+    '  const deadline = state.deadline_ms - CLEANUP_RESERVE_MS, remaining = deadline - Date.now();\n' +
+    '  if (remaining <= 0) {\n' +
+    "    recordExecutionEvent(state, { event: 'budget_exhausted', target, depth: state.depth + 1, deadline_ms: deadline });\n" +
+    "    const error = new Error('Shared historical execution deadline exhausted before starting another check');\n" +
+    "    error.code = 'ETIMEDOUT';\n" +
+    '    throw error;\n' +
+    '  }\n' +
+    '  const next = { ...state, deadline_ms: deadline, depth: state.depth + 1 };\n' +
+    '  const env = { ...(options.env ?? process.env) }, preload = `--import=${POLICY_URL}`;\n' +
+    "  env.NODE_OPTIONS = (env.NODE_OPTIONS ?? '').split(/\\s+/u).includes(preload)\n" +
+    "    ? env.NODE_OPTIONS : [env.NODE_OPTIONS, preload].filter(Boolean).join(' ');\n" +
+    '  env[STATE_ENV] = JSON.stringify(next);\n' +
+    "  recordExecutionEvent(state, { event: 'child_budget', target, args, depth: next.depth,\n" +
+    '    requested_timeout_ms: options.timeout ?? null, effective_timeout_ms: remaining,\n' +
+    '    parent_deadline_ms: state.deadline_ms, child_deadline_ms: deadline,\n' +
+    "    cleanup_reserve_ms: CLEANUP_RESERVE_MS, execution_adapter: 'historical-v20-execution/1' });\n" +
+    '  return { ...options, env, timeout: remaining };\n' +
+    '}\n' +
+    '\n' +
+    "export function runHistoricalV21CheckSync(scriptPath, args = ['--check'], options = {}) {\n" +
+    '  const script = resolve(options.cwd ?? process.cwd(), scriptPath);\n' +
+    "  if (!historicalV21Target(script, args)) throw new Error('Expected the exact read-only historical v20 assessment check');\n" +
+    '  let state = readExecutionState(), directory;\n' +
+    '  if (!state) {\n' +
+    '    const localStartedMs = rootBudgetStartedMs();\n' +
+    "    directory = mkdtempSync(join(tmpdir(), 'anxin-v7-history-v20-policy-'));\n" +
+    "    const receiptPath = join(directory, 'execution.jsonl');\n" +
+    "    writeFileSync(receiptPath, '', { flag: 'wx', mode: 0o600 });\n" +
+    '    state = { policy: POLICY_ID, policy_sha256: POLICY_SHA256, started_ms: localStartedMs,\n' +
+    '      root_deadline_ms: localStartedMs + ROOT_BUDGET_MS, deadline_ms: localStartedMs + ROOT_BUDGET_MS,\n' +
+    '      depth: 0, receipt_path: receiptPath };\n' +
+    '  }\n' +
+    '  let failure;\n' +
+    '  try {\n' +
+    '    return nativeExecFileSync(process.execPath, [script, ...args], prepareHistoricalV21Options(script, args, options, state));\n' +
+    '  } catch (error) {\n' +
+    '    failure = error;\n' +
+    '    throw error;\n' +
+    '  } finally {\n' +
+    '    if (directory) {\n' +
+    '      try {\n' +
+    "        const events = readFileSync(state.receipt_path, 'utf8').split('\\n').filter(Boolean).map(line => JSON.parse(line));\n" +
+    '        writeSync(2, JSON.stringify({ execution_policy: POLICY_ID, policy_sha256: POLICY_SHA256,\n' +
+    "          execution_adapter: 'historical-v20-execution/1', budget_mode: 'shared_absolute_deadline',\n" +
+    '          maximum_root_budget_ms: ROOT_BUDGET_MS, cleanup_reserve_per_level_ms: CLEANUP_RESERVE_MS,\n' +
+    "          target: historicalV21Target(script, args), status: failure ? 'FAIL' : 'PASS',\n" +
+    "          scoring_semantics_changed: false, archived_source_bytes_changed: false, events }) + '\\n');\n" +
+    '      } catch (error) {\n' +
+    '        if (failure) failure.executionPolicyReceiptError = error;\n' +
+    '        else throw error;\n' +
+    '      } finally {\n' +
+    '        try { rmSync(directory, { recursive: true, force: true }); }\n' +
+    '        catch (error) { if (failure) failure.executionPolicyCleanupError = error; else throw error; }\n' +
+    '      }\n' +
+    '    }\n' +
+    '  }\n' +
+    '}\n' +
+    '\n' +
+    'if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {\n' +
+    '  const [script, ...args] = process.argv.slice(2);\n' +
+    "  if (!script) throw new Error('Expected the read-only historical v20 assessment path');\n" +
+    "  const output = runHistoricalV21CheckSync(script, args, { cwd: process.cwd(), encoding: 'utf8', maxBuffer: 16 * 1024 ** 2 });\n" +
+    '  process.stdout.write(output);\n' +
+    '}\n',
+  expected: '// A narrow execution-only bridge for the archived v20 check. The immutable v1\n' +
+    '// preload and older versioned bridges handle older children; neither is expanded here.\n' +
+    "import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync, writeSync } from 'node:fs';\n" +
+    "import { tmpdir } from 'node:os';\n" +
+    "import { basename, dirname, join, resolve, sep } from 'node:path';\n" +
+    "import { fileURLToPath } from 'node:url';\n" +
+    'import { CLEANUP_RESERVE_MS, POLICY_ID, POLICY_SHA256, POLICY_URL, ROOT_BUDGET_MS, STATE_ENV,\n' +
+    "  nativeExecFileSync, readExecutionState, recordExecutionEvent, rootBudgetStartedMs } from './historical-execution-policy-v1.mjs';\n" +
+    '\n' +
+    'export function historicalV20Target(script, args) {\n' +
+    "  if (typeof script !== 'string' || !Array.isArray(args) || args.length !== 1 || args[0] !== '--check') return null;\n" +
+    '  const path = resolve(script);\n' +
+    "  return basename(path) === 'corrective-assessment-v20.mjs'\n" +
+    '    && dirname(path).endsWith(`${sep}experiments${sep}material-facts-v7`)\n' +
+    "    ? 'experiments/material-facts-v7/corrective-assessment-v20.mjs' : null;\n" +
+    '}\n' +
+    '\n' +
+    'export function prepareHistoricalV20Options(script, args, options, state) {\n' +
+    '  const target = historicalV20Target(script, args);\n' +
+    "  if (!target) throw new Error('Historical v20 execution only accepts the exact read-only v20 assessment check');\n" +
+    '  // Validate inherited state with the unchanged v1 contract before deriving a\n' +
+    '  // child. No state or environment mutation occurs in this process.\n' +
+    "  if (!readExecutionState({ [STATE_ENV]: JSON.stringify(state) })) throw new Error('Invalid historical execution policy state');\n" +
+    '  const deadline = state.deadline_ms - CLEANUP_RESERVE_MS, remaining = deadline - Date.now();\n' +
+    '  if (remaining <= 0) {\n' +
+    "    recordExecutionEvent(state, { event: 'budget_exhausted', target, depth: state.depth + 1, deadline_ms: deadline });\n" +
+    "    const error = new Error('Shared historical execution deadline exhausted before starting another check');\n" +
+    "    error.code = 'ETIMEDOUT';\n" +
+    '    throw error;\n' +
+    '  }\n' +
+    '  const next = { ...state, deadline_ms: deadline, depth: state.depth + 1 };\n' +
+    '  const env = { ...(options.env ?? process.env) }, preload = `--import=${POLICY_URL}`;\n' +
+    "  env.NODE_OPTIONS = (env.NODE_OPTIONS ?? '').split(/\\s+/u).includes(preload)\n" +
+    "    ? env.NODE_OPTIONS : [env.NODE_OPTIONS, preload].filter(Boolean).join(' ');\n" +
+    '  env[STATE_ENV] = JSON.stringify(next);\n' +
+    "  recordExecutionEvent(state, { event: 'child_budget', target, args, depth: next.depth,\n" +
+    '    requested_timeout_ms: options.timeout ?? null, effective_timeout_ms: remaining,\n' +
+    '    parent_deadline_ms: state.deadline_ms, child_deadline_ms: deadline,\n' +
+    "    cleanup_reserve_ms: CLEANUP_RESERVE_MS, execution_adapter: 'historical-v20-execution/1' });\n" +
+    '  return { ...options, env, timeout: remaining };\n' +
+    '}\n' +
+    '\n' +
+    "export function runHistoricalV20CheckSync(scriptPath, args = ['--check'], options = {}) {\n" +
+    '  const script = resolve(options.cwd ?? process.cwd(), scriptPath);\n' +
+    "  if (!historicalV20Target(script, args)) throw new Error('Expected the exact read-only historical v20 assessment check');\n" +
+    '  let state = readExecutionState(), directory;\n' +
+    '  if (!state) {\n' +
+    '    const localStartedMs = rootBudgetStartedMs();\n' +
+    "    directory = mkdtempSync(join(tmpdir(), 'anxin-v7-history-v20-policy-'));\n" +
+    "    const receiptPath = join(directory, 'execution.jsonl');\n" +
+    "    writeFileSync(receiptPath, '', { flag: 'wx', mode: 0o600 });\n" +
+    '    state = { policy: POLICY_ID, policy_sha256: POLICY_SHA256, started_ms: localStartedMs,\n' +
+    '      root_deadline_ms: localStartedMs + ROOT_BUDGET_MS, deadline_ms: localStartedMs + ROOT_BUDGET_MS,\n' +
+    '      depth: 0, receipt_path: receiptPath };\n' +
+    '  }\n' +
+    '  let failure;\n' +
+    '  try {\n' +
+    '    return nativeExecFileSync(process.execPath, [script, ...args], prepareHistoricalV20Options(script, args, options, state));\n' +
+    '  } catch (error) {\n' +
+    '    failure = error;\n' +
+    '    throw error;\n' +
+    '  } finally {\n' +
+    '    if (directory) {\n' +
+    '      try {\n' +
+    "        const events = readFileSync(state.receipt_path, 'utf8').split('\\n').filter(Boolean).map(line => JSON.parse(line));\n" +
+    '        writeSync(2, JSON.stringify({ execution_policy: POLICY_ID, policy_sha256: POLICY_SHA256,\n' +
+    "          execution_adapter: 'historical-v20-execution/1', budget_mode: 'shared_absolute_deadline',\n" +
+    '          maximum_root_budget_ms: ROOT_BUDGET_MS, cleanup_reserve_per_level_ms: CLEANUP_RESERVE_MS,\n' +
+    "          target: historicalV20Target(script, args), status: failure ? 'FAIL' : 'PASS',\n" +
+    "          scoring_semantics_changed: false, archived_source_bytes_changed: false, events }) + '\\n');\n" +
+    '      } catch (error) {\n' +
+    '        if (failure) failure.executionPolicyReceiptError = error;\n' +
+    '        else throw error;\n' +
+    '      } finally {\n' +
+    '        try { rmSync(directory, { recursive: true, force: true }); }\n' +
+    '        catch (error) { if (failure) failure.executionPolicyCleanupError = error; else throw error; }\n' +
+    '      }\n' +
+    '    }\n' +
+    '  }\n' +
+    '}\n' +
+    '\n' +
+    'if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {\n' +
+    '  const [script, ...args] = process.argv.slice(2);\n' +
+    "  if (!script) throw new Error('Expected the read-only historical v20 assessment path');\n" +
+    "  const output = runHistoricalV20CheckSync(script, args, { cwd: process.cwd(), encoding: 'utf8', maxBuffer: 16 * 1024 ** 2 });\n" +
+    '  process.stdout.write(output);\n' +
+    '}\n',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.11.0

@@ -1,0 +1,44 @@
+from pathlib import Path
+import json,hashlib
+ROOT=Path.cwd();BASE=ROOT.parent;E=Path('experiments/material-facts-v7');dest=E/'postfreeze-evidence/round33';copied=[]
+def sha(b):return hashlib.sha256(b).hexdigest()
+def copy(src,target,digest=None):
+ b=src.read_bytes();h=sha(b)
+ if digest:assert h==digest,(src,h,digest)
+ if target.exists():assert target.read_bytes()==b,('refuse overwrite',target)
+ else:target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(b)
+ copied.append({'source':str(src),'target':str(target),'sha256':h})
+def index(kind,owner,rel):
+ own=BASE/owner;p=own/rel;j=json.loads(p.read_text())
+ if kind=='data':
+  for e in j['products']:assert sha((ROOT/e['path']).read_bytes())==e['sha256']
+  for e in j['evidence']:
+   src=own/e['path'];suffix=src.relative_to(own/E/'postfreeze-evidence/round33');copy(src,dest/'data-author'/suffix,e['sha256'])
+  copy(p,dest/'data-author/copy-index.original.json')
+ elif kind=='money':
+  for e in j['files']:
+   src=Path(e['path']);r=src.relative_to(own)
+   if str(r).startswith(('lib/','scripts/')):assert sha((ROOT/r).read_bytes())==e['sha256'];continue
+   suffix=src.relative_to(own/E/'postfreeze-evidence/round33');copy(src,dest/'money-author'/suffix,e['sha256'])
+  copy(p,dest/'money-author/copy-index.original.json')
+ elif kind=='explicit':
+  for e in j['entries']:copy(Path(e['source']),ROOT/e['target_relative'],e['sha256'])
+  copy(p,dest/('v25-prepared/copy-index.original.json' if 'v25-prepared' in str(p) else 'round33-independent-copy-index.original.json'))
+ else:
+  for e in j.get('files',j.get('copy_files',[])):
+   src=Path(e['path']);target=dest/kind/src.name
+   if target.suffix in ['.mjs','.py','.ts']:target=target.with_suffix(target.suffix+'.snapshot')
+   copy(src,target,e['sha256'])
+  copy(p,dest/kind/'copy-index.original.json')
+index('data','anxin-facts-v7-data',E/'postfreeze-evidence/round33/copy-index.json')
+index('money','anxin-facts-v7-money',E/'postfreeze-evidence/round33/money-postfix-copy-index.json')
+index('explicit','anxin-facts-v7-review',Path('postfreeze-evidence/round33/round33-independent-copy-index.json'))
+index('explicit','anxin-facts-v7-review',Path('postfreeze-evidence/round33/v25-prepared/copy-index.json'))
+index('v25-preparation-money','anxin-facts-v7-money',E/'postfreeze-evidence/round33/v25-preparation/copy-index.json')
+index('http352-review','anxin-facts-v7-data',E/'postfreeze-evidence/round33/http352-review/copy-index.json')
+for p in (BASE/'anxin-facts-v7-code-review/.scratch/issue42/round33').iterdir():
+ if p.is_file():
+  target=dest/'root-application'/p.name
+  if target.suffix in ['.py','.mjs','.ts']:target=target.with_suffix(target.suffix+'.snapshot')
+  copy(p,target)
+out=dest/'collection-receipt.json';assert not out.exists();out.write_text(json.dumps({'count':len(copied),'entries':copied},ensure_ascii=False,indent=2)+'\n');print('copied/verified',len(copied))

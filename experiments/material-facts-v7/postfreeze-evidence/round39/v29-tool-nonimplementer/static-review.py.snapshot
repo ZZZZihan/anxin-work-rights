@@ -1,0 +1,42 @@
+from pathlib import Path
+import json,hashlib,difflib,datetime
+own=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data')
+root=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+prep=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/.scratch/round39-v29-prepared')
+out=own/'experiments/material-facts-v7/postfreeze-evidence/round39/v29-tool-nonimplementer'
+E='experiments/material-facts-v7'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+ix=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money')/E/'postfreeze-evidence/round39/v29-prepared/tool-archive-copy-index.json'
+index=json.loads(ix.read_bytes()); assert sha(ix.read_bytes())=='30e97eca03d8ed365d67ef400c3036032d6e25ebdb3e0832495ad7657956d433'
+for row in index['copy_only_whitelist']:
+ assert sha(Path(row['source']).read_bytes())==row['sha256'],row['source']
+archive=json.loads((prep/E/'correction-code-v28/manifest.json').read_bytes())
+prev=json.loads((root/E/'corrections-v28/manifest.json').read_bytes())
+assert len(archive['files'])==103 and archive['files']==prev['code_sha256']
+assert sha((root/E/'corrections-v28/manifest.json').read_bytes())==archive['correction_manifest_sha256']=='e223d58a86c6ae56aa5df36fb529ab5b6a66ad742f8f2c4a4c30def8aa4a2cbe'
+assert sha((prep/E/'correction-code-v28/manifest.json').read_bytes())=='cbafe23d62f8fe8d487e67a003ded3e2e3104a87caafee66ef2140379ebd3d24'
+assert {str(p.relative_to(prep/E/'correction-code-v28')) for p in (prep/E/'correction-code-v28').rglob('*.snapshot')}=={p+'.snapshot' for p in archive['files']}
+new=[f'{E}/historical-v28-execution.mjs',f'{E}/verify-correction-v28.mjs',f'{E}/corrective-assessment-v29.mjs']
+assert not set(new)&set(prev['code_sha256'])
+assert len(set(prev['code_sha256'])|set(new))==106
+for rel,digest in prev['code_sha256'].items():
+ assert sha((prep/E/'correction-code-v28'/(rel+'.snapshot')).read_bytes())==digest,rel
+policy=f'{E}/historical-execution-policy-v1.mjs'
+assert sha((prep/policy).read_bytes())==prev['code_sha256'][policy]=='cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea'
+policy_text=(prep/policy).read_text(); assert 'ROOT_BUDGET_MS = 15 * 60 * 1000' in policy_text and 'CLEANUP_RESERVE_MS = 2000' in policy_text
+oldbridges=[p for p in prev['code_sha256'] if p.startswith(E+'/historical-')]
+for rel in oldbridges: assert sha((prep/rel).read_bytes())==prev['code_sha256'][rel],rel
+pairs=[(new[0],f'{E}/historical-v27-execution.mjs'),(new[1],f'{E}/verify-correction-v27.mjs'),(new[2],f'{E}/corrective-assessment-v28.mjs'),('scripts/material-facts-v7-historical-v28-execution.test.mjs','scripts/material-facts-v7-historical-v27-execution.test.mjs'),('scripts/material-facts-v7-correction-v28-gates-independent.test.mjs','scripts/material-facts-v7-correction-v27-gates-independent.test.mjs'),('scripts/material-facts-v7-correction-v29-gates-independent.test.mjs','scripts/material-facts-v7-correction-v28-gates-independent.test.mjs')]
+diffs=[]
+for target,old in pairs:
+ diffs.extend(difflib.unified_diff((root/old).read_text().splitlines(True),(prep/target).read_text().splitlines(True),fromfile=old,tofile=target))
+(out/'six-version-diffs.patch').write_text(''.join(diffs))
+protected_path=root/'.scratch/issue42/round39/protected-before-v29.json'
+protected=json.loads(protected_path.read_bytes())['protected']; assert len(protected)==1967
+assert len({row['path'] for row in protected})==1967
+for row in protected: assert sha((root/row['path']).read_bytes())==row['sha256'],row['path']
+before={'root':{r['path']:r['sha256'] for r in protected},'prepared':{str(Path(r['source']).relative_to(prep)):r['sha256'] for r in index['copy_only_whitelist']}}
+(out/'protected.before.json').write_text(json.dumps(before,ensure_ascii=False,indent=2)+'\n')
+receipt={'status':'STATIC_HASH_PASS_NATIVE_PENDING','utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'root':str(root),'prepared_root':str(prep),'whitelist_index_sha256':sha(ix.read_bytes()),'whitelist_files':110,'archive_sources':103,'current_union':106,'archive_manifest_sha256':sha((prep/E/'correction-code-v28/manifest.json').read_bytes()),'previous_manifest_sha256':archive['correction_manifest_sha256'],'unchanged_old_historical_modules':len(oldbridges),'policy_ms':{'root_budget':900000,'cleanup_reserve_per_layer':2000},'parent_protection':{'path':str(protected_path),'sha256':sha(protected_path.read_bytes()),'rows':1967},'six_files':{r['destination_relative']:r['sha256'] for r in index['copy_only_whitelist'][:6]},'real_historical_cli_executed':False,'heavy_gates_executed':False}
+(out/'static-hash-check.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n')
+print(json.dumps({k:v for k,v in receipt.items() if k not in ('six_files',)},ensure_ascii=False,indent=2))

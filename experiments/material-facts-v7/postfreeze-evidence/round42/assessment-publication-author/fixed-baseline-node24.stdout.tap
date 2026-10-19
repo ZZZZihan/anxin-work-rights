@@ -1,0 +1,139 @@
+TAP version 13
+# Subtest: real assessment CLI publishes a complete new report and keeps its stdout summary contract
+ok 1 - real assessment CLI publishes a complete new report and keeps its stdout summary contract
+  ---
+  duration_ms: 90.445583
+  type: 'test'
+  ...
+# Subtest: real assessment CLI never overwrites an existing report
+not ok 2 - real assessment CLI never overwrites an existing report
+  ---
+  duration_ms: 85.443875
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:85:1'
+  failureType: 'testCodeFailure'
+  error: 'An already published report must reject another CLI invocation'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 0
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:90:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# {"exit":0,"original_unchanged":false}
+# Subtest: real assessment CLI does not follow or replace an existing report symlink
+not ok 3 - real assessment CLI does not follow or replace an existing report symlink
+  ---
+  duration_ms: 86.478042
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:94:1'
+  failureType: 'testCodeFailure'
+  error: 'Expected "actual" to be strictly unequal to: 0'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 0
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:99:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# {"exit":0,"original_unchanged":false}
+# Subtest: native CLI partial write preserves its stage, leaves no final report and allows a clean retry
+not ok 4 - native CLI partial write preserves its stage, leaves no final report and allows a clean retry
+  ---
+  duration_ms: 108.88
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:103:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:110:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# {"exit":1,"final_exists":true,"stage_bytes":[],"native_error":true}
+# Subtest: real CLI links only complete report bytes while the final name is absent
+not ok 5 - real CLI links only complete report bytes while the final name is absent
+  ---
+  duration_ms: 84.170917
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:117:1'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, open '/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin-assessment-publication-gGZtdy/link-observation.json'"
+  code: 'ENOENT'
+  stack: |-
+    async open (node:internal/fs/promises:1345:25)
+    async Object.readFile (node:internal/fs/promises:2003:14)
+    async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:120:34)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: concurrent assessment CLIs leave one immutable complete report and one preserved losing stage
+not ok 6 - concurrent assessment CLIs leave one immutable complete report and one preserved losing stage
+  ---
+  duration_ms: 88.369459
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:125:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:128:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# {"exit_codes":[0,0]}
+# Subtest: stage cleanup failure keeps the published report successful and explicitly reports published state
+not ok 7 - stage cleanup failure keeps the published report successful and explicitly reports published state
+  ---
+  duration_ms: 85.732416
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:135:1'
+  failureType: 'testCodeFailure'
+  error: 'Unexpected end of JSON input'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    JSON.parse (<anonymous>)
+    TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs:138:24)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: library-only scorer fixtures do not require the CLI publication helper
+ok 8 - library-only scorer fixtures do not require the CLI publication helper
+  ---
+  duration_ms: 76.930125
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 2
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 750.875208

@@ -1,0 +1,43 @@
+diff --git a/lib/material-money-v4.ts b/lib/material-money-v4.ts
+index 29c20d0..66421da 100644
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -213,6 +213,14 @@ function hasCompleteMoneyUnit(token: string): boolean {
+   return /[元圆圓角分](?:整|正)?$/u.test(token);
+ }
+ 
++// A named currency cannot turn the year in a period/table label into yuan.
++// The whole anchored token must be unitless; real 2026元 or 2026万元 remain
++// monetary. Source layout uses the same edge when a quote clips before 年.
++function isCalendarYearContinuation(token: string, after: string): boolean {
++  const number = monetaryDetectionView(token).trim().replace(new RegExp(`^(?:${RMB_NAME}|[¥￥])\\s*`, 'iu'), '');
++  return /^[0-9]{4}$/u.test(number) && /^\s*年/u.test(monetaryDetectionView(after));
++}
++
+ /** Count only RMB currency markers attached to this monetary token's edges.
+  * One label is valid; a second cannot be discarded by a clipped value or
+  * quote. Detection folding joins layout/Cf only, never intervening prose. */
+@@ -285,6 +293,7 @@ function normalizeMoneyValueWithSubject(rawValue: string, subject: string | null
+   if (matches.length === 1) {
+     const match = matches[0], text = match[0].trimStart(), index = match.index + match[0].length - text.length;
+     const before = rawValue.slice(0, index).trimEnd(), after = rawValue.slice(index + text.length);
++    if (isCalendarYearContinuation(text, after)) return result(rawValue, 'not_money', '币种标签后的四位数字是年份，未补人民币单位或转成金额。');
+     if (moneyTokenHasNonCurrencyYuan(text, after)) return result(rawValue, 'unsupported', '匹配到的元或圆属于完整普通词语，不能截成金额单位。');
+     if (moneyTokenHasNonCurrencySubunit(text, after)) return result(rawValue, 'unsupported', '匹配到的角或分属于时间、计量或普通词语，未作为分币金额。');
+     const suffixRate = attachedSuffixRate(after);
+@@ -423,6 +432,7 @@ export function hasUnsafeWholeMoneyContinuation(candidate: Pick<RawCandidateV3,
+   if (!normalized.span) return false;
+   const token = Array.from(normalized.rawValue).slice(normalized.span.start, normalized.span.end).join('');
+   const tokenView = monetaryDetectionView(token), detection = monetaryDetectionView(after);
++  if (isCalendarYearContinuation(token, after)) return true;
+   // Source review supplies this complete layout edge even when value and
+   // quote stop before a repeated suffix in the next line or adjacent block.
+   if (hasRepeatedRmbCurrency('', token, after)) return true;
+@@ -532,6 +542,7 @@ export function normalizeCandidateValueV4(candidate: RawCandidateV3): Normalized
+  */
+ export function classifyMonetaryExpression(value: string): MonetaryExpressionClassification {
+   const normalization = normalizeMoneyValueV4(value);
++  if (normalization.status === 'not_money') return { kind: 'not_monetary', normalization };
+   const detection = monetaryDetectionView(value).replace(/\s/gu, '');
+   // Keep empty-label matching bounded to a complete wage or amount name.
+   // This detection copy never removes a subject, numeral or unknown suffix.

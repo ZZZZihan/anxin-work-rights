@@ -1,0 +1,4774 @@
+{
+  "planned_documents": 12,
+  "expected_facts": 43,
+  "returned": 12,
+  "completed": 12,
+  "native_json": 11,
+  "protocol_valid": 12,
+  "exact_documents": 2,
+  "raw_candidates": 51,
+  "accepted_candidates": 51,
+  "rejected_candidates": 0,
+  "review_issues": 54,
+  "metrics": {
+    "raw_basic": {
+      "tp": 34,
+      "fp": 17,
+      "fn": 9,
+      "precision": 0.6666666666666666,
+      "recall": 0.7906976744186046,
+      "f1": 0.723404255319149
+    },
+    "accepted_basic": {
+      "tp": 34,
+      "fp": 17,
+      "fn": 9,
+      "precision": 0.6666666666666666,
+      "recall": 0.7906976744186046,
+      "f1": 0.723404255319149
+    },
+    "raw_relational": {
+      "tp": 27,
+      "fp": 24,
+      "fn": 16,
+      "precision": 0.5294117647058824,
+      "recall": 0.627906976744186,
+      "f1": 0.574468085106383
+    },
+    "accepted_relational": {
+      "tp": 27,
+      "fp": 24,
+      "fn": 16,
+      "precision": 0.5294117647058824,
+      "recall": 0.627906976744186,
+      "f1": 0.574468085106383
+    },
+    "raw_strict": {
+      "tp": 25,
+      "fp": 26,
+      "fn": 18,
+      "precision": 0.49019607843137253,
+      "recall": 0.5813953488372093,
+      "f1": 0.5319148936170213
+    },
+    "accepted_strict": {
+      "tp": 25,
+      "fp": 26,
+      "fn": 18,
+      "precision": 0.49019607843137253,
+      "recall": 0.5813953488372093,
+      "f1": 0.5319148936170213
+    }
+  },
+  "cases": [
+    {
+      "id": "mf7-spc-wenzhou-62",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 4,
+      "accepted_count": 4,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 1,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 2,
+          "code": "partial_paid_total",
+          "message": "候选绑定的源文含单笔、部分或排除工资组成的表述，不能因裁剪引文就提示为本期完整总额，请核对金额覆盖范围。"
+        },
+        {
+          "index": 2,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 3,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "no_signal",
+        "message": "启发式检查未发现额外覆盖线索；这不证明提取完整，也不构成事实或计算授权。",
+        "rawCount": 4,
+        "acceptedCount": 4,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "date",
+            "blockId": "b03",
+            "text": "2025年4月8日",
+            "start": 0,
+            "end": 9,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v7-spc-wenzhou-62:1:0",
+          "rawValue": "139万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        },
+        {
+          "id": "v7-spc-wenzhou-62:1:1",
+          "rawValue": "150万元执行款",
+          "status": "exact",
+          "amount": "1500000.00",
+          "matchedText": "150万元",
+          "span": {
+            "start": 0,
+            "end": 5
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        },
+        {
+          "id": "v7-spc-wenzhou-62:1:2",
+          "rawValue": "139万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 3,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 2,
+            "event": "wage-paid-total"
+          },
+          {
+            "expected": 2,
+            "actual": 3,
+            "event": "wage-disbursement-date"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "accepted_basic": {
+        "tp": 3,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 2,
+            "event": "wage-paid-total"
+          },
+          {
+            "expected": 2,
+            "actual": 3,
+            "event": "wage-disbursement-date"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "raw_relational": {
+        "tp": 3,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 2,
+            "event": "wage-paid-total"
+          },
+          {
+            "expected": 2,
+            "actual": 3,
+            "event": "wage-disbursement-date"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "accepted_relational": {
+        "tp": 3,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 2,
+            "event": "wage-paid-total"
+          },
+          {
+            "expected": 2,
+            "actual": 3,
+            "event": "wage-disbursement-date"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "raw_strict": {
+        "tp": 3,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 2,
+            "event": "wage-paid-total"
+          },
+          {
+            "expected": 2,
+            "actual": 3,
+            "event": "wage-disbursement-date"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "accepted_strict": {
+        "tp": 3,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 2,
+            "event": "wage-paid-total"
+          },
+          {
+            "expected": 2,
+            "actual": 3,
+            "event": "wage-disbursement-date"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "wage-arrears",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 44,
+                "end": 50
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 123,
+                "end": 131
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-paid-total",
+            "positions": [
+              {
+                "blockId": "b03",
+                "start": 31,
+                "end": 37
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-disbursement-date",
+            "positions": [
+              {
+                "blockId": "b03",
+                "start": 0,
+                "end": 9
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "wage-arrears",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 44,
+                "end": 50
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 123,
+                "end": 131
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-paid-total",
+            "positions": [
+              {
+                "blockId": "b03",
+                "start": 31,
+                "end": 37
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-disbursement-date",
+            "positions": [
+              {
+                "blockId": "b03",
+                "start": 0,
+                "end": 9
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 1,
+          "kind": "money",
+          "amount": "1500000.00",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 2,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "partial_paid_total",
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 3,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-spc-suqian-petfood",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 2,
+      "accepted_count": 2,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 1,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "no_signal",
+        "message": "启发式检查未发现额外覆盖线索；这不证明提取完整，也不构成事实或计算授权。",
+        "rawCount": 2,
+        "acceptedCount": 2,
+        "rejectedCount": 0,
+        "signals": []
+      },
+      "normalization": [
+        {
+          "id": "v7-spc-suqian-petfood:1:0",
+          "rawValue": "38万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        },
+        {
+          "id": "v7-spc-suqian-petfood:1:1",
+          "rawValue": "8万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "inventory-sale"
+          }
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "accepted_basic": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "inventory-sale"
+          }
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "raw_relational": {
+        "tp": 1,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "accepted_relational": {
+        "tp": 1,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "raw_strict": {
+        "tp": 1,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "accepted_strict": {
+        "tp": 1,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "wage-arrears",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 69,
+                "end": 74
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "inventory-sale",
+            "positions": [
+              {
+                "blockId": "b03",
+                "start": 42,
+                "end": 46
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "wage-arrears",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 69,
+                "end": 74
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "inventory-sale",
+            "positions": [
+              {
+                "blockId": "b03",
+                "start": 42,
+                "end": 46
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 1,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [
+        {
+          "actual": 1,
+          "expected": 1,
+          "event": "inventory-sale",
+          "mismatches": [
+            "subject",
+            "scope"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-bjkfq-2025-2222",
+      "completed": true,
+      "native_json": false,
+      "format": "outer_fence",
+      "protocol": true,
+      "raw_count": 5,
+      "accepted_count": 5,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 1,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 2,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 3,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 4,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "no_signal",
+        "message": "启发式检查未发现额外覆盖线索；这不证明提取完整，也不构成事实或计算授权。",
+        "rawCount": 5,
+        "acceptedCount": 5,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "18619.2元",
+            "start": 76,
+            "end": 84,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2021年3月8日",
+            "start": 4,
+            "end": 13,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2021年3月8日",
+            "start": 35,
+            "end": 44,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2024年12月2日",
+            "start": 45,
+            "end": 55,
+            "covered": true
+          },
+          {
+            "kind": "money",
+            "blockId": "b02",
+            "text": "八百零四元",
+            "start": 55,
+            "end": 60,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2023年2月7日",
+            "start": 24,
+            "end": 33,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2024年12月2日",
+            "start": 34,
+            "end": 44,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v7-bjkfq-2025-2222:1:0",
+          "rawValue": "18619.2元",
+          "status": "exact",
+          "amount": "18619.20",
+          "matchedText": "18619.2元",
+          "span": {
+            "start": 0,
+            "end": 8
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        },
+        {
+          "id": "v7-bjkfq-2025-2222:1:3",
+          "rawValue": "八百零四元六角整",
+          "status": "exact",
+          "amount": "804.60",
+          "matchedText": "八百零四元六角整",
+          "span": {
+            "start": 0,
+            "end": 8
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 2,
+        "fp": 3,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 4,
+            "actual": 3,
+            "event": "awarded-leave-wage"
+          },
+          {
+            "expected": 3,
+            "actual": 4,
+            "event": "awarded-leave-wage-period"
+          }
+        ],
+        "missing": [
+          0,
+          1,
+          2
+        ],
+        "extra": [
+          0,
+          1,
+          2
+        ]
+      },
+      "accepted_basic": {
+        "tp": 2,
+        "fp": 3,
+        "fn": 3,
+        "pairs": [
+          {
+            "expected": 4,
+            "actual": 3,
+            "event": "awarded-leave-wage"
+          },
+          {
+            "expected": 3,
+            "actual": 4,
+            "event": "awarded-leave-wage-period"
+          }
+        ],
+        "missing": [
+          0,
+          1,
+          2
+        ],
+        "extra": [
+          0,
+          1,
+          2
+        ]
+      },
+      "raw_relational": {
+        "tp": 1,
+        "fp": 4,
+        "fn": 4,
+        "pairs": [
+          {
+            "expected": 3,
+            "actual": 4,
+            "event": "awarded-leave-wage-period"
+          }
+        ],
+        "missing": [
+          0,
+          1,
+          2,
+          4
+        ],
+        "extra": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "accepted_relational": {
+        "tp": 1,
+        "fp": 4,
+        "fn": 4,
+        "pairs": [
+          {
+            "expected": 3,
+            "actual": 4,
+            "event": "awarded-leave-wage-period"
+          }
+        ],
+        "missing": [
+          0,
+          1,
+          2,
+          4
+        ],
+        "extra": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "raw_strict": {
+        "tp": 1,
+        "fp": 4,
+        "fn": 4,
+        "pairs": [
+          {
+            "expected": 3,
+            "actual": 4,
+            "event": "awarded-leave-wage-period"
+          }
+        ],
+        "missing": [
+          0,
+          1,
+          2,
+          4
+        ],
+        "extra": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "accepted_strict": {
+        "tp": 1,
+        "fp": 4,
+        "fn": 4,
+        "pairs": [
+          {
+            "expected": 3,
+            "actual": 4,
+            "event": "awarded-leave-wage-period"
+          }
+        ],
+        "missing": [
+          0,
+          1,
+          2,
+          4
+        ],
+        "extra": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "claimed-leave-wage",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 76,
+                "end": 84
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "prior-service-cutoff",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 4,
+                "end": 14
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "claimed-leave-wage-period",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 35,
+                "end": 55
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "awarded-leave-wage",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 55,
+                "end": 63
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "awarded-leave-wage-period",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 24,
+                "end": 44
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "claimed-leave-wage",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 76,
+                "end": 84
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "prior-service-cutoff",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 4,
+                "end": 14
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "claimed-leave-wage-period",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 35,
+                "end": 55
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "awarded-leave-wage",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 55,
+                "end": 63
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "awarded-leave-wage-period",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 24,
+                "end": 44
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "money",
+          "amount": "18619.20",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 1,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 2,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 3,
+          "kind": "money",
+          "amount": "804.60",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 4,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [
+        {
+          "actual": 3,
+          "expected": 4,
+          "event": "awarded-leave-wage",
+          "mismatches": [
+            "period"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-spc-anyuan-passionfruit",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 2,
+      "accepted_count": 2,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 1,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "possible_missing",
+        "message": "原文仍有可能未覆盖的金额或日期线索，包括金额期间可能缺少独立日期候选。此为启发式提示，请人工核对。",
+        "rawCount": 2,
+        "acceptedCount": 2,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2022年4月",
+            "start": 30,
+            "end": 37,
+            "covered": false
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v7-spc-anyuan-passionfruit:1:0",
+          "rawValue": "13万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        },
+        {
+          "id": "v7-spc-anyuan-passionfruit:1:1",
+          "rawValue": "5万元",
+          "status": "exact",
+          "amount": "50000.00",
+          "matchedText": "5万元",
+          "span": {
+            "start": 0,
+            "end": 3
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-award"
+          },
+          {
+            "expected": 2,
+            "actual": 1,
+            "event": "partial-payment"
+          }
+        ],
+        "missing": [
+          0
+        ],
+        "extra": []
+      },
+      "accepted_basic": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-award"
+          },
+          {
+            "expected": 2,
+            "actual": 1,
+            "event": "partial-payment"
+          }
+        ],
+        "missing": [
+          0
+        ],
+        "extra": []
+      },
+      "raw_relational": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-award"
+          },
+          {
+            "expected": 2,
+            "actual": 1,
+            "event": "partial-payment"
+          }
+        ],
+        "missing": [
+          0
+        ],
+        "extra": []
+      },
+      "accepted_relational": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-award"
+          },
+          {
+            "expected": 2,
+            "actual": 1,
+            "event": "partial-payment"
+          }
+        ],
+        "missing": [
+          0
+        ],
+        "extra": []
+      },
+      "raw_strict": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-award"
+          },
+          {
+            "expected": 2,
+            "actual": 1,
+            "event": "partial-payment"
+          }
+        ],
+        "missing": [
+          0
+        ],
+        "extra": []
+      },
+      "accepted_strict": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-award"
+          },
+          {
+            "expected": 2,
+            "actual": 1,
+            "event": "partial-payment"
+          }
+        ],
+        "missing": [
+          0
+        ],
+        "extra": []
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "wage-award",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 76,
+                "end": 81
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "partial-payment",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 222,
+                "end": 225
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "wage-award",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 76,
+                "end": 81
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "partial-payment",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 222,
+                "end": 225
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 1,
+          "kind": "money",
+          "amount": "50000.00",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-spc-jilin-eleven",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 2,
+      "accepted_count": 2,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 1,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "no_signal",
+        "message": "启发式检查未发现额外覆盖线索；这不证明提取完整，也不构成事实或计算授权。",
+        "rawCount": 2,
+        "acceptedCount": 2,
+        "rejectedCount": 0,
+        "signals": []
+      },
+      "normalization": [
+        {
+          "id": "v7-spc-jilin-eleven:1:0",
+          "rawValue": "8万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        },
+        {
+          "id": "v7-spc-jilin-eleven:1:1",
+          "rawValue": "8万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "court-deposit-including-execution-fee"
+          }
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "accepted_basic": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "court-deposit-including-execution-fee"
+          }
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "raw_relational": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 2,
+        "pairs": [],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": [
+          0,
+          1
+        ]
+      },
+      "accepted_relational": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 2,
+        "pairs": [],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": [
+          0,
+          1
+        ]
+      },
+      "raw_strict": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 2,
+        "pairs": [],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": [
+          0,
+          1
+        ]
+      },
+      "accepted_strict": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 2,
+        "pairs": [],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": [
+          0,
+          1
+        ]
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "wage-arrears",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 63,
+                "end": 67
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "court-deposit-including-execution-fee",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 54,
+                "end": 58
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "wage-arrears",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 63,
+                "end": 67
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "court-deposit-including-execution-fee",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 54,
+                "end": 58
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 1,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [
+        {
+          "actual": 0,
+          "expected": 0,
+          "event": "wage-arrears",
+          "mismatches": [
+            "subject",
+            "assertion"
+          ]
+        },
+        {
+          "actual": 1,
+          "expected": 1,
+          "event": "court-deposit-including-execution-fee",
+          "mismatches": [
+            "subject",
+            "scope"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-spc-kaiping-board",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 3,
+      "accepted_count": 3,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 1,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 2,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "no_signal",
+        "message": "启发式检查未发现额外覆盖线索；这不证明提取完整，也不构成事实或计算授权。",
+        "rawCount": 3,
+        "acceptedCount": 3,
+        "rejectedCount": 0,
+        "signals": []
+      },
+      "normalization": [
+        {
+          "id": "v7-spc-kaiping-board:1:0",
+          "rawValue": "1.2亿元",
+          "status": "exact",
+          "amount": "120000000.00",
+          "matchedText": "1.2亿元",
+          "span": {
+            "start": 0,
+            "end": 5
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        },
+        {
+          "id": "v7-spc-kaiping-board:1:1",
+          "rawValue": "87万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        },
+        {
+          "id": "v7-spc-kaiping-board:1:2",
+          "rawValue": "87万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 2,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "company-total-debts"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "wage-paid"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "accepted_basic": {
+        "tp": 2,
+        "fp": 1,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "company-total-debts"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "wage-paid"
+          }
+        ],
+        "missing": [
+          1
+        ],
+        "extra": [
+          1
+        ]
+      },
+      "raw_relational": {
+        "tp": 1,
+        "fp": 2,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "company-total-debts"
+          }
+        ],
+        "missing": [
+          1,
+          2
+        ],
+        "extra": [
+          1,
+          2
+        ]
+      },
+      "accepted_relational": {
+        "tp": 1,
+        "fp": 2,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "company-total-debts"
+          }
+        ],
+        "missing": [
+          1,
+          2
+        ],
+        "extra": [
+          1,
+          2
+        ]
+      },
+      "raw_strict": {
+        "tp": 1,
+        "fp": 2,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "company-total-debts"
+          }
+        ],
+        "missing": [
+          1,
+          2
+        ],
+        "extra": [
+          1,
+          2
+        ]
+      },
+      "accepted_strict": {
+        "tp": 1,
+        "fp": 2,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "company-total-debts"
+          }
+        ],
+        "missing": [
+          1,
+          2
+        ],
+        "extra": [
+          1,
+          2
+        ]
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "company-total-debts",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 22,
+                "end": 27
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-award",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 135,
+                "end": 140
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-paid",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 341,
+                "end": 346
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "company-total-debts",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 22,
+                "end": 27
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-award",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 135,
+                "end": 140
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-paid",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 341,
+                "end": 346
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "money",
+          "amount": "120000000.00",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 1,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 2,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [
+        {
+          "actual": 2,
+          "expected": 2,
+          "event": "wage-paid",
+          "mismatches": [
+            "subject"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-spc-jinzhai-home-textile",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 0,
+      "accepted_count": 0,
+      "rejected": [],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "empty",
+        "message": "本次返回空候选。启发式覆盖检查不能据此认定材料没有工资事实，请核对原文；未自动补取或确认。",
+        "rawCount": 0,
+        "acceptedCount": 0,
+        "rejectedCount": 0,
+        "signals": []
+      },
+      "normalization": [],
+      "raw_basic": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "accepted_basic": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "raw_relational": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "accepted_relational": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "raw_strict": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "accepted_strict": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "event_alignment": {
+        "raw": [],
+        "accepted": []
+      },
+      "production_defense": [],
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": true
+    },
+    {
+      "id": "mf7-spp-nanchang-fan",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 8,
+      "accepted_count": 8,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "partial_paid_total",
+          "message": "候选绑定的源文含单笔、部分或排除工资组成的表述，不能因裁剪引文就提示为本期完整总额，请核对金额覆盖范围。"
+        },
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 1,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 2,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 3,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 4,
+          "code": "scope_text_mismatch",
+          "message": "候选绑定的源文局部事件含班组或多人表述，与“个人”标注不一致；模型裁剪引文不能排除该主体线索，请人工核对。"
+        },
+        {
+          "index": 4,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 5,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 6,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 7,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "possible_missing",
+        "message": "原文仍有可能未覆盖的金额或日期线索，包括金额期间可能缺少独立日期候选。此为启发式提示，请人工核对。",
+        "rawCount": 8,
+        "acceptedCount": 8,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "人民币100万元",
+            "start": 249,
+            "end": 257,
+            "covered": false
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2020年1月",
+            "start": 160,
+            "end": 167,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v7-spp-nanchang-fan:1:0",
+          "rawValue": "1967万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        },
+        {
+          "id": "v7-spp-nanchang-fan:1:1",
+          "rawValue": "100万元",
+          "status": "exact",
+          "amount": "1000000.00",
+          "matchedText": "100万元",
+          "span": {
+            "start": 0,
+            "end": 5
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        },
+        {
+          "id": "v7-spp-nanchang-fan:1:2",
+          "rawValue": "623万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        },
+        {
+          "id": "v7-spp-nanchang-fan:1:3",
+          "rawValue": "441万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 3,
+        "fp": 5,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "bill-for-proposed-wages"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "construction-company-advance"
+          }
+        ],
+        "missing": [
+          0
+        ],
+        "extra": [
+          0,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "accepted_basic": {
+        "tp": 3,
+        "fp": 5,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "bill-for-proposed-wages"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "construction-company-advance"
+          }
+        ],
+        "missing": [
+          0
+        ],
+        "extra": [
+          0,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "raw_relational": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "construction-company-advance"
+          }
+        ],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": [
+          0,
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "accepted_relational": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "construction-company-advance"
+          }
+        ],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": [
+          0,
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "raw_strict": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "construction-company-advance"
+          }
+        ],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": [
+          0,
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "accepted_strict": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "construction-company-advance"
+          }
+        ],
+        "missing": [
+          0,
+          1
+        ],
+        "extra": [
+          0,
+          1,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "labor-project-funds",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 135,
+                "end": 142
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "bill-for-proposed-wages",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 252,
+                "end": 257
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-arrears",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 420,
+                "end": 426
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "construction-company-advance",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 34,
+                "end": 40
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 0,
+                "end": 7
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 70,
+                "end": 85
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 160,
+                "end": 167
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 293,
+                "end": 304
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "labor-project-funds",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 135,
+                "end": 142
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "bill-for-proposed-wages",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 252,
+                "end": 257
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-arrears",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 420,
+                "end": 426
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "construction-company-advance",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 34,
+                "end": 40
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 0,
+                "end": 7
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 70,
+                "end": 85
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 160,
+                "end": 167
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 293,
+                "end": 304
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "partial_paid_total",
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 1,
+          "kind": "money",
+          "amount": "1000000.00",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 2,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 3,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 4,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "scope_text_mismatch",
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 5,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 6,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 7,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [
+        {
+          "actual": 1,
+          "expected": 1,
+          "event": "bill-for-proposed-wages",
+          "mismatches": [
+            "subject",
+            "scope"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-spp-ezhou-lan",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 9,
+      "accepted_count": 9,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 1,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 2,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 3,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 4,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 5,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 6,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 7,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 8,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "no_signal",
+        "message": "启发式检查未发现额外覆盖线索；这不证明提取完整，也不构成事实或计算授权。",
+        "rawCount": 9,
+        "acceptedCount": 9,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2021年12月",
+            "start": 71,
+            "end": 79,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2021年10月14日",
+            "start": 0,
+            "end": 11,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v7-spp-ezhou-lan:1:0",
+          "rawValue": "153万余元",
+          "status": "approximate",
+          "amount": null,
+          "matchedText": null,
+          "span": null,
+          "reason": "金额是概数或界限，未转成精确金额。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 2,
+        "fp": 7,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 2,
+            "actual": 5,
+            "event": "ordered-payment-deadline"
+          }
+        ],
+        "missing": [
+          0
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7,
+          8
+        ]
+      },
+      "accepted_basic": {
+        "tp": 2,
+        "fp": 7,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-arrears"
+          },
+          {
+            "expected": 2,
+            "actual": 5,
+            "event": "ordered-payment-deadline"
+          }
+        ],
+        "missing": [
+          0
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7,
+          8
+        ]
+      },
+      "raw_relational": {
+        "tp": 1,
+        "fp": 8,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-arrears"
+          }
+        ],
+        "missing": [
+          0,
+          2
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      },
+      "accepted_relational": {
+        "tp": 1,
+        "fp": 8,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-arrears"
+          }
+        ],
+        "missing": [
+          0,
+          2
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      },
+      "raw_strict": {
+        "tp": 1,
+        "fp": 8,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-arrears"
+          }
+        ],
+        "missing": [
+          0,
+          2
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      },
+      "accepted_strict": {
+        "tp": 1,
+        "fp": 8,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 1,
+            "actual": 0,
+            "event": "wage-arrears"
+          }
+        ],
+        "missing": [
+          0,
+          2
+        ],
+        "extra": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "wage-arrears",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 101,
+                "end": 107
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "arrears-snapshot",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 71,
+                "end": 79
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 0,
+                "end": 11
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 56,
+                "end": 61
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 117,
+                "end": 123
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "ordered-payment-deadline",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 153,
+                "end": 161
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 196,
+                "end": 203
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 204,
+                "end": 210
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 222,
+                "end": 229
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "wage-arrears",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 101,
+                "end": 107
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "arrears-snapshot",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 71,
+                "end": 79
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 0,
+                "end": 11
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 56,
+                "end": 61
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 117,
+                "end": 123
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "ordered-payment-deadline",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 153,
+                "end": 161
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 196,
+                "end": 203
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 204,
+                "end": 210
+              }
+            ]
+          },
+          {
+            "status": "unregistered_position",
+            "event": null,
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 222,
+                "end": 229
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "money",
+          "amount": null,
+          "normalization": "approximate",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 1,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 2,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 3,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 4,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 5,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 6,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 7,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 8,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [
+        {
+          "actual": 5,
+          "expected": 2,
+          "event": "ordered-payment-deadline",
+          "mismatches": [
+            "subject"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-bjchy-2024-5103",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 7,
+      "accepted_count": 7,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 1,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 2,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 3,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 4,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 5,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 6,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "no_signal",
+        "message": "启发式检查未发现额外覆盖线索；这不证明提取完整，也不构成事实或计算授权。",
+        "rawCount": 7,
+        "acceptedCount": 7,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "16000元",
+            "start": 46,
+            "end": 52,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2022年4月26日",
+            "start": 14,
+            "end": 24,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "每月15日",
+            "start": 53,
+            "end": 58,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2023年9月",
+            "start": 73,
+            "end": 80,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2023年10月9日",
+            "start": 81,
+            "end": 91,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2023年10月9日",
+            "start": 117,
+            "end": 127,
+            "covered": true
+          },
+          {
+            "kind": "money",
+            "blockId": "b02",
+            "text": "二万零四百一十三元",
+            "start": 43,
+            "end": 52,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v7-bjchy-2024-5103:1:1",
+          "rawValue": "16000元",
+          "status": "exact",
+          "amount": "16000.00",
+          "matchedText": "16000元",
+          "span": {
+            "start": 0,
+            "end": 6
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        },
+        {
+          "id": "v7-bjchy-2024-5103:1:6",
+          "rawValue": "二万零四百一十三元七角九分",
+          "status": "exact",
+          "amount": "20413.79",
+          "matchedText": "二万零四百一十三元七角九分",
+          "span": {
+            "start": 0,
+            "end": 13
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "recurring-payment-day"
+          },
+          {
+            "expected": 4,
+            "actual": 3,
+            "event": "unpaid-wage-period"
+          },
+          {
+            "expected": 5,
+            "actual": 4,
+            "event": "employment-end"
+          },
+          {
+            "expected": 6,
+            "actual": 5,
+            "event": "awarded-wage-period"
+          },
+          {
+            "expected": 7,
+            "actual": 6,
+            "event": "wage-award"
+          }
+        ],
+        "missing": [
+          3
+        ],
+        "extra": []
+      },
+      "accepted_basic": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "recurring-payment-day"
+          },
+          {
+            "expected": 4,
+            "actual": 3,
+            "event": "unpaid-wage-period"
+          },
+          {
+            "expected": 5,
+            "actual": 4,
+            "event": "employment-end"
+          },
+          {
+            "expected": 6,
+            "actual": 5,
+            "event": "awarded-wage-period"
+          },
+          {
+            "expected": 7,
+            "actual": 6,
+            "event": "wage-award"
+          }
+        ],
+        "missing": [
+          3
+        ],
+        "extra": []
+      },
+      "raw_relational": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "recurring-payment-day"
+          },
+          {
+            "expected": 4,
+            "actual": 3,
+            "event": "unpaid-wage-period"
+          },
+          {
+            "expected": 5,
+            "actual": 4,
+            "event": "employment-end"
+          },
+          {
+            "expected": 6,
+            "actual": 5,
+            "event": "awarded-wage-period"
+          },
+          {
+            "expected": 7,
+            "actual": 6,
+            "event": "wage-award"
+          }
+        ],
+        "missing": [
+          3
+        ],
+        "extra": []
+      },
+      "accepted_relational": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "recurring-payment-day"
+          },
+          {
+            "expected": 4,
+            "actual": 3,
+            "event": "unpaid-wage-period"
+          },
+          {
+            "expected": 5,
+            "actual": 4,
+            "event": "employment-end"
+          },
+          {
+            "expected": 6,
+            "actual": 5,
+            "event": "awarded-wage-period"
+          },
+          {
+            "expected": 7,
+            "actual": 6,
+            "event": "wage-award"
+          }
+        ],
+        "missing": [
+          3
+        ],
+        "extra": []
+      },
+      "raw_strict": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "recurring-payment-day"
+          },
+          {
+            "expected": 4,
+            "actual": 3,
+            "event": "unpaid-wage-period"
+          },
+          {
+            "expected": 5,
+            "actual": 4,
+            "event": "employment-end"
+          },
+          {
+            "expected": 6,
+            "actual": 5,
+            "event": "awarded-wage-period"
+          },
+          {
+            "expected": 7,
+            "actual": 6,
+            "event": "wage-award"
+          }
+        ],
+        "missing": [
+          3
+        ],
+        "extra": []
+      },
+      "accepted_strict": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 1,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "recurring-payment-day"
+          },
+          {
+            "expected": 4,
+            "actual": 3,
+            "event": "unpaid-wage-period"
+          },
+          {
+            "expected": 5,
+            "actual": 4,
+            "event": "employment-end"
+          },
+          {
+            "expected": 6,
+            "actual": 5,
+            "event": "awarded-wage-period"
+          },
+          {
+            "expected": 7,
+            "actual": 6,
+            "event": "wage-award"
+          }
+        ],
+        "missing": [
+          3
+        ],
+        "extra": []
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "employment-start",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 14,
+                "end": 24
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "monthly-rate",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 46,
+                "end": 52
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "recurring-payment-day",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 53,
+                "end": 58
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "unpaid-wage-period",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 73,
+                "end": 91
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "employment-end",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 117,
+                "end": 127
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "awarded-wage-period",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 22,
+                "end": 41
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-award",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 43,
+                "end": 56
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "employment-start",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 14,
+                "end": 24
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "monthly-rate",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 46,
+                "end": 52
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "recurring-payment-day",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 53,
+                "end": 58
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "unpaid-wage-period",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 73,
+                "end": 91
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "employment-end",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 117,
+                "end": 127
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "awarded-wage-period",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 22,
+                "end": 41
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-award",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 43,
+                "end": 56
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 1,
+          "kind": "money",
+          "amount": "16000.00",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 2,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 3,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 4,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 5,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 6,
+          "kind": "money",
+          "amount": "20413.79",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-bjchy-2025-10440",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 9,
+      "accepted_count": 9,
+      "rejected": [],
+      "review_issues": [
+        {
+          "index": 0,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 1,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 2,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 3,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 4,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 5,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 6,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 7,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        },
+        {
+          "index": 8,
+          "code": "source_relation_unresolved",
+          "message": "源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。"
+        }
+      ],
+      "coverage": {
+        "heuristic": true,
+        "status": "no_signal",
+        "message": "启发式检查未发现额外覆盖线索；这不证明提取完整，也不构成事实或计算授权。",
+        "rawCount": 9,
+        "acceptedCount": 9,
+        "rejectedCount": 0,
+        "signals": [
+          {
+            "kind": "money",
+            "blockId": "b01",
+            "text": "12000元",
+            "start": 33,
+            "end": 39,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2024年8月16日",
+            "start": 14,
+            "end": 24,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2024年10月1日",
+            "start": 41,
+            "end": 51,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2024年12月4日",
+            "start": 52,
+            "end": 62,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b01",
+            "text": "2024年12月4日",
+            "start": 81,
+            "end": 91,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2024年8月16日",
+            "start": 24,
+            "end": 34,
+            "covered": true
+          },
+          {
+            "kind": "date",
+            "blockId": "b02",
+            "text": "2024年12月4日",
+            "start": 70,
+            "end": 80,
+            "covered": true
+          },
+          {
+            "kind": "money",
+            "blockId": "b03",
+            "text": "一万二千六百零二元",
+            "start": 45,
+            "end": 54,
+            "covered": true
+          }
+        ]
+      },
+      "normalization": [
+        {
+          "id": "v7-bjchy-2025-10440:1:1",
+          "rawValue": "12000元",
+          "status": "exact",
+          "amount": "12000.00",
+          "matchedText": "12000元",
+          "span": {
+            "start": 0,
+            "end": 6
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        },
+        {
+          "id": "v7-bjchy-2025-10440:1:7",
+          "rawValue": "一万二千六百零二元",
+          "status": "exact",
+          "amount": "12602.00",
+          "matchedText": "一万二千六百零二元",
+          "span": {
+            "start": 0,
+            "end": 9
+          },
+          "reason": "唯一完整人民币金额已精确解析；原文和位置保持不变。"
+        }
+      ],
+      "raw_basic": {
+        "tp": 9,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start-claim"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 4,
+            "actual": 4,
+            "event": "employment-end-claim"
+          },
+          {
+            "expected": 5,
+            "actual": 5,
+            "event": "exit-form-start"
+          },
+          {
+            "expected": 6,
+            "actual": 6,
+            "event": "exit-form-last-work"
+          },
+          {
+            "expected": 8,
+            "actual": 7,
+            "event": "wage-award"
+          },
+          {
+            "expected": 7,
+            "actual": 8,
+            "event": "awarded-wage-period"
+          }
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "accepted_basic": {
+        "tp": 9,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start-claim"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 4,
+            "actual": 4,
+            "event": "employment-end-claim"
+          },
+          {
+            "expected": 5,
+            "actual": 5,
+            "event": "exit-form-start"
+          },
+          {
+            "expected": 6,
+            "actual": 6,
+            "event": "exit-form-last-work"
+          },
+          {
+            "expected": 8,
+            "actual": 7,
+            "event": "wage-award"
+          },
+          {
+            "expected": 7,
+            "actual": 8,
+            "event": "awarded-wage-period"
+          }
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "raw_relational": {
+        "tp": 9,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start-claim"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 4,
+            "actual": 4,
+            "event": "employment-end-claim"
+          },
+          {
+            "expected": 5,
+            "actual": 5,
+            "event": "exit-form-start"
+          },
+          {
+            "expected": 6,
+            "actual": 6,
+            "event": "exit-form-last-work"
+          },
+          {
+            "expected": 8,
+            "actual": 7,
+            "event": "wage-award"
+          },
+          {
+            "expected": 7,
+            "actual": 8,
+            "event": "awarded-wage-period"
+          }
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "accepted_relational": {
+        "tp": 9,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start-claim"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 4,
+            "actual": 4,
+            "event": "employment-end-claim"
+          },
+          {
+            "expected": 5,
+            "actual": 5,
+            "event": "exit-form-start"
+          },
+          {
+            "expected": 6,
+            "actual": 6,
+            "event": "exit-form-last-work"
+          },
+          {
+            "expected": 8,
+            "actual": 7,
+            "event": "wage-award"
+          },
+          {
+            "expected": 7,
+            "actual": 8,
+            "event": "awarded-wage-period"
+          }
+        ],
+        "missing": [],
+        "extra": []
+      },
+      "raw_strict": {
+        "tp": 7,
+        "fp": 2,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start-claim"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 4,
+            "actual": 4,
+            "event": "employment-end-claim"
+          },
+          {
+            "expected": 8,
+            "actual": 7,
+            "event": "wage-award"
+          },
+          {
+            "expected": 7,
+            "actual": 8,
+            "event": "awarded-wage-period"
+          }
+        ],
+        "missing": [
+          5,
+          6
+        ],
+        "extra": [
+          5,
+          6
+        ]
+      },
+      "accepted_strict": {
+        "tp": 7,
+        "fp": 2,
+        "fn": 2,
+        "pairs": [
+          {
+            "expected": 0,
+            "actual": 0,
+            "event": "employment-start-claim"
+          },
+          {
+            "expected": 1,
+            "actual": 1,
+            "event": "monthly-rate"
+          },
+          {
+            "expected": 2,
+            "actual": 2,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 3,
+            "actual": 3,
+            "event": "actual-unpaid-work-period"
+          },
+          {
+            "expected": 4,
+            "actual": 4,
+            "event": "employment-end-claim"
+          },
+          {
+            "expected": 8,
+            "actual": 7,
+            "event": "wage-award"
+          },
+          {
+            "expected": 7,
+            "actual": 8,
+            "event": "awarded-wage-period"
+          }
+        ],
+        "missing": [
+          5,
+          6
+        ],
+        "extra": [
+          5,
+          6
+        ]
+      },
+      "event_alignment": {
+        "raw": [
+          {
+            "status": "aligned",
+            "event": "employment-start-claim",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 14,
+                "end": 24
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "monthly-rate",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 33,
+                "end": 39
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "actual-unpaid-work-period",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 41,
+                "end": 62
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "actual-unpaid-work-period",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 41,
+                "end": 62
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "employment-end-claim",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 81,
+                "end": 91
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "exit-form-start",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 24,
+                "end": 34
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "exit-form-last-work",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 70,
+                "end": 80
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-award",
+            "positions": [
+              {
+                "blockId": "b03",
+                "start": 45,
+                "end": 54
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "awarded-wage-period",
+            "positions": [
+              {
+                "blockId": "b03",
+                "start": 23,
+                "end": 43
+              }
+            ]
+          }
+        ],
+        "accepted": [
+          {
+            "status": "aligned",
+            "event": "employment-start-claim",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 14,
+                "end": 24
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "monthly-rate",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 33,
+                "end": 39
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "actual-unpaid-work-period",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 41,
+                "end": 62
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "actual-unpaid-work-period",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 41,
+                "end": 62
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "employment-end-claim",
+            "positions": [
+              {
+                "blockId": "b01",
+                "start": 81,
+                "end": 91
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "exit-form-start",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 24,
+                "end": 34
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "exit-form-last-work",
+            "positions": [
+              {
+                "blockId": "b02",
+                "start": 70,
+                "end": 80
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "wage-award",
+            "positions": [
+              {
+                "blockId": "b03",
+                "start": 45,
+                "end": 54
+              }
+            ]
+          },
+          {
+            "status": "aligned",
+            "event": "awarded-wage-period",
+            "positions": [
+              {
+                "blockId": "b03",
+                "start": 23,
+                "end": 43
+              }
+            ]
+          }
+        ]
+      },
+      "production_defense": [
+        {
+          "index": 0,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 1,
+          "kind": "money",
+          "amount": "12000.00",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 2,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 3,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 4,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 5,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 6,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 7,
+          "kind": "money",
+          "amount": "12602.00",
+          "normalization": "exact",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        },
+        {
+          "index": 8,
+          "kind": "date",
+          "amount": null,
+          "normalization": "not_money",
+          "issues": [
+            "source_relation_unresolved"
+          ],
+          "exact_money_without_review_issue": false,
+          "calculation_authorized": false
+        }
+      ],
+      "attribute_errors": [
+        {
+          "actual": 5,
+          "expected": 5,
+          "event": "exit-form-start",
+          "mismatches": [
+            "assertion"
+          ]
+        },
+        {
+          "actual": 6,
+          "expected": 6,
+          "event": "exit-form-last-work",
+          "mismatches": [
+            "assertion"
+          ]
+        }
+      ],
+      "errors": [],
+      "exact_document": false
+    },
+    {
+      "id": "mf7-spc-gaoqing-wage-account",
+      "completed": true,
+      "native_json": true,
+      "format": "json",
+      "protocol": true,
+      "raw_count": 0,
+      "accepted_count": 0,
+      "rejected": [],
+      "review_issues": [],
+      "coverage": {
+        "heuristic": true,
+        "status": "empty",
+        "message": "本次返回空候选。启发式覆盖检查不能据此认定材料没有工资事实，请核对原文；未自动补取或确认。",
+        "rawCount": 0,
+        "acceptedCount": 0,
+        "rejectedCount": 0,
+        "signals": []
+      },
+      "normalization": [],
+      "raw_basic": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "accepted_basic": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "raw_relational": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "accepted_relational": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "raw_strict": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "accepted_strict": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "pairs": [],
+        "missing": [],
+        "extra": []
+      },
+      "event_alignment": {
+        "raw": [],
+        "accepted": []
+      },
+      "production_defense": [],
+      "attribute_errors": [],
+      "errors": [],
+      "exact_document": true
+    }
+  ]
+}

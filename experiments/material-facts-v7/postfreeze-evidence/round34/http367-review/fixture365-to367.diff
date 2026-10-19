@@ -1,0 +1,33 @@
+--- HTTP365
++++ HTTP367
+@@ -1404,21 +1404,23 @@
+   });
+   // End ROUND33 additions.
+   // ROUND34: finite date wrappers, anchored two-character names and whole rate units.
+-  for (const [name, text, value] of [
++  for (const [name, text, value, supported = true] of [
+     ['recurring-at', '测试王甲工资于每月15日发放。', '每月15日'],
+     ['recurring-in', '测试王甲工资在每月15日发放。', '每月15日'],
+-    ['traditional-pay', '测试王甲工資應於2026年1月15日前給付。', '2026年1月15日'],
+-    ['traditional-finish', '测试王甲工資應於2026年1月15日前支付完畢。', '2026年1月15日'],
++    ['traditional-pay', '测试王甲工資應於2026年1月15日前給付。', '2026年1月15日前'],
++    ['traditional-pay-cropped', '测试王甲工資應於2026年1月15日前給付。', '2026年1月15日', false],
++    ['traditional-finish', '测试王甲工資應於2026年1月15日前支付完畢。', '2026年1月15日前'],
++    ['traditional-finish-cropped', '测试王甲工資應於2026年1月15日前支付完畢。', '2026年1月15日', false],
+   ]) await scenario(`round34_date_${name}`, async () => {
+     const candidate = {kind: 'date', value, quote: value, subject: '测试王甲', scope: 'individual', meaning: 'payment_date', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated'};
+     const [item] = await fixture(`round34-date-${name}`, [{text, exactSource: true, candidates: [candidate]}]);
+     const material = rawAndLocations(item, await extract(item)); assert.equal(material.candidates.length, 1);
+-    assert.equal(material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), false);
+-    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
+-    assert.equal(rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), false);
++    assert.equal(material.candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !supported);
++    const before = stored(item.caseId), read = await request(item.path); assert.equal(read.status, 200); unconfirmed(read.body);
++    assert.equal(rawAndLocations(item, read.body).candidates[0].reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !supported);
+     assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
+     durableSnapshots.push({name: `round34-date-${name}`, item, state: before});
+-    return {supported: true, rawAndStoredHistoryUnchanged: true};
++    return {supported, rawAndStoredHistoryUnchanged: true};
+   });
+   const round34Money = [
+     ...['王近', '王约'].map(subject => ({name: `name-${subject}`, subject, text: `${subject}工资4000元。`, value: '4000元', amount: '4000.00'})),

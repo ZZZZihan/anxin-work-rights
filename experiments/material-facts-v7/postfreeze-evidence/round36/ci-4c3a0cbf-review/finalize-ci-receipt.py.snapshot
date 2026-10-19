@@ -1,0 +1,124 @@
+"""Create append-only receipt/index from already collected exact-head CI evidence."""
+from pathlib import Path
+import datetime
+import hashlib
+import json
+
+P = Path(__file__).resolve().parent
+
+
+def read(name):
+    return json.loads((P / name).read_text())
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def save(name, value):
+    with (P / name).open('x') as out:
+        json.dump(value, out, ensure_ascii=False, indent=2)
+        out.write('\n')
+
+
+run = read('terminal-run.json')
+audit = read('artifact-and-log-audit.json')
+extra = read('additional-evidence-audit.json')
+reviews = read('review-thread-state-terminal.json')
+identity = read('static-identity-at-start.json')
+artifacts = read('downloaded-artifacts-manifest.json')
+jobs = read('terminal-jobs.json')['jobs']
+assert run['conclusion'] == 'success' and audit['all_steps_success']
+assert len(reviews['unresolved']) == 4
+old_unresolved = read('review-thread-state-at-start.json')['unresolved']
+all_terminal_nodes = []
+for file in sorted(P.glob('review-threads-terminal-page-*.json')):
+    all_terminal_nodes.extend(json.loads(file.read_text())['data']['repository']['pullRequest']['reviewThreads']['nodes'])
+terminal_by_id = {n['id']: n for n in all_terminal_nodes}
+assert len(old_unresolved) == 7 and all(terminal_by_id[n['id']]['isResolved'] for n in old_unresolved)
+
+new_reviews = [{'thread_id': t['id'], 'path': t['path'], 'isResolved': t['isResolved'], 'isOutdated': t['isOutdated'], 'comments': t['comments']['nodes']} for t in reviews['unresolved']]
+prior_dir = P.parent / 'ci-fa77dbd5-review'
+receipt = {
+    'schema': 'issue42-round36-exact-head-ci-review/1',
+    'created_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'state': 'CI_PASS_APPLICATION_BLOCKED_NEW_REVIEW',
+    'ci_conclusion': 'SUCCESS',
+    'application_release_conclusion': 'NOT_READY_NEW_REVIEW_UNRESOLVED',
+    'repo': 'ZZZZihan/anxin-work-rights', 'pr': 45,
+    'head': run['head_sha'], 'run_id': run['id'], 'run_attempt': run['run_attempt'],
+    'run_url': run['html_url'],
+    'run_timing': {k: run.get(k) for k in ['created_at', 'run_started_at', 'updated_at']},
+    'actual_checkout_merge': identity['pull_merge_sha_at_read'],
+    'head_and_checkout_tree': identity['remote_head_tree'],
+    'merge_parents': identity['merge_parents'],
+    'workflow_sha256': identity['workflow_sha256'],
+    'head_tree_equals_actual_checkout_merge_tree': True,
+    'scope_since_prior_failed_fa77': read('fixture-only-static-review.json'),
+    'environment': {'os': 'Ubuntu 24.04.5 LTS', 'node': audit['node_version'], 'npm': '11.19.0', 'python': '3.12.15'},
+    'all_27_workflow_steps': jobs[0]['steps'],
+    'check_counts': {'vitest': audit['vitest'], 'materials': audit['materials'], 'runtime': audit['runtime'], 'python_fullcheck_suites': extra['python_fullcheck_counts']},
+    'process_tree_nine_actual_passes': extra['process_tree_original_five_and_four_ready_tests_all_pass'],
+    'http_ocr_reports': audit['reports'],
+    'v7_http': audit['v7'],
+    'old_e99_387_nonrestart_http_observations_equal_by_unique_name': True,
+    'ocr': {'native_fixture_engines': extra['ocr_engines'], 'restart_coverage': 'PASS', 'inference': False},
+    'artifact_archive_entries': sum(len(a['entries']) for a in artifacts),
+    'artifact_archives': artifacts,
+    'original_log_zip': {'path': f"run{run['id']}-original-logs.zip", 'sha256': sha(P / f"run{run['id']}-original-logs.zip"), 'extracted_text_members': len(read('original-logs-manifest.json')['entries'])},
+    'frozen_history': {'workflow_step_success': True, 'v6_execution': 'original_v6_verify_and_summary_in_temporary_tree', 'v6_current_product_validation': False, 'v6_summary_checked': True, 'local_original_manifest_files_against_exact_head': 147, 'local_original_files_after_rehash_unchanged': 147, 'historical_manifest_summary': read('local-original-results-vs-exact-head.json')['summaries']},
+    'post_audit_current_code_files_unchanged': extra['exact_head_eleven_product_harness_files_unchanged_after_audit'],
+    'prior_failed_ci': {'head': 'fa77dbd5bd9942ed1a94d74293b35160aae1e91b', 'run_id': 39152232243, 'conclusion': 'FAILURE', 'runtime': {'tests': 8892, 'pass': 8891, 'fail': 1, 'skip': 0}, 'failure': 'JSON.parse empty ready-record in process-tree fixture; subsequent production HTTP steps were skipped', 'failure_receipt': str(prior_dir / 'ci-fa77dbd5-review.independent.json'), 'failure_receipt_sha256': sha(prior_dir / 'ci-fa77dbd5-review.independent.json'), 'preserved_files': 79, 'all_preserved_files_after_rehash_unchanged': True},
+    'review_state': {'observed_at': reviews['observed_at'], 'exact_head': reviews['head_at_review_read'], 'threads': reviews['threads'], 'old_seven_resolved': True, 'new_unresolved': new_reviews, 'reachability_reproduced_by_this_ci_audit': False},
+    'deployment_api': {'exact_head_records': audit['github_deployments_exact_head'], 'checkout_merge_records': audit['github_deployments_checkout_merge'], 'scope': 'GitHub deployments API only for the two exact SHAs; this does not prove absence of deployments elsewhere.'},
+    'legacy_combined_status': {'state': 'pending', 'total_count': 0, 'meaning': 'No legacy status contexts; actual Actions check-run is completed/success. The empty-context combined state is not an additional pending check.'},
+    'parent_local_evidence_separate': {'full_check_receipt': 'parent-full-check-ready-final.receipt.json', 'http_reference': 'parent-http410-final.json', 'independent_local_project_commands_executed_for_this_audit': False},
+    'audit_script_failures_retained': [read('additional-audit-first-comparison-failure.json'), read('additional-audit-second-ocr-assumption-failure.json')],
+    'final_additional_audit_script': {'path': 'audit-additional-evidence-final-v2.py', 'sha256': sha(P / 'audit-additional-evidence-final-v2.py'), 'actual_exit': 0},
+    'roles_and_boundaries': ['This agent authored the event-only round36 patch; the remote CI audit is independent evidence collection, not a claim of nonimplementer review of that event patch.', 'No local fullcheck, HTTP, build, scorer, historical CLI, model inference, rerun, comment, merge, push, or deployment was performed for this audit.', 'Frozen reports are historical re-verification, not a new model experiment.', 'Synthetic candidate/HTTP tests and OCR fixture checks do not establish real-case, legal, UI/user, or human business acceptance.', 'New four review threads are preserved as reported findings and not independently reproduced by this CI collection task.'],
+    'model_configuration': {'requested': 'GPT-6.1 Sol / ultra', 'actual_backend_independently_verified': False},
+}
+save('ci-4c3a0cbf-review.independent.json', receipt)
+
+md = f'''# PR45 exact 4c3a0cbf CI 只读核对
+
+**CI 实际通过；应用因四条新审查继续阻塞交付。** 本收据只对应 `4c3a0cbfe60623695de5dda67d17339d5e827ac8` 的 [run 39153210775]({run['html_url']})，不覆盖此前 fa77 失败。
+
+远端 check job 的 27 个步骤全部 success。Ubuntu 24.04.5、Node 24.21.0、npm 11.19.0、Python 3.12.15。完整检查日志实读：Vitest **1789/1789、46 files**；材料 **68/68**；运行时 **8896/8896**，fail/cancelled/skip 均为 0，运行时耗时 **87.668646547 秒**；Python 三组 **9、11、16** 均 OK。原五个进程树断言逐字保留，并与新增四个就绪记录确定性检查一起实际 9/9 通过。
+
+实际 checkout 为 PR merge `1e400774523ec1081d715f0576a5987fddb8eabf`。API 的 merge parents 包含本 head；merge tree 与 head tree 均为 `2f1745c02a5326975d05f032356eeddbfad8c240`。从 fa77 到本 head 仅修改 process-tree 测试一文件，产品、共享进程组 helper、四个 HTTP runners、package 均无差异。11 个精确头文件在审计前后与 CODE 相同。
+
+下载并保留原始日志 ZIP（29 个文本成员）和完整日志；两份 artifact ZIP 共 11 个成员（9 JSON、2 worker logs），本地 ZIP SHA256、GitHub API digest 与上传步骤日志三方一致。材料 ZIP 为 `a1f536dbe74452c3da0fe1331067169ec8cf35a456944de75d0a103e9738ac28`；基础 HTTP ZIP 为 `1de9b6481500c2be1c2b7218a02ebd553b6f32d733a9f7daea6340d45bbe4769`。
+
+九份报告分别记录：基础 HTTP **21**、合成隔离 **30**、材料文本 **8**、候选/确认 **10**、取消 **14**、轮询 **4**、网络恢复 **10**、v7 **410**、图像/PDF **17**，全部通过；四份带 cleanup 字段的报告均为 PASS、failures=[]。v7 的 **411** 份原始 payload/candidates/finish_reason 与父侧本机参考仅排除 evidenceId/jobId 后一致；**409** 份重启快照原始/历史保持一致。旧 e99 远端报告中的 **387** 个非重启场景按唯一场景名逐项相同。图像使用真实 tesseract，PDF 增加 poppler，结构化均为规则、model=null；这不是视觉模型或新模型评估。
+
+冻结验证步骤通过。v6 日志明确执行 owned temporary tree 内的原 verify 与 summary，`current_product_validation=false`、`summary_checked=true`，并未把历史 v3 替换成当前产品。v4 / replication / v5 / v6 四份原 manifest 对应的 **58+50+20+19=147** 个结果文件，本机 SHA 与原 manifest 及 exact head Git blob 一致；审计后重算仍不变。该核对未自行运行历史 CLI 或评分器。
+
+此前 fa77 run 39152232243 的 **8891P/1F**、就绪文件空 JSON 错误、后续 HTTP skipped 与 79 份失败证据全部保留且重算 hash 不变。本次修复夹具的成功不回写旧失败。补充审计脚本另有两次过强假设失败：新旧场景按前缀位置比较，以及把 PDF/PNG OCR 引擎名视为同一个；原脚本与错误说明均保留，最终按场景名及实际引擎类型核对 exit0，均不算产品/CI 失败。
+
+最新 reviews API 于 **{reviews['observed_at']}** 读取 head 仍为本提交：**129 threads / 4 unresolved**，原 7 条已 resolved。新增为 **4308160109 辭職字形 P2、4308160112 日期边界评分 P2、4308160118 翻倍/加倍 P2、4308160120 王和欧多人主体 P1**。审计已向主 Agent 立即报告，未擅自修复或回复；本次不把 CI 通过写成新问题已修复。
+
+GitHub deployments API 对 head 和 checkout merge 各返回 0 条，仅说明这两个精确 SHA 在该 API 无记录，不证明其他部署系统不存在上线。legacy combined status 为 pending/0 contexts；实际 Actions check-run 已 completed/success，不能把空上下文状态当作另一项等待检查。
+
+本次仅读取远端/API/下载日志及文件 hash；未执行本机全检、HTTP、构建、评分、模型、重跑 CI、评论、合并、推送或部署。父侧本机完整检查和 HTTP 记录单独标源。本人曾实现 event-only R36 补丁，因此不将该补丁的技术自检称为非实现者复核；DATA 的独立 44 检查另有证据。人工业务验收仍未完成，合成数据/程序计数不代表真实案件正确率。
+
+详细机读收据为 `ci-4c3a0cbf-review.independent.json`；完整复制白名单为 `copy-index.ci-4c3a0cbf.json`。请求配置继续 GPT-6.1 Sol / ultra，实际 backend 未独立核验。
+'''
+with (P / 'CI_4C3A0CBF_CHECKPOINT_REVIEW.md').open('x') as out:
+    out.write(md)
+
+entries = []
+for file in sorted(P.rglob('*')):
+    if not file.is_file():
+        continue
+    rel = file.relative_to(P)
+    destination = Path('experiments/material-facts-v7/postfreeze-evidence/round36/ci-4c3a0cbf-review') / rel
+    if file.suffix in {'.py', '.mjs', '.ts', '.tsx', '.js'}:
+        destination = Path(str(destination) + '.snapshot')
+    entries.append({'source': str(file), 'destination_relative_to_root': str(destination), 'sha256': sha(file), 'bytes': file.stat().st_size})
+index = {'schema': 'readonly-ci-audit-copy-index/1', 'created_at': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'scope': 'exact 4c3a success checkpoint with four new review blockers; append-only, old fa77 failure untouched', 'files': entries, 'self_excluded': True, 'code_like_evidence_renamed_snapshot_at_destination': True}
+save('copy-index.ci-4c3a0cbf.json', index)
+for name in ['ci-4c3a0cbf-review.independent.json', 'CI_4C3A0CBF_CHECKPOINT_REVIEW.md', 'copy-index.ci-4c3a0cbf.json']:
+    file = P / name
+    print(json.dumps({'path': str(file), 'sha256': sha(file), 'bytes': file.stat().st_size}))
+print(json.dumps({'indexed_files': len(entries), 'state': receipt['state']}))

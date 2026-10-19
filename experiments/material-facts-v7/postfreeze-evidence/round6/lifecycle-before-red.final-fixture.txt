@@ -1,0 +1,63 @@
+✖ a requesting event queued behind disk I/O cannot keep an exited worker parent alive (6059.366875ms)
+✖ stderr overflow stops the finite worker and preserves a bounded failed attempt (935.724625ms)
+✖ stdout and stderr pause independently while writes are pending rather than accumulating promises (1173.2025ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8288.042125
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-run-lifecycle.test.mjs:150:1
+✖ a requesting event queued behind disk I/O cannot keep an exited worker parent alive (6059.366875ms)
+  AssertionError [ERR_ASSERTION]: The runner must exit on its own rather than hit the fixture deadline: {"code":null,"signal":"SIGKILL","killed":true,"out":"/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin-v7-lifecycle-Zq625e/experiments/material-facts-v7/results/holdout-deepseek-1","elapsed":6009,"stdout":"{\"type\":\"requesting\",\"id\":\"mf7-bjkfq-2025-3029\"}\n","stderr":""}
+  
+  null !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/scripts/material-facts-v7-run-lifecycle.test.mjs:152:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-run-lifecycle.test.mjs:160:1
+✖ stderr overflow stops the finite worker and preserves a bounded failed attempt (935.724625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/scripts/material-facts-v7-run-lifecycle.test.mjs:162:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-run-lifecycle.test.mjs:184:1
+✖ stdout and stderr pause independently while writes are pending rather than accumulating promises (1173.2025ms)
+  AssertionError [ERR_ASSERTION]: stdout must apply readable backpressure
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/scripts/material-facts-v7-run-lifecycle.test.mjs:189:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

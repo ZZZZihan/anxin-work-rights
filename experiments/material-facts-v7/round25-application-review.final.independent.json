@@ -1,0 +1,151 @@
+{
+  "schema": "material-facts-v7-round25-application-independent-review/1",
+  "status": "SCOPED_APPLICATION_PASS",
+  "created_at_utc": "2026-10-18T12:06:57.046283+00:00",
+  "reviewer": "Independent non-implementer of the three product changes",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning_effort": "ultra",
+  "actual_backend_independently_verified": false,
+  "code_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "base_commit": "f16c59bc08c823538df00d6fa1fd2dbc139cd5a2",
+  "commit_state": "Exact reviewed working-tree bytes; no independent commit or push",
+  "finding_ids": [
+    "4306876867",
+    "4306876871"
+  ],
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "d571894efd596fdf1ed8e28aac1bd4e367e3c8ce0b6ba59428b8b9905be8c390",
+    "lib/material-fact-source-review.ts": "b214b4e47fad22463970f0989d5b1b3ebeba487d4a07290bb39c34af03f1c5a5",
+    "lib/material-fact-runtime-ingest.ts": "cbf7c724c30568ed1c5640410d6027baaed47503a4a09b7e39ed4e2ff0bd2bbc"
+  },
+  "test_sha256": {
+    "scripts/material-facts-v7-round25-wrapper-independent.test.mjs": "7f28f4fd6c4dc7e7fa0fdb8e6b5b4b1bfd6e18944d5bdf0f1306ff4bc714a2de",
+    "scripts/material-facts-v7-round25-terminal-safety-independent.test.mjs": "b782fb9c13b799040bf90d35cb81f2916e4970ce704f1f5c82cedbd58c095134",
+    "scripts/material-facts-v7-round25-rmb-subunit-cross-independent.test.mjs": "7f9db0c8adcf3e6955ea1cd8c851ebce72ef9b3d677b16902a41a994e35a66a8"
+  },
+  "executed_independent_tests": [
+    {
+      "runtime": "v24.19.0",
+      "exit_code": 0,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "elapsed_seconds": 0.24015079101081938,
+      "log": "code-true-final-27-node24-independent.txt",
+      "log_sha256": "0677281bb4347cd8362915405e6567c8ecac13d99a7295eb880800b5716a2534",
+      "execution": "code-true-final-27-node24-independent.execution.json",
+      "execution_sha256": "86a3c628a07415549a69cb91f861e95bec6fa10484b7dcd00ce4cc3fbaadd0e3"
+    },
+    {
+      "runtime": "v26.11.0",
+      "exit_code": 0,
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "elapsed_seconds": 0.3995684169931337,
+      "log": "code-true-final-27-node26-independent.txt",
+      "log_sha256": "71e3b74d3855fe370de02fefde8b922fb4feb3775de7a7744db872ef47a4e712",
+      "execution": "code-true-final-27-node26-independent.execution.json",
+      "execution_sha256": "56b71817d0f53e74d67788d1bab9274f107fade753f0202415c6711852467597"
+    }
+  ],
+  "fixed_baseline_evidence": {
+    "wrapper": {
+      "tests": 18,
+      "pass": 8,
+      "fail": 10,
+      "exit_code": 1,
+      "log": "fixed-f16-wrapper-independent-before-red.txt",
+      "failure_meaning": "2 same-clause terminal crop positives and 8 same-occurrence postposed RMB dedup positives fail."
+    },
+    "terminal_safety": {
+      "tests": 8,
+      "pass": 6,
+      "fail": 2,
+      "exit_code": 1,
+      "log": "fixed-f16-terminal-safety-independent-before.txt",
+      "failure_meaning": "6 existing unsafe-continuation controls already pass. 2 independent-event terminal crop positives fail; not additional safety benefits."
+    }
+  },
+  "intermediate_evidence": {
+    "2953_money": {
+      "sha256": "2953a2461a728235a590463ee0a133b2bc59093b70afb6198a02b2854cbeb192",
+      "tests_per_runtime": 26,
+      "both_runtimes_passed": true,
+      "remaining_cross_failure": "A one-terminator RMB5角 continuation split across newline or adjacent block still exposes 4000.00. The fixed-f16 baseline already has this layout hole; it is a closure defect, not a new regression.",
+      "cross_log": "code-intermediate-rmb-subunit-cross-before-red.txt",
+      "cross_exit_code": 1,
+      "cross_tests": 1,
+      "cross_fail": 1
+    },
+    "2e0_money": {
+      "sha256": "2e0d7269717820d7b345e82fe5f7f36ae4cd75d8f87e7959f439bdb9e26eafae",
+      "tests_per_runtime": 27,
+      "both_runtimes_passed": true,
+      "meaning": "Intermediate 27-case logs named code-final-27 retain their original names. They are not the true-final d571 acceptance. The author subsequently closed a second RMB-label continuation."
+    },
+    "all_original_logs_preserved": true
+  },
+  "static_review": {
+    "money": [
+      "Only a complete currency unit followed by one 整/正 terminal is eligible for the crop exception.",
+      "Detection copy may consume at most one explicit RMB suffix. A second matching RMB suffix fails closed without recursive stripping.",
+      "Digits, subunits, magnitudes, repeated terminals and decimal/comma followed by digits remain rejected; a separate ASCII sentence period is not treated as a decimal continuation.",
+      "Existing anchored currency, rate-role/unit, uncertainty, unfinished/complete range, qualifier and arithmetic guards still execute after the terminal.",
+      "The extracted suffix-rate helper preserves the previous finite supported unit grammar."
+    ],
+    "source": [
+      "The same shared continuation guard runs on original-source layout.after, including explicit newline and adjacent OCR block edges.",
+      "It only downgrades unsafe historical exact values; previously unsupported stored amounts remain null.",
+      "Raw quote/value/source and Unicode code-point positions are not rewritten."
+    ],
+    "ingest": [
+      "The product diff is one finite after-wrapper regexp permitting optional postposed 人民币/人民幣/RMB/CNY after optional 整/正 and before existing three wage nouns.",
+      "Unique occurrence, containment, same semantic fields/status/review issues, ambiguous-location retention and different-assertion gates remain unchanged.",
+      "Both output orders deduplicate a proven same occurrence, while different events and blocks retain both candidates."
+    ]
+  },
+  "tested_invariants": [
+    "Original raw JSON and candidate representation are retained, including duplicate raw observations.",
+    "Unicode CP quote offsets remain tied to original source, including astral characters.",
+    "A retained/accepted candidate may have amount=null; acceptance is not an authorization to calculate.",
+    "Unsafe exact historical amounts are downgraded; old unsupported values are never automatically upgraded.",
+    "Separate sentence or next-block subject controls do not borrow the preceding amount continuation.",
+    "No confirmations are created, calculation stays null and canCalculate=false."
+  ],
+  "difference_patch": {
+    "path": "round25-true-final-three-products-vs-f16.patch",
+    "sha256": "cbc9985da69366ea5669d5632cde3dda033dfbcb270ae2a34915adc998740ee7"
+  },
+  "report_wrapper_note": {
+    "file": "true-final-node24-output-parser-note.json",
+    "meaning": "Native Node24 test process passed27 and exited0. The surrounding output parser initially expected TAP # lines instead of the actual spec-reporter Unicode prefix. It was corrected read-only; no native test rerun or product/test change was used."
+  },
+  "earlier_light_review": {
+    "receipt": "round25-light-review.independent.json",
+    "receipt_sha256": "57dff44dfdd2933a2c1a3f13ee7255b6d1ecc3f01343962a1c8db65064e50a58",
+    "bridge_native_tests": 7,
+    "bridge_native_pass": 7,
+    "v17_archive_paths": 70,
+    "v18_expected_union": 73,
+    "archival_config_exact_exclusions": 2,
+    "archival_ts_files_observed": 5,
+    "retained_archive_files_hash_checked": 11,
+    "old_count_six_corrected_in_separate_receipt": true
+  },
+  "blocking_findings_within_reviewed_scope": [],
+  "limits": [
+    "These 27 synthetic tests and source review cover the two reported findings and bounded continuation interactions; they are not a general natural-language money parser proof.",
+    "The author-reported 529 native tests and 1212 internal combination cells are separate implementation evidence, not independent materials or our executed test count.",
+    "No HTTP/Worker, model/inference, build, full npm check, CI, legal/human acceptance or v18 formal write/check/five-gate execution was performed by this review.",
+    "The v17 original/frozen result reports and prior receipts were not modified. No new semantic scores or inference were produced.",
+    "The remaining material-level relation review and calculation authorization boundaries from prior reports remain applicable."
+  ],
+  "not_executed": [
+    "model/inference/training",
+    "HTTP/Worker/build",
+    "full npm check or remote CI verification",
+    "v18 formal artifacts or deep historical five gates",
+    "commit/push/merge/deploy"
+  ]
+}

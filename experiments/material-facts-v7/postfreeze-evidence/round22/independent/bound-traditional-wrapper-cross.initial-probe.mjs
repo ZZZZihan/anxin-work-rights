@@ -1,0 +1,13 @@
+import { pathToFileURL } from 'node:url';
+const root = process.env.V7_REVIEW_ROOT;
+const { canonicalMonetaryExpression: canonical, normalizeMoneyValueV4: normalize } = await import(pathToFileURL(root + '/lib/material-money-v4.ts'));
+const { assessCase } = await import(pathToFileURL(root + '/experiments/material-facts-v7/assess.mjs'));
+const cp = s => Array.from(s).length;
+const goldValue = '不滿四萬元', candidateValue = goldValue + '工資';
+const text = '😀𠮷。王甲工资' + candidateValue + '。';
+const entry = value => ({ kind:'money', value, quote:text, blockId:'b1', subject:'王甲', scope:'individual', meaning:'due_total', completeness:'complete', period:null, rateUnit:null, assertion:'narrated' });
+const input = { id:'round22-bound-wrapper-cross', source:{ id:'cross', name:'synthetic', sha256:'f'.repeat(64), analysisRevision:22, ready:true, blocks:[{id:'b1', page:1, text, bbox:null, confidence:null}]} };
+const at = text.indexOf(goldValue), start = cp(text.slice(0,at));
+const label = {expected:[entry(goldValue)],events:[{id:'e',anchors:[{blockId:'b1',start,end:start+cp(goldValue)}]}],expected_event_ids:['e']};
+const row=assessCase(input,label,{finish_reason:'stop',raw_output:JSON.stringify({schemaVersion:3,candidates:[entry(candidateValue)]})});
+console.log(JSON.stringify({goldValue,candidateValue,goldKey:canonical(goldValue),candidateKey:canonical(candidateValue),goldNormalization:normalize(goldValue),candidateNormalization:normalize(candidateValue),metrics:Object.fromEntries(['raw','accepted'].flatMap(layer=>['basic','relational','strict'].map(mode=>{const k=layer+'_'+mode;return [k,[row[k].tp,row[k].fp,row[k].fn]]}))),productionDefense:row.production_defense},null,2));

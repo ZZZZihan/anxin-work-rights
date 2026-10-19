@@ -1,0 +1,98 @@
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -12,8 +12,8 @@
+ 
+ const MAX_INPUT = 4000;
+ const LOWER_DIGITS = '零一二三四五六七八九';
+-const NUMERALS = '0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟';
+-const LOWER = '零〇一二三四五六七八九十百千万亿两';
++const NUMERALS = '0-9零〇一二三四五六七八九十百千万萬亿億两兩壹贰叁肆伍陆柒捌玖拾佰仟';
++const LOWER = '零〇一二三四五六七八九十百千万萬亿两';
+ const SINGLE_DIGIT = '零〇一二三四五六七八九两壹贰叁肆伍陆柒捌玖';
+ const MASKED = /[xX×＊*]|未知|不详|不明|待定|无法确定|未提供|未明确|未载明|未记载|未披露|未列明|未注明|未约定|未确定|待确认|待核实|待补充|[?？□＿_]|\.{2,}|…/u;
+ const UNCERTAIN = /(?:可能|或许|大概|估计|不确定|待核|暂计|暂定)/u;
+@@ -38,7 +38,7 @@
+   return RANGE_NUMERIC_AFTER.test(detection) && !RANGE_TIME_AFTER.test(detection);
+ }
+ 
+-const TOKEN = new RegExp(`(?:人民[币幣]\\s*)?[¥￥]?\\s*(?:(?:\\d[\\d,，]*(?:\\.\\d+)?)\\s*(?:万|亿)?|[${LOWER}壹贰叁肆伍陆柒捌玖拾佰仟]+)\\s*[元圆圓](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`, 'gu');
++const TOKEN = new RegExp(`(?:人民[币幣]\\s*)?[¥￥]?\\s*(?:(?:\\d[\\d,，]*(?:\\.\\d+)?)\\s*(?:万|萬|亿)?|[${LOWER}壹贰叁肆伍陆柒捌玖拾佰仟]+)\\s*[元圆圓](?:[0-9${SINGLE_DIGIT}]角)?(?:零?[0-9${SINGLE_DIGIT}]分)?(?:整|正)?`, 'gu');
+ 
+ function result(rawValue: string, status: CandidateNormalization['status'], reason: string, match?: { text: string; index: number; amount: string }): CandidateNormalization {
+   return { rawValue, status, amount: match?.amount ?? null, matchedText: match?.text ?? null,
+@@ -206,7 +206,7 @@
+     if (new RegExp(`[${NUMERALS}０-９]`, 'u').test(rest)) return result(rawValue, 'multiple_amounts', '原文仍有无法解释为日期、计数或倍数的数字，可能存在省略币种的另一笔金额或复杂中文数表达。');
+     // Currency spelling aliases exist only in this parse copy after the raw
+     // token is anchored. Returned evidence and code-point spans use text/rawValue.
+-    const parseText = text.replace(/^人民幣/u, '人民币').replace(/圓/gu, '圆');
++    const parseText = text.replace(/^人民幣/u, '人民币').replace(/圓/gu, '圆').replace(/萬/gu, '万');
+     const onlyLower = new RegExp(`^(?:人民币\\s*)?[¥￥]?\\s*[${LOWER}]+\\s*[元圆][0-9${LOWER}${SINGLE_DIGIT}角分整正]*$`, 'u').test(parseText);
+     const onlyFinancial = new RegExp(`^(?:人民币\\s*)?[¥￥]?\\s*[零壹贰叁肆伍陆柒捌玖拾佰仟万亿]+\\s*[元圆][0-9${SINGLE_DIGIT}角分整正]*$`, 'u').test(parseText);
+     const parsed = onlyLower ? parseLowerAmount(parseText) : onlyFinancial ? parseFinancialSubunits(parseText) : parseArabicSubunits(parseText) ?? normalizeMoneyValue(parseText).amount;
+@@ -257,7 +257,7 @@
+       const supportedRate = rateText?.match(/^(小时|月|日|天|时|件)/u)?.[1];
+       if (sourceMoneyHasNonCurrencyYuan({ blockText: candidate.quote, valueStart: quoteOffset }, normalized)) normalized = result(candidate.value, 'unsupported', '原文中的元或圆属于完整普通词语，裁剪后的片段未作为人民币金额。');
+       else if (sourceMoneyHasNonCurrencySubunit({ blockText: candidate.quote, valueStart: quoteOffset }, normalized)) normalized = result(candidate.value, 'unsupported', '原文中的角或分属于普通词语，裁剪后的片段未作为分币金额。');
+-      else if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
++      else if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized, candidate.subject)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
+       else if (suffixRate && !supportedRate) normalized = result(candidate.value, 'unsupported', '原文金额直接附着不受支持的费率单位，保留原文且未换算为总额或现有费率单位。');
+       else if (supportedRate && (candidate.meaning !== 'rate' || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== rateUnits[supportedRate]))) normalized = result(candidate.value, 'rate_unit_mismatch', '原文紧贴的费率单位与金额角色或候选费率单位冲突。');
+       else if (isMoneyRangeEndpoint(rangeBefore, rangeToken, rangeAfter)) normalized = result(candidate.value, 'range', '当前金额在原文中直接属于区间端点。');
+--- a/lib/material-fact-arithmetic-review.ts
++++ b/lib/material-fact-arithmetic-review.ts
+@@ -1,6 +1,6 @@
+ // Detect only an operator or multiplier attached to the anchored amount.
+ // This is not an evaluator, and detection copies never replace source evidence.
+-const NUMERALS = '0-9零〇一二三四五六七八九十百千万亿两壹贰叁肆伍陆柒捌玖拾佰仟';
++const NUMERALS = '0-9零〇一二三四五六七八九十百千万萬亿億两兩壹贰叁肆伍陆柒捌玖拾佰仟';
+ const NUMBER = `[${NUMERALS}]+(?:[.点][${NUMERALS}]+)?`;
+ const FACTOR = `[+−负負-]?${NUMBER}`;
+ // Currency, whole-amount and bracket wrappers may have been cropped off value.
+@@ -24,6 +24,14 @@
+ const SYMBOLIC_OPERAND = '(?:(?<![A-Za-z0-9_])[A-Za-z_][A-Za-z0-9_]{0,31}(?![A-Za-z0-9_])|(?<![α-ωΑ-Ω])[α-ωΑ-Ω](?![α-ωΑ-Ω]))';
+ const UNKNOWN_OPERAND = `(?:${NAMED_OPERAND}|${SYMBOLIC_OPERAND})`;
+ const OPERAND = `(?:${FACTOR}|${UNKNOWN_OPERAND})`;
++// Coefficients and ratios can have names unknown to this parser. Bound the
++// complete Han name to 16 characters and require its coefficient suffix, then
++// use it only on explicit arithmetic paths. This is not arbitrary prose.
++const COEFFICIENT_OPERAND = `(?:[\\p{Script=Han}]${LINE}*){0,14}(?:系${LINE}*[数數]|比${LINE}*例)`;
++const EXPLICIT_OPERAND = `(?:${OPERAND}|${COEFFICIENT_OPERAND})`;
++// Single-character operators must not cut ordinary words such as 加班费 or
++// 除外. Multi-character operator words and symbols already state the operation.
++const COEFFICIENT_OPERATOR = `(?:乘${LINE}*以|除${LINE}*以|分${LINE}*之|加${LINE}*上|减${LINE}*去|另${LINE}*加|乘|除(?!${LINE}*(?:外|了))|加(?!${LINE}*(?:班|薪))|减(?!${LINE}*(?:免|薪))|[×*xX÷/+−-])`;
+ // 成/折 name proportions of the anchored base, never the payable result.
+ // Keep their grammar finite and require attachment (的/打/operator, or the
+ // same-line bare factor rule). Do not read 八成 in independent prose as math.
+@@ -34,10 +42,12 @@
+ const PREFIX_PROPORTION_FACTOR = new RegExp(`(?:${PROPORTION})${CONTINUATION_BRIDGE}$`, 'u');
+ const PREFIX_OPERATOR = new RegExp(`(?:倍${CONTINUATION_BRIDGE}(?:的${CONTINUATION_BRIDGE})?|${OPERATOR}${CONTINUATION_BRIDGE})$`, 'u');
+ const PREFIX_FACTOR = new RegExp(`${FACTOR}${CONTINUATION_BRIDGE}$`, 'u');
+-const PREFIX_UNKNOWN_OPERAND = new RegExp(`(?:${UNKNOWN_OPERAND})${CONTINUATION_BRIDGE}$`, 'u');
++const PREFIX_UNKNOWN_OPERAND = new RegExp(`(?:${UNKNOWN_OPERAND}|${COEFFICIENT_OPERAND})${CONTINUATION_BRIDGE}$`, 'u');
+ const SUFFIX_MULTIPLIER = new RegExp(`^${OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
+-const SUFFIX_FRACTION = new RegExp(`^(?:${OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
++const SUFFIX_EXPLICIT_MULTIPLIER = new RegExp(`^${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
++const SUFFIX_FRACTION = new RegExp(`^(?:${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${EXPLICIT_OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
+ const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
++const SUFFIX_COEFFICIENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${COEFFICIENT_OPERAND}`, 'u');
+ // A presentation hyphen can introduce a payment date or duration. Require a
+ // complete time unit: a bare -2000, -200元 or -50% remains subtraction. This
+ // exception does not apply to an explicit 减/减去 or the mathematical minus −.
+@@ -48,7 +58,7 @@
+ const HYPHEN_TIME = new RegExp(`^-${LINE}*(?:[0-9]{4}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12][0-9]|3[01])|${TIME_INTEGER}年(?:${LINE}*${TIME_INTEGER}月(?:${LINE}*${TIME_INTEGER}日)?)?|${NUMBER}(?:个?月|日|天|小时|分钟|秒))(?![${NUMERALS}点.元圆圓角分%/×*xX÷+−-])`, 'u');
+ 
+ function suffixIsOperation(suffix: string): boolean {
+-  return SUFFIX_OPERATOR.test(suffix) && !HYPHEN_TIME.test(suffix);
++  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
+ }
+ const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
+ // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
+@@ -101,7 +111,7 @@
+   }
+   if (suffix.startsWith('的')) {
+     suffix = suffix.slice(1).replace(LEADING_FACTOR_WRAPPERS, '');
+-    return SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix) || SUFFIX_PROPORTION.test(suffix);
++    return SUFFIX_EXPLICIT_MULTIPLIER.test(suffix) || SUFFIX_FRACTION.test(suffix) || SUFFIX_PROPORTION.test(suffix);
+   }
+   if (suffixIsOperation(suffix) || SUFFIX_DISCOUNT.test(suffix)) return true;
+   return !/[\r\n\u2028\u2029]/u.test(bridge) && (SUFFIX_MULTIPLIER.test(suffix) || SUFFIX_PROPORTION.test(suffix));

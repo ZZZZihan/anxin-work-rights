@@ -1,0 +1,64 @@
+diff --git "a/Users/xuzihan/Documents/Projects/\345\233\275\345\210\233/anxin-facts-v7-review/.scratch/issue42/round40/baseline-5374/lib/material-fact-event-review.ts" "b/Users/xuzihan/Documents/Projects/\345\233\275\345\210\233/anxin-facts-v7-review/.scratch/issue42/round40/date-total-range-double-final-review-tree/lib/material-fact-event-review.ts"
+index 8fd31fd..2514c9b 100644
+--- "a/Users/xuzihan/Documents/Projects/\345\233\275\345\210\233/anxin-facts-v7-review/.scratch/issue42/round40/baseline-5374/lib/material-fact-event-review.ts"
++++ "b/Users/xuzihan/Documents/Projects/\345\233\275\345\210\233/anxin-facts-v7-review/.scratch/issue42/round40/date-total-range-double-final-review-tree/lib/material-fact-event-review.ts"
+@@ -13,20 +13,23 @@ const dateCues: [DateMeaning, RegExp][] = [
+ const dateNumber = '[0-9〇零一二三四五六七八九十百千两]';
+ const calendarDate = `(?:${dateNumber}{2,4}年(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?)?|[0-9]{4}[-/.][0-9]{1,2}(?:[-/.][0-9]{1,2})?)`;
+ const shortDate = `(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?|${dateNumber}{1,3}日)`;
++// Preserve a complete source month/day without inventing a missing year. This
++// finite point form is used only by the existing explicit wage-payment layout.
++const monthDayPaymentDate = /^(?:[1-9]|1[0-2]|[一二三四五六七八九]|十[一二]?)月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)日$/u;
+ const intervalEnd = `(?:${calendarDate}|${shortDate}|今)`;
+ const dateInterval = (start: string) => `(?:自|从|截至|截止至|截止到|截止|到|至)?${start}(?:(?:起)?(?:至|到|—|–|-|~|～)${intervalEnd})?(?:以前|以后|之前|之后|为止|起|止|前|后)?`;
+ const completeDate = new RegExp(`^${dateInterval(calendarDate)}$`, 'u');
+ // The protocol permits parallel wage periods as one continuous source literal;
+ // retain the complete list instead of accepting a cropped first month/range.
+-const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及和]${dateInterval(`(?:${calendarDate}|${shortDate})`)})+$`, 'u');
++const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及和与]${dateInterval(`(?:${calendarDate}|${shortDate})`)})+$`, 'u');
+ const compact = (text: string) => text.normalize('NFKC').replace(/\s+/gu, '');
+ // Recurring payment days are explicit source dates, without an invented year or
+ // month. Keep their finite valid day range separate from other calendar roles.
+ const recurringPaymentDate = /^每(?:个|個)?月(?:第)?(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)[日号號]$/u;
+ // Fold only detection copies of the existing money-role vocabulary, after raw
+ // subject/period offsets are located. No source text or candidate is rewritten.
+-const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总', 額: '额', 計: '计', 實: '实', 幣: '币', 圓: '圆', 稅: '税', 間: '间', 補: '补', 貼: '贴', 預: '预', 賠: '赔', 償: '偿', 決: '决', 給: '给', 單: '单', 標: '标', 準: '准', 費: '费', 時: '时', 領: '领', 為: '为' };
+-const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
++const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总', 額: '额', 計: '计', 實: '实', 發: '发', 幣: '币', 圓: '圆', 稅: '税', 間: '间', 補: '补', 貼: '贴', 預: '预', 賠: '赔', 償: '偿', 決: '决', 給: '给', 單: '单', 標: '标', 準: '准', 費: '费', 時: '时', 領: '领', 為: '为' };
++const moneyRole = (text: string) => compact(text).replace(/[應資總額計實發幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
+ // Date-only cue/bridge aliases, after literal owner/value positions are found.
+ // Folding never changes the subject, date literal, quote or source offsets.
+ const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 辭: '辞', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须', 給: '给', 畢: '毕', 帳: '账', 賬: '账' };
+@@ -114,7 +117,7 @@ function hasSupportedWagePaymentLayout(raw: RawCandidateV3, before: string, afte
+   // An explicit wage payment date is supported without inferring that payment
+   // happened. The date role, located beneficiary and whole verb envelope stay
+   // separate from money receipt and complete paid-total authorization.
+-  if (point.test(value) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)
++  if ((point.test(value) || monthDayPaymentDate.test(value)) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)
+     && /^(?:支付|发放|给付|付清)$/u.test(right)) return true;
+   const deadline = new RegExp(`^${calendarDate}(?:以前|之前|前)$`, 'u');
+   if (deadline.test(value) && new RegExp(`^(?:的)?${wage}(?:应|须|需|必须)?(?:于|在)$`, 'u').test(left)
+@@ -150,8 +153,8 @@ export function hasSupportedTotalRelationship(raw: RawCandidateV3, text: string,
+   // Matching just a month inside a longer interval, or borrowing another worker/amount,
+   // leaves unrecognized text here. Completeness must also be explicit in this same event.
+   if (!/(?:完整|全部|总额|总计|合计|共计|累计)/u.test(role)) return false;
+-  if (raw.meaning === 'due_total' ? !/应付/u.test(role) || /已付|实付|已支付/u.test(role) : !/已付|实付|已支付/u.test(role) || /应付/u.test(role)) return false;
+-  if (!/^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|人民币|RMB|CNY|[¥￥]|完整|全部|总额|总计|合计|共计|累计|应付|已支付|已付|实付|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)) return false;
++  if (raw.meaning === 'due_total' ? !/应付|应发/u.test(role) || /已付|实付|已支付|实发/u.test(role) : !/已付|实付|已支付|实发/u.test(role) || /应付|应发/u.test(role)) return false;
++  if (!/^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|人民币|RMB|CNY|[¥￥]|完整|全部|总额|总计|合计|共计|累计|应付|应发|已支付|已付|实付|实发|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)) return false;
+   // Do not silently ignore a second event, a missing wage component or a qualification
+   // following the number inside this clause. Currency precision is reviewed separately.
+   return /^(?:(?:元|圆|整|正|人民币|RMB|CNY)|\s)*$/iu.test(moneyRole(after));
+@@ -206,6 +209,12 @@ export function hasSupportedCandidateAttribution(raw: RawCandidateV3, text: stri
+   // Never add their nouns to the generic wage envelope: receiving compensation
+   // or materials money does not establish a wage payment or complete total.
+   if (raw.meaning === 'other_money' && /^(?:的)?(?:实际)?(?:收到|领取)(?:(?:经|經)(?:济|濟)补偿金|补偿金|赔偿金|[奖獎]金|费用|押金|保[证證]金|[罚罰](?:款|金)|材料款)(?:为|是|计)?(?:人民币|RMB|CNY|[¥￥])?$/iu.test(role)) return supportedSuffix;
++  // 应发/实发 are supported only as complete individual wage totals. Reuse
++  // the stricter same-owner/period/event gate instead of admitting these new
++  // words into arbitrary non-total attribution or inferring actual receipt.
++  if (/应发|实发/u.test(role)) return raw.scope === 'individual' && raw.completeness === 'complete'
++    && (raw.meaning === 'due_total' || raw.meaning === 'paid_total')
++    && hasSupportedTotalRelationship(raw, text, normalized);
+   return /^(?:(?:的|期间|本期|工资|薪酬|薪资|金额|款项|应得|补贴|交通补贴|人民币|RMB|CNY|[¥￥]|完整|全部|部分|总额|总计|合计|共计|累计|应付|已支付|已付|实付|支付|付款|收到|领取|拖欠|欠付|尚欠|欠薪|欠款|裁决|判决|判付|裁判|赔偿|补偿|给付|月薪|日薪|时薪|每月|每日|每天|每小时|每件|单价|标准|费率|本次|此次|该笔|单笔|一笔|先付|预付|预支|为|是|计|共|税前|税后|按月支付|按日支付|按周支付)|[:：])*$/iu.test(role)
+     && supportedSuffix;
+ }

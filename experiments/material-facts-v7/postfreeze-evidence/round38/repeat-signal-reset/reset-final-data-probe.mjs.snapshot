@@ -1,0 +1,14 @@
+import { createServer, connect } from 'node:net';
+function endReplacementConnection(socket) {
+  // The readiness probe closes its short connection. A deliberate TCP reset is
+  // expected on this unrelated replacement listener; other failures remain fatal.
+  socket.on('error', error => { if (error.code !== 'ECONNRESET') throw error; });
+  socket.end('unrelated replacement listener');
+}
+const server = createServer(endReplacementConnection);
+server.listen(0, '127.0.0.1', () => {
+  const client = connect({ host: '127.0.0.1', port: server.address().port });
+  client.on('error', error => { console.error('client-error', error.code); process.exitCode = 2; });
+  client.once('data', () => client.resetAndDestroy());
+  client.once('close', () => setTimeout(() => server.close(), 100));
+});

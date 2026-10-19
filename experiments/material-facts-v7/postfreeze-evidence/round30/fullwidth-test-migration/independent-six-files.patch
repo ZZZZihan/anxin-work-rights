@@ -1,0 +1,139 @@
+--- before/scripts/material-fact-mixed-subunits.test.mjs
++++ after/scripts/material-fact-mixed-subunits.test.mjs
+@@ -81,7 +81,7 @@
+   '5元五分伍角', '5元五角贰角', '5元五分贰分', '5元整五角', '5元五角零2分', '5元五角零贰分',
+   '5元零零分', '5元零〇分', '5元零0分', '5元〇五分', '5元零零五分', '5元五角贰分3', '5元五角贰分３',
+   '5元五角贰分另有300', '5元五角贰分另有３', '5.5元五角', '5.0元五角', '4万元五角', '4亿元五角',
+-  '５元五角', '5元５角', '5元伍角２分', '5元5角２分', '5元五角贰分3元', '12,34元五角',
++  '5元五角贰分3元', '12,34元五角',
+   '1000000000000元壹角', '5元五角的两倍', '5元五角乘以K', '5元五分之K', '5元伍分之一',
+   '5元五分钟后离开', '5元伍分鐘后离开', '5元五分\u200d钟后离开', '5元五分\n钟后离开', '5元伍角度示意图'])
+   test(`invalid order, precision, scale, unit word or formula stays unavailable: ${JSON.stringify(value)}`, () => {
+@@ -109,3 +109,8 @@
+   assert.equal(ingest(f).materials[0].candidates[0].amount, '5.52');
+   assert.equal(ingest({ ...f, candidate: { ...f.candidate, meaning: 'arrears', rateUnit: null }, raw: JSON.stringify({ schemaVersion: 3, candidates: [{ ...f.candidate, meaning: 'arrears', rateUnit: null }] }) }).materials[0].candidates[0].amount, null);
+ });
++
++// ROUND30 adds complete fullwidth numerals; the former unsupported cases now
++// require exact cents, raw evidence and source handling. Cropped cases stay rejected.
++for (const [value, amount] of [["５元五角", "5.50"], ["5元５角", "5.50"], ["5元伍角２分", "5.52"], ["5元5角２分", "5.52"]])
++  test("complete fullwidth numeral contract: " + value, () => exact(value, amount));
+--- before/scripts/material-fact-named-arithmetic-subunits.test.mjs
++++ after/scripts/material-fact-named-arithmetic-subunits.test.mjs
+@@ -54,7 +54,7 @@
+   assert.equal(fresh.calculation, null); assert.deepEqual(fresh.confirmations, { due: null, paid: null });
+ });
+ 
+-const decimalSubunits = [
++const decimalSubunits = [["5元５角", "5.50"],
+   ['5元五角', '5.50'],
+   ['5元5角', '5.50'], ['5元5角2分', '5.52'], ['5元2分', '5.02'], ['5元0角2分', '5.02'],
+   ['四元5角', '4.50'], ['0元0角0分', '0.00'], ['0元5角2分', '0.52'], ['5元5角0分', '5.50'], ['5元0分', '5.00'],
+@@ -77,8 +77,7 @@
+ 
+ for (const expression of ['5元15角', '5元5角12分', '5元5角2分3', '5元5角2分3元', '5元5角2分5分',
+   '5元5角2角', '5元整5角', '5元5角零2分', '5.5元5角', '4万元5角',
+-  '1000000000000元0角0分', '5元5角2分另有300', '5元5角2分２', '5元５角',
+-  '5元5角2分另有３',
++  '1000000000000元0角0分', '5元5角2分另有300', '5元5角2分２', '5元5角2分另有３',
+   '5元5角2分的2倍', '5元5角2分×2', '5元5角2分乘以出勤系数']) test(`an invalid, cropped or calculated Arabic subunit token is not a precise result: ${expression}`, () => {
+   const normalized = normalizeMoneyValueV4(expression);
+   assert.equal(normalized.amount, null); assert.equal(normalized.rawValue, expression);
+@@ -133,3 +132,5 @@
+   ['２０２６年２月３人工资5元5角2分', '5.52'], ['5元5角2分已工作２个月', '5.52']]) test(`fullwidth dates/counts remain unrelated to the anchored amount: ${raw}`, () => {
+   assert.equal(normalizeMoneyValueV4(raw).amount, amount);
+ });
++
++// ROUND30 adds complete fullwidth numerals; all malformed/cropped cases retain their assertions.
+--- before/scripts/material-facts-v7-round18-money-author.test.mjs
++++ after/scripts/material-facts-v7-round18-money-author.test.mjs
+@@ -84,9 +84,9 @@
+ for (const value of [
+   '五元55角', '五元十五角', '五元5角22分', '五元5角十二分', '五元五五角', '五元5分2角', '五元5角2角',
+   '五元零零分', '五元零0分', '五元零〇分', '五元5角零2分', '五元〇5分', '五元整5角',
+-  '五元５角', '五元5角２分', '五元5角2分３', '五元5角2分3', '五点五元5角', '5.5元5角', '4万元5角',
++  '五元5角2分３', '五元5角2分3', '五点五元5角', '5.5元5角', '4万元5角',
+   '壹仟壹元5角', '伍元5角零2分', '伍元伍角零贰分', '伍元零零分', '伍元零0分', '伍元5角22分',
+-  '伍元5分2角', '伍元5角2分元', '伍元５角', '负伍元5角2分', '负五元5角2分', '+伍元5角2分',
++  '伍元5分2角', '伍元5角2分元', '负伍元5角2分', '负五元5角2分', '+伍元5角2分',
+   '壹万亿元5角2分', '一万亿元5角2分', '五元5角2分另有300', '五元5角2分和六元5角', '五元5角至六元5角', '约五元5角', '五元5角余',
+   '五元5角的2倍', '五元5角乘以实际出勤系数', '五元5分钟', '五元5分之一', '五元5角度',
+ ]) test('abnormal order, precision, scaled Arabic yuan, qualifier or word boundary remains null: ' + value, () => {
+@@ -159,3 +159,8 @@
+   assert.equal(normalize({ ...f.candidate, quote: f.source.blocks[0].text }).amount, '5.05');
+   assert.equal(ingest(f).materials[0].candidates[0].amount, '5.05');
+ });
++
++for (const [value, amount] of [["五元５角", "5.50"], ["五元5角２分", "5.52"], ["伍元５角", "5.50"]])
++  test("complete fullwidth numeral contract: " + value, () => exact(value, amount));
++
++// ROUND30 adds complete fullwidth numerals; all malformed/cropped cases retain their assertions.
+--- before/scripts/material-facts-v7-round13-money-independent.test.mjs
++++ after/scripts/material-facts-v7-round13-money-independent.test.mjs
+@@ -100,7 +100,7 @@
+     assert.equal(canonical(value), 'exact:' + amount);
+     exactSource(value, amount);
+   });
+-for (const value of ['5元十五角', '5元五角十二分', '5.5元五角', '4万元五角', '5元五角零伍分', '5元零零分', '５元五角', '5元五角２分'])
++for (const value of ['5元十五角', '5元五角十二分', '5.5元五角', '4万元五角', '5元五角零伍分', '5元零零分', ])
+   test('unsupported mixed precision or ordering stays accepted but unavailable: ' + value, () => {
+     assert.equal(money(value).amount, null);
+     const candidate = entry(value), source = sourceFor('😀王甲工资' + value + '。');
+@@ -189,3 +189,8 @@
+   const row = assess(source, [], [], [entry('5分鐘')], { raw: [0, 1, 0], accepted: [0, 0, 0] });
+   assert.equal(row.raw_count, 1); assert.equal(row.accepted_count, 0); assert.equal(row.rejected.length, 1);
+ });
++
++for (const [value, amount] of [["５元五角", "5.50"], ["5元五角２分", "5.52"]])
++  test("complete fullwidth numeral contract: " + value, () => exactSource(value, amount));
++
++// ROUND30 adds complete fullwidth numerals; all malformed/cropped cases retain their assertions.
+--- before/scripts/material-facts-v7-round20-money-author.test.mjs
++++ after/scripts/material-facts-v7-round20-money-author.test.mjs
+@@ -93,7 +93,7 @@
+   test('ordinary nouns, punctuation and another event cannot become coefficient math: ' + before + '|' + after, () => assert.equal(arithmetic(before, after), false));
+ for (const [value, amount] of [['四萬圓', '40000.00'], ['人民幣四萬圓', '40000.00'], ['人民币四萬元', '40000.00'], ['人民幣 四萬 圓', '40000.00'], ['4萬元', '40000.00'], ['肆萬圓', '40000.00'], ['人民幣肆萬圓五角2分', '40000.52'], ['四萬零五元', '40005.00'], ['四萬圓零5分', '40000.05'], ['一萬圓', '10000.00'], ['兩萬圓', '20000.00'], ['一億圓', '100000000.00']])
+   test('traditional wan parses only in a complete anchored yuan literal: ' + value, () => exact(value, amount));
+-for (const value of ['一萬一圓', '億四萬圓', '兩四萬圓', '四萬萬圓', '四萬圓5', '四萬圓伍佰分', '四萬圓５角', '四\u200d萬圓', '四萬圓的兩倍', '四萬圓的四萬倍', '四萬圓的億倍', '四萬圓乘以提成比例', '四萬圓至五萬圓', '四萬圓港幣', '約四萬圓', '四萬圓餘', '負四萬圓'])
++for (const value of ['一萬一圓', '億四萬圓', '兩四萬圓', '四萬萬圓', '四萬圓5', '四萬圓伍佰分', '四\u200d萬圓', '四萬圓的兩倍', '四萬圓的四萬倍', '四萬圓的億倍', '四萬圓乘以提成比例', '四萬圓至五萬圓', '四萬圓港幣', '約四萬圓', '四萬圓餘', '負四萬圓'])
+   test('traditional aliases cannot repair unsupported numerals or erase uncertainty: ' + JSON.stringify(value), () => {
+     assert.equal(money(value).amount, null); assert.equal(money(value).rawValue, value);
+   });
+@@ -104,3 +104,8 @@
+   assert.equal(normalize({ ...f.candidate, quote: f.source.blocks[0].text }).amount, '40000.00');
+   assert.equal(ingest(f).materials[0].candidates[0].amount, '40000.00');
+ });
++
++for (const [value, amount] of [["四萬圓５角", "40000.50"]])
++  test("complete fullwidth numeral contract: " + value, () => exact(value, amount));
++
++// ROUND30 adds complete fullwidth numerals; all malformed/cropped cases retain their assertions.
+--- before/scripts/material-facts-v7-round11-money-independent.test.mjs
++++ after/scripts/material-facts-v7-round11-money-independent.test.mjs
+@@ -118,9 +118,9 @@
+   for (const value of [first, second]) unavailableInSource(text, value);
+ });
+ 
+-for (const [value, amount] of [['5元5角', '5.50'], ['5元5角2分', '5.52'], ['0元5角', '0.50'], ['12元3分', '12.03'],
++for (const [value, amount] of [["5元５角", "5.50"], ["５元5角", "5.50"], ['5元5角', '5.50'], ['5元5角2分', '5.52'], ['0元5角', '0.50'], ['12元3分', '12.03'],
+   ['1,005元2角3分', '1005.23'], ['人民币5元5角2分整', '5.52'], ['5元0角0分', '5.00']])
+-  test('a complete ASCII yuan/jiao/fen literal has exact cents without an automatic historical upgrade: ' + value, () => {
++  test('a complete yuan/jiao/fen literal has exact cents without an automatic historical upgrade: ' + value, () => {
+     const normalized = normalizeMoneyValueV4(value);
+     assert.equal(normalized.amount, amount);
+     assert.equal(normalized.status, 'exact');
+@@ -145,7 +145,7 @@
+     const value = expression.startsWith('5.5') ? '5.5元' : expression.startsWith('5万') ? '5万元' : '5元';
+     unavailableInSource('😀王甲工资为' + expression + '。', value);
+   });
+-for (const value of ['5元５角', '５元5角', '5.5元5角', '5万元5角'])
++for (const value of ['5.5元5角', '5万元5角'])
+   test('unsupported mixed, scaled, decimal or fullwidth subunits do not become precise fragments: ' + value, () => {
+     assert.equal(normalizeMoneyValueV4(value).amount, null);
+     const text = '😀王甲工资为' + value + '。', candidate = entry(value, value), source = sourceFor(text);
+@@ -197,3 +197,5 @@
+   const row = allScores(text, candidate, candidate, '5元5角2分', [1, 0, 0]);
+   assert.equal(row.production_defense[0].amount, '5.52');
+ });
++
++// ROUND30 adds complete fullwidth numerals; all malformed/cropped cases retain their assertions.

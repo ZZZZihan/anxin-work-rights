@@ -1,0 +1,5 @@
+{
+  "replyId": 4306871097,
+  "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4306871097",
+  "body": "已在 f16c59bc08c823538df00d6fa1fd2dbc139cd5a2 定向修复并复现验证。在既有显式运算路径识别最多16汉字、率结尾的命名操作数，裁剪基础金额不可exact；不解释普通费率叙述，不做计算。110项固定95为31通过79失败→110通过，既有685项通过。\n\n回归：[测试文件](https://github.com/ZZZZihan/anxin-work-rights/blob/f16c59bc08c823538df00d6fa1fd2dbc139cd5a2/scripts/material-fact-named-rate-operands.test.mjs)。最终459项定向回归通过，非实现者52项在Node24/26各通过；完整本机检查退出0。同一最终182项隔离HTTP：固定95构建170通过12失败→最终182通过，cleanup均通过。保留中间夹具失败、raw及旧结果；accepted不代表人工确认或自动计算。精确提交[CI](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39123689400)已成功，据此解决本线程，生产未部署。"
+}

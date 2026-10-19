@@ -45,6 +45,13 @@ jobs:
           python3 -B experiments/decision-baseline-v3/review/REPLICATION_PROBE.py experiments/decision-baseline-v3
           git diff --exit-code -- experiments/decision-baseline-v3/comparison.json experiments/decision-baseline-v3/replication/comparison.json
       - run: npm ci
+      - name: Check full original tree before moving diagnostic archives
+        run: |
+          python3 -B .github/test_ci_evidence_space.py
+          npm run typecheck
+          npm run lint
+      - name: Retain diagnostic archives outside recursive historical copies
+        run: python3 -B .github/ci-evidence-space.py park "$GITHUB_WORKSPACE" "$RUNNER_TEMP/anxin-diagnostics-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
       - name: Frozen public material candidate comparison (no model or API calls)
         run: |
           node experiments/material-facts-v4/verify.mjs
@@ -52,9 +59,53 @@ jobs:
           node experiments/material-facts-v5/verify.mjs
           node experiments/material-facts-v5/summarize.mjs --check
           node experiments/material-facts-v6/verify-frozen.mjs
+          node experiments/material-facts-v7/verify-frozen.mjs
+          node experiments/material-facts-v7/verify-correction-v1.mjs
+          node experiments/material-facts-v7/verify-correction-v2.mjs
+          node experiments/material-facts-v7/verify-correction-v3.mjs
+          node experiments/material-facts-v7/verify-correction-v4.mjs
+          node experiments/material-facts-v7/verify-correction-v5.mjs
+          node experiments/material-facts-v7/verify-correction-v6.mjs
+          node experiments/material-facts-v7/verify-correction-v7.mjs
+          node experiments/material-facts-v7/verify-correction-v8.mjs
+          node experiments/material-facts-v7/verify-correction-v9.mjs
+          node experiments/material-facts-v7/verify-correction-v12.mjs
+          node experiments/material-facts-v7/verify-correction-v13.mjs
+          node experiments/material-facts-v7/verify-correction-v14.mjs
+          node experiments/material-facts-v7/verify-correction-v15.mjs
+          node experiments/material-facts-v7/verify-correction-v16.mjs
+          node experiments/material-facts-v7/verify-correction-v17.mjs
+          node experiments/material-facts-v7/verify-correction-v18.mjs
+          node experiments/material-facts-v7/verify-correction-v19.mjs
+          node experiments/material-facts-v7/verify-correction-v20.mjs
+          node experiments/material-facts-v7/verify-correction-v21.mjs
+          node experiments/material-facts-v7/verify-correction-v22.mjs
+          node experiments/material-facts-v7/verify-correction-v23.mjs
+          node experiments/material-facts-v7/verify-correction-v24.mjs
+          node experiments/material-facts-v7/verify-correction-v25.mjs
+          node experiments/material-facts-v7/verify-correction-v26.mjs
+          node experiments/material-facts-v7/verify-correction-v27.mjs
+          node experiments/material-facts-v7/verify-correction-v28.mjs
+          node experiments/material-facts-v7/verify-correction-v29.mjs
+          node experiments/material-facts-v7/verify-correction-v30.mjs
+          node experiments/material-facts-v7/verify-correction-v31.mjs
+          node experiments/material-facts-v7/verify-correction-v32.mjs
+          node experiments/material-facts-v7/verify-correction-v33.mjs
+          node experiments/material-facts-v7/verify-correction-v34.mjs
+          node experiments/material-facts-v7/corrective-assessment-v35.mjs --check
       - name: Install Chinese OCR and PDF tools
         run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim poppler-utils
       - run: npm run check
+      - name: Restore and verify every diagnostic archive entry
+        if: always()
+        run: python3 -B .github/ci-evidence-space.py restore "$GITHUB_WORKSPACE" "$RUNNER_TEMP/anxin-diagnostics-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diagnostic-archive-retention
+          path: |
+            ${{ runner.temp }}/anxin-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}/manifest.json
+            ${{ runner.temp }}/anxin-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}/restore.json
       - name: HTTP persistence and failure regressions
         shell: bash
         run: |

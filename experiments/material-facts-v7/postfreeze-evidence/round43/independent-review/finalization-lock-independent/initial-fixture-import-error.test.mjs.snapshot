@@ -1,0 +1,175 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { copyFile, lstat, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, resolve } from 'node:path';
+import { setTimeout as delay } from 'node:timers/promises';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = resolve(process.env.MATERIAL_FACTS_V7_ENGINEERING_ROOT || fileURLToPath(new URL('../', import.meta.url)));
+const E = 'experiments/material-facts-v7';
+const entries = ['assess.mjs', 'summarize.mjs', 'verify.mjs'];
+const exists = async path => { try { await lstat(path); return true; } catch (error) { if (error.code === 'ENOENT') return false; throw error; } };
+const put = async (root, path, bytes) => { const target = resolve(root, path); await mkdir(dirname(target), { recursive: true }); await writeFile(target, bytes); return target; };
+
+// Copy only the actual entry modules and their literal relative imports. No
+// historical verifier, real frozen data or model process is invoked by this suite.
+async function copyModules(root) {
+  const seen = new Set();
+  async function copy(path) {
+    if (seen.has(path)) return;
+    seen.add(path);
+    const bytes = await readFile(path), target = resolve(root, path.slice(ROOT.length + 1));
+    await mkdir(dirname(target), { recursive: true }); await copyFile(path, target);
+    for (const match of bytes.toString().matchAll(/(?:from\s*|import\s*\()(['"])([^'"]+)\1/gu)) {
+      if (match[2].startsWith('.')) await copy(resolve(dirname(path), match[2]));
+    }
+  }
+  for (const entry of entries) await copy(resolve(ROOT, E, entry));
+  // These are CLI-only dynamic imports in a template-free import statement.
+  for (const entry of ['experiment-lock.mjs', 'immutable-artifact-publication.mjs']) await copy(resolve(ROOT, E, entry));
+}
+
+async function fixture(t) {
+  const root = await mkdtemp(resolve(tmpdir(), 'anxin-r43-finalization-'));
+  const children = [];
+  t.after(async () => {
+    for (const item of children) if (item.child.exitCode === null && item.child.signalCode === null) item.child.kill('SIGKILL');
+    await Promise.allSettled(children.map(item => item.closed));
+    await rm(root, { recursive: true, force: true });
+  });
+  await copyModules(root);
+  await mkdir(resolve(root, E, 'results'), { recursive: true });
+  const input = await put(root, 'synthetic/inputs.jsonl', '');
+  const labels = await put(root, 'synthetic/labels.jsonl', '');
+  const outside = await put(root, 'synthetic/results.jsonl', '');
+  const inside = await put(root, `${E}/results/holdout-rules-1/results.jsonl`, '');
+  const cli = (module, args = [], extra = []) => {
+    const child = spawn(process.execPath, [...extra, resolve(root, E, module), ...args], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '';
+    child.stdout.on('data', bytes => { stdout += bytes; }); child.stderr.on('data', bytes => { stderr += bytes; });
+    const closed = new Promise((resolveClose, reject) => { child.once('error', reject); child.once('close', (code, signal) => resolveClose({ code, signal, stdout, stderr })); });
+    const item = { child, closed }; children.push(item); return item;
+  };
+  const lock = resolve(root, E, '.experiment.lock');
+  const hold = async () => {
+    await mkdir(lock, { mode: 0o700 });
+    await writeFile(resolve(lock, 'owner.json'), JSON.stringify({ schema: 'material-facts-v7-experiment-lock/1', operation: 'holdout', pid: process.pid, hostname: 'isolated-synthetic-owner', token: 'synthetic-not-secret' }) + '\n');
+  };
+  const release = () => rm(lock, { recursive: true });
+  return { root, input, labels, inside, outside, cli, lock, hold, release };
+}
+
+async function waitFor(path, item) {
+  const end = Date.now() + 7000;
+  while (!await exists(path)) {
+    if (item.child.exitCode !== null || item.child.signalCode !== null) assert.fail(`CLI closed before the native filesystem barrier: ${JSON.stringify(await item.closed)}`);
+    assert(Date.now() < end, `Timed out waiting for ${path}`);
+    await delay(10);
+  }
+}
+const refused = value => { assert.equal(value.code, 1, value.stderr); assert.equal(value.signal, null); assert.match(value.stderr, /Experiment lock already exists|EEXIST/u); };
+
+test('assessment CLI refuses an active synthetic holdout before reading results and leaves all result bytes unchanged', async t => {
+  const f = await fixture(t), output = resolve(f.root, E, 'results/holdout-rules-1/report.json');
+  await f.hold(); const before = await readFile(f.inside), owner = await readFile(resolve(f.lock, 'owner.json'));
+  refused(await f.cli('assess.mjs', [f.input, f.labels, f.inside, output]).closed);
+  assert.equal(await exists(output), false); assert.deepEqual(await readFile(f.inside), before);
+  assert.deepEqual(await readFile(resolve(f.lock, 'owner.json')), owner);
+  await f.release(); assert.equal((await f.cli('assess.mjs', [f.input, f.labels, f.inside, output]).closed).code, 0);
+  assert.equal(JSON.parse(await readFile(output)).planned_documents, 0); assert.equal(await exists(f.lock), false);
+});
+
+test('assessment output inside results is locked even when all input files are generic temporary fixtures', async t => {
+  const f = await fixture(t), output = resolve(f.root, E, 'results/report-from-external-input.json');
+  await f.hold(); refused(await f.cli('assess.mjs', [f.input, f.labels, f.outside, output]).closed);
+  assert.equal(await exists(output), false); await f.release();
+  assert.equal((await f.cli('assess.mjs', [f.input, f.labels, f.outside, output]).closed).code, 0);
+});
+
+test('realpath aliases of both result reads and result output directories cannot bypass the lifecycle lock', async t => {
+  const f = await fixture(t); await f.hold();
+  const alias = resolve(f.root, 'results-alias'); await symlink(resolve(f.root, E, 'results'), alias, 'dir');
+  for (const [input, output] of [[resolve(alias, 'holdout-rules-1/results.jsonl'), resolve(f.root, 'synthetic/alias-read-report.json')], [f.outside, resolve(alias, 'alias-write-report.json')]]) {
+    refused(await f.cli('assess.mjs', [f.input, f.labels, input, output]).closed); assert.equal(await exists(output), false);
+  }
+  assert.deepEqual((await readdir(resolve(f.root, E, 'results'))).sort(), ['holdout-rules-1']);
+});
+
+test('summary CLI refuses a busy experiment and succeeds only after release on synthetic report fixtures', async t => {
+  const f = await fixture(t), metrics = Object.fromEntries(['raw_basic', 'accepted_basic', 'raw_relational', 'accepted_relational', 'raw_strict', 'accepted_strict'].map(name => [name, { tp: 0, fp: 0, fn: 0, precision: null, recall: null, f1: null }]));
+  const cases = Array.from({ length: 12 }, () => ({ production_defense: [], event_alignment: { raw: [], accepted: [] }, normalization: [], review_issues: [], attribute_errors: [], rejected: [], errors: [], coverage: null }));
+  for (const backend of ['rules', 'qwen', 'deepseek']) {
+    const path = `${E}/results/holdout-${backend}-1`;
+    await put(f.root, `${path}/report.json`, JSON.stringify({ planned_documents: 12, expected_facts: 43, cases, metrics, returned: 0, completed: 0, native_json: 0, protocol_valid: 0, exact_documents: 0, raw_candidates: 0, accepted_candidates: 0, rejected_candidates: 0, review_issues: 0 }));
+    await put(f.root, `${path}/outcome.json`, '{"attempts":[],"completed":false}\n');
+    await put(f.root, `${path}/results.jsonl`, '');
+    if (backend === 'deepseek') await put(f.root, `${path}/protocol.json`, '{"deepseek":{"egress":"direct"}}\n');
+  }
+  const destination = resolve(f.root, E, 'comparison.json');
+  await f.hold(); refused(await f.cli('summarize.mjs').closed); assert.equal(await exists(destination), false);
+  await f.release(); const result = await f.cli('summarize.mjs').closed; assert.equal(result.code, 0, result.stderr);
+  assert.equal(JSON.parse(await readFile(destination)).holdout_documents, 12);
+  assert.equal((await f.cli('summarize.mjs', ['--check']).closed).code, 0); assert.equal(await exists(f.lock), false);
+});
+
+test('manifest CLI refuses the busy lock before preflight, without invoking any historical verifier', async t => {
+  const f = await fixture(t), destination = resolve(f.root, E, 'result-manifest.json');
+  // There is deliberately no freeze.json. Any unlocked path stops at its first
+  // file read, before validation, old verification or scoring can execute.
+  await f.hold(); refused(await f.cli('verify.mjs', ['--write-manifest']).closed); assert.equal(await exists(destination), false);
+  await f.release(); const released = await f.cli('verify.mjs', ['--write-manifest']).closed;
+  assert.equal(released.code, 1); assert.match(released.stderr, /freeze\.json/u); assert.doesNotMatch(released.stderr, /Experiment lock already exists/u);
+  assert.equal(await exists(f.lock), false); assert.equal(await exists(destination), false);
+});
+
+test('assessment owns its lock before reads through completion of a real hard-link publication', async t => {
+  const f = await fixture(t), output = resolve(f.root, E, 'results/holdout-rules-1/report.json');
+  const entered = resolve(f.root, 'native-link-entered'), release = resolve(f.root, 'release-native-link');
+  const preload = await put(f.root, 'publication-barrier.mjs', `
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+import { setTimeout as delay } from 'node:timers/promises';
+const native = fs.promises.link;
+fs.promises.link = async (from, to) => {
+  if (to === ${JSON.stringify(output)}) {
+    await fs.promises.writeFile(${JSON.stringify(entered)}, 'native-link-waiting');
+    const deadline=Date.now()+7000;
+    while (!fs.existsSync(${JSON.stringify(release)})) { if(Date.now()>deadline) throw new Error('Synthetic publication barrier timeout'); await delay(10); }
+  }
+  return native(from, to);
+};
+syncBuiltinESMExports();
+`);
+  const assessor = f.cli('assess.mjs', [f.input, f.labels, f.inside, output], ['--import', preload]);
+  await waitFor(entered, assessor);
+  assert.equal(await exists(output), false, 'No final path is visible before native publication');
+  assert.equal(await exists(f.lock), true, 'The lifecycle lock must remain owned while publish is blocked');
+  assert.equal(JSON.parse(await readFile(resolve(f.lock, 'owner.json'))).operation, 'assessment');
+  const blocked = await f.cli('verify.mjs', ['--write-manifest']).closed; refused(blocked);
+  await writeFile(release, 'continue'); const done = await assessor.closed; assert.equal(done.code, 0, done.stderr);
+  assert.equal(await exists(f.lock), false); assert.equal(JSON.parse(await readFile(output)).planned_documents, 0);
+});
+
+test('unrelated temporary CLI and side-effect-free library import do not acquire the experiment lock', async t => {
+  const f = await fixture(t), output = resolve(f.root, 'synthetic/unrelated-report.json'); await f.hold();
+  const result = await f.cli('assess.mjs', [f.input, f.labels, f.outside, output]).closed; assert.equal(result.code, 0, result.stderr);
+  assert.equal(JSON.parse(await readFile(output)).planned_documents, 0);
+  const library = await put(f.root, `${E}/library-probe.mjs`, `import { assess } from './assess.mjs'; console.log(JSON.stringify(assess([],[],[])));`);
+  const child = spawn(process.execPath, [library], { cwd: f.root, stdio: ['ignore', 'pipe', 'pipe'] });
+  let out = '', err = ''; child.stdout.on('data', bytes => { out += bytes; }); child.stderr.on('data', bytes => { err += bytes; });
+  const code = await new Promise((resolveClose, reject) => { child.once('error', reject); child.once('close', resolveClose); });
+  assert.equal(code, 0, err); assert.equal(JSON.parse(out).planned_documents, 0);
+  assert.equal(JSON.parse(await readFile(resolve(f.lock, 'owner.json'))).operation, 'holdout');
+});
+
+test('malformed synthetic assessment preserves its raw input and releases the owned lock for retry', async t => {
+  const f = await fixture(t), output = resolve(f.root, E, 'results/retry-report.json');
+  const raw = Buffer.from('malformed original result bytes\n'); await writeFile(f.inside, raw);
+  const result = await f.cli('assess.mjs', [f.input, f.labels, f.inside, output]).closed;
+  assert.equal(result.code, 1); assert.equal(await exists(f.lock), false); assert.equal(await exists(output), false);
+  assert.deepEqual(await readFile(f.inside), raw); await writeFile(f.inside, '');
+  const retry = await f.cli('assess.mjs', [f.input, f.labels, f.inside, output]).closed; assert.equal(retry.code, 0, retry.stderr);
+  assert.equal(await exists(f.lock), false);
+});

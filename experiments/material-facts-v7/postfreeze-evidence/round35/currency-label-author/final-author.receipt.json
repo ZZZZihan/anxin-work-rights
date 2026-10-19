@@ -1,0 +1,95 @@
+{
+  "status": "passed_author_module_checks_pending_parent_integration_and_independent_review",
+  "base_money_sha256": "575b5a27165dde253ed4e7ff85de93fdd3b01ddf2f2af930de9fdf745808095d",
+  "base_dependencies": "Exact 1cc lib archive plus R34 compatibility money575b/source5bee; baseline-index.json binds all bytes.",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "backend_independently_verified": false,
+  "runtime": "Node v26.11.0; Vitest 3.2.7",
+  "products": [
+    {
+      "source": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-money-v4.ts",
+      "sha256": "13c852da181c401b6f1b55c7279ddcc3f25a1f52f3c4d6e0c8a89e1de9d10df8"
+    },
+    {
+      "source": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-round35-currency-label-author.test.mjs",
+      "sha256": "bd956b2f30884808b8a3dc8bf74417c8c311ffbfa77cfdba27fc0f336a767a63"
+    }
+  ],
+  "unchanged_source_sha256": "5bee328a03deb6e072f2c8e9760ec100a8d5628a14f4670ff38e40d814f84766",
+  "patch": {
+    "source": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round35/currency-label-author/final-money.patch",
+    "sha256": "e24fe9dd0203e79db2d9a2e3db122927029cddd14e4796c0f485767f122da8f2"
+  },
+  "behavior": [
+    "classify only: complete single 人民币/人民幣/RMB/CNY/¥ prefix plus existing finite wage name or 金额/数额 and optional 合计/总额/标准 is not_monetary",
+    "existing traditional wage-label detection view and wage-name grammar reused",
+    "no normalization parser, source review, runtime adapter, scorer or schema changes",
+    "unknown/masked/real numerals/named prose cannot match the complete empty-label branch"
+  ],
+  "checks": [
+    {
+      "file": "minimal-before.stdout.tap",
+      "result": "0 pass / 4 fail",
+      "exit_code": 1
+    },
+    {
+      "file": "minimal-after.stdout.tap",
+      "result": "4 pass / 0 fail",
+      "exit_code": 0
+    },
+    {
+      "file": "author-final-before.stdout.tap",
+      "result": "63 pass / 76 fail; same final 139 tests",
+      "exit_code": 1
+    },
+    {
+      "file": "author-final-after.stdout.tap",
+      "result": "139 pass / 0 fail",
+      "exit_code": 0
+    },
+    {
+      "file": "old-vitest-final.stdout.log",
+      "result": "2 unchanged files: money485 + source72 = 557 pass",
+      "exit_code": 0
+    },
+    {
+      "file": "old-modules-final.stdout.tap",
+      "result": "406 pass: angle ordinary words, qualified bounds, unfinished ranges and ROUND34 compatibility",
+      "exit_code": 0
+    },
+    {
+      "file": "lint-author-final.stdout.log",
+      "result": "ESLint exit 0",
+      "exit_code": 0
+    }
+  ],
+  "named_prose_observed_by_final_author_assertions": {
+    "example": "王甲人民币工资",
+    "retained": true,
+    "amount": null,
+    "normalization_status": "unsupported",
+    "normalization_reason_contains": "核对",
+    "canonical_key": null,
+    "can_calculate": false,
+    "due_values": [],
+    "paid_values": [],
+    "claim_limit": "No six-layer scorer was executed; only the shared canonical helper and unavailable production view were asserted."
+  },
+  "preservation": [
+    "valid original envelope and all candidate fields before semantic rejection",
+    "rejected observation index and reason retained",
+    "full original raw JSON, value/quote and rawValue retained",
+    "Unicode source spans unchanged for retained inputs",
+    "existing stored extraction remains present, unavailable and history/storage not mutated",
+    "all prior logs and snapshots retained"
+  ],
+  "limits": [
+    "bounded pure labels only; 王甲人民币工资 and arbitrary narrative remain reviewable rather than definitely rejected",
+    "no universal empty-currency prose detection; other uncertain input stays retained",
+    "author synthetic module checks, not nonimplementer validation or user business acceptance",
+    "no scorer/model/HTTP/build/fullcheck/history CLI, no commit/push/merge/deploy",
+    "source remains 5bee in this author fixture; DATA new source integration requires parent checks"
+  ],
+  "recorded_at_utc": "2026-10-18T17:10:00.481162+00:00"
+}

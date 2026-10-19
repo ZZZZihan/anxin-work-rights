@@ -1,0 +1,196 @@
+{
+  "schema": "issue42-round33-money-postfix-currency-author/1",
+  "at_utc": "2026-10-18T16:12:20.189929+00:00",
+  "baseline_commit": "8ac64640429017f2183b3ae0cde8f02a10cedfa4",
+  "baseline_capture": "git archive exact commit lib; 78 files captured; prior OWN money saved before explicit file copy; no reset",
+  "finding": "4307699301",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "actual_backend_independently_verified": false,
+  "products": [
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-money-v4.ts",
+      "sha256": "f25da64312b388662654b174311b3ad569bede44a19c4ec2da227ad0d6af167e",
+      "bytes": 47666
+    }
+  ],
+  "author_test": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-round33-money-author.test.mjs",
+    "sha256": "6af80c54818efcc3a7d60ef4619f2873d56a876614d5a9365ae6ba59d74c49e2",
+    "bytes": 8735
+  },
+  "new_api": false,
+  "implementation": [
+    "One private named-RMB edge predicate is used in full parsing, unique candidate quote edges and the existing source-layout continuation hook.",
+    "Named markers reuse RMB_NAME: 人民币/人民幣/RMB/CNY, including its existing ASCII word boundaries. A second attached marker is unsupported, never used to select one precise subexpression.",
+    "Detection-only NFKC/Cf folding and layout whitespace leave raw, value, quote, source block text and code-point spans unchanged. No arbitrary prose or sentence boundary is consumed.",
+    "Source-review product is unchanged; its existing hasUnsafeWholeMoneyContinuation call supplies the complete after edge before the finite terminator-specific checks.",
+    "Candidate and persisted-history checks only downgrade availability; unsupported/null history never upgrades."
+  ],
+  "executions": {
+    "new_same_75": {
+      "node": "26.11.0",
+      "before": {
+        "pass": 28,
+        "fail": 47,
+        "exitCode": 1
+      },
+      "after": {
+        "pass": 75,
+        "fail": 0,
+        "exitCode": 0
+      },
+      "script_changed_between_before_after": false,
+      "synthetic_test_containers_not_natural_materials": true
+    },
+    "existing_module_checks": {
+      "scripts": [
+        {
+          "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-fact-mixed-subunits.test.mjs",
+          "sha256": "c7880a11825a116b21c626a83f3e068d344839dbe75c97365767a9a3c47ee518",
+          "bytes": 9355
+        },
+        {
+          "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-fact-whole-money-terminator.test.mjs",
+          "sha256": "82c4954c0d509a3cce3ee79bf88813fef3761d5fd22b301553c413a7aa22838a",
+          "bytes": 13953
+        },
+        {
+          "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-facts-v7-round31-hour-author.test.mjs",
+          "sha256": "65fdf3d09e27c733d126c09778f7aed86a8a4eaa5aed804712ef33d4ef7f6a7f",
+          "bytes": 8894
+        },
+        {
+          "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-facts-v7-round32-angle-author.test.mjs",
+          "sha256": "7bebafd8bb2f0218e78d446abecd5c3f46c8f59397a12aece120c7ec0ebac0d0",
+          "bytes": 10059
+        }
+      ],
+      "pass": 917,
+      "fail": 0,
+      "exitCode": 0,
+      "node": "26.11.0"
+    },
+    "scoped_eslint": {
+      "exitCode": 0,
+      "config": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/eslint.config.mjs"
+    }
+  },
+  "covered": [
+    "Full 4000人民币人民币 / 4000元人民币CNY / 4000人民幣人民幣 and Arabic/Chinese/fullwidth/Cf/layout variants.",
+    "Cropped value and minimal/full quote, including bare4000 removing both markers.",
+    "Same clause/newline/adjacent-block source plus persisted synthetic old exact read-time downgrade; source, state input, raw, history and CP preserved.",
+    "Valid single named prefix/postfix, whole terminator before suffix, pure jiao/fen named postfix stay exact.",
+    "Independent sentence, another subject and intervening ordinary prose do not attach a duplicate marker.",
+    "Existing foreign/range/unknown/rate/arithmetic controls remain unavailable."
+  ],
+  "limitations": [
+    "Author synthetic module self-checks, not a new independent material/model run or business/legal acceptance.",
+    "Finite named RMB grammar inherits existing word boundaries. This patch does not generalize arbitrary currency syntax or perform FX conversion.",
+    "Source diagnostics reuse the existing continuation hook; no source/currency/range/event production file was edited.",
+    "No new HTTP, fullcheck, build, scorer, historical CLI, training, model inference, commit, push, merge or deployment was executed.",
+    "Nonimplementer technical review and actual integrated CODE validation are separate parent/peer work, not asserted completed by this author receipt."
+  ],
+  "evidence": [
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/8ac-baseline-files.json",
+      "sha256": "fc53f3811053bbc076dbdeaa661ef76e503ddc0c3071bed56f96303a7ad9ff87",
+      "bytes": 8452
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/author-final.snapshot",
+      "sha256": "6af80c54818efcc3a7d60ef4619f2873d56a876614d5a9365ae6ba59d74c49e2",
+      "bytes": 8735
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/author-fixed8ac-after.execution.json",
+      "sha256": "fe181b6588cbdcd6928fc5fc4eeed3d8ba367b9f71f8bc9c15a8666cb7370dc2",
+      "bytes": 487
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/author-fixed8ac-after.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/author-fixed8ac-after.stdout.tap",
+      "sha256": "027c84794603602f6ac53442ef8d5d29a13871abbb9bd35163f317c9ca1b5a20",
+      "bytes": 20777
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/author-fixed8ac-before.execution.json",
+      "sha256": "7136eaaa1dc93b6280412d07a2ce35c2fe91593ffcd8bc7f1076d0ec94d9ae78",
+      "bytes": 405
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/author-fixed8ac-before.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/author-fixed8ac-before.stdout.tap",
+      "sha256": "bacc43eec704b585e8df8ec315cced7e9d43891a57f3d275c478b55e514a5f54",
+      "bytes": 68607
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/key-existing-after.execution.json",
+      "sha256": "834c37bffd31a904d817aa12346281981b729a7bf4a9f5b675b26e5821b0e9e4",
+      "bytes": 978
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/key-existing-after.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/key-existing-after.stdout.tap",
+      "sha256": "ae8d745bb06dfb2d27d145bf214cf9d4af07f5d710d710afe5b4d583a321b910",
+      "bytes": 249075
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/minimal-fixed8ac-before.execution.json",
+      "sha256": "a0c60e02f56f1a2c8c83ab6f8117986b552872609e622491610091ce4cae39b9",
+      "bytes": 211
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/minimal-fixed8ac-before.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/minimal-fixed8ac-before.stdout.json",
+      "sha256": "418f977cfdb03a62fe2335e5af8044ce326e53f5cf62fc221b813756544fa775",
+      "bytes": 5262
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/money-final.snapshot",
+      "sha256": "f25da64312b388662654b174311b3ad569bede44a19c4ec2da227ad0d6af167e",
+      "bytes": 47666
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/money-own-pre-round33.snapshot",
+      "sha256": "7025a1a3f57da7e6edf6c74973d5759fcf7130f832b4eb4e406b48b4930eaadb",
+      "bytes": 46309
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/money-postfix-duplicate-fixed8ac.patch",
+      "sha256": "cc7f2365eb515d7ed93cd7ea952f295adea220ada4390d769ea006a87631e3f8",
+      "bytes": 5707
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/scoped-lint.execution.json",
+      "sha256": "e0e9659fe89df16cee7b3e1c7ab569851185609fc5849301e7c629c134f765db",
+      "bytes": 465
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/scoped-lint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/scoped-lint.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}

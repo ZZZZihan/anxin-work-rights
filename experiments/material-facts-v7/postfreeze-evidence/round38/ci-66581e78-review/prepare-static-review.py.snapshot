@@ -1,0 +1,88 @@
+"""Read-only exact-head evidence collection. No project commands are run."""
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import subprocess
+
+P = Path(__file__).resolve().parent
+CODE = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+PREV = P.parents[1] / 'round37/ci-d963425ef-review'
+HEAD = '66581e78f695cf4ed70e9b1bde2f1456814f8b05'
+REPO = 'ZZZZihan/anxin-work-rights'
+sha = lambda value: hashlib.sha256(value).hexdigest()
+
+
+def save(name, value):
+    data = value if isinstance(value, bytes) else (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode()
+    with (P / name).open('xb') as out:
+        out.write(data)
+
+
+def git(*args):
+    command = subprocess.run(['git', *args], cwd=CODE, capture_output=True, timeout=45)
+    assert command.returncode == 0, command.stderr
+    return command.stdout
+
+
+def api(endpoint, name):
+    command = subprocess.run(['gh', 'api', endpoint], capture_output=True, timeout=45)
+    assert command.returncode == 0, command.stderr
+    save(name, command.stdout)
+    return json.loads(command.stdout)
+
+
+pull = api(f'repos/{REPO}/pulls/45', 'pull45-at-start.json')
+commit = api(f'repos/{REPO}/git/commits/{HEAD}', 'head-commit-api-at-start.json')
+merge_sha = pull['merge_commit_sha']
+merge = api(f'repos/{REPO}/git/commits/{merge_sha}', 'merge-commit-api-at-start.json')
+local_tree = git('rev-parse', HEAD + '^{tree}').decode().strip()
+identity = {
+    'observed_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'head': HEAD, 'pull_head_at_read': pull['head']['sha'],
+    'pull_merge_sha_at_read': merge_sha,
+    'head_tree': commit['tree']['sha'], 'remote_head_tree': commit['tree']['sha'],
+    'local_head_tree': local_tree, 'merge_tree': merge['tree']['sha'],
+    'merge_parents': [parent['sha'] for parent in merge['parents']],
+}
+assert identity['pull_head_at_read'] == HEAD
+assert identity['remote_head_tree'] == identity['local_head_tree'] == identity['merge_tree']
+assert HEAD in identity['merge_parents']
+save('static-identity-at-start.json', identity)
+save('head-git-ls-tree.raw', git('ls-tree', '-r', HEAD))
+save('workflow-exact-head.yml.snapshot', git('show', HEAD + ':.github/workflows/ci.yml'))
+save('package-exact-head.json.snapshot', git('show', HEAD + ':package.json'))
+originals = json.loads((PREV / 'local-original-results-vs-exact-head.json').read_text())['files']
+rows = []
+for entry in originals:
+    relative = entry['path']
+    data = (CODE / relative).read_bytes()
+    blob = git('show', HEAD + ':' + relative)
+    assert sha(data) == sha(blob) == entry['sha256'], relative
+    rows.append({'path': relative, 'sha256': sha(data), 'git_blob_sha256': sha(blob), 'bytes': len(data)})
+save('local-original-results-vs-exact-head.json', {'head': HEAD, 'count': len(rows), 'files': rows})
+historical = json.loads((PREV / 'local-historical-manifests-hashes.json').read_text())
+for entry in historical:
+    assert sha((CODE / entry['path']).read_bytes()) == entry['sha256'], entry['path']
+save('local-historical-manifests-hashes.json', historical)
+previous_index = json.loads((PREV / 'copy-index.ci-d963425ef.json').read_text())
+preserved = []
+for entry in previous_index['files']:
+    source = Path(entry['source'])
+    assert sha(source.read_bytes()) == entry['sha256'], str(source)
+    preserved.append({'source': str(source), 'sha256': entry['sha256']})
+save('prior-d963-failed-checkpoint-protection.json', {'files': preserved, 'count': len(preserved), 'unchanged': True})
+paths = [entry['path'] for entry in json.loads((PREV / 'exact-commit-vs-tested-worktree.json').read_text())]
+paths += ['lib/material-money-v4.ts', 'lib/material-fact-range-review.ts', 'lib/material-fact-runtime-ingest.ts',
+          'scripts/material-facts-v7-http-regression.mjs', 'scripts/material-facts-http-repeat-signal.test.mjs',
+          'scripts/material-facts-v7-round38-independent.test.mjs', 'scripts/owned-http-process-group.mjs']
+current = []
+for relative in dict.fromkeys(paths):
+    data = (CODE / relative).read_bytes()
+    blob = git('show', HEAD + ':' + relative)
+    assert sha(data) == sha(blob), relative
+    current.append({'path': relative, 'head_sha256': sha(blob), 'worktree_sha256': sha(data), 'bytes': len(data)})
+save('exact-commit-vs-tested-worktree.json', current)
+for name in ['http447-after.json', 'http447-before.json', 'full-check-final.receipt.json']:
+    save('parent-' + name, (CODE / '.scratch/issue42/round38' / name).read_bytes())
+print(json.dumps({'identity': identity, 'original_results': len(rows), 'current_files': len(current), 'prior_failure_files_unchanged': len(preserved)}, ensure_ascii=False))

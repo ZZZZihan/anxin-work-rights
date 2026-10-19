@@ -1,0 +1,25 @@
+from pathlib import Path
+E=Path('experiments/material-facts-v7')
+p=E/'README.md';s=p.read_text();start=s.index('当前检查点说明：');end=s.index('\n\nIssue ',start)
+s=s[:start]+'''当前检查点：ROUND33 应用修复已有锁定红→绿、独立双版本检查及 HTTP352 实跑证据；同一首跑输出的 v25 已另存。应用9fb的CI因旧v6冻结入口读取当前v3代码失败，原失败保留，正在以归档入口修复；最终精确CI与审查结论另行更新，不沿用旧绿色检查。'''+s[end:]
+a=s.index('当前应用为 PR #45');b=s.index('v23检查点保留：',a)
+s=s[:a]+'''当前产品修复为 PR #45 的 `9fb69c543f15862d7aaaafacdc3a392de5e48f36`：后置人民币不再误认人数；重复附着币种及裁剪值不再获得精确金额；跨页/明确新人物不再误拼成元角分普通词；已退出启动器的清理核对继承身份标记。原输出、位置、审计与人工核对保留。有限布局识别不能证明任意OCR连续性，进程身份检查与POSIX信号并非原子。见 [ROUND33记录](POSTRUN_ROUND33_APPLICATION.md) 与 [非实现者应用复核](ROUND33_APPLICATION_INDEPENDENT.md)。
+
+主侧150作者项及21独立项整合通过；独立21项在Node24.22/26.11各通过，已有真实进程生命周期36项通过。同一HTTP352在实际8ac构建344P8F→修后352P0F；353份raw/candidates/finish_reason及341项旧非重启观察逐项未变；重启核对343→351份存储快照，cleanup通过。当前CI39144615912因旧v6哈希入口失败，完整check及全部HTTP/OCR未执行，不算通过；原日志与零artifact事实保存于 [失败核查](postfreeze-evidence/round33/ci-9fb-review/review.md)。
+
+最新另存复评为 `corrections-v25/`，绑定94项当前代码，v24的91项代码另行归档。manifest SHA `4eef4eeeba7df54d6f40a67ff4cca3170de8788b1ab9578b45c29d06ed1cb8ca`。主侧write退出0（195.982秒），1690份保护字节未变，原60份结果与固定清单全部匹配，三路逐案报告均与v24逐字相同。只读check与实际产物独立轻核另记最终回执。没有修改输入、gold或原回答，零新增模型请求；这不是新一次盲测或模型能力提升。
+
+v24检查点保留：应用8ac精确CI39142356614成功；v24 manifest86560d…、91当前/88归档，write181.910秒/check183.688秒退出0，379保护字节不变；独立轻核398路径及216评分分区通过。随后四项ROUND33审查触发本次修复，旧结果不覆盖。
+
+'''+s[b:]
+s=s.replace('最终v24版本CI','最终v25版本CI').replace('二十四版修正','二十五版修正').replace('与 `corrections-v24/`。','、`corrections-v24/` 与 `corrections-v25/`。').replace('上表采用最新v24','v25三路逐案报告与v24逐字相同；上表采用最新v25')
+s=s.replace('# 历史v21/v22/v23按归档代码核对，当前v24零推理复算。','# 历史v21至v24按归档代码核对，当前v25零推理复算。').replace('node experiments/material-facts-v7/corrective-assessment-v24.mjs --check','node experiments/material-facts-v7/verify-correction-v24.mjs\nnode experiments/material-facts-v7/corrective-assessment-v25.mjs --check').replace('或v1至v23的','或v1至v24的')
+s=s.replace('| 原结果 manifest |','| 修正v25 manifest | `4eef4eeeba7df54d6f40a67ff4cca3170de8788b1ab9578b45c29d06ed1cb8ca` |\n| 原结果 manifest |');p.write_text(s)
+p=E/'ERROR_REVIEW.md';s=p.read_text();a=s.index('当前检查点说明：');b=s.index('历史失败/停止继续保留：',a)
+s=s[:a]+'''当前ROUND33修复已有150作者＋21独立项通过、独立21项双Node通过和同一HTTP352的344P8F→352P0F。应用9fb CI由于旧v6入口误读当前v3代码而失败，完整检查和HTTP/OCR均未运行；历史冻结入口的修复及最终CI另记，不以本机通过抵销该失败。见 [ROUND33](POSTRUN_ROUND33_APPLICATION.md)。
+
+v25另存同一首跑输出，94当前/91归档代码；write通过且1690保护字节未变，原60文件匹配固定清单，三路报告与v24逐字相同。check与非实现者实际产物轻核正在完成；最终PR46 CI另行核对。v24及此前绿色检查、失败和主动中止记录原样保留。自然语义错误、保守误警及人工业务验收缺口继续成立。
+
+'''+s[b:]
+s=s.replace('Qwen 南昌 C[2–3] 将原文623万余元、441万余元改写成62,300,000余元、44,100,000余元，分别多一数量级；其quote没有原文依据，已拒收，不能称普通格式差异。','Qwen 南昌 C[2–3] 的原始value仍是623万余元、441万余元，但quote改写成62,300,000余元、44,100,000余元，分别多一数量级；错误引文没有原文依据，已拒收，不能称普通格式差异，也不能误称raw value本身变成十倍。')
+p.write_text(s)

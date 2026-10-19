@@ -1,0 +1,55 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const root = resolve(process.env.V7_ROUND22_ROOT || fileURLToPath(new URL('../', import.meta.url)));
+const { assessCase, resolveCandidateEvent } = await import(pathToFileURL(resolve(root, 'experiments/material-facts-v7/assess.mjs')).href);
+const { ingestRuntimeCandidates } = await import(pathToFileURL(resolve(root, 'lib/material-fact-runtime-ingest.ts')).href);
+const { emptyFactState } = await import(pathToFileURL(resolve(root, 'lib/material-facts-v3.ts')).href);
+const cp = text => Array.from(text).length;
+const entry = (value, quote) => ({ kind: 'money', value, quote, blockId: 'b1', subject: '王甲', scope: 'individual', meaning: 'payment', completeness: 'partial', period: null, rateUnit: null, assertion: 'narrated' });
+const fixture = (phrases, values, anchors = phrases.map(() => '四萬圓')) => {
+  const text = '😀𠮷。' + phrases.join('；') + '。';
+  const input = { id: 'traditional-wrapper', source: { id: 'round22', name: 'synthetic', sha256: 'e'.repeat(64), analysisRevision: 22, ready: true, blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }] } };
+  const label = { expected: phrases.map(quote => entry('四萬圓', quote)), expected_event_ids: phrases.map((_, i) => 'e' + i), acceptable_alternatives: [], events: phrases.map((quote, i) => {
+    const at = text.indexOf(quote) + quote.indexOf(anchors[i]);
+    return { id: 'e' + i, anchors: [{ blockId: 'b1', start: cp(text.slice(0, at)), end: cp(text.slice(0, at + anchors[i].length)) }] };
+  }) };
+  return { input, label, candidates: values.map((value, i) => entry(value, phrases[i])) };
+};
+function evaluate(f) {
+  const before = structuredClone(f), raw = JSON.stringify({ schemaVersion: 3, candidates: f.candidates });
+  const state = ingestRuntimeCandidates(emptyFactState(22), f.input.source, { raw }, 'round22', 'synthetic', '2026-10-18T00:00:00Z');
+  assert.equal(state.materials[0].raw, raw);
+  assert.deepEqual(state.confirmations, { due: null, paid: null }); assert.equal(state.calculation, null);
+  const row = assessCase(f.input, f.label, { raw_output: raw, finish_reason: 'stop' });
+  assert.deepEqual(f, before);
+  for (const candidate of state.materials[0].candidates) assert.equal(Array.from(f.input.source.blocks[0].text).slice(candidate.start, candidate.end).join(''), candidate.quote);
+  return row;
+}
+const counts = (row, expected) => {
+  for (const layer of ['raw_basic', 'raw_relational', 'raw_strict', 'accepted_basic', 'accepted_relational', 'accepted_strict'])
+    assert.deepEqual([row[layer].tp, row[layer].fp, row[layer].fn], expected, layer);
+};
+for (const suffix of ['工資', '勞務費', '勞動報酬', '工资', '劳务费', '劳动报酬']) {
+  for (const expandedAnchor of [false, true]) test('finite wrapper aligns without rewriting code points: ' + suffix + '/' + expandedAnchor, () => {
+    const value = '四萬圓' + suffix, f = fixture(['王甲首次收到' + value], [expandedAnchor ? '四萬圓' : value], [expandedAnchor ? value : '四萬圓']);
+    counts(evaluate(f), [1, 0, 0]);
+  });
+  for (const reverse of [false, true]) test('equal amounts in two events remain two matches: ' + suffix + '/' + reverse, () => {
+    const value = '四萬圓' + suffix, f = fixture(['王甲首次收到' + value, '王甲再次收到' + value], [value, value]);
+    if (reverse) f.candidates.reverse();
+    counts(evaluate(f), [2, 0, 0]);
+  });
+}
+for (const suffix of ['工資以及另外三萬圓', '勞務費尚未支付', '勞動報酬已全部結清', '工資單記錄']) test('arbitrary traditional narrative is not a finite wrapper: ' + suffix, () => {
+  const value = '四萬圓' + suffix, f = fixture(['王甲首次收到' + value], [value]);
+  assert.equal(resolveCandidateEvent(f.candidates[0], f.input, f.label).status, 'unregistered_position');
+  counts(evaluate(f), [0, 1, 1]);
+});
+test('ambiguous short quote cannot choose one of two traditional events', () => {
+  const value = '四萬圓工資', f = fixture(['王甲首次收到' + value, '王甲再次收到' + value], [value, value]);
+  f.candidates.forEach(candidate => { candidate.quote = value; });
+  counts(evaluate(f), [0, 2, 2]);
+});

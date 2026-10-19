@@ -1,0 +1,83 @@
+"""Read/hash downloaded evidence only; no project command is executed."""
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import re
+
+P = Path(__file__).resolve().parent
+CODE = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+sha = lambda data: hashlib.sha256(data).hexdigest()
+read = lambda name: json.loads((P / name).read_text())
+
+lines = (P / 'original-logs/check/12_Run npm run check.txt').read_text().splitlines()
+python_counts = [int(count) for count in re.findall(r'Ran (\d+) tests? in', '\n'.join(lines))]
+assert python_counts == [9, 11, 16]
+for index, line in enumerate(lines):
+    if re.search(r'Ran \d+ tests? in', line):
+        assert any(re.search(r'\bOK\s*$', x) for x in lines[index + 1:index + 4])
+needles = ['actual v7 CLI drains migration after SIGINT repeated during cleanup with unrelated port reuse',
+           'replacement listener accepts the readiness client resetting its connection',
+           'replacement listener does not suppress unexpected socket errors']
+passes = []
+for needle in needles:
+    matched = [{'line': i + 1, 'text': line} for i, line in enumerate(lines) if needle in line]
+    assert len(matched) == 1 and '✔' in matched[0]['text']
+    passes.append({'test': needle, **matched[0]})
+repeat_cli = [line for line in lines if '✔ actual ' in line and ' CLI drains ' in line and ' repeated during cleanup' in line]
+assert len(repeat_cli) == 9
+independent_names = ['explicit plural variant is not one beneficiary: 陳氏夫婦',
+                     'explicit plural variant is not one beneficiary: 李氏祖孫',
+                     'explicit plural variant is not one beneficiary: 王氏兄 弟',
+                     'nonplural individual control retains its suggestion gate: 王兄明',
+                     'nonplural individual control retains its suggestion gate: 李姐华',
+                     'nonplural individual control retains its suggestion gate: 王甲',
+                     'paid field uses the same plural guard']
+for name in independent_names:
+    assert len([line for line in lines if '✔ ' + name in line]) == 1, name
+
+original = read('local-original-results-vs-exact-head.json')['files']
+assert len(original) == 147
+for row in original:
+    assert sha((CODE / row['path']).read_bytes()) == row['sha256']
+current = read('exact-commit-vs-tested-worktree.json')
+for row in current:
+    assert sha((CODE / row['path']).read_bytes()) == row['head_sha256'] == row['worktree_sha256']
+prior = read('prior-failed-checkpoints-protection.json')
+for row in prior['files']:
+    assert sha(Path(row['source']).read_bytes()) == row['sha256']
+for row in read('local-historical-manifests-hashes.json'):
+    assert sha((CODE / row['path']).read_bytes()) == row['sha256']
+
+remote, local = read('artifacts/material-http-regression/http-facts-v7.json'), read('parent-http464-after.json')
+assert remote['observations'] == local['observations']
+assert len(remote['observations']) == 464 and len(remote['syntheticOutputs']) == 465
+for key in ['raw', 'candidates', 'finish_reason']:
+    assert [row[key] for row in remote['syntheticOutputs']] == [row[key] for row in local['syntheticOutputs']]
+assert all(a['raw'].encode() == b['raw'].encode() for a, b in zip(remote['syntheticOutputs'], local['syntheticOutputs']))
+ocr = read('artifacts/material-http-regression/http-images.json')
+engines = [row for row in ocr['observations'] if 'engine' in row]
+assert engines and len(ocr['observations']) == 17
+for row in engines:
+    expected = 'tesseract_chi_sim_poppler' if row.get('fixture', '').endswith('.pdf') else 'tesseract_chi_sim'
+    assert row['engine']['ocr'] == expected and row['engine']['structuring'] == 'ocr_rules' and row['engine']['model'] is None
+assert ocr['serviceRestartCoverage'] == 'PASS'
+base = read('artifacts/base-http-regression/synthetic-http-results.json')
+assert base['complete'] and base['fixtureRemoved']
+result = {'schema': 'exact-5374d667-additional-ci-evidence/1',
+          'at': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'python_fullcheck_counts': python_counts,
+          'repeat_signal_actual_cli_passes': len(repeat_cli), 'prior_failed_reset_fixture_cases_now_pass': passes,
+          'seven_collective_independent_assertions_reached_and_passed_in_default_CI_path': independent_names,
+          'original_result_files_rehashed_unchanged': len(original),
+          'prior_failure_files_rehashed_unchanged': prior['count'],
+          'current_source_and_harness_files_rehashed_unchanged': len(current),
+          'all_464_remote_and_parent_observations_equal': True,
+          'all_465_raw_utf8_candidate_finish_reason_equal': True,
+          'ocr_engine_records': [{'fixture': row.get('fixture'), 'engine': row['engine']} for row in engines],
+          'ocr_service_restart': 'PASS', 'synthetic_http_fixture_removed': True,
+          'scope': 'No local HTTP/build/fullcheck/scorer/historical CLI/model/rerun/deployment/comment execution.'}
+with (P / 'additional-evidence-audit.json').open('x') as stream:
+    json.dump(result, stream, ensure_ascii=False, indent=2)
+    stream.write('\n')
+print(json.dumps({key: result[key] for key in ['python_fullcheck_counts', 'repeat_signal_actual_cli_passes',
+                                             'original_result_files_rehashed_unchanged', 'all_465_raw_utf8_candidate_finish_reason_equal']}))

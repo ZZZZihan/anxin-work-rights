@@ -1,0 +1,49 @@
+{
+  "schema": "round36-process-tree-marker-nonimplementer-review/1",
+  "status": "PASS_WITHIN_SCOPE",
+  "reviewer_role": "money-module author; did not implement process-tree fixture or production process-group helper",
+  "reviewed_at_utc": "2026-10-18T18:13:38.718981+00:00",
+  "reviewed_files_sha256": {
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-http-process-tree.test.mjs": "a645b80033e58b010b87bb598a6b70048d9c8f47f956a55f97bec8627d540949",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/experiments/material-facts-v7/postfreeze-evidence/round36/process-tree-marker-race/fixed-fa77.test.mjs.snapshot": "7323a90a924f44e7873732e7e5441f20ea3572d885f3897df364835a522df8d9",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/experiments/material-facts-v7/postfreeze-evidence/round36/process-tree-marker-race/process-tree-marker-publication.patch": "e02c2fbbf3463bbfd36d07d3abbca9e618c5545569ca92ec680b5e23829c30ed"
+  },
+  "execution": {
+    "started_at_utc": "2026-10-18T18:13:03.227441+00:00",
+    "command": [
+      "node",
+      "--test",
+      "--test-reporter=tap",
+      "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-http-process-tree.test.mjs"
+    ],
+    "environment_override": {
+      "V7_REVIEW_ROOT": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review"
+    },
+    "node_version": "v26.11.0",
+    "exit_code": 0,
+    "elapsed_seconds": 12.091304834000766,
+    "protected_unchanged": true,
+    "stdout_sha256": "cafb3608b91dc4980224ab76f01bf9885a651439cf075236e5e07139356c5af2",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "native_tests": {
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "original_five_assertion_lines_identical": true
+  },
+  "findings": [],
+  "observations": [
+    "Ready marker is exclusively staged in the same directory and renamed only after the complete JSON write resolves; the exact publisher is serialized into the real listening descendant.",
+    "Empty/partial filesystem writes are paused deterministically before publication; final path remains ENOENT until release, then contains valid JSON and staging path is gone.",
+    "readyRecord retries ENOENT only; malformed JSON remains SyntaxError and real child exit17 remains an explicit failure.",
+    "Original four launcher modes still verify group emptiness, listening socket shutdown, port rebind and idempotent stop. Unrelated detached group/socket remains live.",
+    "Production lifecycle implementation and test source hashes were identical before/after this run."
+  ],
+  "limits": [
+    "This is a synthetic native POSIX process/socket check on local Node26.11.0; not a full HTTP/service/model test or Windows execution.",
+    "The supplied controlled red tests reproduce the prior direct-publication protocol, not an assertion that the exact historical CI scheduling race was reproduced locally.",
+    "No product, ROOT/CODE shared files, frozen code, original outputs or previous evidence were modified.",
+    "The fixture test is outside the 97-path v26 current code binding. Requested GPT6.1Sol ultra configuration was inherited; actual backend was not independently verified."
+  ]
+}

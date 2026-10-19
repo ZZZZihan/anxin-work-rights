@@ -1,0 +1,29 @@
+from pathlib import Path
+import datetime,json,subprocess,time
+E=Path(__file__).resolve().parent
+job=117728709419
+last=None
+while True:
+    stamp=datetime.datetime.now(datetime.timezone.utc).isoformat()
+    try:
+        p=subprocess.run(['gh','api',f'repos/ZZZZihan/anxin-work-rights/actions/jobs/{job}'],capture_output=True,timeout=35)
+        if p.returncode:
+            event={'at':stamp,'api_exit':p.returncode,'stderr':p.stderr.decode(errors='replace')[:1000]}
+            with (E/'monitor-api-errors.jsonl').open('a') as f:f.write(json.dumps(event)+'\n')
+            print(json.dumps(event),flush=True)
+        else:
+            raw=json.loads(p.stdout); seq=len(list(E.glob('job-poll-*.json')))+1
+            (E/f'job-poll-{seq:04d}.json').write_bytes(p.stdout)
+            steps=raw.get('steps',[])
+            active=[s['name'] for s in steps if s['status']=='in_progress']
+            failed=[s['name'] for s in steps if s.get('conclusion') in ['failure','timed_out','cancelled']]
+            event={'at':stamp,'status':raw.get('status'),'conclusion':raw.get('conclusion'),'active':active,'failed':failed,'completed_steps':sum(s['status']=='completed' for s in steps)}
+            with (E/'poll-summary.jsonl').open('a') as f:f.write(json.dumps(event)+'\n')
+            signature=(event['status'],event['conclusion'],tuple(active),tuple(failed),event['completed_steps'])
+            if signature!=last: print(json.dumps(event),flush=True);last=signature
+            if raw.get('status')=='completed':break
+    except Exception as error:
+        event={'at':stamp,'monitor_error_type':type(error).__name__}
+        with (E/'monitor-api-errors.jsonl').open('a') as f:f.write(json.dumps(event)+'\n')
+        print(json.dumps(event),flush=True)
+    time.sleep(45)

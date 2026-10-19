@@ -1,0 +1,11 @@
+--- exact5374/canonicalMonetaryExpression
++++ actualCODE/canonicalMonetaryExpression
+@@ -6,7 +6,7 @@
+   // Reuse the finite qualifier grammar while retaining each word and its side:
+   // 不满/不少于/不到/开外 must never collapse into each other or an exact key.
+   const wrapped = monetaryDetectionView(value).trim().replace(/\s*(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*$/u, '').trim();
+-  const leadingRmb = wrapped.match(/^人民[币幣]\s*/u)?.[0] ?? '';
++  const leadingRmb = wrapped.match(new RegExp(`^(?:${RMB_NAME}|[¥￥])\\s*`, 'iu'))?.[0] ?? '';
+   const text = wrapped.slice(leadingRmb.length);
+   const prefix = text.match(new RegExp(`^(${MONEY_BOUND_PREFIX}|近|可能|或许|大概|估计|不确定|待核|暂计|暂定)\\s*`, 'u'));
+   const suffix = text.match(new RegExp(`\\s*(${MONEY_BOUND_SUFFIX})$`, 'u'));

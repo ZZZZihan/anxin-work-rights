@@ -1,0 +1,58 @@
+--- verify-correction-v25.mjs
++++ verify-correction-v26.mjs
+@@ -1,7 +1,7 @@
+-// Preserve the twenty-fifth post-freeze correction when later runtime fixes change
++// Preserve the twenty-sixth post-freeze correction when later runtime fixes change
+ // acceptance. Its results and code are restored only in an owned temp tree.
+ import assert from 'node:assert/strict';
+-import { runHistoricalV25CheckSync } from './historical-v25-execution.mjs';
++import { runHistoricalV26CheckSync } from './historical-v26-execution.mjs';
+ import { cp, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+ import { tmpdir } from 'node:os';
+ import { dirname, join, resolve } from 'node:path';
+@@ -11,13 +11,13 @@
+ const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+ const EXPERIMENT = 'experiments/material-facts-v7';
+ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+-export async function withCorrectionV25Code(action, root = ROOT) {
+-  const base = resolve(root, EXPERIMENT), snapshot = resolve(base, 'correction-code-v25');
+-  const correctionBytes = await readFile(resolve(base, 'corrections-v25/manifest.json'));
++export async function withCorrectionV26Code(action, root = ROOT) {
++  const base = resolve(root, EXPERIMENT), snapshot = resolve(base, 'correction-code-v26');
++  const correctionBytes = await readFile(resolve(base, 'corrections-v26/manifest.json'));
+   const correction = JSON.parse(correctionBytes);
+   const manifest = JSON.parse(await readFile(resolve(snapshot, 'manifest.json'), 'utf8'));
+-  assert.equal(manifest.schema, 'material-facts-v7-correction-code/25');
+-  assert.equal(manifest.correction_directory, 'corrections-v25');
++  assert.equal(manifest.schema, 'material-facts-v7-correction-code/26');
++  assert.equal(manifest.correction_directory, 'corrections-v26');
+   assert.equal(manifest.storage_suffix, '.snapshot');
+   assert.equal(manifest.correction_manifest_sha256, hash(correctionBytes));
+   const expected = Object.keys(correction.code_sha256).sort();
+@@ -30,7 +30,7 @@
+     assert.equal(manifest.files[path], correction.code_sha256[path]);
+     archived.push([path, bytes]);
+   }
+-  const temporary = await realpath(await mkdtemp(join(tmpdir(), 'anxin-v7-correction-v25-')));
++  const temporary = await realpath(await mkdtemp(join(tmpdir(), 'anxin-v7-correction-v26-')));
+   try {
+     for (const path of ['lib', 'scripts', 'experiments', 'docs', 'package.json']) await cp(resolve(root, path), resolve(temporary, path), { recursive: true });
+     for (const [path, bytes] of archived) {
+@@ -44,13 +44,13 @@
+ 
+ if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
+   assert.equal(process.argv.length, 2, 'Historical correction verification is read-only');
+-  const receipt = await withCorrectionV25Code(async temporary => {
+-    const output = runHistoricalV25CheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v25.mjs'), ['--check'], {
++  const receipt = await withCorrectionV26Code(async temporary => {
++    const output = runHistoricalV26CheckSync(resolve(temporary, EXPERIMENT, 'corrective-assessment-v26.mjs'), ['--check'], {
+       cwd: temporary, encoding: 'utf8', maxBuffer: 16 * 1024 ** 2, timeout: 180000,
+     });
+     const result = JSON.parse(output); assert.equal(result.status, 'PASS');
+-    return { status: 'PASS', execution: 'archived_correction_v25_code', current_code_claim: false,
+-      correction_manifest_sha256: hash(await readFile(resolve(temporary, EXPERIMENT, 'corrections-v25/manifest.json'))), model_requests: 0 };
++    return { status: 'PASS', execution: 'archived_correction_v26_code', current_code_claim: false,
++      correction_manifest_sha256: hash(await readFile(resolve(temporary, EXPERIMENT, 'corrections-v26/manifest.json'))), model_requests: 0 };
+   });
+   console.log(JSON.stringify(receipt));
+ }

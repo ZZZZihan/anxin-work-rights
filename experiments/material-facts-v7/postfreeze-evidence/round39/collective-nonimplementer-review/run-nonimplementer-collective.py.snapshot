@@ -1,0 +1,15 @@
+from pathlib import Path
+import subprocess,os,json,re,hashlib,time
+own=Path(__file__).resolve().parents[3];e=Path(__file__).resolve().parent;base=own/'.scratch/issue42/round39/baseline-66581';tree=own/'.scratch/issue42/round39/data-collective-only-review-tree';combined=own/'.scratch/issue42/round39/collective-review-tree'
+node24='/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node';node26='/opt/homebrew/bin/node'
+author=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-facts-v7-round39-collective-author.test.mjs');independent=own/'scripts/material-facts-v7-round39-collective-independent.test.mjs'
+assert hashlib.sha256(author.read_bytes()).hexdigest()==hashlib.sha256((e/'collective-author-test.readonly.snapshot').read_bytes()).hexdigest()
+rows=[]
+for label,node,script,root,expected in [('author35-fixed66581-red',node24,author,base,1),('author35-DATA-only-green',node24,author,tree,0),('independent7-fixed66581-red',node24,independent,base,1),('independent7-DATA-only-green-node24',node24,independent,tree,0),('independent7-DATA-only-green-node26',node26,independent,tree,0),('author35-captured-CODE-combined-green',node24,author,combined,0)]:
+ env=os.environ.copy();env['MATERIAL_FACT_TEST_ROOT']=str(root);env['MATERIAL_FACT_EVENT_FILE']=str(root/'lib/material-fact-event-review.ts');env['V7_REVIEW_ROOT']=str(root)
+ cmd=[node,'--experimental-strip-types','--experimental-specifier-resolution=node','--test',str(script)];t=time.monotonic();r=subprocess.run(cmd,cwd=own,env=env,capture_output=True)
+ (e/(label+'.stdout.log')).write_bytes(r.stdout);(e/(label+'.stderr.log')).write_bytes(r.stderr)
+ text=r.stdout.decode();counts={k:int(re.search(r'(?:ℹ|#) '+k+r' (\d+)',text).group(1)) for k in ['tests','pass','fail','skipped']}
+ row={'label':label,'exit':r.returncode,'duration_seconds':time.monotonic()-t,'dependency_root':str(root),'event_sha256':hashlib.sha256((root/'lib/material-fact-event-review.ts').read_bytes()).hexdigest(),'script':str(script),'script_sha256':hashlib.sha256(script.read_bytes()).hexdigest(),'counts':counts};rows.append(row);print(json.dumps(row))
+ if r.returncode!=expected:raise RuntimeError('Unexpected test exit; full originals retained')
+(e/'actual-test-runs.json').write_text(json.dumps(rows,ensure_ascii=False,indent=2)+'\n')

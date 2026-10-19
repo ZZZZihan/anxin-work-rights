@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+"""Append-only audit of a saved, separately built exact-old HTTP baseline."""
+import collections
+import datetime
+import hashlib
+import io
+import json
+import pathlib
+import subprocess
+import tarfile
+
+CODE = pathlib.Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+P = CODE / '.scratch/issue42/round40'
+OUT = pathlib.Path(__file__).resolve().parent
+COMMIT = '5374d66748a7c329c4c595ec91372d324edff573'
+def sha(data): return hashlib.sha256(data).hexdigest()
+def read(path): return json.loads(path.read_bytes())
+def save(name, value):
+    with (OUT / name).open('x', encoding='utf-8') as f:
+        json.dump(value, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+paths = [P / name for name in [
+    'fixed-old-build-input.json', 'fixed-old-build-run.receipt.json',
+    'fixed-old-build-run.stdout.log', 'fixed-old-build-run.stderr.log',
+    'http481-fixed-baseline.json', 'http481-fixed-baseline.receipt.json',
+    'http481-fixed-baseline.stdout.log', 'http481-fixed-baseline.stderr.log',
+    'http481-final.json', 'http481-final.receipt.json', 'http481-after.json',
+    'http481-before.json', 'http-runner-correction.json']]
+paths += [CODE / 'scripts/material-facts-v7-http-regression.mjs',
+          CODE / '.scratch/issue42/round39/http464-after.json',
+          OUT / 'static-and-final-review.receipt.json', OUT / 'copy-index.json']
+before = {str(p): sha(p.read_bytes()) for p in paths}
+inputs = read(P / 'fixed-old-build-input.json')
+assert inputs['commit'] == COMMIT
+source = pathlib.Path(inputs['source'])
+assert source == P / 'fixed-old-build'
+archive = subprocess.check_output(['git', 'archive', '--format=tar', COMMIT], cwd=CODE)
+assert sha(archive) == inputs['archive_sha256']
+# Enumerate only archive members. node_modules is never walked or copied.
+source_hashes = []
+with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
+    for member in tar:
+        if not member.isfile():
+            continue
+        assert not pathlib.PurePosixPath(member.name).is_absolute()
+        assert '..' not in pathlib.PurePosixPath(member.name).parts
+        actual = source / member.name
+        data = tar.extractfile(member).read()
+        assert actual.read_bytes() == data, member.name
+        source_hashes.append({'path': member.name, 'sha256': sha(data), 'bytes': len(data)})
+assert len(source_hashes) == 1861
+dist_hashes = [{'path': str(p.relative_to(source)), 'sha256': sha(p.read_bytes()),
+                'bytes': p.stat().st_size}
+               for p in sorted((source / 'dist').rglob('*')) if p.is_file()]
+assert len(dist_hashes) == 105
+config = read(source / 'dist/server/wrangler.json')
+assert config['main'] == 'index.js'
+assert (source / 'dist/server/index.js').is_file()
+
+build_receipt = read(P / 'fixed-old-build-run.receipt.json')
+http_receipt = read(P / 'http481-fixed-baseline.receipt.json')
+assert build_receipt['exitCode'] == 0 and http_receipt['exitCode'] == 1
+assert 'ANXIN_MATERIAL_V7_BUILD_ROOT=.scratch/issue42/round40/fixed-old-build' in http_receipt['command']
+for receipt in [build_receipt, http_receipt]:
+    for path, expected in receipt['logs'].items():
+        p = pathlib.Path(path)
+        if not p.is_absolute(): p = CODE / p
+        assert sha(p.read_bytes()) == expected
+build_start = datetime.datetime.fromisoformat(build_receipt['started'])
+build_end = build_start + datetime.timedelta(seconds=build_receipt['durationSeconds'])
+http_start = datetime.datetime.fromisoformat(http_receipt['started'])
+assert http_start > build_end
+
+fixed = read(P / 'http481-fixed-baseline.json')
+final = read(P / 'http481-final.json')
+misnamed = read(P / 'http481-after.json')
+previous = read(CODE / '.scratch/issue42/round39/http464-after.json')
+assert fixed['buildRoot'] == str(source)
+assert fixed['status'] == 'FAIL' and final['status'] == 'PASS'
+counts = dict(collections.Counter(x['status'] for x in fixed['observations']))
+assert counts == {'PASS': 467, 'FAIL': 14}
+assert len(fixed['observations']) == len(final['observations']) == 481
+assert fixed['cleanup'] == final['cleanup'] == {'status': 'PASS', 'failures': []}
+normalize = lambda x: {k: v for k, v in x.items() if k not in ['evidenceId', 'jobId']}
+fixed_raw = list(map(normalize, fixed['syntheticOutputs']))
+assert len(fixed_raw) == 482
+assert fixed_raw == list(map(normalize, final['syntheticOutputs']))
+assert sum(len(x['candidates']) for x in fixed_raw) == 508
+old_nonrestart = lambda r: [x for x in r['observations'] if not x['name'].startswith('round40_')
+                          and not x['name'].startswith('worker_restart')]
+assert len(old_nonrestart(fixed)) == 463
+assert old_nonrestart(fixed) == old_nonrestart(previous) == old_nonrestart(final)
+failures = [x for x in fixed['observations'] if x['status'] != 'PASS']
+assert failures == [x for x in misnamed['observations'] if x['status'] != 'PASS']
+assert all(x['name'].startswith('round40_') for x in failures)
+assert len([x for x in failures if x['name'].startswith('round40_unavailable_')]) == 8
+assert len([x for x in failures if x['name'].startswith('round40_hour_')]) == 2
+assert len([x for x in failures if x['name'].startswith('round40_total_')]) == 2
+assert len([x for x in failures if x['name'].startswith('round40_date_')]) == 2
+for r in [fixed, final]:
+    assert r['actualModelInference'] is False and r['holdoutRead'] is False
+    assert r['syntheticInputs'] is True and r['historicalReportsOverwritten'] is False
+    assert all(x['authenticated'] for x in r['serviceCalls'])
+    assert all(x['persistedBeforeRetirement'] for x in r['retiredServiceJobs'])
+restart = lambda r: next(x for x in r['observations'] if x['name'].startswith('worker_restart'))
+assert restart(fixed)['checkedCases'] == 466
+assert restart(final)['checkedCases'] == 480
+assert all(x['status'] == 'PASS' for x in final['observations'])
+for entry in source_hashes:
+    assert sha((source / entry['path']).read_bytes()) == entry['sha256']
+for entry in dist_hashes:
+    assert sha((source / entry['path']).read_bytes()) == entry['sha256']
+assert {p: sha(pathlib.Path(p).read_bytes()) for p in before} == before
+save('fixed-old-baseline.source-hashes.json', source_hashes)
+save('fixed-old-baseline.dist-hashes.json', dist_hashes)
+save('fixed-old-baseline.input-hashes.json', before)
+save('fixed-old-baseline.addendum.receipt.json', {
+    'schema': 'anxin.round40.http481.fixed-old-baseline.readonly-addendum.v1',
+    'recorded_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'status': 'PASS_WITH_EXPLICIT_EVIDENCE_LIMITS', 'blocking_findings': [],
+    'write_scope': 'OWN append-only evidence; previous review receipts and all original reports unchanged',
+    'reviewer_role': 'Nonimplementer of HTTP fixture, participant in total-event implementation; not product independent acceptance',
+    'requested_model': 'gpt-6.1-sol', 'requested_reasoning': 'ultra',
+    'backend_independently_verified': False,
+    'reviewer_executed_http_build_model_history_or_full_check': False,
+    'exact_old_source': {
+        'commit': COMMIT, 'git_archive_sha256': sha(archive),
+        'git_archive_bytes': len(archive), 'all_archive_regular_files_matching': 1861,
+        'source_unchanged_during_readonly_review': True,
+        'dist_files_hashed_after_actual_run': 105,
+        'dependencies': 'Existing installed dependency symlink reported by build-input receipt; node_modules not traversed, copied, or independently frozen by this review',
+    },
+    'recorded_build': {
+        'exit_code': 0, 'seconds': build_receipt['durationSeconds'],
+        'started': build_receipt['started'], 'ended': build_end.isoformat(),
+        'http_started': http_receipt['started'],
+        'build_to_http_gap_seconds': (http_start - build_end).total_seconds(),
+        'own_build_finished_before_HTTP': True,
+    },
+    'actual_baseline': {
+        'pass': 467, 'fail': 14, 'seconds': http_receipt['durationSeconds'],
+        'exit_code': 1, 'raw_outputs': 482, 'candidate_entries': 508,
+        'restart_snapshots_actually_checked': 466, 'cleanup': fixed['cleanup'],
+        'genuine_first_assertion_failures': failures,
+        'partition': {'unavailable_amount': 8, 'valid_hour_rate': 2,
+                      'strict_total_relationship': 2, 'date_relationship': 2},
+    },
+    'actual_final': {'pass': 481, 'fail': 0, 'raw_outputs': 482,
+                     'restart_snapshots_actually_checked': 480,
+                     'cleanup': final['cleanup']},
+    'comparisons': {
+        'all_482_ordered_raw_candidates_finish_reason_equal': True,
+        'only_outer_run_specific_keys_removed': ['evidenceId', 'jobId'],
+        'all_463_old_nonrestart_observations_equal_to_prior464_and_final': True,
+        'fourteen_baseline_failures_equal_corrected_but_misnamed_old_service_record': True,
+        'final_runner_sha256': sha((CODE / 'scripts/material-facts-v7-http-regression.mjs').read_bytes()),
+        'first_stage_bad_top_level_rateUnit_assertion_not_counted_as_product_red': True,
+    },
+    'limits': [
+        'Exact-old source/build evidence now supplies a clean separate baseline; it does not rewrite the first two ambiguous records.',
+        'A failed baseline scenario stops at its first assertion; its later scope confirmation or synthetic D1 old-exact/GET steps were not executed and are not credited.',
+        'Final report covers these later steps as checked in the earlier final review. Restart proves raw/storage/history preservation, not every derived amount reasserted.',
+        'Post-run dist hashes document currently retained artifacts; no new build or runtime instrumentation was performed by the reviewer.',
+        'Synthetic ready-queue output injection is not fresh model inference, expert annotation, deployment, or human business acceptance.',
+    ],
+    'previous_review_receipt_sha256': before[str(OUT / 'static-and-final-review.receipt.json')],
+    'previous_copy_index_sha256': before[str(OUT / 'copy-index.json')],
+    'input_paths_unchanged': len(before),
+})
+print(json.dumps({'status': 'PASS', 'archive_regular_files': 1861, 'dist_files': 105,
+                  'baseline': [467, 14], 'final': [481, 0], 'equal_raw': 482,
+                  'no_build_overlap_seconds': (http_start-build_end).total_seconds()}))

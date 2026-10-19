@@ -1,0 +1,98 @@
+--- compat-baseline/lib/material-fact-source-review.ts
++++ actual-CODE-final/lib/material-fact-source-review.ts
+@@ -97,25 +97,68 @@
+   return { before: preserveWhitespace ? before : before.replace(/[^\S\r\n]+$/u, ''), after: preserveWhitespace ? after : after.replace(/^[^\S\r\n]+/u, ''), matched: context.blockText.slice(start, end) };
+ }
+ 
+-/** Layout may split an explicit formula across OCR/TXT blocks. Only the shared
+- * arithmetic grammar sees adjacent blocks; positions and other guards stay bound
+- * to the original block. Intervening prose/punctuation cannot bridge an event. */
+-function sourceMoneyHasAttachedArithmetic(context: AnchoredSourceEvent, normalized: CandidateNormalization, source: FactSource, blockId: string): boolean {
+-  const edges = monetaryEdges(context, normalized, true);
+-  if (!edges) return false;
+-  const blockIndex = source.blocks.findIndex(block => block.id === blockId);
+-  const before = [...source.blocks.slice(0, blockIndex).map(block => block.text), edges.before].join('\n');
+-  const after = [edges.after, ...source.blocks.slice(blockIndex + 1).map(block => block.text)].join('\n');
+-  return hasAttachedMoneyArithmetic(before, after);
+-}
+-
++/** Only directly adjacent, same-page expression fragments (or a verified
++ * same-row OCR box) may extend an amount. Page metadata stops lexical/math
++ * composition; it does not confirm the fact or remove source-relation warnings. */
++function sourceMoneyLayoutFragment(text: string, preceding: boolean): boolean {
++  let view = text.normalize('NFKC').replace(/[\s\p{Cf}]/gu, '').replace(/[。；;！!？?]$/u, '');
++  // A preceding block may contain the source's wage heading and end halfway
++  // through its expression. This is a source shape, not the proposed subject.
++  if (preceding) view = view.replace(/^[^\p{L}\p{N}]*\p{Script=Han}{2,4}(?:(?:本期|本次|全部|完整|应付|應付|已付|拖欠|收到|欠付|合计|合計|为|為|的)*)(?:工[资資]|欠薪)(?:为|為|合计|合計)?/u, '');
++  if (!view || Array.from(view).length > 160 || /[，,。；;！!？?]/u.test(view)) return false;
++  // An explicit slash still supplies a denominator boundary, including an
++  // unsupported complete word (月亮/小时候). Keep the original rejection.
++  if (/^\/[\p{Script=Han}A-Za-z]{1,32}$/u.test(view)) return true;
++  // Unknown operand names are bounded by the existing finite payroll/coefficient
++  // endings. Free prose is never made a fragment by dropping arbitrary Han text.
++  if (/^(?:(?:乘以|除以|加上|减去|減去|另加|[×*xX÷/+−-]))?\p{Script=Han}{0,12}(?:工[资資]|加班[费費]|[奖獎]金|提成|佣金|津[贴貼]|[补補][贴貼]|[报報]酬)$/u.test(view)) return true;
++  view = view.replace(/\p{Script=Han}{0,14}(?:[系係][数數]|比例)|\p{Script=Han}{0,15}率/gu, '#');
++  const words = /人民币|人民幣|RMB|CNY|不得超过|不得超過|不超过|不超過|不得少于|不得少於|不得低于|不得低於|不得高于|不得高於|不少于|不少於|不低于|不低於|不高于|不高於|不多于|不多於|不大于|不大於|不小于|不小於|大约|大約|将近|將近|接近|超过|超過|不到|不止|不足|不满|不滿|未满|未滿|未达|未達|低于|低於|高于|高於|少于|少於|多于|多於|多达|多達|大于|大於|小于|小於|至少|至多|上限|下限|最高|最低|最多|最少|开外|開外|左右|上下|以上|以下|以内|以內|以外|之内|之內|封顶|封頂|出头|出頭|有余|有餘|负数|負數|负值|負值|正数|正數|正值|乘以|除以|加上|减去|減去|另加|分之|百分之|小时|小時|分钟|分鐘|星期|季度|年度|公里|计算|計算|计酬|計酬|计价|計價|计薪|計薪|计发|計發|支付|发放|發放|给付|給付|付清|发薪|發薪|未知|不详|不詳|不明|待定|无法确定|無法確定|未提供|未明确|未明確|未载明|未載明|未记载|未記載|未披露|未列明|未注明|未註明|未约定|未約定|未确定|未確定|待确认|待確認|待核实|待核實|待补充|待補充|可能|或许|或許|大概|估计|估計|不确定|不確定|待核|暂计|暫計|暂定|暫定|金[额額]|[数數][额額]|[数數]值|[对對]折/gu;
++  view = view.replace(words, '#');
++  return /^(?:[#0-9０-９零〇一二三四五六七八九十百千万萬亿億两兩壹贰貳叁參肆伍陆陸柒捌玖拾佰仟.．元圆圓角分整正倍成折半的为為是有税稅前后後每按月日天时時件年周週季次秒人班第号號至到约約近逾余餘多起许許乘除加减減计計暂暫定以负負打%¥￥×*xX÷/+−~～—–\-:<>=≤≥≦≧()\[\]□＿_…])+$/u.test(view);
++}
++function sourceMoneySameRow(a: FactSource['blocks'][number], b: FactSource['blocks'][number]): boolean {
++  return a.bbox !== null && b.bbox !== null && a.bbox[3] > 0 && b.bbox[3] > 0
++    && Math.min(a.bbox[1] + a.bbox[3], b.bbox[1] + b.bbox[3]) - Math.max(a.bbox[1], b.bbox[1]) >= 0.75 * Math.min(a.bbox[3], b.bbox[3])
++    && b.bbox[0] - (a.bbox[0] + a.bbox[2]) >= -0.001 && b.bbox[0] - (a.bbox[0] + a.bbox[2]) <= 0.5 * Math.min(a.bbox[3], b.bbox[3]);
++}
+ function sourceMoneyLayoutEdges(context: AnchoredSourceEvent, normalized: CandidateNormalization, source: FactSource, blockId: string) {
+   const edges = monetaryEdges(context, normalized, true);
+   if (!edges) return null;
+-  const blockIndex = source.blocks.findIndex(block => block.id === blockId);
+-  const before = [...source.blocks.slice(0, blockIndex).map(block => block.text), edges.before].join('\n');
+-  const after = [edges.after, ...source.blocks.slice(blockIndex + 1).map(block => block.text)].join('\n');
+-  return { before, after, matched: edges.matched };
++  const index = source.blocks.findIndex(block => block.id === blockId), block = source.blocks[index];
++  let before = edges.before, after = edges.after, unresolved = false;
++  const possibleContinuation = (left: string, right: string) => hasAttachedMoneyArithmetic(left, right)
++    || attachedMoneyQualifierStatus(left, right) !== null || isMoneyRangeEndpoint(left, edges.matched, right)
++    || hasUnfinishedMoneyRangeAfter(right) || hasUnsupportedMoneySuffixRate(right) || hasPostposedMoneyUncertainty(right)
++    || sourcePostposedRate(right) !== null || sourceHasUnsupportedRate(left)
++    || truncatedMoneyToken(context, normalized, right, left);
++  for (const direction of [-1, 1]) {
++    let previous = block;
++    for (let i = index + direction; i >= 0 && i < source.blocks.length; i += direction) {
++      const next = source.blocks[i];
++      // Never turn unrelated pages into one amount expression. The independent
++      // qualifiers scan still retains unresolved headers/owners for human review.
++      if (next.page !== block.page) break;
++      const left = direction < 0 ? `${next.text}\n${before}` : before;
++      const right = direction > 0 ? `${after}\n${next.text}` : after;
++      if (!sourceMoneyLayoutFragment(next.text, direction < 0)
++        && !sourceMoneySameRow(direction < 0 ? next : previous, direction < 0 ? previous : next)) {
++        // An ambiguous boundary is unavailable, without claiming that the next
++        // page/row's narrative has proved a range, bound or formula.
++        unresolved ||= possibleContinuation(left, right);
++        break;
++      }
++      before = left; after = right; previous = next;
++    }
++  }
++  return { before, after, matched: edges.matched, unresolved };
++}
++
++/** Arithmetic and the other source guards use exactly the same bounded layout
++ * view. The original block text, quote, value and CP offsets remain untouched. */
++function sourceMoneyHasAttachedArithmetic(context: AnchoredSourceEvent, normalized: CandidateNormalization, source: FactSource, blockId: string): boolean {
++  const edges = sourceMoneyLayoutEdges(context, normalized, source, blockId);
++  return edges !== null && !edges.unresolved && hasAttachedMoneyArithmetic(edges.before, edges.after);
+ }
+ 
+ /** A page/row boundary is not evidence that two visible word parts belong to
+@@ -343,8 +386,8 @@
+       const layout = sourceMoneyLayoutEdges(context, sourceNormalized.normalization, source!, candidate.blockId);
+       const qualifierStatus = layout && attachedMoneyQualifierStatus(moneyQualifierPrefixWithoutSubject(layout.before, raw.subject), layout.after.replace(/時/gu, '时'));
+       const postposedRate = layout && sourcePostposedRate(layout.after);
+-      if (lexical.unresolved) sourceNormalized = {
+-        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '相邻文本块的词内连续性未证实，可能包含金额单位的普通词续文；保留原文并人工核对边界。'),
++      if (lexical.unresolved || layout?.unresolved) sourceNormalized = {
++        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '相邻文本块的金额或词内连续性未证实，未将未知续文断言为区间、算式或普通复合词；保留原文并人工核对边界。'),
+       };
+       else if (sourceMoneyHasNonCurrencyYuan(lexical.view, sourceNormalized.normalization)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文中的元或圆属于普通复合词，未将裁剪片段作为人民币金额。', 'unsupported'),

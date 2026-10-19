@@ -1,0 +1,392 @@
+{
+  "schema": "round33-v25-light-independent-review/1",
+  "status": "PASS_LIGHT_ARTIFACT_ARITHMETIC_AND_BINDINGS",
+  "created_at": "2026-10-18T16:31:28.962262+00:00",
+  "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+  "reviewer_role": {
+    "money_module_author": true,
+    "scorer_implementer": false,
+    "label_implementer": false,
+    "description": "金额模块实现者；未参与评分器或标注实现。本次为独立产物字节和计数复核，不是金额实现的非作者复核。",
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "current_manifest_sha256": "4eef4eeeba7df54d6f40a67ff4cca3170de8788b1ab9578b45c29d06ed1cb8ca",
+  "previous_manifest_sha256": "86560d13902cba7458cae1d5c1b9175c01442c404a4d47bd17305950206e795e",
+  "artifact_checks": {
+    "cases_per_model": 12,
+    "gold_facts": 43,
+    "gold_anchor_spans": 41,
+    "case_layers_recounted": 216,
+    "aggregate_metrics_recounted": 18,
+    "models": 3,
+    "current_code_paths_verified": 94,
+    "archived_v24_code_paths_verified": 91,
+    "archive_manifest_sha256": "c744b35909cf57064abc4e4ffd3a613b99be045879d5d9d5959c4f263b3b5528",
+    "original_result_files_verified": 60,
+    "current_reports_byte_identical_to_v24": {
+      "rules": true,
+      "qwen": true,
+      "deepseek": true
+    },
+    "comparison_models_unchanged_from_v24": true,
+    "all_pairs_event_ids_match_saved_alignment": true,
+    "all_raw_case_finish_reasons_stop": true
+  },
+  "protection": {
+    "parent_prewrite_paths": 1690,
+    "parent_prewrite_paths_all_match": true,
+    "own_before_after_paths": 1747,
+    "own_before_after_unchanged": true
+  },
+  "money_diagnostics": {
+    "accepted_money": 46,
+    "normalization_totals": {
+      "exact": 21,
+      "approximate": 23,
+      "unsupported": 2
+    },
+    "source_relation_unresolved": 46,
+    "exact_money_without_review_issue": 0,
+    "calculation_authorized": 0,
+    "calculation_authorized_interpretation": "report保守常量；不是实际生产状态确认、计算授权或UI行为的运行验收证据。",
+    "by_backend": {
+      "rules": {
+        "normalizations": {
+          "exact": 2
+        },
+        "accepted_money": 2,
+        "amount_nonnull": 2,
+        "source_relation_unresolved": 2,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "source_relation_unresolved": 2
+        }
+      },
+      "qwen": {
+        "normalizations": {
+          "approximate": 10,
+          "exact": 9,
+          "unsupported": 2
+        },
+        "accepted_money": 21,
+        "amount_nonnull": 9,
+        "source_relation_unresolved": 21,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "partial_due_total": 2,
+          "source_relation_unresolved": 21,
+          "partial_paid_total": 2,
+          "scope_text_mismatch": 1
+        }
+      },
+      "deepseek": {
+        "normalizations": {
+          "approximate": 13,
+          "exact": 10
+        },
+        "accepted_money": 23,
+        "amount_nonnull": 10,
+        "source_relation_unresolved": 23,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "source_relation_unresolved": 23,
+          "partial_paid_total": 2
+        }
+      }
+    }
+  },
+  "metrics_recounted": {
+    "rules": {
+      "raw_basic": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 41,
+        "precision": 1.0,
+        "recall": 0.046511627906976744,
+        "f1": 0.08888888888888889
+      },
+      "raw_relational": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 43,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "raw_strict": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 43,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "accepted_basic": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 41,
+        "precision": 1.0,
+        "recall": 0.046511627906976744,
+        "f1": 0.08888888888888889
+      },
+      "accepted_relational": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 43,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "accepted_strict": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 43,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      }
+    },
+    "qwen": {
+      "raw_basic": {
+        "tp": 16,
+        "fp": 47,
+        "fn": 27,
+        "precision": 0.25396825396825395,
+        "recall": 0.37209302325581395,
+        "f1": 0.3018867924528302
+      },
+      "raw_relational": {
+        "tp": 10,
+        "fp": 53,
+        "fn": 33,
+        "precision": 0.15873015873015872,
+        "recall": 0.23255813953488372,
+        "f1": 0.18867924528301888
+      },
+      "raw_strict": {
+        "tp": 8,
+        "fp": 55,
+        "fn": 35,
+        "precision": 0.12698412698412698,
+        "recall": 0.18604651162790697,
+        "f1": 0.1509433962264151
+      },
+      "accepted_basic": {
+        "tp": 16,
+        "fp": 35,
+        "fn": 27,
+        "precision": 0.3137254901960784,
+        "recall": 0.37209302325581395,
+        "f1": 0.3404255319148936
+      },
+      "accepted_relational": {
+        "tp": 10,
+        "fp": 41,
+        "fn": 33,
+        "precision": 0.19607843137254902,
+        "recall": 0.23255813953488372,
+        "f1": 0.2127659574468085
+      },
+      "accepted_strict": {
+        "tp": 8,
+        "fp": 43,
+        "fn": 35,
+        "precision": 0.1568627450980392,
+        "recall": 0.18604651162790697,
+        "f1": 0.1702127659574468
+      }
+    },
+    "deepseek": {
+      "raw_basic": {
+        "tp": 34,
+        "fp": 17,
+        "fn": 9,
+        "precision": 0.6666666666666666,
+        "recall": 0.7906976744186046,
+        "f1": 0.723404255319149
+      },
+      "raw_relational": {
+        "tp": 27,
+        "fp": 24,
+        "fn": 16,
+        "precision": 0.5294117647058824,
+        "recall": 0.627906976744186,
+        "f1": 0.574468085106383
+      },
+      "raw_strict": {
+        "tp": 25,
+        "fp": 26,
+        "fn": 18,
+        "precision": 0.49019607843137253,
+        "recall": 0.5813953488372093,
+        "f1": 0.5319148936170213
+      },
+      "accepted_basic": {
+        "tp": 34,
+        "fp": 17,
+        "fn": 9,
+        "precision": 0.6666666666666666,
+        "recall": 0.7906976744186046,
+        "f1": 0.723404255319149
+      },
+      "accepted_relational": {
+        "tp": 27,
+        "fp": 24,
+        "fn": 16,
+        "precision": 0.5294117647058824,
+        "recall": 0.627906976744186,
+        "f1": 0.574468085106383
+      },
+      "accepted_strict": {
+        "tp": 25,
+        "fp": 26,
+        "fn": 18,
+        "precision": 0.49019607843137253,
+        "recall": 0.5813953488372093,
+        "f1": 0.5319148936170213
+      }
+    }
+  },
+  "parent_write_and_check": {
+    "write": {
+      "receipt_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round33/v25-write.receipt.json",
+      "receipt_sha256": "2ec53af9c538e13c6aba84ba6199e2363d6e13cef94a8a1aeb74e6b0adbc29a9",
+      "value": {
+        "command": [
+          "npm",
+          "exec",
+          "--yes",
+          "--package=node@24",
+          "--",
+          "node",
+          "experiments/material-facts-v7/corrective-assessment-v25.mjs",
+          "--write"
+        ],
+        "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+        "started": "2026-10-18T16:22:49.054905+00:00",
+        "durationSeconds": 195.9818269169773,
+        "exitCode": 0,
+        "logs": {
+          ".scratch/issue42/round33/v25-write.stdout.log": "24c466e290d4ae198892933db9eb6cb29427b9607e147b6202cb57c0cde0a93f",
+          ".scratch/issue42/round33/v25-write.stderr.log": "20ccf52cd34bc579d60b4288157ba823254b63b83ee508a268d712f962d8ce8d"
+        }
+      },
+      "logs_checked": {
+        ".scratch/issue42/round33/v25-write.stdout.log": {
+          "sha256": "24c466e290d4ae198892933db9eb6cb29427b9607e147b6202cb57c0cde0a93f",
+          "bytes": 6043
+        },
+        ".scratch/issue42/round33/v25-write.stderr.log": {
+          "sha256": "20ccf52cd34bc579d60b4288157ba823254b63b83ee508a268d712f962d8ce8d",
+          "bytes": 117420
+        }
+      },
+      "stdout_status": "PASS",
+      "structured_policy_pass_receipts": 2,
+      "verification_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round33/v25-post-write-verification.json",
+      "verification_sha256": "6dd24acab78ded4ba9660e99ccd0cb16493783aa0be9e17b4e5dc5fcc2792a49",
+      "verification": {
+        "protectedCount": 1690,
+        "protectedUnchanged": true,
+        "manifestSha256": "4eef4eeeba7df54d6f40a67ff4cca3170de8788b1ab9578b45c29d06ed1cb8ca",
+        "codeBindings": 94,
+        "originalFiles": 60,
+        "originalAllMatchFrozenManifest": true,
+        "reportsByteEqualV24": {
+          "report-rules.json": true,
+          "report-qwen.json": true,
+          "report-deepseek.json": true
+        }
+      },
+      "executed_by_this_reviewer": false
+    },
+    "check": {
+      "receipt_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round33/v25-check.receipt.json",
+      "receipt_sha256": "478f30f6dc07e3b65e05b25b037e589d63df72bd849d9b9ddf72017b4e21edfe",
+      "value": {
+        "command": [
+          "npm",
+          "exec",
+          "--yes",
+          "--package=node@24",
+          "--",
+          "node",
+          "experiments/material-facts-v7/corrective-assessment-v25.mjs",
+          "--check"
+        ],
+        "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+        "started": "2026-10-18T16:26:21.432305+00:00",
+        "durationSeconds": 198.22624529100722,
+        "exitCode": 0,
+        "logs": {
+          ".scratch/issue42/round33/v25-check.stdout.log": "4d6708de10ea1269f956cb00d95042cb6db0a89639966da449c6c38343a835df",
+          ".scratch/issue42/round33/v25-check.stderr.log": "abf81021990dbff4e70ad1a1a2bfda0017c5ce1cae12560315cab766fc4e5189"
+        }
+      },
+      "logs_checked": {
+        ".scratch/issue42/round33/v25-check.stdout.log": {
+          "sha256": "4d6708de10ea1269f956cb00d95042cb6db0a89639966da449c6c38343a835df",
+          "bytes": 6043
+        },
+        ".scratch/issue42/round33/v25-check.stderr.log": {
+          "sha256": "abf81021990dbff4e70ad1a1a2bfda0017c5ce1cae12560315cab766fc4e5189",
+          "bytes": 117420
+        }
+      },
+      "stdout_status": "PASS",
+      "structured_policy_pass_receipts": 2,
+      "verification_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round33/v25-post-check-verification.json",
+      "verification_sha256": "78584ae6d78f0403c97e637f72124ae824c9f6ae978d4bbc7c09e96f50796289",
+      "verification": {
+        "protectedCount": 1690,
+        "protectedUnchanged": true,
+        "manifestSha256": "4eef4eeeba7df54d6f40a67ff4cca3170de8788b1ab9578b45c29d06ed1cb8ca",
+        "codeBindings": 94,
+        "originalResultFiles": 60,
+        "allOriginalMatchFrozen": true,
+        "reportsByteEqualV24": {
+          "report-rules.json": true,
+          "report-qwen.json": true,
+          "report-deepseek.json": true
+        }
+      },
+      "executed_by_this_reviewer": false
+    }
+  },
+  "performed_by_this_reviewer": {
+    "python_readonly_arithmetic_audit": true,
+    "python_version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "audit_elapsed_seconds": 0.06291058397619054,
+    "scorer_calls": 0,
+    "historical_cli_calls": 0,
+    "controller_calls": 0,
+    "model_calls": 0,
+    "http_calls": 0,
+    "builds": 0,
+    "heavy_tests": 0,
+    "root_or_code_writes": 0
+  },
+  "scope_limits": [
+    "从现有pairs/missing/extra独立重算分区和汇总，不重新决定语义配对，也不调用评分器。",
+    "仅校验anchors的Unicode code point边界与事件ID一致性，不重新做法律/业务人工标注。",
+    "12例43条来自provisional非专家标注；来源集中，复核通过不能外推真实案件准确率。",
+    "本次是同一次首跑原输出的后验复评，不是新模型实验或独立新holdout。",
+    "真实生产确认/计算流程、用户业务验收、CI、合并和部署均不由本次LIGHT证明。"
+  ],
+  "blocking_findings_in_this_scope": [],
+  "evidence": {
+    "audit_script": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/v25-light/v25-independent-report-check.py",
+    "audit_script_sha256": "b6883daab80f533a92e17a4b973447e056c4b809b7a3ecbf2874666ded2d13ba",
+    "audit_stdout": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/v25-light/v25-light-audit.stdout.json",
+    "audit_stdout_sha256": "37b0a2ba144b18567a8211c22b2d5ea860183e7f287b249b26910e30afc578a8",
+    "execution": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/v25-light/v25-light-audit.execution.json",
+    "execution_sha256": "590fc4a7edf275ab9ea83261448f89f34594038d21e534adc27af2650f5a80d7",
+    "parent_execution_observed": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round33/v25-light/parent-write-check-observed.json",
+    "parent_execution_observed_sha256": "6980a18479feb11e6c79991b7e792b118ffcdc666a62673ae558d35f5163f715"
+  }
+}

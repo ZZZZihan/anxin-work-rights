@@ -1,0 +1,41 @@
+{
+  "classification": "fixture_invalid_stage_not_valid_before_business_red",
+  "original_report": "http102-old-eb-before-red.json",
+  "original_report_sha256": "e65a8ab508f681cf643642e1a2c7445eee712f278d6d84969711dadb9d0c9b06",
+  "original_runner_sha256": "4399a899eba9da6cd5c43c78df4239c76ce011026db6e3cf4870d6ee5a81abba",
+  "original_runner_snapshot": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/.scratch/issue42/round17-http102-runner/material-facts-v7-http-regression.mjs",
+  "raw_exit_code": 1,
+  "original_counts": {
+    "PASS": 92,
+    "FAIL": 10
+  },
+  "cleanup": {
+    "status": "PASS",
+    "failures": []
+  },
+  "invalid_preconditions": [
+    {
+      "scenarios": [
+        "round17_foreign-conversion-prefix_read_boundary",
+        "round17_foreign-conversion-suffix_read_boundary",
+        "round17_tuple-cropped-unit_read_boundary",
+        "round17_tuple-rmb-prefix_read_boundary",
+        "round17_tuple-layout_read_boundary",
+        "round17_assembly-fee-unit-control_read_boundary"
+      ],
+      "cause": "Candidate money.period defaults to 2026年1月 but source contains no such literal period; validateCandidateOutput refuses before the intended source/amount boundary."
+    },
+    {
+      "scenarios": [
+        "round17_amount_free_arrears_reject_but_unknown_stays_reviewable"
+      ],
+      "cause": "Candidate subject defaults to 测试王甲 but the amount-free source has no such literal subject; validateCandidateOutput refuses before monetary presence behavior."
+    }
+  ],
+  "source_evidence": "Exact eb lib/material-facts-v3.ts:281 rejects subject or period absent literally from source.blocks.",
+  "raw_report_modified": false,
+  "original_runner_modified": false,
+  "product_or_build_modified": false,
+  "status": "Await corrected final runner/hash from parent, then use a new exclusive report on the same exact eb build.",
+  "model_requests": 0
+}

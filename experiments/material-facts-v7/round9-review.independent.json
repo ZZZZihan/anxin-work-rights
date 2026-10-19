@@ -1,0 +1,437 @@
+{
+  "schema": "material-facts-v7-round9-independent-review/1",
+  "status": "passed_within_four_issue_scope",
+  "scope": "Two round9 day-money findings plus two round10 historical-execution and monitor-lifecycle findings. Not whole-PR approval; four subsequently reported round11 money findings remain separately assigned.",
+  "reviewer": "v7_independent",
+  "reviewed_at_utc": "2026-10-18T06:48:38.898451+00:00",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "actual_model_configuration_independently_verified": false,
+  "reviewed_integration_base_commit": "edb8d2746598152d3d9df32eb4b19c12ba832e35",
+  "reviewed_application_commit": "24812ce6ca16f3f0893ba18c54f8b9ce0530d93a",
+  "implementation_authored_by_reviewer": false,
+  "independent_tests_sha256": {
+    "scripts/material-facts-v7-relative-day-independent.test.mjs": "1460ba0ab88ba028d15afd93b4714f650a4769a07358c93366095eac582f883f",
+    "scripts/material-facts-v7-monitor-independent.test.mjs": "1ffd1a5274b406dd024ecb0a8d802d8dbbf3d95472d22b1fcbd7298d0c6851c2",
+    "scripts/material-facts-v7-history-policy-independent.test.mjs": "dc2fe04d5e71daed048a65ac07938b4f8f3bbbd272139d707a506fb98a9042dc",
+    "scripts/material-facts-v7-correction-v8-gates-independent.test.mjs": "6084ac274a78e5d09eaad8db72ce8e389e8ddb2dffcb57945af037b5c75435be"
+  },
+  "findings": [
+    {
+      "comment_id": 4305959322,
+      "implementation_owner": "v7_money",
+      "status": "fixed_and_nonimplementer_reviewed",
+      "scope": "Full-value finite day wage descriptions are not monetary; unknown, masked and nonexact money remain reviewable; raw and historical representation preserved."
+    },
+    {
+      "comment_id": 4305959326,
+      "implementation_owner": "v7_data",
+      "status": "fixed_and_nonimplementer_reviewed",
+      "scope": "Bare relative-day wage total exemption; actual daily rates, explicit standards, suffix units and subject-name boundaries retained."
+    },
+    {
+      "scope": "Archived v5 nested 60s timeout",
+      "implementation_owner": "v7_data; root current controller/gate integration",
+      "status": "explicit_execution_policy_nonimplementer_reviewed",
+      "actual_original_timeout_reproduced_locally": false,
+      "author_actual_original_v5_seconds": 41.117,
+      "author_actual_updated_v5_seconds": 43.465,
+      "archived_source_bytes_changed": false,
+      "scope_limit": "Upstream actual timeout finding is preserved. Local controlled timeout probes test policy mechanics, not a claim of reproducing that original latency."
+    },
+    {
+      "scope": "Pending memory query or append after worker close",
+      "implementation_owner": "v7_money",
+      "status": "fixed_and_nonimplementer_reviewed",
+      "independent_original_pass": 0,
+      "independent_original_fail": 2,
+      "independent_final_pass": 2,
+      "scope_limit": "Synthetic native pressure-query barrier; author separately tests append barriers. No real model/host-pressure acceptance."
+    }
+  ],
+  "known_four_findings_all_triaged": true,
+  "blocking_findings_within_reviewed_scope": [],
+  "known_later_round11_findings_outside_scope": [
+    "bare currency 计/计算/折算 bridge",
+    "symbolic money factors",
+    "conjunction-delimited money ranges",
+    "Arabic yuan/jiao/fen composite literals"
+  ],
+  "executed_checks": {
+    "independent_native_tests": {
+      "total": 59,
+      "pass": 59,
+      "fail": 0,
+      "relative_day": 48,
+      "monitor": 2,
+      "historical_policy": 4,
+      "v8_gates": 5
+    },
+    "actual_old_relative_day_tests": {
+      "pass": 18,
+      "fail": 30,
+      "application_commit": "36ad5680c6626409e961be80cbc6b479497370b6"
+    },
+    "actual_old_monitor_tests": {
+      "pass": 0,
+      "fail": 2,
+      "old_runner_sha256": "ecdbfebd4ccf96b5f7c3273bc208137ff53f69ea0edd62dba0baa9b66d4177bf"
+    },
+    "v8_gate_actual_cli_refusal_ms": [
+      72338.437125,
+      53499.780333
+    ],
+    "v8_gate_duration_ms": 127042.905708,
+    "new_tests_scoped_eslint": "PASS",
+    "artifact_check": {
+      "status": "PASS",
+      "case_layers": 216,
+      "cases_per_backend": 12,
+      "expected_facts_per_backend": 43,
+      "original_files": 60,
+      "archived_v7_code_paths": 39,
+      "current_code_paths": 43,
+      "scorer_imported": false,
+      "method": "Recount saved disjoint complete matching partitions and fixed denominators; compare all report bytes. Earlier independent source/event semantics remain separate, preserved evidence."
+    }
+  },
+  "historical_execution_policy": {
+    "policy_id": "material-facts-v7-historical-execution/1",
+    "root_absolute_budget_ms": 900000,
+    "cleanup_reserve_per_child_ms": 2000,
+    "same_process_siblings_share_root_deadline": true,
+    "exact_readonly_targets_only": true,
+    "old_sources_unmodified": true,
+    "scoring_semantics_unchanged": true,
+    "validation_errors_not_cached_or_swallowed": true,
+    "duplicate_module_urls_share_true_native_registry": true,
+    "current_controller_and_historical_gate_api_integration_reviewed": true,
+    "historical_gate_original_assertions_retained": true
+  },
+  "monitor_evidence_caveat": "monitor-query-before-red.txt was accidentally an already-updated green run and remains preserved. Only monitor-query-baseline-red.txt is claimed as the real old-runner red baseline; see monitor-query-initial-run-context.json.",
+  "parent_checks_at_receipt_time": {
+    "full_npm_check": {
+      "status": "PASS",
+      "exit_code_reported_by_parent": 0,
+      "actual_final_log_read_by_reviewer": true,
+      "vitest": 1789,
+      "vitest_files": 46,
+      "native_runtime_evidence": 1146,
+      "python": [
+        9,
+        11,
+        16
+      ],
+      "source_path": ".scratch/issue42/round10-final-check.log",
+      "evidence": "parent-comparison-full-check.log",
+      "sha256": "15f87716ed9f5bc7deb211277ce4c2a7346d02b8b50173d14ec53888be67cb10",
+      "independently_rerun_by_reviewer": false
+    },
+    "unmodified_v8_check": {
+      "pass_json_read": true,
+      "source_path": ".scratch/issue42/round10-v8-check.json",
+      "evidence": "parent-v8-check.json",
+      "independently_rerun_by_reviewer": false,
+      "exit_code_reported_by_parent": 0
+    },
+    "http": {
+      "executed_by": "root",
+      "pass": 39,
+      "cases": 39,
+      "cleanup": "PASS",
+      "actual_report_read_by_reviewer": true,
+      "independently_started_by_reviewer": false,
+      "valid_old_build": {
+        "pass": 33,
+        "fail": 6
+      },
+      "two_initial_runs_preserved": "27/12 included six capacity/fixture failures, not twelve product failures; owned completed service jobs retired while persisted D1 snapshot unchanged."
+    }
+  },
+  "v8_manifest_sha256": "8fa3100c348a94af0471e93a5a2dab8d405df2dd4debc603b3fe3dbe89fac06b",
+  "historical_sha256": {
+    "freeze.json": "0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2",
+    "result-manifest.json": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+    "corrections/manifest.json": "eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de",
+    "corrections-v2/manifest.json": "1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80",
+    "corrections-v3/manifest.json": "72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841",
+    "corrections-v4/manifest.json": "3bceefdb375173567fa7ce60c662eae991957ade70bb89f0da989edb7ebd9db6",
+    "corrections-v5/manifest.json": "eb79da00daa92966f081a2eba35d7355e258a45d18411570834efc62d632e32e",
+    "corrections-v6/manifest.json": "0c9ef56e30e278c816e088a934df1cb8f0cdc944c262b9bd9f88be146909ee69",
+    "corrections-v7/manifest.json": "1fb40b4c0694744f5a83c6b9ddc87bfd1958a2b85185fb178273cec13b422e31"
+  },
+  "current_code_sha256": {
+    "lib/material-facts.ts": "c7ca5ea8892142ceb08b4b9a74ec8fa829be3c921d5f32d5ff91e9b69df779b9",
+    "lib/material-fact-types.ts": "482bfd611104c213358b0ff194969df6926fa96847d30e531bab40a21fff476f",
+    "lib/material-facts-v2.ts": "0a7e93a3a15393bf2479e8e37fa6000f87266d8a01836c4c7487acee2c97aeec",
+    "lib/material-fact-types-v2.ts": "1e2c55415334bf0b7d84e85937eb09b45bc1ef4eb8b7bc809db8932e2923d339",
+    "lib/material-facts-v3.ts": "b1e5fbe9829cd677c98315070fd3406dfadd6305a3291dfa601a3df64874cbdd",
+    "lib/material-fact-types-v3.ts": "0a3ba7fac7223c1a7d5856f324171e29f7a54c41539392baa719307eaf02442f",
+    "lib/material-money-v4.ts": "912f97c3c3bb43210dfb367afd8f2553c7ff18053a955d553a2b66f855181bcf",
+    "lib/material-fact-arithmetic-review.ts": "a53e57f19fb0375b1016f54c05dc5763e36661ca4bb4a4acfd16d28364801363",
+    "lib/material-fact-extraction-v4.ts": "319f4f94073f6d5e18a307e5498c2704cac3639586a24f1e48b7da14301f26d2",
+    "lib/material-fact-source-review.ts": "315e2baa38ab5d9d30a581246bca57f3f740ae2586057d3bc5721e2d502ca6fd",
+    "lib/material-fact-runtime-ingest.ts": "a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f",
+    "lib/material-fact-event-review.ts": "6266aa769459619181aeba3cda262efdf8912f8a94a0edc3bccea2254fe4a181",
+    "lib/material-fact-currency-review.ts": "21b50936cacc5b9188f31d6695c588b0e0470068ba2eed4ba9f0c60042db57dd",
+    "lib/material-fact-coverage-review.ts": "ab4b4ee52126b204327b6930a0675a1e5b43db3fedce06d0ec752feb833b47c4",
+    "scripts/fact-runtime-v2.py": "2fa950cdde02156aab7f676efcbf3c1abf89e3ed734286f0a9e8437b325c1cc3",
+    "scripts/fact_memory_runtime.py": "9b0fab42e910736998cf54a9cfc63315f33624dce758ce15deccca1c67c8b51b",
+    "scripts/fact_api_transport.py": "958cfade7e59c08dc0397c448775b98c30cd9c5c1b689106c0fe6a4c82be5600",
+    "experiments/material-facts-v7/run.mjs": "72646a5a0deea048f368b0e809acf4f3bffd4c42a97d87e0fc96c8d5ca665cd0",
+    "experiments/material-facts-v7/assess.mjs": "d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1",
+    "experiments/material-facts-v7/freeze.mjs": "bbcd2ae9f8103eaacf295a9116b229409d07058c14212477f6717ec08cdd664a",
+    "experiments/material-facts-v7/experiment-lock.mjs": "eccebd49c4c2d8391878322c982992a1ea297cc1a81489c869d9b2b83a98b94f",
+    "experiments/material-facts-v7/verify.mjs": "c9f5b7eb1ebe882d2aec76477616271aa31e00639ad3935ad829253d2dedae38",
+    "experiments/material-facts-v7/summarize.mjs": "4590768f0c42a2d5ea1d4b0fb812c8d2fc9068642d82bc0661daaf44b2eaa63d",
+    "experiments/material-facts-v7/runtime-policy.json": "e17cbcfc38ca71c328b093d9493f1ba90809afa4fd8def8d23ab1cc62673b4a8",
+    "experiments/material-facts-v7/verify-frozen.mjs": "8ba86824edb3234639940c6539998090b5fb27667d1f2f4463173cd5a3b2ef0e",
+    "experiments/material-facts-v7/corrective-assessment.mjs": "07a8df7fdfb889dbf1d16f1f559b74a7115d2eb86fa1e08266771f8c1394c937",
+    "experiments/material-facts-v7/publish-artifacts.mjs": "fed30876cd481d0c76bf50c5fbf02a1e78a198a751b66f98c692dbccac347204",
+    "experiments/material-facts-v7/verify-correction-v1.mjs": "2030c45af867f0597742a07dac9e2d488fa77029373f747f1009c104f0fce755",
+    "experiments/material-facts-v7/corrective-assessment-v2.mjs": "bf39d93d6c748737bfc69affaa5533f176b9df9d35a017cc48e56b929335b1e9",
+    "experiments/material-facts-v7/verify-correction-v2.mjs": "65d1cad6c8b68ba43615bdfd686b959eeae94cb16f8fe5af1cbb8f7835190ad9",
+    "experiments/material-facts-v7/corrective-assessment-v3.mjs": "0d7e96c3073d74ec3220d824d527ba85ee2b6338f7788d4e458d41daa1eaef4b",
+    "experiments/material-facts-v7/verify-correction-v3.mjs": "9a47a38a8e8ff18fe9e84e02350ed1d9b5b1f960430ab3182a9a98a7bdb4e56f",
+    "experiments/material-facts-v7/corrective-assessment-v4.mjs": "d17aa2cc196839fa4b36b20ecdab18642409a700b4bec71e2877dd34db70a09b",
+    "experiments/material-facts-v7/verify-correction-v4.mjs": "c738697bc3e03bb0545db5c38fc0a95a2062563edd15d4be191ae15aacec84bc",
+    "experiments/material-facts-v7/corrective-assessment-v5.mjs": "fa6294e36cfad5b692f7c409bdffb2dab21c9175df3e1c8ae005d2a5dee1daef",
+    "experiments/material-facts-v7/verify-correction-v5.mjs": "6e136f06ee5e88e01d8699b02f7e37e619ac459bc590a2ccefc025d4c61fdc17",
+    "experiments/material-facts-v7/corrective-assessment-v6.mjs": "2dc4e2de96802f6a32e8d614ce1b02ae95c30db2abc0fde8444ad7989a090614",
+    "experiments/material-facts-v7/verify-correction-v6.mjs": "74ec7cbd049de7dfa5622f92d7232203e30373c4988aa52c772b4786d95c6590",
+    "experiments/material-facts-v7/corrective-assessment-v7.mjs": "165d1df066cfac5b46b0c43646c184d3f87f4ac85b571567086bc4fddcc38bce",
+    "experiments/material-facts-v7/verify-correction-v7.mjs": "18127455b68229897367950ad87f5daf83f0a3abcb06711d1f9eb944a7189142",
+    "experiments/material-facts-v7/corrective-assessment-v8.mjs": "d46ec86e2855bd79141b4d5a4794ea7977cbc2cef29044383ad3fd70d7fb41a1",
+    "experiments/material-facts-v7/historical-execution-v1.mjs": "0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c",
+    "experiments/material-facts-v7/historical-execution-policy-v1.mjs": "cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea"
+  },
+  "models": {
+    "rules": {
+      "v7_v8_report_byte_identical": true,
+      "report_sha256": "0553db2f6eb0801c6311021f16ce67268a165cd8198afe66fa4821ee737dbaf7",
+      "cases": 12,
+      "expected_facts": 43,
+      "metrics_recounted_from_saved_match_partitions": {
+        "raw_basic": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 41,
+          "precision": 1.0,
+          "recall": 0.046511627906976744,
+          "f1": 0.08888888888888888
+        },
+        "raw_relational": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "raw_strict": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "accepted_basic": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 41,
+          "precision": 1.0,
+          "recall": 0.046511627906976744,
+          "f1": 0.08888888888888888
+        },
+        "accepted_relational": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "accepted_strict": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      },
+      "raw": 2,
+      "accepted": 2,
+      "rejected": 0,
+      "amount_nonnull": 2,
+      "exact_money_without_review_issue": 0,
+      "calculation_authorized": 0
+    },
+    "qwen": {
+      "v7_v8_report_byte_identical": true,
+      "report_sha256": "7d3179e74932e322876ec5a7f67dda817f680473d8f8a850746ddb99091d521f",
+      "cases": 12,
+      "expected_facts": 43,
+      "metrics_recounted_from_saved_match_partitions": {
+        "raw_basic": {
+          "tp": 16,
+          "fp": 47,
+          "fn": 27,
+          "precision": 0.25396825396825395,
+          "recall": 0.37209302325581395,
+          "f1": 0.3018867924528302
+        },
+        "raw_relational": {
+          "tp": 10,
+          "fp": 53,
+          "fn": 33,
+          "precision": 0.15873015873015872,
+          "recall": 0.23255813953488372,
+          "f1": 0.18867924528301885
+        },
+        "raw_strict": {
+          "tp": 8,
+          "fp": 55,
+          "fn": 35,
+          "precision": 0.12698412698412698,
+          "recall": 0.18604651162790697,
+          "f1": 0.1509433962264151
+        },
+        "accepted_basic": {
+          "tp": 16,
+          "fp": 35,
+          "fn": 27,
+          "precision": 0.3137254901960784,
+          "recall": 0.37209302325581395,
+          "f1": 0.3404255319148936
+        },
+        "accepted_relational": {
+          "tp": 10,
+          "fp": 41,
+          "fn": 33,
+          "precision": 0.19607843137254902,
+          "recall": 0.23255813953488372,
+          "f1": 0.2127659574468085
+        },
+        "accepted_strict": {
+          "tp": 8,
+          "fp": 43,
+          "fn": 35,
+          "precision": 0.1568627450980392,
+          "recall": 0.18604651162790697,
+          "f1": 0.1702127659574468
+        }
+      },
+      "raw": 63,
+      "accepted": 51,
+      "rejected": 12,
+      "amount_nonnull": 8,
+      "exact_money_without_review_issue": 0,
+      "calculation_authorized": 0
+    },
+    "deepseek": {
+      "v7_v8_report_byte_identical": true,
+      "report_sha256": "32937a32ce0f8af3ce61845cf05f8edc3d07f0e0200c623581014b5f3c117f7d",
+      "cases": 12,
+      "expected_facts": 43,
+      "metrics_recounted_from_saved_match_partitions": {
+        "raw_basic": {
+          "tp": 34,
+          "fp": 17,
+          "fn": 9,
+          "precision": 0.6666666666666666,
+          "recall": 0.7906976744186046,
+          "f1": 0.7234042553191489
+        },
+        "raw_relational": {
+          "tp": 27,
+          "fp": 24,
+          "fn": 16,
+          "precision": 0.5294117647058824,
+          "recall": 0.627906976744186,
+          "f1": 0.5744680851063829
+        },
+        "raw_strict": {
+          "tp": 25,
+          "fp": 26,
+          "fn": 18,
+          "precision": 0.49019607843137253,
+          "recall": 0.5813953488372093,
+          "f1": 0.5319148936170213
+        },
+        "accepted_basic": {
+          "tp": 34,
+          "fp": 17,
+          "fn": 9,
+          "precision": 0.6666666666666666,
+          "recall": 0.7906976744186046,
+          "f1": 0.7234042553191489
+        },
+        "accepted_relational": {
+          "tp": 27,
+          "fp": 24,
+          "fn": 16,
+          "precision": 0.5294117647058824,
+          "recall": 0.627906976744186,
+          "f1": 0.5744680851063829
+        },
+        "accepted_strict": {
+          "tp": 25,
+          "fp": 26,
+          "fn": 18,
+          "precision": 0.49019607843137253,
+          "recall": 0.5813953488372093,
+          "f1": 0.5319148936170213
+        }
+      },
+      "raw": 51,
+      "accepted": 51,
+      "rejected": 0,
+      "amount_nonnull": 10,
+      "exact_money_without_review_issue": 0,
+      "calculation_authorized": 0
+    }
+  },
+  "evidence_source_directory": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round9",
+  "evidence_repository_destination": "experiments/material-facts-v7/postfreeze-evidence/round9/",
+  "author_round10_evidence_origin": "Copied with author- prefixes from anxin-facts-v7-data/experiments/material-facts-v7/postfreeze-evidence/round10; author results are distinguished from independent reruns.",
+  "evidence_sha256": {
+    "relative-day-48-before-red.txt": "a1c9900bd5924a1c0bfc280a01829c2a3dbe8b7703e44df7ee699338b54a87a0",
+    "relative-day-48-after-green.txt": "5b24d39d327f3e5c5f00a9e11e266620ec51276340a91879e5824e6397e08c2f",
+    "relative-day-code-integrated-green.txt": "d5b22524e432da08f5331b313c2ff1dbf253a01c891df48bc3d5c2316c02e5e2",
+    "monitor-query-baseline-red.txt": "1ab8b7956fb43a2b6bcf4bff12a8b51ac09e15685e671e3615234f38796863b8",
+    "monitor-query-final-green.txt": "ce80cd265cd2b08a5fd33e67553a93db1117133d98e16335dc19e99a08b6c863",
+    "monitor-query-initial-run-context.json": "3205fb6f43152bcfaacee9a0d09889fc4bb5015bec819a22bff19622d67ab26d",
+    "history-policy-final-independent-green.txt": "a5f12968b854dd9797f911ce10b1ae024548a4794b4ddffbc3b26b8d45dd4f93",
+    "v8-gates-independent-green.txt": "c6b2fa857a908965a0844e8223263f3fb3d12ede7021063cd16d6df99767fa24",
+    "v8-independent-report-check-final.py": "76b150e6f592ca05cb9afce3958dbb9a7ab063022e5dda0f8d362b23a012cc7e",
+    "v8-independent-report-comparison.json": "d251d4bd112c001da318a33e75bc5fd205540b390928db1910a1407b5ffed0fd",
+    "independent-final-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "parent-v8-check.json": "3bbc3934866db11502ccae370bcd6ff8b4208ab5474727368e76e91f88f484a5",
+    "parent-http-before-red.json": "0d247a57c8f8d5a00eca0ec29d380be991c022fda4ce34d666f1b105af569ea3",
+    "parent-http-valid-before-red.json": "30eb3c26955630169a68710f5014a0158b4b7235a18d1a4a072e1959fcb2b590",
+    "parent-http-capacity-fixed-before-red.json": "db1bd2e9d736dc5e8c0ea2cc712c1c3ff50a4c2e7de8a6c7280808b2603b05c2",
+    "parent-http-after-green.json": "64890e97d9c3b5adea5cd53f9864d54b7874897954931a862a4d424dcc7823d1",
+    "author-historical-v5-original-baseline.receipt.json": "b3719693af8710348a7f66207b47314306720e0ec33d7fc99125f6177c37fc36",
+    "author-historical-v5-original-baseline.log": "39d0c9183db28399432779f251a3426e78fc7ee86d74d9c081e7c8832bf76368",
+    "author-historical-v5-policy-real-green.receipt.json": "bcff0bb4c5061f226bdce8f7a7a94e3c93cf58db88d440723ce83161e5cebf53",
+    "author-historical-v5-policy-real-green.log": "eb1151f51715bb69a047397a66cc435ab36464a56d05cf3ea3c686470ece544e",
+    "author-historical-policy-real-events-summary.json": "006cdc3d18f42cb41c7f18b1e98dcbf3157c4ae0eab67b796d7e2f08d65ac99e",
+    "author-historical-native-controlled-before-red.log": "88b434db780744ba660901be90250016737be1756f963d9de6defd010a686c59",
+    "author-historical-native-controlled-after-green.log": "788973f62f498b3bba90ff028c5c444972d3750df40ba3d0b2270c4d2151a903",
+    "parent-comparison-full-check.log": "15f87716ed9f5bc7deb211277ce4c2a7346d02b8b50173d14ec53888be67cb10"
+  },
+  "model_requests_by_reviewer": 0,
+  "builds_by_reviewer": 0,
+  "workers_started_by_reviewer": 0,
+  "frozen_artifacts_modified_by_reviewer": false,
+  "limits": [
+    "accepted is not calculation authorization",
+    "All reported defense rows remain calculation_authorized=false; exact-money-without-review-issue=0",
+    "No legal expert labeling or human business acceptance",
+    "Shared deadlines are bounded execution behavior, not a validation bypass or permanent performance guarantee",
+    "Read-only byte checks are not an operating-system snapshot against arbitrary malicious concurrent writers",
+    "Earlier known conservative guard false positives and provisional gold boundaries remain documented; no re-labeling or new inference"
+  ]
+}

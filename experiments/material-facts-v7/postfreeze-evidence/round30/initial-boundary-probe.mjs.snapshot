@@ -1,0 +1,62 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// Five concrete post-baa8bebb findings. Only synthetic raw candidates and stored
+// states are used; an accepted amount never grants calculation authority.
+const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const load = path => import(pathToFileURL(resolve(ROOT, path)));
+const { normalizeMoneyValueV4: money } = await load('lib/material-money-v4.ts');
+const { ingestRuntimeCandidates: fresh } = await load('lib/material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates: legacy, buildFactView } = await load('lib/material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('lib/material-fact-source-review.ts');
+const { assessCase } = await load('experiments/material-facts-v7/assess.mjs');
+const cp = text => Array.from(text).length;
+const rawFor = candidates => JSON.stringify({ schemaVersion: 3, candidates });
+const sourceFor = texts => ({ id: 'round30-independent', name: 'synthetic.txt', sha256: '7'.repeat(64), analysisRevision: 30, ready: true,
+  blocks: (Array.isArray(texts) ? texts : [texts]).map((text, index) => ({ id: 'b' + (index + 1), page: 1, text, bbox: null, confidence: null })) });
+const entry = (value, quote = value, extra = {}) => ({ kind: 'money', value, quote, blockId: 'b1', subject: '王甲', scope: 'individual',
+  meaning: 'other_money', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated', ...extra });
+function stateFor(source, candidates, old = false) {
+  const raw = rawFor(candidates), state = (old ? legacy : fresh)(emptyFactState(30), source, { raw }, 'independent', 'synthetic', '2026-10-18T21:00:00.000Z', null);
+  assert.equal(state.materials[0].raw, raw); assert.deepEqual(state.confirmations, { due: null, paid: null });
+  assert.equal(state.calculation, null); assert.equal(buildFactView(state, [source]).canCalculate, false);
+  return state;
+}
+function factFor(source, item, state) {
+  assert.equal(state.materials[0].candidates.length, 1, 'Retaining a review candidate does not make its amount usable.');
+  const fact = state.materials[0].candidates[0], text = source.blocks.find(block => block.id === item.blockId).text;
+  const at = text.indexOf(item.quote); assert(at >= 0); assert.equal(text.indexOf(item.quote, at + 1), -1);
+  assert.deepEqual(fact.representation, item); assert.equal(fact.start, cp(text.slice(0, at))); assert.equal(fact.end, fact.start + cp(item.quote));
+  return fact;
+}
+function historical(source, item, amount, status) {
+  const state = stateFor(source, [item], true), fact = factFor(source, item, state);
+  fact.amount = amount;
+  fact.normalization = { rawValue: item.value, status, amount, matchedText: item.value, span: { start: 0, end: cp(item.value) }, reason: 'Synthetic stored candidate, never confirmed.' };
+  const before = structuredClone(state), reviewed = reviewFactsAgainstSources(state, [source]);
+  assert.deepEqual(state, before); assert.equal(reviewed.materials[0].raw, rawFor([item]));
+  return factFor(source, item, reviewed);
+}
+function moneyObservations(source, value = '4000元', extra = {}, storedAmount = '4000.00') {
+  const rows = [], block = source.blocks.find(item => item.text.includes(value));
+  assert(block);
+  for (const quote of [value, block.text]) {
+    const item = entry(value, quote, { ...extra, blockId: block.id });
+    rows.push({ fresh: factFor(source, item, stateFor(source, [item])), storedExact: historical(source, item, storedAmount, 'exact'),
+      storedUnavailable: historical(source, item, null, 'unsupported') });
+  }
+  return rows;
+}
+function checkMoney(rows, amount) {
+  for (const row of rows) {
+    assert.equal(row.fresh.amount, amount); assert.equal(row.storedExact.amount, amount);
+    assert.equal(row.storedUnavailable.amount, null, 'Reviewing old unavailable money must not upgrade it.');
+  }
+}
+
+const values=['四万元乘以半成','四万元乘以半折','四万元乘以对折','四万元×半成','四万元除以對折','４０００元','人民币４０００元','￥４０００元','4000元（负数）','4000元为负数','4000元负值','4000元（負數）','4000元一次性支付','4000元一并支付','4000元三日内支付','4000元。李乙折扣为对折。'];
+for(const value of values){const text='😀王甲收到工资'+value+'。';const source=sourceFor(text);const crop=value.includes('四万元')?'四万元':value.includes('4000元')?'4000元':value;try{const rows=moneyObservations(source,crop,{},crop==='四万元'?'40000.00':'4000.00');console.log(JSON.stringify({value,whole:money(value),fresh:rows.map(x=>({amount:x.fresh.amount,status:x.fresh.normalization.status,issues:x.fresh.reviewIssues})),history:rows.map(x=>({amount:x.storedExact.amount,status:x.storedExact.normalization.status}))}));}catch(error){console.log(JSON.stringify({value,error:error.stack}));}}

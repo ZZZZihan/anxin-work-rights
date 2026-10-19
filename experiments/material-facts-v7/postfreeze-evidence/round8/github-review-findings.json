@@ -1,0 +1,50 @@
+[
+  {
+    "pr": "p46",
+    "head": "0abcea42de71dcc70980a24f8faa68c8894082cb",
+    "id": "PRRT_kwDOVApLyM6tn1fg",
+    "isResolved": false,
+    "isOutdated": false,
+    "comments": {
+      "nodes": [
+        {
+          "databaseId": 4305935630,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Publish freeze.json atomically**\n\nIf `writeFile` fails after partially creating `freeze.json`, `withExperimentLock` releases the lock but leaves the incomplete destination behind; subsequent freezes refuse to overwrite it, while diagnostic runners treat its mere existence as closing the experiment. Recovery therefore requires deleting a file presented as immutable historical evidence. Write the complete receipt to a sibling temporary file and rename it into place only after the write succeeds.\n\nAGENTS.md reference: [AGENTS.md:L9-L9](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/AGENTS.md#L9-L9)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305935630"
+        }
+      ]
+    }
+  },
+  {
+    "pr": "p46",
+    "head": "0abcea42de71dcc70980a24f8faa68c8894082cb",
+    "id": "PRRT_kwDOVApLyM6tn1fi",
+    "isResolved": false,
+    "isOutdated": false,
+    "comments": {
+      "nodes": [
+        {
+          "databaseId": 4305935632,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Verify the published v5 manifest byte-for-byte**\n\nThe newly added v5 `--check` parses `manifest.json` before comparison, so re-indenting, reordering, or adding whitespace still returns `PASS` while changing the SHA-256 explicitly published in `README.md` and the round-6 review. This silently invalidates the immutable v5 identifier; compare the raw manifest bytes to the fixed published hash or archive and verify the exact bytes.\n\nAGENTS.md reference: [AGENTS.md:L9-L9](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/AGENTS.md#L9-L9)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305935632"
+        }
+      ]
+    }
+  },
+  {
+    "pr": "p46",
+    "head": "0abcea42de71dcc70980a24f8faa68c8894082cb",
+    "id": "PRRT_kwDOVApLyM6tn1fk",
+    "isResolved": false,
+    "isOutdated": false,
+    "comments": {
+      "nodes": [
+        {
+          "databaseId": 4305935635,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Reject the reserved budget-lock attempt name**\n\nFor a pre-freeze rules or Qwen diagnostic, `--out .../results/.deepseek-budget.lock` passes this name check and is created as an ordinary immutable attempt directory. Every later DeepSeek run then fails to acquire its reservation lock, and `createFreeze()` explicitly rejects the same entry, so the experiment cannot proceed without renaming or deleting recorded attempt evidence. Reject this reserved basename before creating the attempt.\n\nAGENTS.md reference: [AGENTS.md:L9-L9](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/AGENTS.md#L9-L9)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+          "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305935635"
+        }
+      ]
+    }
+  }
+]

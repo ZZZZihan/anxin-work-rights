@@ -1,0 +1,1 @@
+v28 仅准备，尚未发布或计算。源ROOT635d706，归档100份v27绑定源码+manifest，current union103。3工具和3测试沿原策略递推；绝对900000ms和每层2000ms预留、旧v1政策与旧桥不变。作者Node26原生7项全过（仅合成CLI），只恢复100字节并抛错的owned-temp回调真实清理通过；syntax/lint各6通过。未执行任何真实历史CLI、评分器、gate、write/check、HTTP、模型。DATA非作者轻核待独立收据。交付仅copy-index白名单，禁止整准备树覆盖ROOT。package/CI仅建议patch，按主侧当前内容应用。

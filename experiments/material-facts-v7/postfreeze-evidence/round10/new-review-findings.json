@@ -1,0 +1,58 @@
+[
+  {
+    "pr": 45,
+    "id": "PRRT_kwDOVApLyM6tn5DA",
+    "isResolved": false,
+    "isOutdated": false,
+    "comments": {
+      "nodes": [
+        {
+          "databaseId": 4305959322,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Reject relative-day wage descriptions without amounts**\n\nExtend the definite wage-period grammar to relative days such as `今日工资`, `当日工资`, `昨日工资`, and `当天工资`. These values do not match `wageStage`, and the fallback leaves their day qualifier behind, so `classifyMonetaryExpression` returns `undetermined`; `validateRuntimeCandidateOutput` consequently accepts them as money candidates instead of using the no-amount rejection path, inflating accepted coverage with descriptions that contain no monetary expression.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    }
+  },
+  {
+    "pr": 45,
+    "id": "PRRT_kwDOVApLyM6tn5DC",
+    "isResolved": false,
+    "isOutdated": false,
+    "comments": {
+      "nodes": [
+        {
+          "databaseId": 4305959326,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Exempt relative-day wage periods from rate detection**\n\nHandle relative-day prefixes before interpreting `日工资` as a daily rate. In the runtime ingestion path, a correct total from source text such as `王甲今日工资合计四万元` matches the `日工资` prefix, but `calendarPrefix` ends in `今`, so the numeric calendar exemption does not apply and this month-only exemption is skipped; `sourceUnitMismatch` then downgrades the exact amount to `rate_unit_mismatch` with `amount: null`.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    }
+  },
+  {
+    "pr": 46,
+    "id": "PRRT_kwDOVApLyM6tn_sI",
+    "isResolved": false,
+    "isOutdated": false,
+    "comments": {
+      "nodes": [
+        {
+          "databaseId": 4306002151,
+          "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Raise the nested v4 verification timeout**\n\nIn the newly added CI verification chain, `verify-correction-v5.mjs` executes this archived v5 script, but this 60-second child deadline is no larger than the valid runtime of the recursively copying and recomputing v4 verifier. On a clean checkout of this commit, `node experiments/material-facts-v7/verify-correction-v5.mjs` failed here with `spawnSync ... ETIMEDOUT`, after the standalone v4 verification had passed, so the required CI/check path can fail on an unmodified tree. Increase or remove this nested deadline, or avoid recursively repeating the historical recomputations.\n\nAGENTS.md reference: [AGENTS.md:L7-L7](https://github.com/ZZZZihan/anxin-work-rights/blob/bd1cf39e66459f793b7702fa81c328cbd15034e2/AGENTS.md#L7-L7)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    }
+  },
+  {
+    "pr": 46,
+    "id": "PRRT_kwDOVApLyM6tn_sK",
+    "isResolved": false,
+    "isOutdated": false,
+    "comments": {
+      "nodes": [
+        {
+          "databaseId": 4306002153,
+          "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Await the in-flight memory sample before releasing the lock**\n\nWhen a Qwen worker exits after the guard on line 221 but while this `appendFile` is pending, `close` resolves and the runner awaits only `writeQueue`; the interval callback itself is not tracked. A diagnostic can therefore save its outcome and release `.experiment.lock` while `memory.jsonl` is still changing, allowing `createFreeze()` to enumerate or hash the file before the append finishes and produce a freeze that immediately fails verification; an append error after exit is also silently suppressed by the catch condition. Fresh evidence beyond the earlier allocation race is that this monitor write is outside the serialized queue, so track and await the in-flight monitor callback before terminal writes and lock release.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+        }
+      ]
+    }
+  }
+]

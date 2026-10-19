@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-18T15:39:38.721552+00:00",
+  "reviewer": "/root/v7_money",
+  "review_type": "read_only_document_fact_and_evidence_scope_review",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning_effort": "ultra",
+  "actual_backend_independently_verified": false,
+  "status": "FACTUAL_CORRECTIONS_REQUESTED",
+  "source_files": [
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/experiments/material-facts-v7/POSTRUN_ROUND31_APPLICATION.md",
+      "sha256": "34073d31a9fb4c7f9aa2b8d2dd513f0b97918fcdb4e53a16538c51a653960729"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/experiments/material-facts-v7/README.md",
+      "sha256": "f4a78ea13a6a7264d8b95ff1a8259130075bfcbc3d68590b4ecc1ebd95dec462"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/experiments/material-facts-v7/ERROR_REVIEW.md",
+      "sha256": "f0d19a4f1239cf644acc1054a97c53bf2ce3eb90074bc972c63f8bf3b46be41d"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round31/pr45-round31-ci-pending.md",
+      "sha256": "9ec114b54e63eafaa626cb0cc26237a39680ad21ba5028631dfa68a239143807"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round31/posix-lifecycle.receipt.json",
+      "sha256": "02c597c22a4968de655f42238d2fa07f530d3cb07fd336323ef8bea2b3bf84ab"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round31/http322-comparison.json",
+      "sha256": "d9da77ecf812d84f501d1a0bf67ccaf85007dcf6239f76ee614d105b4a26b1bd"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round31/parent-197.receipt.json",
+      "sha256": "974450f72b54969bc5bac7e65f3bf7ed995c0383fbec64c8ad5bbc7149f6c5eb"
+    }
+  ],
+  "findings": [
+    {
+      "id": "DOC31-01",
+      "severity": "fact_currentness",
+      "locations": [
+        "README.md:7",
+        "ERROR_REVIEW.md:3"
+      ],
+      "finding": "首段仍把496fb27/ROUND30当当前应用；当前已是35bdbde/ROUND31。旧检查数字应保留为历史证据，另写当前版本状态。",
+      "recommendation": "将ROUND30段明确标作历史检查点，并增加ROUND31当前摘要；不要用旧CI替代当前提交。"
+    },
+    {
+      "id": "DOC31-02",
+      "severity": "evidence_scope",
+      "locations": [
+        "POSTRUN_ROUND31_APPLICATION.md:17",
+        "PR45 body"
+      ],
+      "finding": "19通过1跳过是20项清理组合总数，其中4项为受控Windows分支（ROUND14模拟1项+Windows专项3项），不能将19项统称POSIX实际进程组检查。",
+      "recommendation": "改成“清理组合20项，19通过1平台跳过；包含15项POSIX相关通过、4项受控Windows启动前拒绝通过，未做原生Windows验收”。"
+    },
+    {
+      "id": "DOC31-03",
+      "severity": "fact_currentness",
+      "locations": [
+        "POSTRUN_ROUND31_APPLICATION.md:21",
+        "PR45 body"
+      ],
+      "finding": "草稿写精确35bdbde的CI39140322673仍运行；只读查询已返回completed/success。",
+      "recommendation": "按实际查询时间更新该精确提交CI成功；仍不可据此关闭新ROUND32审查、替代实验分支完整检查或人工业务验收。"
+    }
+  ],
+  "verified_consistent": [
+    "40f5新增小时支持暴露原496为空的未知费率回归；68f3恢复null，不能算原496已有金额泄漏。",
+    "作者130、独立20、主侧197以及HTTP322是不同验证范围；独立20不是20份自然材料，也未覆盖持久化用户确认。",
+    "HTTP固定496同322由316通过6失败到322通过，323条raw/candidates/finish_reason相同；旧309份非重启观测相同；before与after实际完成重启315与321，不称每一旧失败均完成历史读取。",
+    "Windows目前启动前明确拒绝；受控分支零spawn不等于原生Windows进程树实现。",
+    "v23只重算原三路首次回答，三报告与v22逐字相同；holdout12案43gold、7发布页2跨split、非专家标签及自然覆盖限制不变。",
+    "46条accepted money按21exact、23approximate、2unsupported计，均仍有关系核对提示；calculation_authorized=false报告常量不能当用户确认链实测。",
+    "v24准备核对88归档/预期91依赖、native7及throw清理不是v24正式write/check或历史全链通过。"
+  ],
+  "ci_read_only_observation": {
+    "head_sha": "35bdbde669f639a497f8685383e7a3fd7c948c3f",
+    "run_id": 39140322673,
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39140322673",
+    "observed_via": "gh run view, read-only during this audit; not an execution by reviewer"
+  },
+  "not_executed": [
+    "tests",
+    "history CLI",
+    "scorer",
+    "HTTP",
+    "build",
+    "fullcheck",
+    "model request",
+    "deployment"
+  ],
+  "not_verified": [
+    "native Windows runtime",
+    "complete UI confirmation/business acceptance",
+    "latest experimental-branch fullcheck outcome beyond supplied receipts",
+    "new ROUND32 fix"
+  ],
+  "writes": "Only three new OWN audit artifacts; ROOT/CODE and prior evidence not modified."
+}

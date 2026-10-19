@@ -1,0 +1,98 @@
+{
+  "schema": "round39-attached-halving-author/1",
+  "completed_at_utc": "2026-10-18T19:28:28.902996+00:00",
+  "status": "PASS_AUTHOR_TARGETED_CHECKS",
+  "baseline_commit": "66581e78f695cf4ed70e9b1bde2f1456814f8b05",
+  "review_comment": "4308319327",
+  "review_thread": "PRRT_kwDOVApLyM6tthxV",
+  "production_file": {
+    "source": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-fact-arithmetic-review.ts",
+    "sha256": "76e5b291acca1386c4cceb3b0b95e676984999dfa76119db2090f100e53d4b29"
+  },
+  "author_test": {
+    "source": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-round39-halving-author.test.mjs",
+    "sha256": "5a8e7c6c1411adf71b044648ed0ba4805a1984d1660e232c687070365112902a"
+  },
+  "product_only_patch_sha256": "ff8f45db7a817689fea6d917350202a32b520189a81d168665c79a2ee72454d5",
+  "change": "Only the shared arithmetic helper adds an anchored 减/折 + optional layout + 半 branch to suffix operations and the existing finite amount-noun lookahead. 減 uses the pre-existing detection-copy fold. No calculation or raw evidence replacement.",
+  "grammar_boundary": {
+    "attached_forms": [
+      "减半",
+      "減半",
+      "折半"
+    ],
+    "bridges": "Existing finite currency/whole-amount/bracket and direct amount-noun bridge only; existing NFKC/Cf/horizontal whitespace/layout handling.",
+    "separation": "Sentence punctuation, intervening owner prose and page metadata retain the prior stopping behavior.",
+    "no_global_search": true,
+    "no_amount_evaluation": true
+  },
+  "checks": {
+    "minimal_same_script": {
+      "before": {
+        "pass_count": 0,
+        "fail_count": 6,
+        "exit_code": 1
+      },
+      "after": {
+        "pass_count": 6,
+        "fail_count": 0,
+        "exit_code": 0
+      }
+    },
+    "full_same_script": {
+      "before": {
+        "pass_count": 23,
+        "fail_count": 52,
+        "exit_code": 1
+      },
+      "after": {
+        "pass_count": 75,
+        "fail_count": 0,
+        "exit_code": 0
+      }
+    },
+    "existing_arithmetic_regressions": {
+      "pass_count": 173,
+      "fail_count": 0,
+      "exit_code": 0,
+      "runtime": "Node24",
+      "scripts": [
+        "scripts/material-fact-arithmetic-source-review.test.mjs",
+        "scripts/material-facts-v7-round37-doubling-author.test.mjs"
+      ]
+    },
+    "lint": {
+      "files": 2,
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 0
+    },
+    "new_author_runtime": "Node26.11.0"
+  },
+  "behavior_evidence": [
+    "Whole formulas and cropped full quotes now return unsupported/null and canonical comparison null rather than the precise base.",
+    "Fresh source review and forced stored exact observations downgrade amount without mutating persisted inputs, raw value/quote, representation, quote codepoint spans or history. Stored unsupported/null observations do not upgrade.",
+    "Same-page adjacent suffix fragments and splits inside the explicit operation are covered. Sentence boundaries, different-worker statements, page boundaries, expressly stated results and supported-rate controls retain prior behavior."
+  ],
+  "artifact_or_scope_changes": {
+    "other_production_files_modified": false,
+    "root_or_code_writes": false,
+    "labels_modified": false,
+    "raw_outputs_modified": false,
+    "freeze_modified": false,
+    "scorer_calls": 0,
+    "historical_cli_calls": 0,
+    "model_calls": 0,
+    "http_calls": 0,
+    "full_checks": 0,
+    "commits": 0,
+    "pushes": 0
+  },
+  "limitations": [
+    "Finite lexical guard; not an exhaustive natural-language arithmetic parser. No unrequested new operation families or v29 tooling were added.",
+    "The 75 counts are test containers, some containing multiple schema/fresh/history/CP assertions. The 6 minimal tests are a subset of the 75 and must not be added as independent coverage.",
+    "Passing targeted synthetic checks does not establish real-case extraction accuracy, user acceptance, legal accuracy or final integrated CI. Nonimplementer integration review remains separate."
+  ],
+  "model_request": "gpt-6.1-sol / ultra, actual backend not independently verified",
+  "product_locked_no_further_changes": true
+}

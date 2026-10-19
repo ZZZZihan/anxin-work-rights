@@ -1,0 +1,117 @@
+--- a/scripts/material-facts-v7-http-regression.mjs
++++ b/scripts/material-facts-v7-http-regression.mjs
+@@ -28,7 +28,7 @@
+ // The service is explicitly rules-only. Ambient backend/model settings must not
+ // turn this regression into actual local or remote model inference.
+ const workerEnv = { ...process.env, WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false' };
+-let temp, worker, migrationChild, service, proxy, db, configPath, base, phase = 'setup', failure;
++let temp, worker, migrationChild, service, proxy, db, configPath, base, phase = 'setup', failure, interruption;
+ const sanitize = value => String(value).replaceAll(token, '[redacted]');
+ const errorRecord = error => ({ name: sanitize(error?.name || 'Error'), message: sanitize(error?.message || String(error)) });
+ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+@@ -182,14 +182,20 @@
+   throw new Error('Isolated Worker readiness timed out.');
+ }
+ async function cleanup(name, operation) { try { await operation(); } catch (error) { cleanupFailures.push({ operation: name, ...errorRecord(error) }); } }
+-const interrupt = () => {
+-  shutdown.abort(new Error('Synthetic HTTP regression interrupted.'));
++// Keep these CLI handlers through report publication and exit. A repeated
++// signal cannot restore default termination or signal the owned group twice.
++const interrupt = signal => {
++  if (shutdown.signal.aborted) return;
++  const error = new Error(`Synthetic HTTP regression interrupted by ${signal}.`);
++  interruption = { phase, signal, ...errorRecord(error) };
++  process.exitCode = 1;
++  shutdown.abort(error);
+   for (const child of [worker, migrationChild]) {
+     try { signalOwnedChild(child, 'SIGTERM'); }
+     catch (error) { cleanupFailures.push({ operation: 'interrupt_owned_processes', ...errorRecord(error) }); }
+   }
+ };
+-process.once('SIGINT', interrupt); process.once('SIGTERM', interrupt);
++process.on('SIGINT', () => interrupt('SIGINT')); process.on('SIGTERM', () => interrupt('SIGTERM'));
+ 
+ try {
+   const originalPath = resolve(root, 'dist/server/wrangler.json');
+@@ -918,17 +924,27 @@
+     }
+     if (temp) await rm(temp, { recursive: true, force: true });
+   });
+-  process.removeListener('SIGINT', interrupt); process.removeListener('SIGTERM', interrupt);
+   if (observations.some(item => item.status !== 'PASS')) failure ??= { phase: 'acceptance', message: 'One or more synthetic HTTP scenarios failed; original observations and raw outputs are retained.' };
+   if (cleanupFailures.length) failure ??= { phase: 'cleanup', message: 'Temporary regression resources did not fully clean up.' };
+-  const report = Buffer.from(JSON.stringify({ status: failure ? 'FAIL' : 'PASS', mode: 'material-facts-v7-http', runId,
++  const report = () => Buffer.from(JSON.stringify({ status: failure || interruption ? 'FAIL' : 'PASS', mode: 'material-facts-v7-http', runId,
+     boundary: 'production Worker HTTP + disposable on-disk D1/R2 + real TXT material service and rules queue + explicitly injected synthetic fact outputs; no real-model or business acceptance',
+     actualModelInference: false, syntheticInputs: true, holdoutRead: false, historicalReportsOverwritten: false, buildRoot: root, recordedAt: new Date().toISOString(),
+-    observations, failure: failure || null, syntheticOutputs: outputs, serviceCalls: calls, retiredServiceJobs,
++    observations, failure: failure ?? interruption ?? null, interruption: interruption ?? null, syntheticOutputs: outputs, serviceCalls: calls, retiredServiceJobs,
+     cleanup: { status: cleanupFailures.length ? 'FAIL' : 'PASS', failures: cleanupFailures },
+   }, null, 2) + '\n');
+-  try { await reportFile.writeFile(report); }
++  try {
++    const interruptedBeforeWrite = shutdown.signal.aborted;
++    await reportFile.writeFile(report());
++    if (!interruptedBeforeWrite && shutdown.signal.aborted) {
++      const updated = report();
++      for (let offset = 0; offset < updated.length;) {
++        const { bytesWritten } = await reportFile.write(updated, offset, updated.length - offset, offset);
++        assert(bytesWritten > 0, 'Interrupted report publication made no progress.'); offset += bytesWritten;
++      }
++      await reportFile.truncate(updated.length);
++    }
++  }
+   finally { await reportFile.close(); }
+ }
+-console.log(JSON.stringify({ status: failure ? 'FAIL' : 'PASS', mode: 'material-facts-v7-http', checks: observations.length, output }));
+-if (failure) process.exitCode = 1;
++console.log(JSON.stringify({ status: failure || interruption ? 'FAIL' : 'PASS', mode: 'material-facts-v7-http', checks: observations.length, output }));
++if (failure || interruption) process.exitCode = 1;
+--- a/scripts/material-facts-recovery-http-regression.mjs
++++ b/scripts/material-facts-recovery-http-regression.mjs
+@@ -21,11 +21,16 @@
+ const wrangler = resolve(root, 'node_modules/wrangler/bin/wrangler.js');
+ const workerEnv = { ...process.env, WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false' };
+ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+-let temp, worker, migrationChild, service, proxy, db, configPath, base, setupFailure;
++let temp, worker, migrationChild, service, proxy, db, configPath, base, setupFailure, interruption;
+ let nextPostFault, nextGetFault, heldPost, heldGet;
+ const shutdown = new AbortController();
++// CLI handlers stay active until exit, including report publication.
+ const interrupt = signal => {
+-  shutdown.abort(new Error(`Regression interrupted by ${signal}.`));
++  if (shutdown.signal.aborted) return;
++  const error = new Error(`Regression interrupted by ${signal}.`);
++  interruption = { signal, ...errorRecord(error) };
++  process.exitCode = 1;
++  shutdown.abort(error);
+   heldPost?.release(); heldGet?.release();
+   for (const child of [worker, migrationChild]) {
+     try { signalOwnedChild(child, 'SIGTERM'); }
+@@ -34,7 +39,7 @@
+ };
+ const onInterrupt = () => interrupt('SIGINT');
+ const onTerminate = () => interrupt('SIGTERM');
+-process.once('SIGINT', onInterrupt); process.once('SIGTERM', onTerminate);
++process.on('SIGINT', onInterrupt); process.on('SIGTERM', onTerminate);
+ const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+ const sanitize = value => String(value).replaceAll(token, '[redacted]');
+ const errorRecord = error => ({ name: sanitize(error?.name || 'Error'), message: sanitize(error?.message || String(error)) });
+@@ -290,9 +295,11 @@
+     }
+     if (temp) await rm(temp, { recursive: true, force: true });
+   });
+-  process.removeListener('SIGINT', onInterrupt); process.removeListener('SIGTERM', onTerminate);
+-  const failed = !!setupFailure || !!cleanupFailures.length || observations.length !== 10 || observations.some(item => item.status !== 'PASS');
+-  await writeFile(output, JSON.stringify({ status: failed ? 'FAIL' : 'PASS', mode: 'fact-network-recovery', boundary: 'production Worker HTTP + disposable persistent D1/R2 + real rules service + controlled authenticated loopback fault proxy', actualModelInference: false, syntheticInputs: true, recordedAt: new Date().toISOString(), observations, setupFailure, cleanup: { status: cleanupFailures.length ? 'FAIL' : 'PASS', failures: cleanupFailures }, calls, limitation: 'Service caller-ID idempotency and cancellation tombstones are process-local and bounded by their configured TTL/capacity; this runner does not claim persistence across service restart or actual model inference.' }, null, 2) + '\n');
+-  console[failed ? 'error' : 'log'](JSON.stringify({ status: failed ? 'FAIL' : 'PASS', mode: 'fact-network-recovery', passed: observations.filter(item => item.status === 'PASS').length, failed: observations.filter(item => item.status === 'FAIL').length, output }));
+-  if (failed) process.exitCode = 1;
+-}
++  const failed = () => !!setupFailure || !!interruption || !!cleanupFailures.length || observations.length !== 10 || observations.some(item => item.status !== 'PASS');
++  const report = () => JSON.stringify({ status: failed() ? 'FAIL' : 'PASS', mode: 'fact-network-recovery', boundary: 'production Worker HTTP + disposable persistent D1/R2 + real rules service + controlled authenticated loopback fault proxy', actualModelInference: false, syntheticInputs: true, recordedAt: new Date().toISOString(), observations, setupFailure: setupFailure ?? interruption, interruption: interruption ?? null, cleanup: { status: cleanupFailures.length ? 'FAIL' : 'PASS', failures: cleanupFailures }, calls, limitation: 'Service caller-ID idempotency and cancellation tombstones are process-local and bounded by their configured TTL/capacity; this runner does not claim persistence across service restart or actual model inference.' }, null, 2) + '\n';
++  const interruptedBeforeWrite = shutdown.signal.aborted;
++  await writeFile(output, report());
++  if (!interruptedBeforeWrite && shutdown.signal.aborted) await writeFile(output, report());
++  console[failed() ? 'error' : 'log'](JSON.stringify({ status: failed() ? 'FAIL' : 'PASS', mode: 'fact-network-recovery', passed: observations.filter(item => item.status === 'PASS').length, failed: observations.filter(item => item.status === 'FAIL').length, output }));
++  if (failed()) process.exitCode = 1;
++}

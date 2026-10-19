@@ -1,0 +1,72 @@
+{
+  "at": "2026-10-18T22:10:10.435Z",
+  "backend": "qwen",
+  "mode": "holdout",
+  "training": false,
+  "adapters": null,
+  "input_sha256": "c020291c3d654cae6962d5dd678b223fad2fe9853148b175f666d2d985ae952b",
+  "case_ids": [
+    "synthetic-1",
+    "synthetic-2",
+    "synthetic-3",
+    "synthetic-4",
+    "synthetic-5",
+    "synthetic-6",
+    "synthetic-7",
+    "synthetic-8",
+    "synthetic-9",
+    "synthetic-10",
+    "synthetic-11",
+    "synthetic-12"
+  ],
+  "hashes": {
+    "experiments/material-facts-v7/run.mjs": "72646a5a0deea048f368b0e809acf4f3bffd4c42a97d87e0fc96c8d5ca665cd0"
+  },
+  "temperature": 0,
+  "max_output_tokens": 4096,
+  "max_qwen_total_tokens": 12288,
+  "max_cases": 12,
+  "gold_sent": false,
+  "context_reset": true,
+  "calls_per_case": 1,
+  "post_retries": 0,
+  "connect_attempts_per_case": 3,
+  "concurrency": 1,
+  "deepseek_budget": null,
+  "process_isolation": "fresh_process_per_document",
+  "qwen_batch_stop": "first_memory_guard_or_monitor_failure",
+  "qwen_memory": {
+    "allocator_guideline_gib": 24,
+    "wired_gib": 20,
+    "cache_mib": 512,
+    "prefill_step_size": 128,
+    "kv_bits": 4,
+    "kv_group_size": 64,
+    "quantized_kv_start": 0,
+    "critical": "immediate_stop",
+    "warning": "10_seconds",
+    "swap_growth_gib": 4,
+    "case_timeout_seconds": 600
+  },
+  "deepseek": {
+    "model": "deepseek-v4-pro",
+    "thinking": "disabled",
+    "egress": "direct",
+    "reserved_upper_usd": 2,
+    "input_usd_per_million": 1.32,
+    "output_usd_per_million": 3.96,
+    "absolute_case_timeout_seconds": 180,
+    "socket_timeout_seconds": 120,
+    "connect_timeout_seconds": 10,
+    "connect_backoff_seconds": [
+      0.5,
+      1
+    ],
+    "max_attempts_before_any_http_send": 3,
+    "tls_host": "api.deepseek.com",
+    "certificate_verification": true,
+    "stop_after_total_errors": 3
+  },
+  "comparison": "new_case_grouped_materials_v4_event_bound_same_prompt_no_regeneration",
+  "scope": "public_document_text_candidates_only_not_OCR_or_user_confirmation"
+}

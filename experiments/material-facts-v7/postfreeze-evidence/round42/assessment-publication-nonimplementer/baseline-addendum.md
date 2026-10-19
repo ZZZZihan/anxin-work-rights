@@ -1,0 +1,1 @@
+追加基线澄清：旧observed-assess.patch在落盘时ROOT已合入final，因而0字节；保留该收据，不将它当作旧代码无变化证据。现在以correction-code-v31固定原码2c14d8b7对比MONEY final5d96722e，实际仅两hunk：删writeFile import；直接CLI动态加载既有真实publisher并记录发布后清理告警。评分库体逐字不变。已核旧archive manifest绑定。本补充只读静审，没有执行CLI或测试。

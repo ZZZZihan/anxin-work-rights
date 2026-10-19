@@ -1,0 +1,160 @@
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import fs from 'node:fs/promises';
+import { syncBuiltinESMExports } from 'node:module';
+import { tmpdir } from 'node:os';
+import { basename, dirname, join, resolve } from 'node:path';
+import test from 'node:test';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const SCRIPT = fileURLToPath(import.meta.url);
+const ROOT = resolve(process.env.MATERIAL_FACT_PUBLICATION_ROOT ?? fileURLToPath(new URL('../', import.meta.url)));
+const E = 'experiments/material-facts-v7';
+
+if (process.argv[2] === '--publication-worker') {
+  const options = JSON.parse(process.argv[3]);
+  process.on('SIGXFSZ', () => {});
+  const helper = resolve(ROOT, E, 'immutable-artifact-publication.mjs');
+  let publish;
+  try { await fs.access(helper); publish = (await import(pathToFileURL(helper).href)).publishImmutableFile; }
+  catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    // The fixed pre-patch publication statement is exercised with real fs I/O.
+    // This adapter avoids invoking preflight, scoring, historical CLIs or models.
+    const source = await fs.readFile(resolve(ROOT, E, 'verify.mjs'), 'utf8');
+    const statement = source.split('\n').find(line => line.trim().startsWith('if (writeManifest) await writeFile(destination,'));
+    assert(statement, 'Baseline must contain the original publication statement');
+    const execute = new (Object.getPrototypeOf(async function () {}).constructor)('writeManifest', 'writeFile', 'destination', 'manifest', statement);
+    publish = (destination, bytes) => execute(true, fs.writeFile, destination, JSON.parse(bytes));
+  }
+  let linkObservation;
+  const nativeOpen = fs.open, nativeLink = fs.link;
+  if (['sync-failure', 'write-and-close-failure'].includes(options.scenario)) {
+    fs.open = async (...args) => {
+      const handle = await nativeOpen(...args);
+      if (options.scenario === 'sync-failure') handle.sync = async () => { throw Object.assign(new Error('injected sync failure'), { code: 'EIO' }); };
+      else {
+        const close = handle.close.bind(handle);
+        handle.writeFile = async bytes => {
+          await handle.write(Buffer.from(bytes).subarray(0, 128));
+          throw Object.assign(new Error('injected write failure'), { code: 'EIO' });
+        };
+        handle.close = async () => { await close(); throw Object.assign(new Error('injected close failure'), { code: 'EACCES' }); };
+      }
+      return handle;
+    };
+  }
+  if (options.scenario === 'unlink-failure') fs.unlink = async () => { throw Object.assign(new Error('injected unlink failure'), { code: 'EACCES' }); };
+  if (options.scenario === 'inspect-link') fs.link = async (stage, target) => {
+    let targetAbsent = false;
+    try { await fs.lstat(target); } catch (error) { if (error.code === 'ENOENT') targetAbsent = true; else throw error; }
+    linkObservation = { target_absent_before_publication: targetAbsent, complete_stage: await fs.readFile(stage, 'utf8') === options.payload };
+    return nativeLink(stage, target);
+  };
+  syncBuiltinESMExports();
+  let publication, failure;
+  try { publication = await publish(options.destination, options.payload); }
+  catch (error) { failure = { code: error.code, close_error_code: error.publication_close_error_code }; }
+  const names = await fs.readdir(dirname(options.destination));
+  const stages = [];
+  for (const name of names.filter(name => name.startsWith(`.${basename(options.destination)}.`) && name.endsWith('.stage'))) {
+    const bytes = await fs.readFile(join(dirname(options.destination), name));
+    stages.push({ name, bytes: bytes.length, content: bytes.toString() });
+  }
+  let destination;
+  try { destination = { content: await fs.readFile(options.destination, 'utf8') }; }
+  catch (error) { destination = { error: error.code }; }
+  process.stdout.write(JSON.stringify({ publication, failure, stages, destination, linkObservation }) + '\n');
+} else {
+  const payload = JSON.stringify({ schema: 'synthetic-results/1', files: { 'case.json': 'a'.repeat(64) }, padding: 'x'.repeat(4096) }, null, 2) + '\n';
+  async function fixture(t) {
+    const directory = await fs.mkdtemp(join(tmpdir(), 'anxin-result-publication-'));
+    t.after(() => fs.rm(directory, { recursive: true, force: true }));
+    return { directory, destination: join(directory, 'result-manifest.json') };
+  }
+  async function run(destination, scenario = 'plain', bytes = payload, { bounded = false } = {}) {
+    const worker = [SCRIPT, '--publication-worker', JSON.stringify({ destination, scenario, payload: bytes })];
+    const command = bounded ? 'python3' : process.execPath;
+    const args = bounded ? ['-c', 'import os,resource,sys; resource.setrlimit(resource.RLIMIT_FSIZE,(128,128)); os.execv(sys.argv[1],sys.argv[1:])', process.execPath, ...worker] : worker;
+    const child = spawn(command, args, { env: { ...process.env, MATERIAL_FACT_PUBLICATION_ROOT: ROOT }, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '';
+    child.stdout.setEncoding('utf8').on('data', value => { stdout += value; });
+    child.stderr.setEncoding('utf8').on('data', value => { stderr += value; });
+    const timer = setTimeout(() => child.kill('SIGKILL'), 10000);
+    const exit = await new Promise((resolveExit, reject) => { child.once('error', reject); child.once('close', (code, signal) => resolveExit({ code, signal })); }).finally(() => clearTimeout(timer));
+    assert.deepEqual(exit, { code: 0, signal: null }, stderr || stdout);
+    assert.equal(stderr, '');
+    return JSON.parse(stdout);
+  }
+
+  test('complete manifest bytes are published once without changing existing bytes', async t => {
+    const { destination } = await fixture(t);
+    const first = await run(destination);
+    assert.equal(first.failure, undefined); assert.equal(first.destination.content, payload);
+    const second = await run(destination, 'plain', payload.replace('synthetic-results/1', 'different-results/1'));
+    assert.equal(second.failure.code, 'EEXIST'); assert.equal(second.destination.content, payload);
+  });
+
+  test('native partial write leaves no final name, retains the failed stage and permits a clean retry', { skip: process.platform === 'win32' }, async t => {
+    const { destination } = await fixture(t);
+    const failed = await run(destination, 'plain', payload, { bounded: true });
+    assert.equal(failed.failure.code, 'EFBIG'); assert.equal(failed.destination.error, 'ENOENT');
+    assert.equal(failed.stages.length, 1); assert.equal(failed.stages[0].bytes, 128);
+    assert.throws(() => JSON.parse(failed.stages[0].content));
+    const retry = await run(destination);
+    assert.equal(retry.failure, undefined); assert.equal(retry.destination.content, payload);
+    assert.deepEqual(retry.stages, failed.stages, 'Failed partial stage remains unchanged after successful retry');
+  });
+
+  test('publication links a complete synced stage while the destination is still absent', async t => {
+    const { destination } = await fixture(t);
+    const result = await run(destination, 'inspect-link');
+    assert.deepEqual(result.linkObservation, { target_absent_before_publication: true, complete_stage: true });
+    assert.equal(result.destination.content, payload); assert.equal(result.stages.length, 0);
+  });
+
+  test('sync failure preserves the complete stage and does not reserve the final name', async t => {
+    const { destination } = await fixture(t);
+    const result = await run(destination, 'sync-failure');
+    assert.equal(result.failure.code, 'EIO'); assert.equal(result.destination.error, 'ENOENT');
+    assert.equal(result.stages.length, 1); assert.equal(result.stages[0].content, payload);
+    assert.equal((await run(destination)).destination.content, payload);
+  });
+
+  test('a close failure does not mask the primary write failure', async t => {
+    const { destination } = await fixture(t);
+    const result = await run(destination, 'write-and-close-failure');
+    assert.equal(result.failure.code, 'EIO'); assert.equal(result.failure.close_error_code, 'EACCES');
+    assert.equal(result.destination.error, 'ENOENT'); assert.equal(result.stages[0].bytes, 128);
+  });
+
+  test('cleanup failure reports published state without rolling back the complete artifact', async t => {
+    const { destination } = await fixture(t);
+    const result = await run(destination, 'unlink-failure');
+    assert.equal(result.failure, undefined); assert.equal(result.destination.content, payload);
+    assert.equal(result.publication.published, true); assert.equal(result.publication.temporary_removed, false);
+    assert.equal(result.publication.cleanup_error_code, 'EACCES'); assert.equal(result.stages[0].content, payload);
+    assert.equal((await run(destination)).failure.code, 'EEXIST');
+  });
+
+  test('concurrent publishers have exactly one complete winner and preserve the losing stage', async t => {
+    const { destination } = await fixture(t);
+    const other = payload.replace('synthetic-results/1', 'concurrent-results/1');
+    const attempts = await Promise.all([run(destination, 'plain', payload), run(destination, 'plain', other)]);
+    assert.equal(attempts.filter(attempt => !attempt.failure).length, 1);
+    assert.equal(attempts.filter(attempt => attempt.failure?.code === 'EEXIST').length, 1);
+    const actual = await fs.readFile(destination, 'utf8');
+    assert([payload, other].includes(actual)); assert.doesNotThrow(() => JSON.parse(actual));
+    const names = (await fs.readdir(dirname(destination))).filter(name => name.endsWith('.stage'));
+    assert.equal(names.length, 1); assert([payload, other].includes(await fs.readFile(join(dirname(destination), names[0]), 'utf8')));
+  });
+
+  test('an existing symlink is never followed or replaced', async t => {
+    const { destination, directory } = await fixture(t);
+    const original = join(directory, 'original.json');
+    await fs.writeFile(original, 'original immutable bytes'); await fs.symlink(original, destination);
+    const result = await run(destination);
+    assert.equal(result.failure.code, 'EEXIST'); assert.equal((await fs.lstat(destination)).isSymbolicLink(), true);
+    assert.equal(await fs.readFile(original, 'utf8'), 'original immutable bytes');
+  });
+}

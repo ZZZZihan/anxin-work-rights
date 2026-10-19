@@ -1,0 +1,133 @@
+{
+  "kind": "synthetic_author_review_not_model_or_business_acceptance",
+  "baseline_commit": "ca3e6bcc154484e0169b85af8a7fc4ed3f8b6a97",
+  "baseline_money_sha256": "3316417d402d64c8f792ba0ad55080c05d232e02bbaacd3b484fa528efe93517",
+  "baseline_assess_sha256": "d4f0c98828d091f9f99681a5c404091f76fd1f4e4103aae0a056e5d493ce9e9d",
+  "node_version": "v26.11.0",
+  "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+  "files": {
+    "lib/material-money-v4.ts": "8908a396f03d6c70ab334b2a43d3171c5f3790175143b1fde1823efbb9fb7276",
+    "scripts/material-fact-traditional-qualifier-comparison.test.mjs": "30171ced32472e65112a87f38f349feb086e42fa82d276b2f19582026315e33d"
+  },
+  "patch": {
+    "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-ca3-to-final.patch",
+    "sha256": "517aecfce868c2953ddee215f99550a81cb675a988af692d2e98e52df5660b4b"
+  },
+  "change_scope": [
+    "Token spelling and parse-copy aliases accept 兩/億 while preserving raw matchedText and Unicode CP spans",
+    "New aliases are also folded only in monetary range detection copies, preventing newly supported traditional range endpoints from becoming exact",
+    "Comparison-only finite shared prefix/suffix grammar preserves each qualifier and prefix/suffix position; numeric/currency spelling aliases may share keys; no exact or direction equivalence introduced"
+  ],
+  "actual_symptom_boundary": "ca3 validateLabel does not stop: its canonical() retains literal fallback. Four explicit fixtures validate successfully before and after. The observed bug is null monetary keys producing different literal keys for equivalent numeric spellings within the same event. No gold, score or assessor implementation was changed.",
+  "checks": {
+    "initial_130_baseline": {
+      "pass": 67,
+      "fail": 63,
+      "exit": 1
+    },
+    "first_minimal_fix_130": {
+      "pass": 128,
+      "fail": 2,
+      "exit": 1,
+      "failures": "newly parsable 四億圓 at right endpoint of 兩億圓至四億圓 remained exact; fixed using parser-local folded range view"
+    },
+    "second_fix_130": {
+      "pass": 130,
+      "fail": 0,
+      "exit": 0
+    },
+    "final_138_baseline": {
+      "pass": 71,
+      "fail": 67,
+      "exit": 1
+    },
+    "final_138_fixed": {
+      "pass": 138,
+      "fail": 0,
+      "exit": 0,
+      "includes": "4 actual validateLabel fallback checks; 4 actual six-metric same-event bound/digit-equivalence checks; fresh/read/forced-exact history/raw/CP; rate/range/foreign controls"
+    },
+    "related_existing_native_7_suites": {
+      "pass": 955,
+      "fail": 2,
+      "exit": 1,
+      "failures": [
+        {
+          "file": "scripts/material-facts-v7-round20-money-author.test.mjs",
+          "line": 96,
+          "value": "兩萬圓",
+          "reason": "Old negative contract explicitly superseded by requested traditional alias support; left unchanged by this task"
+        },
+        {
+          "file": "scripts/material-facts-v7-round20-money-author.test.mjs",
+          "line": 96,
+          "value": "一億圓",
+          "reason": "Old negative contract explicitly superseded by requested traditional alias support; left unchanged by this task"
+        }
+      ]
+    },
+    "related_existing_vitest_3_suites": {
+      "pass": 550,
+      "fail": 0,
+      "exit": 0
+    },
+    "syntax": {
+      "files": 2,
+      "exit": 0
+    },
+    "scoped_lint": {
+      "exit": 0,
+      "warning": "React detection warning in isolated worktree lacking package install"
+    }
+  },
+  "logs": {
+    "money-alias-bounds-ca3-before-red.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-ca3-before-red.log",
+      "sha256": "75068c6f9547bdbb24471e03789cf91fe86293e9db96aa371f4ea4b012beceed"
+    },
+    "money-alias-bounds-first-fix.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-first-fix.log",
+      "sha256": "11549e7b1c0496042df0124d11f45a193c93d9c3dea4aac9afaa3854f3aefb9f"
+    },
+    "money-alias-bounds-second-fix.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-second-fix.log",
+      "sha256": "45add2203ed12cbc756d162b4515a976b0e658f381e9599293beb8625ff215d9"
+    },
+    "money-alias-bounds-ca3-final-before-red.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-ca3-final-before-red.log",
+      "sha256": "6f8eb4fba30e2efceb629c01670c7f53c29722264685eca55ab8e4218962d74f"
+    },
+    "money-alias-bounds-final-after-green.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-final-after-green.log",
+      "sha256": "8c8c51fdc89da1ff10efd7a368785b5c529cfaa8ba3dbe28fa09d10857eaf8fd"
+    },
+    "money-alias-bounds-existing-native-green.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-existing-native-green.log",
+      "sha256": "9f9de05333d3027d78bf4c57ca474b9f962457faebf01494b1d3115bb96a9d7c"
+    },
+    "money-alias-bounds-existing-vitest-green.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-existing-vitest-green.log",
+      "sha256": "9d4acb8d7e718066d5336f17687c961a9a9893b506f60910641c70524da16fcd"
+    },
+    "money-alias-bounds-scoped-lint.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-scoped-lint.log",
+      "sha256": "272e4c2b0e16e307699713ad6b529510bfa6a765ef48eba689f6f501a403e27f"
+    },
+    "money-alias-bounds-syntax.json": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-syntax.json",
+      "sha256": "f9c37606ae14bf8b991dcf991f7c1405db46d772b8c1302c212e2f6cd89c694c"
+    }
+  },
+  "unchanged_files": {
+    "currency": "188a2a2ba520743efb6568f31c5b30256ee11899cac8ff03b01cf8a90688a099",
+    "source_review": "fb34ec5d861fb774dfe8f3eb74018c3479b7f7a6784171c3621a076f38ed13f1",
+    "range_review": "f5d12ec0ea3408322adc86d4322dddc80a748a91cf6e6f9b7d33fd212dc3ec63",
+    "assess": "d4f0c98828d091f9f99681a5c404091f76fd1f4e4103aae0a056e5d493ce9e9d"
+  },
+  "limits": [
+    "No HTTP/build/full npm check/CI performed by author; root integrates and performs required checks",
+    "No model requests/training/deployment, no commits/pushes, no frozen bytes changed",
+    "Old unsupported stored records remain unavailable on read; re-extraction is needed for new exact normalization",
+    "Two superseded old negative assertions require parent-coordinated update; original failure log remains retained"
+  ]
+}

@@ -1,0 +1,53 @@
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import os
+import re
+import subprocess
+import time
+
+P = Path(__file__).resolve().parent
+OWN = P.parents[2]
+CODE = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+REL = 'scripts/material-facts-v7-round39-collective-independent.test.mjs'
+sha = lambda data: hashlib.sha256(data).hexdigest()
+save = lambda name, value: (P / name).open('xb').write(value if isinstance(value, bytes) else (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode())
+old = (P / 'collective-independent-before-path-fix.mjs.snapshot').read_bytes()
+new = (OWN / REL).read_bytes()
+assert new == (CODE / REL).read_bytes()
+assert old.replace(b'import { pathToFileURL }', b'import { fileURLToPath, pathToFileURL }').replace(
+    b"new URL('../', import.meta.url).pathname", b"fileURLToPath(new URL('../', import.meta.url))") == new
+save('collective-independent-after-path-fix.mjs.snapshot', new)
+before = {str(p.relative_to(CODE)): sha(p.read_bytes()) for p in sorted((CODE / 'lib').glob('*.ts'))}
+env = dict(os.environ)
+env.pop('V7_REVIEW_ROOT', None)
+runs = []
+for label, node in [('node24', '/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node'),
+                    ('node26', '/opt/homebrew/bin/node')]:
+    version = subprocess.check_output([node, '--version'], text=True).strip()
+    args = [node, '--test', REL]
+    start = time.monotonic()
+    result = subprocess.run(args, cwd=CODE, env=env, capture_output=True, timeout=60)
+    save(f'{label}-actual-code-default.stdout.log', result.stdout)
+    save(f'{label}-actual-code-default.stderr.log', result.stderr)
+    out = result.stdout.decode()
+    counts = {key: int(re.search(rf'^(?:#|ℹ) {key} (\d+)\s*$', out, re.M).group(1)) for key in ['tests', 'pass', 'fail', 'skipped']}
+    runs.append({'node': node, 'version': version, 'command': args, 'cwd': str(CODE),
+                 'V7_REVIEW_ROOT_present': False, 'exit': result.returncode, 'seconds': time.monotonic() - start,
+                 'counts': counts, 'stdout_sha256': sha(result.stdout), 'stderr_sha256': sha(result.stderr)})
+    assert result.returncode == 0 and counts == {'tests': 7, 'pass': 7, 'fail': 0, 'skipped': 0}
+after = {str(p.relative_to(CODE)): sha(p.read_bytes()) for p in sorted((CODE / 'lib').glob('*.ts'))}
+assert before == after and (OWN / REL).read_bytes() == (CODE / REL).read_bytes() == new
+result = {'schema': 'issue42-round39-independent-default-path-closure/1',
+          'observed_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+          'state': 'DEFAULT_PATH_DUAL_RUNTIME_PASS',
+          'original_sha256': sha(old), 'fixed_sha256': sha(new),
+          'change': 'Only import fileURLToPath and decode the default repository URL; all seven assertions remain unchanged.',
+          'prior_env_explicit_pass_is_not_default_path_evidence': True,
+          'parent_full_failure_preserved_separately': 'Parent reported 9484P1F1skip, only this module failed to load before assertions; this review did not run that full check.',
+          'runs': runs, 'lib_files_unchanged': len(after), 'lib_hashes': after,
+          'requested_model': 'gpt-6.1-sol', 'requested_reasoning': 'ultra', 'actual_backend_independently_verified': False,
+          'no_http_full_build_historical_cli_scorer_or_model': True}
+save('default-path-closure.independent.json', result)
+print(json.dumps({'state': result['state'], 'sha256': sha(new), 'runs': [{'version': x['version'], 'exit': x['exit'], 'counts': x['counts']} for x in runs]}, ensure_ascii=False))

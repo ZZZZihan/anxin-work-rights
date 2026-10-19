@@ -1,0 +1,66 @@
+✔ actual cancel CLI handles migration interruption and repeated signals (411.47575ms)
+ℹ {"mode":"migration","exit":{"code":1,"signal":null},"sockets":{"launcher":false,"descendant":false,"unrelated":true}}
+ℹ {"mode":"migration","cleanup":"FAIL","cleanupOperations":["stop_migration","stop_migration","retain_temporary_resources"]}
+✔ actual cancel CLI handles startup interruption and repeated signals (580.311292ms)
+ℹ {"mode":"startup","exit":{"code":1,"signal":null},"sockets":{"launcher":false,"descendant":false,"unrelated":true}}
+ℹ {"mode":"startup","cleanup":"FAIL","cleanupOperations":["stop_worker","retain_temporary_resources"]}
+✔ actual cancel CLI handles pending interruption and repeated signals (5659.154708ms)
+ℹ {"mode":"pending","exit":{"code":1,"signal":null},"sockets":{"launcher":false,"descendant":false,"unrelated":true}}
+ℹ {"mode":"pending","cleanup":"PASS","cleanupOperations":[]}
+✖ actual cancel CLI handles migration-failure interruption and repeated signals (322.809417ms)
+✔ actual poll CLI handles migration interruption and repeated signals (404.250666ms)
+ℹ {"mode":"migration","exit":{"code":1,"signal":null},"sockets":{"launcher":false,"descendant":false,"unrelated":true}}
+ℹ {"mode":"migration","cleanup":"FAIL","cleanupOperations":["stop_migration","stop_migration","retain_temporary_resources"]}
+✔ actual poll CLI handles startup interruption and repeated signals (580.099209ms)
+ℹ {"mode":"startup","exit":{"code":1,"signal":null},"sockets":{"launcher":false,"descendant":false,"unrelated":true}}
+ℹ {"mode":"startup","cleanup":"FAIL","cleanupOperations":["stop_worker","retain_temporary_resources"]}
+✔ actual poll CLI handles pending interruption and repeated signals (5630.632792ms)
+ℹ {"mode":"pending","exit":{"code":1,"signal":null},"sockets":{"launcher":false,"descendant":false,"unrelated":true}}
+ℹ {"mode":"pending","cleanup":"PASS","cleanupOperations":[]}
+✖ actual poll CLI handles migration-failure interruption and repeated signals (322.971041ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 6
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14027.762583
+
+✖ failing tests:
+
+test at scripts/material-facts-http-interrupt.test.mjs:58:3
+✖ actual cancel CLI handles migration-failure interruption and repeated signals (322.809417ms)
+  AssertionError [ERR_ASSERTION]: CLI exited before fixture barrier: 
+  {"status":"FAIL","mode":"fact-cancellation","phase":"setup","output":"/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin-http-interrupt-BQ1OGV/report.json"}
+  
+      at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-http-interrupt.test.mjs:93:68
+      at async until (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-http-interrupt.test.mjs:21:12)
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-http-interrupt.test.mjs:91:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-interrupt.test.mjs:58:3
+✖ actual poll CLI handles migration-failure interruption and repeated signals (322.971041ms)
+  AssertionError [ERR_ASSERTION]: CLI exited before fixture barrier: 
+  {"status":"FAIL","mode":"fact-poll","phase":"setup","output":"/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin-http-interrupt-pI8SDQ/report.json"}
+  
+      at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-http-interrupt.test.mjs:93:68
+      at async until (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-http-interrupt.test.mjs:21:12)
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-http-interrupt.test.mjs:91:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }

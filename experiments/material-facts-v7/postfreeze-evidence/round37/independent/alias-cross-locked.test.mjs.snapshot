@@ -1,0 +1,54 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// One independently chosen subject for the append-only coordinator closure.
+// No product edits, model, HTTP, historical/scorer CLI or calculation grant.
+const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const load = path => import(pathToFileURL(resolve(ROOT, path)));
+const { ingestRuntimeCandidates } = await load('lib/material-fact-runtime-ingest.ts');
+const { emptyFactState, applyFactAction, ingestCandidates, validateCandidateOutput, buildFactView } = await load('lib/material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('lib/material-fact-source-review.ts');
+const cp = text => Array.from(text).length;
+
+test('an independently chosen internal 暨 subject cannot supply an individual complete total after scope review', () => {
+  const text = '😀李暨欧2026年1月全部应付工资合计4000元。';
+  const source = { id: 'round37-alias-cross', name: 'synthetic.txt', sha256: '7'.repeat(64), ready: true, analysisRevision: 37,
+    blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }] };
+  for (const quote of ['4000元', text]) {
+    const candidate = { kind: 'money', value: '4000元', quote, blockId: 'b1', subject: '李暨欧', scope: 'individual',
+      meaning: 'due_total', completeness: 'complete', period: '2026年1月', rateUnit: null, assertion: 'narrated' };
+    const raw = JSON.stringify({ schemaVersion: 3, candidates: [candidate] });
+    assert.equal(validateCandidateOutput(raw, source).rejected.length, 0);
+    const beforeSource = structuredClone(source);
+    for (const mode of ['fresh', 'stored-exact', 'stored-null']) {
+      const stored = (mode === 'fresh' ? ingestRuntimeCandidates : ingestCandidates)(emptyFactState(37), source, { raw },
+        'independent', 'synthetic', '2026-10-19T00:00:00.000Z', null);
+      assert.equal(stored.materials[0].candidates.length, 1);
+      let state = stored;
+      if (mode !== 'fresh') {
+        const fact = stored.materials[0].candidates[0], amount = mode === 'stored-exact' ? '4000.00' : null;
+        fact.amount = amount;
+        fact.normalization = { rawValue: candidate.value, status: amount === null ? 'unsupported' : 'exact', amount,
+          matchedText: candidate.value, span: { start: 0, end: cp(candidate.value) }, reason: 'Synthetic stored unconfirmed candidate.' };
+        const before = structuredClone(stored);
+        state = reviewFactsAgainstSources(stored, [source]);
+        assert.deepEqual(stored, before, 'Read-time review cannot rewrite stored evidence.');
+      }
+      assert.equal(state.materials[0].raw, raw);
+      const fact = state.materials[0].candidates[0], at = text.indexOf(quote);
+      assert.deepEqual(fact.representation, candidate);
+      assert.equal(fact.start, cp(text.slice(0, at))); assert.equal(fact.end, fact.start + cp(quote));
+      assert.equal(fact.amount, mode === 'stored-null' ? null : '4000.00');
+      const scoped = applyFactAction(state, { action: 'confirm_scope', scope: { worker: '李暨欧', employer: '测试单位',
+        start: '2026-01-01', end: '2026-01-31' }, note: 'Synthetic scope only.', verified: true }, [source], 'independent', '2026-10-19T00:00:00.000Z');
+      const view = buildFactView(scoped, [source]);
+      console.log(JSON.stringify({ evidence: 'round37_independent_alias_cross', mode, candidate, fact, view }));
+      assert.deepEqual(view.fields.due.values, []);
+      assert(fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+      assert.deepEqual(scoped.confirmations, { due: null, paid: null }); assert.equal(scoped.calculation, null); assert.equal(view.canCalculate, false);
+    }
+    assert.deepEqual(source, beforeSource);
+  }
+});

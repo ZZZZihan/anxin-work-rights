@@ -1,0 +1,81 @@
+{
+  "schema": "anxin.issue42.round38.repeat-signal-reset/1",
+  "createdAtUtc": "2026-10-18T19:08:47.461383+00:00",
+  "role": "fixture author self-check; not independent review",
+  "requestedConfiguration": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "ultra",
+    "actualBackendIndependentlyVerified": false
+  },
+  "file": {
+    "path": "scripts/material-facts-http-repeat-signal.test.mjs",
+    "sha256": "2e577f137321bdc141cb63f664f644cc1acd85c86dd279752a3866485350bf09",
+    "baselineSha256": "01827620e425b5e19c3913a7ff4533d9d4f394ddefbfd8f788c1fd349ecbb7da"
+  },
+  "reportedCi": {
+    "head": "d963425ef16831768395ba6a233df272dbaee196",
+    "source": "Parent reports 9075 pass / 1 fail, unhandled read ECONNRESET in new port-reuse case. Raw CI is retained by parent.",
+    "originalCiRootCauseProven": false
+  },
+  "actualNativeRedGreen": [
+    {
+      "name": "immediate reset",
+      "oldExitCode": 1,
+      "oldError": "write EPIPE",
+      "contract": "EPIPE remains fatal; not swallowed."
+    },
+    {
+      "name": "reset after receiving server bytes",
+      "oldExitCode": 1,
+      "oldError": "read ECONNRESET / TCP.onStreamRead",
+      "newExitCode": 0
+    }
+  ],
+  "newBehavior": "Only ECONNRESET on the synthetic unrelated replacement accepted socket is expected; every other socket error is thrown. No helper, runner, production or cleanup deadline changed.",
+  "originalNineScenarioBytesExactlyRestored": true,
+  "native11": {
+    "node": "v24.22.0",
+    "tests": 11,
+    "pass": 11,
+    "fail": 0,
+    "skip": 0,
+    "elapsedSeconds": 48.985,
+    "originalCliScenarios": 9,
+    "cleanupPass": 9,
+    "newNativeReset": 1,
+    "newSyntheticUnexpectedErrorContract": 1
+  },
+  "checks": [
+    {
+      "label": "syntax",
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--check",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-http-repeat-signal.test.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "label": "lint",
+      "command": [
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/node_modules/.bin/eslint",
+        "--config",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/eslint.config.mjs",
+        "--stdin",
+        "--stdin-filename",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-facts-http-repeat-signal.test.mjs"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "preservation": [
+    "Original connections, process-group, unrelated group/listener, report failure, exit23, private state cleanup assertions preserved.",
+    "No original CI log or prior failure overwritten.",
+    "No helper/runner/application/frozen results changed; no HTTP acceptance/build/fullcheck/history/model/training/deployment."
+  ],
+  "limits": [
+    "Local exact read-ECONNRESET reproducer demonstrates a reachable fixture failure; it does not identify the original CI peer conclusively.",
+    "EPIPE control is an exception-propagation unit contract; the reset is a real kernel TCP test.",
+    "Author full11 ran macOS Node24; nonimplementer reports Node26 targeted2 separately."
+  ]
+}

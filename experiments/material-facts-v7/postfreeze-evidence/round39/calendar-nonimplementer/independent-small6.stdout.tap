@@ -1,0 +1,66 @@
+TAP version 13
+# Subtest: four-digit money with an explicit yuan unit remains money
+ok 1 - four-digit money with an explicit yuan unit remains money
+  ---
+  duration_ms: 36.503666
+  type: 'test'
+  ...
+# Subtest: a currency literal without a following year keeps its exact value
+ok 2 - a currency literal without a following year keeps its exact value
+  ---
+  duration_ms: 2.98125
+  type: 'test'
+  ...
+# Subtest: fullwidth and format layout calendar detection preserves the original evidence
+ok 3 - fullwidth and format layout calendar detection preserves the original evidence
+  ---
+  duration_ms: 8.013875
+  type: 'test'
+  ...
+# Subtest: unknown or another real monetary token is not definitely rejected
+ok 4 - unknown or another real monetary token is not definitely rejected
+  ---
+  duration_ms: 1.280958
+  type: 'test'
+  ...
+# Subtest: an explicit yuan hourly rate cannot become a calendar year
+ok 5 - an explicit yuan hourly rate cannot become a calendar year
+  ---
+  duration_ms: 15.01175
+  type: 'test'
+  ...
+# Subtest: a separate calendar clause cannot change an explicit monetary literal
+not ok 6 - a separate calendar clause cannot change an explicit monetary literal
+  ---
+  duration_ms: 0.696667
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round39/calendar-nonimplementer/independent-small-controls.test.mjs:33:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    null !== '2026.00'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2026.00'
+  actual: ~
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round39/calendar-nonimplementer/independent-small-controls.test.mjs:34:10)
+    Test.runInAsyncScope (node:async_hooks:226:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 218.935291

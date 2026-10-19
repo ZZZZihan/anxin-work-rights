@@ -1,0 +1,102 @@
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"b2cd57d414e48502795a37a7455479485f36b7ab517a51de9f1c92bab07ed261"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":35,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3643783,"port":36747},"other":{"pid":3643766,"port":39791}},"failure":null,"reaped_owned_pids":[3643783,3643756],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✔ v7: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (1568.061086ms)
+{"evidence":"round14_runner_bytes","runner":"cancel","sha256":"9a412e6537328420d43b33aaeffe4501d44fa7e546cf7e68bb540d599d2bd482"}
+{"evidence":"round14_native_process_observation","runner":"cancel","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":13,"leafState":"S","killZero":true,"socketOpen":true,"siblingOpen":true,"rebound":false,"leaf":{"pid":3643832,"port":42093},"other":{"pid":3643814,"port":35589}},"failure":null,"reaped_owned_pids":[3643806,3643832],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✖ cancel: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (1288.559954ms)
+{"evidence":"round14_runner_bytes","runner":"poll","sha256":"fe294cee777904d48be00dd2521b43f8fedef46b23368bfdedefbec6f37a1007"}
+{"evidence":"round14_native_process_observation","runner":"poll","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":6,"leafState":"R","killZero":false,"socketOpen":true,"siblingOpen":true,"rebound":false,"leaf":{"pid":3643889,"port":35371},"other":{"pid":3643865,"port":38851}},"failure":null,"reaped_owned_pids":[3643856,3643889],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✖ poll: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (1411.382524ms)
+{"evidence":"round14_runner_bytes","runner":"recovery","sha256":"7edec1e8cb38d01613b5da18f9740e8ce72cdabd789a907ecce4c95dcf96c05c"}
+{"evidence":"round14_native_process_observation","runner":"recovery","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":6,"leafState":"R","killZero":false,"socketOpen":true,"siblingOpen":true,"rebound":false,"leaf":{"pid":3643937,"port":45819},"other":{"pid":3643915,"port":35137}},"failure":null,"reaped_owned_pids":[3643907,3643937],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✖ recovery: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (1075.85531ms)
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"b2cd57d414e48502795a37a7455479485f36b7ab517a51de9f1c92bab07ed261"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"hold-zombie","observation":{"before":true,"stopError":{"name":"Error","message":"Independent synthetic Worker process group did not stop."},"repeatError":{"name":"Error","message":"Repeated independent cleanup process group did not stop."},"stopMs":5019,"leafState":"Z","killZero":true,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3643979,"port":43597},"other":{"pid":3643963,"port":37159}},"failure":null,"reaped_owned_pids":[3643979],"remaining_owned_children":[],"kernel":"linux","held_zombies":true}
+✖ v7: a real retained Linux zombie makes kill(-pgid,0) succeed but must not make completed cleanup fail (11172.938769ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 1
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16881.278605
+
+✖ failing tests:
+
+test at ../../tmp/anxin-round14-independent.qkxkAC/independent.test.mjs:166:43
+✖ cancel: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (1288.559954ms)
+  AssertionError [ERR_ASSERTION]: A successful stop must not leave the real descendant listening.
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///tmp/anxin-round14-independent.qkxkAC/independent.test.mjs:170:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../../tmp/anxin-round14-independent.qkxkAC/independent.test.mjs:166:43
+✖ poll: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (1411.382524ms)
+  AssertionError [ERR_ASSERTION]: A successful stop must not leave the real descendant listening.
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///tmp/anxin-round14-independent.qkxkAC/independent.test.mjs:170:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../../tmp/anxin-round14-independent.qkxkAC/independent.test.mjs:166:43
+✖ recovery: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (1075.85531ms)
+  AssertionError [ERR_ASSERTION]: A successful stop must not leave the real descendant listening.
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///tmp/anxin-round14-independent.qkxkAC/independent.test.mjs:170:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at ../../tmp/anxin-round14-independent.qkxkAC/independent.test.mjs:176:1
+✖ v7: a real retained Linux zombie makes kill(-pgid,0) succeed but must not make completed cleanup fail (11172.938769ms)
+  AssertionError [ERR_ASSERTION]: No live process/resource remains; a zombie is not a cleanup failure.
+  + actual - expected
+  
+  + {
+  +   message: 'Independent synthetic Worker process group did not stop.',
+  +   name: 'Error'
+  + }
+  - null
+  
+      at TestContext.<anonymous> (file:///tmp/anxin-round14-independent.qkxkAC/independent.test.mjs:183:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { name: 'Error', message: 'Independent synthetic Worker process group did not stop.' },
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

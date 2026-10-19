@@ -1,0 +1,43 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
+const root = process.env.MATERIAL_FACT_TEST_ROOT;
+assert(root);
+const load = name => import(pathToFileURL(resolve(root, 'lib', name + '.ts')).href);
+const { emptyFactState } = await load('material-facts-v3');
+const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest');
+const { normalizeMoneyValueV4 } = await load('material-money-v4');
+const { hasAttachedMoneyArithmetic } = await load('material-fact-arithmetic-review');
+function check(texts, pages, quote, expected) {
+  const source = { id:'r38-nonimplementer',name:'synthetic.txt',sha256:'c'.repeat(64),analysisRevision:38,ready:true,
+    blocks:texts.map((text,index)=>({id:'b'+index,page:pages[index],text,bbox:null,confidence:null})) };
+  const candidate={kind:'money',value:'4000元',quote,blockId:'b0',subject:'王甲',scope:'individual',meaning:'other_money',
+    completeness:'not_applicable',period:null,rateUnit:null,assertion:'narrated'};
+  const raw=JSON.stringify({schemaVersion:3,candidates:[candidate]});
+  const before=structuredClone({source,candidate});
+  const state=ingestRuntimeCandidates(emptyFactState(38),source,{raw},'synthetic','nonimplementer','2026-10-19T00:00:00.000Z');
+  assert.equal(state.materials[0].raw,raw);
+  assert.equal(state.materials[0].candidates.length,1);
+  const item=state.materials[0].candidates[0];
+  assert.equal(item.amount,expected);assert.deepEqual(item.representation,candidate);
+  assert.equal(Array.from(texts[0]).slice(item.start,item.end).join(''),quote);
+  assert.deepEqual({source,candidate},before);assert.equal(state.calculation,null);
+  assert.deepEqual(state.confirmations,{due:null,paid:null});
+}
+test('another worker/sentence bound does not attach to this paid amount',()=>{
+  check(['😀王甲收到4000元。李乙工资高达8000元。'],[1],'😀王甲收到4000元。','4000.00');
+});
+test('same worker later independent event cannot contribute its bound or multiplier',()=>{
+  check(['😀王甲收到4000元。王甲另笔工资低至4000元并翻一倍。'],[1],'😀王甲收到4000元。','4000.00');
+});
+test('unrelated next page does not compose the multiplier with this amount',()=>{
+  check(['😀王甲收到4000元。','翻一倍为李乙另笔工资。'],[1,2],'😀王甲收到4000元。','4000.00');
+});
+test('conservative emphasis and lexical multiplier do not calculate a new amount',()=>{
+  const result=normalizeMoneyValueV4('工资高达4000元');
+  assert.equal(result.amount,null);assert.equal(result.status,'approximate');
+  assert.equal(normalizeMoneyValueV4('4000元翻一倍').amount,null);
+  assert.equal(hasAttachedMoneyArithmetic('', '翻一页说明'),false);
+  assert.equal(hasAttachedMoneyArithmetic('', '。李乙工资加两倍'),false);
+});

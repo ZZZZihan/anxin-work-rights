@@ -1,0 +1,49 @@
+"""Append the three later review findings already present in the saved API pages."""
+from pathlib import Path
+import hashlib
+import json
+
+P = Path(__file__).resolve().parent
+sha = lambda blob: hashlib.sha256(blob).hexdigest()
+
+
+def save(name, value):
+    with (P / name).open('xb') as stream:
+        stream.write(value if isinstance(value, bytes) else (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode())
+
+
+state = json.loads((P / 'review-thread-state-post-parent-resolution.json').read_text())
+comments = []
+for thread in state['unresolved']:
+    for comment in thread['comments']['nodes']:
+        comments.append({'thread': thread['id'], 'resolved': thread['isResolved'], 'outdated': thread['isOutdated'],
+                         'path': thread['path'], 'line': thread['line'], **comment})
+assert len(comments) == 8 and state['threads'] == 146
+save('all-eight-unresolved-reviews.complete-bodies.json', {'head': state['head_at_read'], 'at': state['observed_at'], 'comments': comments})
+save('ci-5374d667-review.final-addendum.json', {
+    'schema': 'round39-ci-review-final-addendum/1', 'status': 'CI_PASS_APPLICATION_BLOCKED_NEW_REVIEW',
+    'supersedes_only_review_inventory_wording_in': 'ci-5374d667-review.independent.json',
+    'original_receipt_sha256': sha((P / 'ci-5374d667-review.independent.json').read_bytes()),
+    'exact_head': '5374d66748a7c329c4c595ec91372d324edff573', 'ci_run': 39159983288, 'ci_conclusion': 'success',
+    'review_snapshot': {'observed_at': state['observed_at'], 'threads': 146, 'unresolved': 8, 'prior_four_r39_resolved': True},
+    'correction': 'The saved refresh includes three comments created at 19:51Z after the initial five at 19:24Z. Total new unresolved is eight, not five. All eight complete bodies are separately preserved. No CI test count or result changes.',
+    'all_new_comment_ids': [comment['databaseId'] for comment in comments],
+    'scope': 'Read-only review inventory, not dynamic reproduction of the new eight or a business acceptance.'})
+save('CI_5374D667_REVIEW_FINAL_ADDENDUM.md', '''# R39 CI 最终线程清单补充
+
+原始成功CI结论和实际计数保持不变。此次刷新实际为 **146线程/8未解决**，本轮原四条R39均已resolved。此前143线程快照有五条新问题；同一刷新又包含19:51Z新增的双倍、RMB限定金额canonical、会计括号三条，因此新的未解决合计为八条。原收据五条清单的范围文字由本补充更正，原件与旧索引保留。
+
+八条完整body、线程ID、路径、时间和resolved/outdated字段存 `all-eight-unresolved-reviews.complete-bodies.json`。这仅是读取审查发现，不声称已复现或修复；最终状态为 **CI_PASS_APPLICATION_BLOCKED_NEW_REVIEW**。精确5374的CI仍27步骤成功、9492runtime通过、68materials通过、HTTP464/465raw/463restart和OCR17通过。
+'''.encode())
+files = []
+for path in sorted(P.rglob('*')):
+    if not path.is_file() or path.name == 'copy-index.ci-5374d667.final.json':
+        continue
+    rel = str(path.relative_to(P))
+    data = path.read_bytes()
+    files.append({'source': str(path), 'relative': rel,
+                  'destination': rel + ('.snapshot' if path.suffix in {'.py', '.ts', '.mjs', '.js'} else ''),
+                  'bytes': len(data), 'sha256': sha(data)})
+save('copy-index.ci-5374d667.final.json', {'schema': 'ci-evidence-whitelist/1', 'source_root': str(P), 'count': len(files), 'files': files})
+print(json.dumps({'count': len(files), 'index': str(P / 'copy-index.ci-5374d667.final.json'),
+                  'sha256': sha((P / 'copy-index.ci-5374d667.final.json').read_bytes())}))

@@ -1,0 +1,14 @@
+from pathlib import Path
+import subprocess,json,hashlib,datetime,concurrent.futures
+OUT=Path(__file__).parent
+REPO='ZZZZihan/anxin-work-rights';RUN='39146980559';HEAD='1cc56d6bc52b67f5c53e7805a9bac0614dfaecd1'
+def api(name,endpoint):
+ p=subprocess.run(['gh','api',endpoint],capture_output=True)
+ with (OUT/name).open('xb') as f:f.write(p.stdout)
+ with (OUT/(name+'.stderr')).open('xb') as f:f.write(p.stderr)
+ if p.returncode:raise RuntimeError(f'{name}: gh exit {p.returncode}')
+ return name
+items={'run.initial.json':f'repos/{REPO}/actions/runs/{RUN}','jobs.initial.json':f'repos/{REPO}/actions/runs/{RUN}/jobs?per_page=100','git-head.json':f'repos/{REPO}/git/commits/{HEAD}','workflow-contents.json':f'repos/{REPO}/contents/.github/workflows/ci.yml?ref={HEAD}'}
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:list(pool.map(lambda x:api(*x),items.items()))
+r=json.loads((OUT/'run.initial.json').read_text());assert r['head_sha']==HEAD
+print(json.dumps({'run':r['id'],'head':r['head_sha'],'status':r['status'],'conclusion':r['conclusion'],'url':r['html_url']}))

@@ -1,0 +1,60 @@
+{
+  "schema": "round42-assessment-publication-nonimplementer-static/1",
+  "status": "NO_SCOPED_STATIC_BLOCKER",
+  "created_at": "2026-10-18T23:00:45.824111+00:00",
+  "reviewer_role": "DATA did not implement assess CLI publication or this test/helper; read-only static review only.",
+  "requested_model": "gpt-6.1-sol/ultra; actual backend not independently verified",
+  "files": [
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/experiments/material-facts-v7/assess.mjs",
+      "sha256": "5d96722e5d6ec46ed5b8218c769d934b6ad5af390a2b830ced8624d6ff7aa3d7",
+      "bytes": 15230
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/assess.mjs",
+      "sha256": "5d96722e5d6ec46ed5b8218c769d934b6ad5af390a2b830ced8624d6ff7aa3d7",
+      "bytes": 15230
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/immutable-artifact-publication.mjs",
+      "sha256": "2dad271198a54cdebb47b43a4d8dde720a6bfccb4dfda8139fb2581916f2f084",
+      "bytes": 1372
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-assessment-publication.test.mjs",
+      "sha256": "eb12bf926a8fff46626ff820741d60cf2dcd233be2f3583ba9ebc522ae3634b6",
+      "bytes": 9372
+    }
+  ],
+  "scorer_library_body_equal_after_only_unused_import_removal": true,
+  "reviewed_change": [
+    "Remove unused top-level writeFile import.",
+    "Only the direct CLI dynamically imports real immutable publisher after running unchanged assess.",
+    "Publication completes unique same-directory wx stage/write/sync/close before no-replace hard link; write/sync/close/link failures do not expose partial final and preserve failed stage.",
+    "Successful publication with failed stage unlink stays successful with explicit stderr published receipt; stdout report-summary contract remains unchanged.",
+    "Library-only import does not need publication helper; no static dependency expansion for existing scorer fixtures."
+  ],
+  "test_contract_static_review": {
+    "cases": 8,
+    "actual_cli": true,
+    "scorer_stub": false,
+    "empty_jsonl_scope": "Actual empty input sets test file lifecycle; not meaningful model extraction or gold matching quality.",
+    "covered": [
+      "new complete final and stdout summary",
+      "existing report no overwrite",
+      "existing symlink no follow/replace",
+      "native RLIMIT_FSIZE partial stage/no final/clean retry preserving stage",
+      "real link observed only after complete JSON stage",
+      "concurrent one winner/one EEXIST preserving losing stage",
+      "cleanup failure after commit explicitly successful",
+      "library-only fixture without publication module"
+    ]
+  },
+  "executions_by_DATA": [],
+  "author_execution_claim_not_repeated": "MONEY reported fixed baseline2P6F→Node24/26 each8P; this receipt does not independently execute or verify those runtime logs.",
+  "limits": [
+    "Static review is not an independent eight-test execution or real model/business acceptance.",
+    "No power-loss or arbitrary-filesystem hard-link durability claim.",
+    "No ROOT/CODE write, test, model, CLI, fullcheck, build or historical chain started."
+  ]
+}

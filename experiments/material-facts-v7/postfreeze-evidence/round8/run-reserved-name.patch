@@ -1,0 +1,22 @@
+--- experiments/material-facts-v7/postfreeze-evidence/round8/run.mjs.baseline.snapshot	2026-10-18 14:05:30
++++ experiments/material-facts-v7/run.mjs	2026-10-18 14:06:57
+@@ -70,6 +70,10 @@
+ try { const info = await lstat(resultRoot); if (!info.isDirectory() || info.isSymbolicLink()) throw new Error('Result root must be a real directory'); }
+ catch (error) { if (error.code !== 'ENOENT') throw error; }
+ const out = resolve(resultRoot, basename(requestedOut));
++// Attempts must not occupy the actual budget-control path, including aliases
++// on the default case-insensitive macOS filesystem. Check before any writes.
++const budgetLockName = '.deepseek-budget.lock';
++if (basename(out).toLowerCase() === budgetLockName) throw new Error('Attempt output cannot use a reserved control directory name');
+ if (mode === 'holdout' && basename(out) !== `holdout-${backend}-1`) throw new Error('Formal attempt directory must match the frozen backend');
+ if (mode !== 'holdout' && basename(out).startsWith('holdout-')) throw new Error('Diagnostic output cannot use a formal attempt name');
+ if (!['rules', 'qwen', 'deepseek'].includes(backend)) throw new Error('Invalid backend');
+@@ -98,7 +102,7 @@
+ const hashes = {};
+ for (const file of RUN_HASH_FILES) hashes[file] = sha(await readFile(resolve(root, file)));
+ await mkdir(resultRoot, { recursive: true });
+-const budgetLock = resolve(resultRoot, '.deepseek-budget.lock');
++const budgetLock = resolve(resultRoot, budgetLockName);
+ let locked = false, budget = null;
+ try {
+   if (backend === 'deepseek') {

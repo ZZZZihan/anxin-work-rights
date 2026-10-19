@@ -1,0 +1,37 @@
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5095,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3644964,"port":34207},"other":{"pid":3644947,"port":35677}},"failure":null,"reaped_owned_pids":[3644964,3644939],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✔ v7: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (6415.386583ms)
+{"evidence":"round14_runner_bytes","runner":"cancel","sha256":"c0fc1f02fde789cfd790e18364b2a5bf13aa9e370cdd4514052f784f64f5b459"}
+{"evidence":"round14_native_process_observation","runner":"cancel","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5142,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3645075,"port":38647},"other":{"pid":3645054,"port":36461}},"failure":null,"reaped_owned_pids":[3645075,3645046],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✔ cancel: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (6494.650787ms)
+{"evidence":"round14_runner_bytes","runner":"poll","sha256":"abb3eccc8fb399dcd9a7a44eb1b8aa48730a95b0b7366a14886261c16046a335"}
+{"evidence":"round14_native_process_observation","runner":"poll","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5141,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3645186,"port":42385},"other":{"pid":3645168,"port":35345}},"failure":null,"reaped_owned_pids":[3645186,3645159],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✔ poll: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (6451.217362ms)
+{"evidence":"round14_runner_bytes","runner":"recovery","sha256":"e5191c7b1a2c211059fa17a75ff1659f9d3516e0da0ba2315d8abd8350853d8c"}
+{"evidence":"round14_native_process_observation","runner":"recovery","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5118,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3645294,"port":37585},"other":{"pid":3645277,"port":33705}},"failure":null,"reaped_owned_pids":[3645294,3645268],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✔ recovery: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (6448.099188ms)
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"hold-zombie","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5155,"leafState":"Z","killZero":true,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3645404,"port":35825},"other":{"pid":3645387,"port":44207}},"failure":null,"reaped_owned_pids":[3645404],"remaining_owned_children":[],"kernel":"linux","held_zombies":true}
+✔ v7: a real retained Linux zombie makes kill(-pgid,0) succeed but must not make completed cleanup fail (6565.064565ms)
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":5285,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3645518,"port":37943},"other":{"pid":3645501,"port":45125}},"failure":null,"reaped_owned_pids":[3645518,3645491],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✔ shared helper accepts an unrelated valid pgid=0 row while stopping real live descendants (6677.727663ms)
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":{"name":"AssertionError","message":"Empty process table cannot establish owned-group cleanup."},"repeatError":null,"stopMs":226,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3645628,"port":38409},"other":{"pid":3645611,"port":35921}},"failure":null,"reaped_owned_pids":[3645628,3645602],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✔ shared helper: empty process-table inspection fails closed and still kills the owned live socket (1574.715085ms)
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":{"name":"AssertionError","message":"Cannot parse owned process-group inspection."},"repeatError":null,"stopMs":226,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3645681,"port":45011},"other":{"pid":3645663,"port":43411}},"failure":null,"reaped_owned_pids":[3645681,3645649],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✔ shared helper: malformed process-table inspection fails closed and still kills the owned live socket (1701.510279ms)
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":{"name":"Error","message":"Synthetic process-table query failure"},"repeatError":null,"stopMs":224,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":3645735,"port":39703},"other":{"pid":3645718,"port":46449}},"failure":null,"reaped_owned_pids":[3645735,3645710],"remaining_owned_children":[],"kernel":"linux","held_zombies":false}
+✔ shared helper: failure process-table inspection fails closed and still kills the owned live socket (1675.233539ms)
+{"evidence":"round14_windows_branch","emulatedBranch":"win32","actualKernel":"linux","milliseconds":63,"open":false,"signal":"SIGKILL"}
+✔ Windows fallback control flow bounds a TERM-ignoring direct child (POSIX execution, not native Windows acceptance) (511.637554ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 44887.495813

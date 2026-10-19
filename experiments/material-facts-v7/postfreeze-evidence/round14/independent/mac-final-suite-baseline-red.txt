@@ -1,0 +1,82 @@
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"b2cd57d414e48502795a37a7455479485f36b7ab517a51de9f1c92bab07ed261"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":25,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":14756,"port":62589},"other":{"pid":14751,"port":62587}},"failure":null,"reaped_owned_pids":[14743],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✔ v7: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (430.7805ms)
+{"evidence":"round14_runner_bytes","runner":"cancel","sha256":"9a412e6537328420d43b33aaeffe4501d44fa7e546cf7e68bb540d599d2bd482"}
+{"evidence":"round14_native_process_observation","runner":"cancel","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":2,"leafState":null,"killZero":true,"socketOpen":true,"siblingOpen":true,"rebound":false,"leaf":{"pid":14782,"port":62595},"other":{"pid":14779,"port":62594}},"failure":null,"reaped_owned_pids":[14775],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✖ cancel: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (415.684583ms)
+{"evidence":"round14_runner_bytes","runner":"poll","sha256":"fe294cee777904d48be00dd2521b43f8fedef46b23368bfdedefbec6f37a1007"}
+{"evidence":"round14_native_process_observation","runner":"poll","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":2,"leafState":null,"killZero":false,"socketOpen":true,"siblingOpen":true,"rebound":false,"leaf":{"pid":14811,"port":62602},"other":{"pid":14808,"port":62601}},"failure":null,"reaped_owned_pids":[14794],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✖ poll: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (415.370583ms)
+{"evidence":"round14_runner_bytes","runner":"recovery","sha256":"7edec1e8cb38d01613b5da18f9740e8ce72cdabd789a907ecce4c95dcf96c05c"}
+{"evidence":"round14_native_process_observation","runner":"recovery","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":2,"leafState":null,"killZero":false,"socketOpen":true,"siblingOpen":true,"rebound":false,"leaf":{"pid":14842,"port":62613},"other":{"pid":14838,"port":62609}},"failure":null,"reaped_owned_pids":[14833],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✖ recovery: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (419.067667ms)
+﹣ v7: a real retained Linux zombie makes kill(-pgid,0) succeed but must not make completed cleanup fail (0.233084ms) # SKIP
+﹣ shared helper accepts an unrelated valid pgid=0 row while stopping real live descendants (0.074875ms) # SKIP
+﹣ shared helper: empty process-table inspection fails closed and still kills the owned live socket (0.047625ms) # SKIP
+﹣ shared helper: malformed process-table inspection fails closed and still kills the owned live socket (0.036209ms) # SKIP
+﹣ shared helper: failure process-table inspection fails closed and still kills the owned live socket (0.040709ms) # SKIP
+﹣ Windows fallback control flow bounds a TERM-ignoring direct child (POSIX execution, not native Windows acceptance) (0.061ms) # SKIP
+ℹ tests 10
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 6
+ℹ todo 0
+ℹ duration_ms 1805.112708
+
+✖ failing tests:
+
+test at scripts/material-facts-http-round14-independent.test.mjs:166:43
+✖ cancel: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (415.684583ms)
+  AssertionError [ERR_ASSERTION]: A successful stop must not leave the real descendant listening.
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round14-independent.test.mjs:170:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round14-independent.test.mjs:166:43
+✖ poll: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (415.370583ms)
+  AssertionError [ERR_ASSERTION]: A successful stop must not leave the real descendant listening.
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round14-independent.test.mjs:170:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round14-independent.test.mjs:166:43
+✖ recovery: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (419.067667ms)
+  AssertionError [ERR_ASSERTION]: A successful stop must not leave the real descendant listening.
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round14-independent.test.mjs:170:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

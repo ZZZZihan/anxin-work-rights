@@ -1,0 +1,108 @@
+{"evidence":"round33_owned_identity_implementation","path":"/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin-round33-fixed8ac-xsva0nm_/scripts/owned-http-process-group.mjs","sha256":"d6d555d521f1cf251da4ee5da8f0e3322e33b5570b71a71fc46bbb47f1fdfc06"}
+✖ a completed cleanup is terminal even when its numeric PGID later has unrelated members (3.24625ms)
+✖ a closed launcher cannot signal a different group reusing its numeric PGID (0.8925ms)
+✖ exit observed before pipe close already requires current group identity (0.574667ms)
+✔ an orphan retaining the inherited ownership marker can still be cleaned (0.970708ms)
+✖ identity must be rechecked before escalation after the first signal (27.62225ms)
+✖ the ownership marker overrides a caller supplied marker without removing the caller environment (0.939583ms)
+✔ an active owned launcher still follows the bounded normal termination path (0.68425ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 2
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 84.243042
+
+✖ failing tests:
+
+test at scripts/material-facts-http-round33-identity-independent.test.mjs:68:1
+✖ a completed cleanup is terminal even when its numeric PGID later has unrelated members (3.24625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'SIGTERM',
+  +   'SIGKILL'
+  + ]
+  - []
+  
+      at fixture.closed (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:75:12)
+      at async fixture (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:60:5)
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:69:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'SIGTERM', 'SIGKILL' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round33-identity-independent.test.mjs:80:1
+✖ a closed launcher cannot signal a different group reusing its numeric PGID (0.8925ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async fixture.closed (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:82:5)
+      at async fixture (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:60:5)
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:81:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round33-identity-independent.test.mjs:87:1
+✖ exit observed before pipe close already requires current group identity (0.574667ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at fixture.owner (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:90:12)
+      at fixture (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:60:11)
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:88:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round33-identity-independent.test.mjs:102:1
+✖ identity must be rechecked before escalation after the first signal (27.62225ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async fixture.closed (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:107:5)
+      at async fixture (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:60:5)
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:103:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round33-identity-independent.test.mjs:112:1
+✖ the ownership marker overrides a caller supplied marker without removing the caller environment (0.939583ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to:
+  
+  'caller-controlled-marker'
+      at fixture.callerEnv.SYNTHETIC_FIXTURE_ONLY (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:117:12)
+      at fixture (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:60:11)
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round33-identity-independent.test.mjs:113:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'caller-controlled-marker',
+    expected: 'caller-controlled-marker',
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }

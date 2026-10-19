@@ -1,0 +1,83 @@
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import subprocess
+
+P = Path(__file__).resolve().parent
+OWN = P.parents[2]
+CODE = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+PRIOR = OWN / 'postfreeze-evidence/round38/ci-66581e78-review'
+FAILED = OWN / 'postfreeze-evidence/round37/ci-d963425ef-review'
+HEAD = '5374d66748a7c329c4c595ec91372d324edff573'
+REPO = 'ZZZZihan/anxin-work-rights'
+sha = lambda data: hashlib.sha256(data).hexdigest()
+
+
+def save(name, value):
+    data = value if isinstance(value, bytes) else (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode()
+    with (P / name).open('xb') as stream:
+        stream.write(data)
+
+
+def git(*args):
+    command = subprocess.run(['git', *args], cwd=CODE, capture_output=True, timeout=30)
+    assert command.returncode == 0, command.stderr
+    return command.stdout
+
+
+def api(endpoint, name):
+    command = subprocess.run(['gh', 'api', endpoint], capture_output=True, timeout=30)
+    assert command.returncode == 0, command.stderr
+    save(name, command.stdout)
+    return json.loads(command.stdout)
+
+
+pull = api(f'repos/{REPO}/pulls/45', 'pull45-at-start.json')
+commit = api(f'repos/{REPO}/git/commits/{HEAD}', 'head-commit-api-at-start.json')
+merge_sha = pull['merge_commit_sha']
+merge = api(f'repos/{REPO}/git/commits/{merge_sha}', 'merge-commit-api-at-start.json')
+identity = {'observed_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'head': HEAD, 'pull_head_at_read': pull['head']['sha'], 'pull_merge_sha_at_read': merge_sha,
+            'remote_head_tree': commit['tree']['sha'], 'local_head_tree': git('rev-parse', HEAD + '^{tree}').decode().strip(),
+            'merge_tree': merge['tree']['sha'], 'merge_parents': [row['sha'] for row in merge['parents']]}
+assert identity['pull_head_at_read'] == HEAD and HEAD in identity['merge_parents']
+assert identity['remote_head_tree'] == identity['local_head_tree'] == identity['merge_tree']
+save('static-identity-at-start.json', identity)
+save('head-git-ls-tree.raw', git('ls-tree', '-r', HEAD))
+save('workflow-exact-head.yml.snapshot', git('show', HEAD + ':.github/workflows/ci.yml'))
+save('package-exact-head.json.snapshot', git('show', HEAD + ':package.json'))
+originals = json.loads((PRIOR / 'local-original-results-vs-exact-head.json').read_text())['files']
+rows = []
+for row in originals:
+    relative = row['path']; value = (CODE / relative).read_bytes(); blob = git('show', HEAD + ':' + relative)
+    assert sha(value) == sha(blob) == row['sha256'], relative
+    rows.append({'path': relative, 'sha256': sha(value), 'git_blob_sha256': sha(blob), 'bytes': len(value)})
+save('local-original-results-vs-exact-head.json', {'head': HEAD, 'count': len(rows), 'files': rows})
+historical = json.loads((PRIOR / 'local-historical-manifests-hashes.json').read_text())
+for row in historical:
+    assert sha((CODE / row['path']).read_bytes()) == row['sha256']
+save('local-historical-manifests-hashes.json', historical)
+protected = []
+for index in [FAILED / 'copy-index.ci-d963425ef.json',
+              OWN / 'postfreeze-evidence/round39/collective-default-path-closure/copy-index.default-path-closure.json']:
+    for row in json.loads(index.read_text())['files']:
+        assert sha(Path(row['source']).read_bytes()) == row['sha256']
+        protected.append({'source': row['source'], 'sha256': row['sha256']})
+save('prior-failed-checkpoints-protection.json', {'count': len(protected), 'files': protected, 'unchanged': True})
+paths = git('ls-tree', '-r', '--name-only', HEAD).decode().splitlines()
+paths = [path for path in paths if path.startswith('lib/') and Path(path).suffix in {'.ts', '.tsx'}]
+paths += ['package.json', '.github/workflows/ci.yml', 'scripts/material-facts-v7-http-regression.mjs',
+          'scripts/owned-http-process-group.mjs', 'scripts/material-facts-http-repeat-signal.test.mjs']
+paths += [path for path in git('ls-tree', '-r', '--name-only', HEAD).decode().splitlines()
+          if path.startswith('scripts/material-facts-v7-round39-')]
+current = []
+for relative in dict.fromkeys(paths):
+    value, blob = (CODE / relative).read_bytes(), git('show', HEAD + ':' + relative)
+    assert value == blob, relative
+    current.append({'path': relative, 'head_sha256': sha(blob), 'worktree_sha256': sha(value), 'bytes': len(value)})
+save('exact-commit-vs-tested-worktree.json', current)
+for name in ['http464-after.json', 'http464-before-valid-runner.json']:
+    save('parent-' + name, (CODE / '.scratch/issue42/round39' / name).read_bytes())
+print(json.dumps({'identity': identity, 'original_results': len(rows), 'current_files': len(current),
+                  'historical_manifest_entries': len(historical), 'prior_failure_files_unchanged': len(protected)}, ensure_ascii=False))

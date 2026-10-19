@@ -1,0 +1,488 @@
+{
+  "schema": "material-facts-v7-round13-independent-review/1",
+  "created_at": "2026-10-18T07:58:07.782761+00:00",
+  "status": "passed_with_documented_limits",
+  "scope": "Two round13 PR45 findings, directly introduced financial-word false-rejection regression, and the new v11 read-only preservation/reassessment chain. Not a whole-PR, legal or human business acceptance.",
+  "blocking_findings": [],
+  "baseline_commit": "25bc6e0074cb435e59cf3d89e1092e1891a04239",
+  "application_head_read_locally": "92ba4dd615eb3b5a43508902e3e217b96ea6df9c",
+  "source_diffs_reviewed_sha256": {
+    "lib/material-money-v4.ts": "543fdbfb40e6e4a6aecbdcfd5b8e46eff1b908ea45fc281014279d14ba52986d",
+    "lib/material-fact-currency-review.ts": "9031c5977ff9b7814b8cb33394a7a0916efa2173c94306af53c2f1cf7ae828e6",
+    "experiments/material-facts-v7/historical-v10-execution.mjs": "da4de9e01711e56b6e89bf77c4f4c2e4f9466c1ffd162cb1aa389188e81f5ba8",
+    "experiments/material-facts-v7/verify-correction-v10.mjs": "25bbec410debc77def1cde20f2de39fa9434b85991fa5d493321c58fe8ef7252",
+    "experiments/material-facts-v7/corrective-assessment-v11.mjs": "22b9d21cc4ac2564e46569e58e4039609487852546198090db4c6f56864d4fbf"
+  },
+  "code_byte_bindings_verified_sha256": {
+    "lib/material-facts.ts": "c7ca5ea8892142ceb08b4b9a74ec8fa829be3c921d5f32d5ff91e9b69df779b9",
+    "lib/material-fact-types.ts": "482bfd611104c213358b0ff194969df6926fa96847d30e531bab40a21fff476f",
+    "lib/material-facts-v2.ts": "0a7e93a3a15393bf2479e8e37fa6000f87266d8a01836c4c7487acee2c97aeec",
+    "lib/material-fact-types-v2.ts": "1e2c55415334bf0b7d84e85937eb09b45bc1ef4eb8b7bc809db8932e2923d339",
+    "lib/material-facts-v3.ts": "b1e5fbe9829cd677c98315070fd3406dfadd6305a3291dfa601a3df64874cbdd",
+    "lib/material-fact-types-v3.ts": "0a3ba7fac7223c1a7d5856f324171e29f7a54c41539392baa719307eaf02442f",
+    "lib/material-money-v4.ts": "543fdbfb40e6e4a6aecbdcfd5b8e46eff1b908ea45fc281014279d14ba52986d",
+    "lib/material-fact-range-review.ts": "d58c9d2a23688578db34d01318a840e04ebc1bed7dbfbe1dec178391321e8f57",
+    "lib/material-fact-arithmetic-review.ts": "09e91a8462dfffb1bd2e0ea2f3ec3fb7dea57cca1f4fdd18260ef8c53ace1ba1",
+    "lib/material-fact-extraction-v4.ts": "319f4f94073f6d5e18a307e5498c2704cac3639586a24f1e48b7da14301f26d2",
+    "lib/material-fact-source-review.ts": "d7fd4f6508a1158721b27c3cc3b4e7014cf35ade48b2695e0b47ec748cf97210",
+    "lib/material-fact-runtime-ingest.ts": "a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f",
+    "lib/material-fact-event-review.ts": "6266aa769459619181aeba3cda262efdf8912f8a94a0edc3bccea2254fe4a181",
+    "lib/material-fact-currency-review.ts": "9031c5977ff9b7814b8cb33394a7a0916efa2173c94306af53c2f1cf7ae828e6",
+    "lib/material-fact-coverage-review.ts": "ab4b4ee52126b204327b6930a0675a1e5b43db3fedce06d0ec752feb833b47c4",
+    "scripts/fact-runtime-v2.py": "2fa950cdde02156aab7f676efcbf3c1abf89e3ed734286f0a9e8437b325c1cc3",
+    "scripts/fact_memory_runtime.py": "9b0fab42e910736998cf54a9cfc63315f33624dce758ce15deccca1c67c8b51b",
+    "scripts/fact_api_transport.py": "958cfade7e59c08dc0397c448775b98c30cd9c5c1b689106c0fe6a4c82be5600",
+    "experiments/material-facts-v7/run.mjs": "72646a5a0deea048f368b0e809acf4f3bffd4c42a97d87e0fc96c8d5ca665cd0",
+    "experiments/material-facts-v7/assess.mjs": "d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1",
+    "experiments/material-facts-v7/freeze.mjs": "1cca06ea078f4f19e70d0f94945c4212d45be954056b8bc716133e6ff9a96afe",
+    "experiments/material-facts-v7/experiment-lock.mjs": "eccebd49c4c2d8391878322c982992a1ea297cc1a81489c869d9b2b83a98b94f",
+    "experiments/material-facts-v7/verify.mjs": "c9f5b7eb1ebe882d2aec76477616271aa31e00639ad3935ad829253d2dedae38",
+    "experiments/material-facts-v7/summarize.mjs": "4590768f0c42a2d5ea1d4b0fb812c8d2fc9068642d82bc0661daaf44b2eaa63d",
+    "experiments/material-facts-v7/runtime-policy.json": "e17cbcfc38ca71c328b093d9493f1ba90809afa4fd8def8d23ab1cc62673b4a8",
+    "experiments/material-facts-v7/verify-frozen.mjs": "8ba86824edb3234639940c6539998090b5fb27667d1f2f4463173cd5a3b2ef0e",
+    "experiments/material-facts-v7/corrective-assessment.mjs": "07a8df7fdfb889dbf1d16f1f559b74a7115d2eb86fa1e08266771f8c1394c937",
+    "experiments/material-facts-v7/publish-artifacts.mjs": "fed30876cd481d0c76bf50c5fbf02a1e78a198a751b66f98c692dbccac347204",
+    "experiments/material-facts-v7/verify-correction-v1.mjs": "2030c45af867f0597742a07dac9e2d488fa77029373f747f1009c104f0fce755",
+    "experiments/material-facts-v7/corrective-assessment-v2.mjs": "bf39d93d6c748737bfc69affaa5533f176b9df9d35a017cc48e56b929335b1e9",
+    "experiments/material-facts-v7/verify-correction-v2.mjs": "65d1cad6c8b68ba43615bdfd686b959eeae94cb16f8fe5af1cbb8f7835190ad9",
+    "experiments/material-facts-v7/corrective-assessment-v3.mjs": "0d7e96c3073d74ec3220d824d527ba85ee2b6338f7788d4e458d41daa1eaef4b",
+    "experiments/material-facts-v7/verify-correction-v3.mjs": "9a47a38a8e8ff18fe9e84e02350ed1d9b5b1f960430ab3182a9a98a7bdb4e56f",
+    "experiments/material-facts-v7/corrective-assessment-v4.mjs": "d17aa2cc196839fa4b36b20ecdab18642409a700b4bec71e2877dd34db70a09b",
+    "experiments/material-facts-v7/verify-correction-v4.mjs": "c738697bc3e03bb0545db5c38fc0a95a2062563edd15d4be191ae15aacec84bc",
+    "experiments/material-facts-v7/corrective-assessment-v5.mjs": "fa6294e36cfad5b692f7c409bdffb2dab21c9175df3e1c8ae005d2a5dee1daef",
+    "experiments/material-facts-v7/verify-correction-v5.mjs": "6e136f06ee5e88e01d8699b02f7e37e619ac459bc590a2ccefc025d4c61fdc17",
+    "experiments/material-facts-v7/corrective-assessment-v6.mjs": "2dc4e2de96802f6a32e8d614ce1b02ae95c30db2abc0fde8444ad7989a090614",
+    "experiments/material-facts-v7/verify-correction-v6.mjs": "74ec7cbd049de7dfa5622f92d7232203e30373c4988aa52c772b4786d95c6590",
+    "experiments/material-facts-v7/corrective-assessment-v7.mjs": "165d1df066cfac5b46b0c43646c184d3f87f4ac85b571567086bc4fddcc38bce",
+    "experiments/material-facts-v7/verify-correction-v7.mjs": "18127455b68229897367950ad87f5daf83f0a3abcb06711d1f9eb944a7189142",
+    "experiments/material-facts-v7/corrective-assessment-v8.mjs": "d46ec86e2855bd79141b4d5a4794ea7977cbc2cef29044383ad3fd70d7fb41a1",
+    "experiments/material-facts-v7/historical-execution-v1.mjs": "0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c",
+    "experiments/material-facts-v7/historical-execution-policy-v1.mjs": "cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea",
+    "experiments/material-facts-v7/verify-correction-v8.mjs": "d3294b204efa688dc7a5c325e742381f646c850209786a7e15b4742245ddbbb6",
+    "experiments/material-facts-v7/corrective-assessment-v9.mjs": "2e0a28a3f4181c671ca9d8cc2f572fffc8835eca19468d2d331aa508ece376c1",
+    "experiments/material-facts-v7/verify-correction-v9.mjs": "8486497cb00dc13e88595c281deb19e0867208bc41ebd2c92764deb32aeffcc1",
+    "experiments/material-facts-v7/corrective-assessment-v10.mjs": "beb8f00de1fc5370d29bd52e341aafc4a29e074da124197881a7ef219c0feab2",
+    "experiments/material-facts-v7/historical-v9-execution.mjs": "d02aa0b5881a9699d71478ed8e2a78f9b7f17dfda7c806cda58c788e1c3df10e",
+    "experiments/material-facts-v7/verify-correction-v10.mjs": "25bbec410debc77def1cde20f2de39fa9434b85991fa5d493321c58fe8ef7252",
+    "experiments/material-facts-v7/corrective-assessment-v11.mjs": "22b9d21cc4ac2564e46569e58e4039609487852546198090db4c6f56864d4fbf",
+    "experiments/material-facts-v7/historical-v10-execution.mjs": "da4de9e01711e56b6e89bf77c4f4c2e4f9466c1ffd162cb1aa389188e81f5ba8"
+  },
+  "independent_tests": {
+    "product": {
+      "script": "scripts/material-facts-v7-round13-money-independent.test.mjs",
+      "sha256": "5fe059165679eb522eba63ca5c91ba0201b09f266b86d639984a9d31c8ea5fbc",
+      "same_final_script_old_baseline": {
+        "pass": 28,
+        "fail": 18,
+        "exit_code": 1,
+        "log": "final46-before-red.txt"
+      },
+      "current_code": {
+        "pass": 46,
+        "fail": 0,
+        "exit_code": 0,
+        "log": "final46-code-green.txt"
+      },
+      "final_root": {
+        "pass": 46,
+        "fail": 0,
+        "exit_code": 0,
+        "log": "final46-root-green.txt"
+      }
+    },
+    "intermediate_financial_false_rejection": {
+      "pass": 0,
+      "fail": 4,
+      "exit_code": 1,
+      "log": "financial-four-before-red.txt",
+      "provenance": "Actual initial integrated a21169/089364 bytes over the old dependencies; this already includes mixed parsing and is not the original 25bc baseline."
+    },
+    "historical_adapter_native": {
+      "script": "scripts/material-facts-v7-historical-v10-adapter-independent.test.mjs",
+      "sha256": "72a9e62ffa7c034d2ab70b012b69234d27e40bfeb667ea06a7e68bc3d13d8c79",
+      "pass": 2,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "historical-v10-adapter-root-final-green.txt",
+      "coverage": [
+        "Near-exhausted inherited deadline really terminates its native child; caller receipt retained, no residual PID.",
+        "Write/unrelated command and mixed argument refusal happens before a native sentinel can run; parent environment unchanged."
+      ]
+    },
+    "v11_current_gates": {
+      "author": "v7_data; reviewed and actually executed by this non-implementer",
+      "script": "scripts/material-facts-v7-correction-v11-gates-independent.test.mjs",
+      "sha256": "b7f94e0d1aa1d19d14da87d12060d6baa1603c5d84b2e3b6f84340b3242beecf",
+      "pass": 5,
+      "fail": 0,
+      "exit_code": 0,
+      "duration_ms": 252162.977625,
+      "log": "v11-current-gates-final.txt",
+      "actual_cli_negative_seconds": {
+        "json_equivalent_manifest_whitespace": 67.60890925,
+        "comment_only_current_range_guard_drift": 182.838511166
+      },
+      "negative_termination": "Both are verifier status 1, not signal or timeout.",
+      "coverage": [
+        "52 current dependencies and unchanged narrow execution policy binding",
+        "49 archived v10 files restored, callback failure cleans owned temporary tree",
+        "JSON-equivalent current manifest bytes rejected by actual CLI",
+        "Current guard comment-only byte drift rejected after archived v10 verification",
+        "All protected historical bytes unchanged"
+      ]
+    }
+  },
+  "independent_artifact_recount": {
+    "script": "postfreeze-evidence/round13/v11-independent-report-check.py",
+    "sha256": "fa72d745a84069994524deed4de34aec05a67d81d2953ab0a29cb0097cea96a7",
+    "before_and_after_gates_exit_code": 0,
+    "before_after_result_bytes_equal": true,
+    "manifest_sha256": "42f13c238e7f88c044de27c858327b92ffd20a576970c836b1a52654421b1345",
+    "case_layers_recounted": 216,
+    "cases_per_backend": 12,
+    "gold_facts_per_layer": 43,
+    "current_code_paths": 52,
+    "archived_v10_code_paths": 49,
+    "original_result_files": 60,
+    "v10_archive_manifest_sha256": "eaf4a0389653919324eb4f82ed575133865195fb1dabe2a072779e4b345ab1a7",
+    "historical_manifest_sha256": {
+      "freeze.json": "0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2",
+      "result-manifest.json": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+      "corrections/manifest.json": "eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de",
+      "corrections-v2/manifest.json": "1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80",
+      "corrections-v3/manifest.json": "72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841",
+      "corrections-v4/manifest.json": "3bceefdb375173567fa7ce60c662eae991957ade70bb89f0da989edb7ebd9db6",
+      "corrections-v5/manifest.json": "eb79da00daa92966f081a2eba35d7355e258a45d18411570834efc62d632e32e",
+      "corrections-v6/manifest.json": "0c9ef56e30e278c816e088a934df1cb8f0cdc944c262b9bd9f88be146909ee69",
+      "corrections-v7/manifest.json": "1fb40b4c0694744f5a83c6b9ddc87bfd1958a2b85185fb178273cec13b422e31",
+      "corrections-v8/manifest.json": "8fa3100c348a94af0471e93a5a2dab8d405df2dd4debc603b3fe3dbe89fac06b",
+      "corrections-v9/manifest.json": "ccb4dce9e91f74fd24f5115133db468288b9c988f76ce28136bfd61e00bce764",
+      "corrections-v10/manifest.json": "c403c8c44146e78b4b15d775d0701cbb94455f0f33a3ebecce939092596f1718"
+    },
+    "models": {
+      "rules": {
+        "v10_v11_report_byte_identical": true,
+        "report_sha256": "0553db2f6eb0801c6311021f16ce67268a165cd8198afe66fa4821ee737dbaf7",
+        "cases": 12,
+        "expected_facts": 43,
+        "metrics_recounted_from_saved_match_partitions": {
+          "raw_basic": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 41,
+            "precision": 1.0,
+            "recall": 0.046511627906976744,
+            "f1": 0.08888888888888888
+          },
+          "raw_relational": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 43,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0
+          },
+          "raw_strict": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 43,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0
+          },
+          "accepted_basic": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 41,
+            "precision": 1.0,
+            "recall": 0.046511627906976744,
+            "f1": 0.08888888888888888
+          },
+          "accepted_relational": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 43,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0
+          },
+          "accepted_strict": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 43,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0
+          }
+        },
+        "raw": 2,
+        "accepted": 2,
+        "rejected": 0,
+        "amount_nonnull": 2,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0
+      },
+      "qwen": {
+        "v10_v11_report_byte_identical": true,
+        "report_sha256": "7d3179e74932e322876ec5a7f67dda817f680473d8f8a850746ddb99091d521f",
+        "cases": 12,
+        "expected_facts": 43,
+        "metrics_recounted_from_saved_match_partitions": {
+          "raw_basic": {
+            "tp": 16,
+            "fp": 47,
+            "fn": 27,
+            "precision": 0.25396825396825395,
+            "recall": 0.37209302325581395,
+            "f1": 0.3018867924528302
+          },
+          "raw_relational": {
+            "tp": 10,
+            "fp": 53,
+            "fn": 33,
+            "precision": 0.15873015873015872,
+            "recall": 0.23255813953488372,
+            "f1": 0.18867924528301885
+          },
+          "raw_strict": {
+            "tp": 8,
+            "fp": 55,
+            "fn": 35,
+            "precision": 0.12698412698412698,
+            "recall": 0.18604651162790697,
+            "f1": 0.1509433962264151
+          },
+          "accepted_basic": {
+            "tp": 16,
+            "fp": 35,
+            "fn": 27,
+            "precision": 0.3137254901960784,
+            "recall": 0.37209302325581395,
+            "f1": 0.3404255319148936
+          },
+          "accepted_relational": {
+            "tp": 10,
+            "fp": 41,
+            "fn": 33,
+            "precision": 0.19607843137254902,
+            "recall": 0.23255813953488372,
+            "f1": 0.2127659574468085
+          },
+          "accepted_strict": {
+            "tp": 8,
+            "fp": 43,
+            "fn": 35,
+            "precision": 0.1568627450980392,
+            "recall": 0.18604651162790697,
+            "f1": 0.1702127659574468
+          }
+        },
+        "raw": 63,
+        "accepted": 51,
+        "rejected": 12,
+        "amount_nonnull": 8,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0
+      },
+      "deepseek": {
+        "v10_v11_report_byte_identical": true,
+        "report_sha256": "32937a32ce0f8af3ce61845cf05f8edc3d07f0e0200c623581014b5f3c117f7d",
+        "cases": 12,
+        "expected_facts": 43,
+        "metrics_recounted_from_saved_match_partitions": {
+          "raw_basic": {
+            "tp": 34,
+            "fp": 17,
+            "fn": 9,
+            "precision": 0.6666666666666666,
+            "recall": 0.7906976744186046,
+            "f1": 0.7234042553191489
+          },
+          "raw_relational": {
+            "tp": 27,
+            "fp": 24,
+            "fn": 16,
+            "precision": 0.5294117647058824,
+            "recall": 0.627906976744186,
+            "f1": 0.5744680851063829
+          },
+          "raw_strict": {
+            "tp": 25,
+            "fp": 26,
+            "fn": 18,
+            "precision": 0.49019607843137253,
+            "recall": 0.5813953488372093,
+            "f1": 0.5319148936170213
+          },
+          "accepted_basic": {
+            "tp": 34,
+            "fp": 17,
+            "fn": 9,
+            "precision": 0.6666666666666666,
+            "recall": 0.7906976744186046,
+            "f1": 0.7234042553191489
+          },
+          "accepted_relational": {
+            "tp": 27,
+            "fp": 24,
+            "fn": 16,
+            "precision": 0.5294117647058824,
+            "recall": 0.627906976744186,
+            "f1": 0.5744680851063829
+          },
+          "accepted_strict": {
+            "tp": 25,
+            "fp": 26,
+            "fn": 18,
+            "precision": 0.49019607843137253,
+            "recall": 0.5813953488372093,
+            "f1": 0.5319148936170213
+          }
+        },
+        "raw": 51,
+        "accepted": 51,
+        "rejected": 0,
+        "amount_nonnull": 10,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0
+      }
+    },
+    "scope": "Independently rederive TP/FP/FN, precision/recall/F1 and complete disjoint partitions from saved match pairs, missing and extra sets without importing the scorer. Retains prior independent event/property semantic review; does not claim a new full semantic reimplementation."
+  },
+  "implementation_review": [
+    "Finite single-digit Arabic/Chinese jiao-fen parsing uses exact cents and does not rewrite original value, quote, representation or Unicode codepoint positions.",
+    "Determinate whole-value noncurrency rejection is narrower than the source cents lexical guard, so ambiguous financial words such as 分红/分摊/分配 stay accepted and unavailable.",
+    "Three directly affected old exact-literal test migrations have semantic basis; cropped 5元 from 5元五角 remains null, as do unsupported precision controls.",
+    "Full source/quote crop, foreign currency, declared rate, unknown amount, historical non-upgrade, raw preservation and separate equal-value events remain independently asserted.",
+    "The new adapter permits only the archived v10 --check target, preserves the v1 900s root deadline and per-depth 2s reserve, uses native execution with unchanged older bridges, and neither expands the v1 whitelist nor rewrites archived source.",
+    "The v11 wrapper restores exact 49 old files before read-only historical check; the controller computes current acceptance once, binds 52 current code paths, checks canonical manifest bytes and publishes only a new correction directory."
+  ],
+  "integrator_evidence_read_only": {
+    "http_script_sha256": "b2cd57d414e48502795a37a7455479485f36b7ab517a51de9f1c92bab07ed261",
+    "http_old": {
+      "pass": 68,
+      "fail": 6
+    },
+    "http_current": {
+      "pass": 74,
+      "fail": 0
+    },
+    "cleanup": "PASS on both saved reports",
+    "restart_persisted_snapshots": 73,
+    "http_limit": "Reviewer read source assertions and reports, did not start HTTP; initial derived amounts are asserted, restart checks stored raw/history rather than a second complete derived-value pass.",
+    "application_full_check": {
+      "vitest": 1789,
+      "runtime": 1981,
+      "additional_later_classifier_probe": 70,
+      "evidence": "experiments/material-facts-v7/postfreeze-evidence/round13/application-final-validation.json",
+      "sha256": "9c5c04e8a79f138b23e897f46d80da0a50f91070faa8c637f848e8c59833a875",
+      "reported_exit_code": 0
+    },
+    "application_ci": {
+      "evidence": "experiments/material-facts-v7/postfreeze-evidence/round13/ci-pr45-92ba4dd.json",
+      "sha256": "122e1db588c07c180440642e57222cb229cfc72e8364daaf936df6e967938a7b",
+      "head_sha": "92ba4dd615eb3b5a43508902e3e217b96ea6df9c",
+      "run_id": 39109169192,
+      "conclusion": "success",
+      "verification_boundary": "Main-agent saved CI receipt read locally; no independent remote query by this reviewer."
+    },
+    "v11_write": {
+      "evidence": "experiments/material-facts-v7/postfreeze-evidence/round13/v11-write.json",
+      "sha256": "f99bd02132fffda71e9bc318cd346bdf223808a2592bc570bb4e938a3c185f0a",
+      "saved_status": "PASS"
+    },
+    "v11_check": {
+      "evidence": "experiments/material-facts-v7/postfreeze-evidence/round13/v11-check.json",
+      "sha256": "5bc074ba5dd44ee367e7f980ccd787512d0dd39d13d323d0157d7db607885abc",
+      "saved_status": "PASS"
+    },
+    "comparison_full_check": {
+      "status": "Main agent completed; terminal log read independently",
+      "reported_exit_code": 0,
+      "runtime_pass": 2329,
+      "runtime_fail": 0,
+      "runtime_duration_ms": 288609.330958,
+      "vitest": 1789,
+      "material_pass": 67,
+      "platform_skip": 1,
+      "python": [
+        9,
+        11,
+        16
+      ],
+      "evidence": "experiments/material-facts-v7/postfreeze-evidence/round13/comparison-full-check.txt",
+      "sha256": "c4fd2746a02aa6e9c34f8cbf1bf5263a882df89b1f39a321411c3a0993aa6524",
+      "own_read_observation": "integrator-full-check-final-read.independent.json",
+      "remote_PR46_CI": "Pending a later precise submitted head; not claimed here."
+    }
+  },
+  "evidence": {
+    "own_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round13",
+    "merged_relative_root": "experiments/material-facts-v7/postfreeze-evidence/round13/independent",
+    "index": "evidence-index.completed.json",
+    "index_sha256": "aea0f9583af61b3eb23fa9f600db807e04ca22307593eb3b5d697ab84b3e30fa",
+    "files_sha256": {
+      "baseline.receipt.json": "6f72c76cfc53e23c1603d40050e44050dad1c3d334c514f3646399bccc88660c",
+      "classifier-before-overlay.receipt.json": "b2521140174f8b97920909ac5c7988183a653f027ec0488cb33469edfb0e9e7a",
+      "evidence-index.final.json": "200bef0071116b83201994a4f74b4054e0bc40899b1e126a30d1e97b22ba90cf",
+      "final-independent-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "final42-before-red.txt": "7540173e4afcdc0d7479dd2890c202495e50395c59ee8139ca593bd93ae46957",
+      "final42-code-green.txt": "a8a28ead8beb32bed38b596cdd01cf88b94e92d47953e5fb248cf49ea7754df2",
+      "final46-before-red.txt": "e3d7b641a42474712cad1a353fb92820b0753ebfe0410e612e6a6220fac83d14",
+      "final46-code-green.txt": "bb1c3aafa1a0de8b8e2f8ac43148d7606d56f41701d1ab57cb978ef3c5dfefc8",
+      "final46-root-green.txt": "28e9d8856e81797daddcbe6ff59dca6ff3420a6c7b1f85ee110d90c2872bf9f2",
+      "financial-followup-code-probe.txt": "a2b0fe8d4048da9fffc8ebc0826440eba47cbf2f418e82ee83c35da57255392b",
+      "financial-four-before-red.txt": "137f629d87b50c37e9f5dc7b3cc4b35fe7323e5c1764aa8fc77dd04838433c30",
+      "fixture-correction-context.json": "9cab8f55be95e6fd645a8ead7ea9e7026e1020194df1196015f8c823f0862c6e",
+      "historical-v10-adapter-independent-green.txt": "8cacc701b26eb1c99c1356e047d573b1f71f1626653f05c6c4a095b523eff4b5",
+      "historical-v10-adapter-root-final-green.txt": "fa7031dd66f4058fe799aebbf787f3a6b9e009af3d5605ae609782e937723cee",
+      "independent-before-red.txt": "579bd6155f8e6bc4a5b0c5cb64565cc7bdefa219ccbb89bec7a1758427204d99",
+      "independent-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "independent-initial-code.txt": "fb5793c6dc554ed1c3f2966a5dca5b17bc4507d51f06448ec6012283bf47b7fa",
+      "independent42-pre-financial-review.snapshot": "2bb1272ba75607222420f4f1d460fc2d8d6d9a42f9b3467243ca3481e279e4d9",
+      "independent46-test.snapshot": "5fe059165679eb522eba63ca5c91ba0201b09f266b86d639984a9d31c8ea5fbc",
+      "initial-independent-test.snapshot": "17f72b44c756bc0213c01696c45c9514750158040077ea17eeb4e72e71b6362c",
+      "integrator-evidence-read.independent.json": "af306ccfbb96dbfb2b59a48ce8edb2ee29e3666cb923b77c7cab1e78c8602a4a",
+      "integrator-full-check-final-read.independent.json": "c427dc29de53656d4c65fae2cee3605309fb0d38841131dc7ae5bcdb1e0d150d",
+      "material-fact-currency-review.ts.classifier-before.snapshot": "08936447940ed456a9536239efb2858917b0d360d41296bc1311d3e772cfe114",
+      "material-facts-v7-historical-v10-adapter-independent.test.snapshot": "72a9e62ffa7c034d2ab70b012b69234d27e40bfeb667ea06a7e68bc3d13d8c79",
+      "material-facts-v7-round13-money-independent.test.snapshot": "2bb1272ba75607222420f4f1d460fc2d8d6d9a42f9b3467243ca3481e279e4d9",
+      "material-money-v4.ts.classifier-before.snapshot": "a21169a1dd989c17dffb4bfec270a56dc13fcba70fd24a8e99789f90773c3351",
+      "minimal-baseline-probe.json": "4e95fd848c1edc94bf5503b99bc979d915ee0d1da4d1991b9f01abc35fec0688",
+      "v11-current-gates-final.txt": "e326477f7ebf8331a19efdc65e04ecc2e917c74e80d5a1c926437d0ad6faff0d",
+      "v11-independent-report-check.py": "fa72d745a84069994524deed4de34aec05a67d81d2953ab0a29cb0097cea96a7",
+      "v11-independent-report-comparison-after-gates.json": "6b4710bf079d20c45d65012e906bfe703ef42c09f4d08063296d1fd87052a4ba",
+      "v11-independent-report-comparison.json": "6b4710bf079d20c45d65012e906bfe703ef42c09f4d08063296d1fd87052a4ba"
+    }
+  },
+  "preserved_product_receipt": {
+    "path": "experiments/material-facts-v7/round13-application-review.independent.json",
+    "sha256": "4b07fea320a0c77917904c1af9fe8d2cc0cdf37941bd7941927c7f21efb72800",
+    "time_boundary": "Initial product-only receipt is preserved as written; later integration results are recorded here without backdating it."
+  },
+  "limits": [
+    "Mixed parsing supports only its finite digit grammar, not arbitrary mixed spellings, precision or unknown monetary values.",
+    "Amount availability and candidate acceptance are separate, and neither authorizes calculation; all saved production defenses remain calculation_authorized=false and no exact amount is free of review issues.",
+    "All three v10/v11 report files are byte-identical: no new inference, score gain or semantic output delta on this frozen set. Synthetic regressions establish the new behavior.",
+    "Gold labels remain provisional non-expert technical annotation, not legal determinations. No business UI, deployment or human acceptance is claimed.",
+    "Later remote changes and exact PR46 submitted-head CI remain separate completion evidence; no whole-PR no-findings or deployment assertion is made."
+  ],
+  "reviewer_actions": {
+    "model_requests": 0,
+    "services_started": 0,
+    "builds": 0,
+    "implementation_edits": 0,
+    "frozen_or_old_receipt_edits": 0,
+    "git_writes": 0
+  },
+  "requested_reviewer_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_configuration_independently_verified": false
+  },
+  "report": {
+    "path": "experiments/material-facts-v7/POSTRUN_ROUND13_INDEPENDENT.md",
+    "sha256": "c68854eb6faf452fb59159752c55bbe5e1ca4280f80a2689fad6c0ceab6e45cb"
+  },
+  "integration_final_observed_at": "2026-10-18T07:58:52.408807+00:00"
+}

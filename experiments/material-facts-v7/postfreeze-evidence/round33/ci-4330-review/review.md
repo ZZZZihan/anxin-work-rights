@@ -1,0 +1,11 @@
+# 精确4330 CI只读核查
+
+[Check39145445542](https://github.com/ZZZZihan/anxin-work-rights/actions/runs/39145445542)对精确提交`4330d5f33367f7f27b3ae5106ee20ab81cd76205`实际success。checkout是合成合并`e6bd7fedd2037ad109a9d267e3cc05316b566073`；Git API核对它与head的tree均为`4286d6c9437af9cb2dfce4778c6b2ee7d8158c7c`。Ubuntu24.04/Node24.21.0/npm11.19.0。
+
+完整检查实际为1789项Vitest/46文件、8125运行时通过且0失败0跳过、材料68通过且0跳过，Python9＋11＋16。旧v6阶段已使用新增只读归档入口并成功。原9fb失败及其未执行/零artifact事实仍保留。
+
+CI产物的事实HTTP352项全通过，353份合成raw、351份重启存储快照，cleanup通过；取消14、轮询4、恢复10均通过且cleanup通过，文字材料8、事实确认10、图像/PDF OCR17均通过。基础HTTP21和合成隔离30通过。CI的353份raw/candidates/finish_reason序列与已保存本机final报告逐项精确一致；整个报告因动态ID/时间/路径而不逐字相同。
+
+两份原ZIP已下载，其SHA与GitHub artifact digest完全一致：material-http-regression为`20962286917ad52448b79c2f064d1fde764c242c00472e3a991c73d33f6f082f`；base-http-regression为`9d8504049233d6b1b30ba698534ede0d5a290c068ccbb08525e54fa418bd37c5`。完整原日志ZIP为`16bfeb6217a659cc5c74938de41f79069a7a46253dbb6f3443006eb63f9038c9`。
+
+本人只下载和核对既有CI日志/JSON，没有本机运行测试、构建、HTTP、历史链、评分器或模型，也未评论/修改远端。此workflow没有部署步骤，精确head部署查询为空；结论仅限这些证据。合成HTTP、规则和OCR夹具不构成人工业务验收或真实模型质量提升。本人参与source/v3实现，因此此收据是CI/HTTP产物证据核查，非该产品实现的独立源码审计。请求Sol ultra，实际backend不能独立核验。

@@ -1,0 +1,76 @@
+{
+  "schema": "material-facts-v6-frozen-compatibility-review/1",
+  "status": "IMPLEMENTED_LOCAL_CHECKS_PASS_PENDING_PARENT_REVIEW_INTEGRATION",
+  "implementation_author": "v7_independent",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "actual_backend_independently_verified": false,
+  "code_baseline": "9fb69c543f15862d7aaaafacdc3a392de5e48f36",
+  "problem": "Original v6 freeze binds old v3 b1e5; current R33 product intentionally has v3 77283. Direct verification rejects this legitimate product change.",
+  "scope": [
+    "experiments/material-facts-v6/verify-frozen.mjs",
+    "experiments/material-facts-v6/frozen-source-v1/manifest.json",
+    "experiments/material-facts-v6/frozen-source-v1/lib/material-facts-v3.ts.snapshot",
+    "scripts/material-facts-v6-frozen-compatibility.test.mjs"
+  ],
+  "file_sha256": {
+    "experiments/material-facts-v6/verify-frozen.mjs": "08fea687d0ca18ab8a2c9955699c656e670632f67041131bc968d5dc29c28db1",
+    "experiments/material-facts-v6/frozen-source-v1/manifest.json": "a76592ff35a3b79257622a9c90a08e813bb96c783f3c33dff77e77395a7895ac",
+    "experiments/material-facts-v6/frozen-source-v1/lib/material-facts-v3.ts.snapshot": "b1e5fbe9829cd677c98315070fd3406dfadd6305a3291dfa601a3df64874cbdd",
+    "scripts/material-facts-v6-frozen-compatibility.test.mjs": "605f90e9d3f193d29dd9913150f2ad1799e4f0ed378df5c361a21f96ecd95cb0"
+  },
+  "sealed": {
+    "freeze_sha256": "0298d7644bf4def061a0d2234b78cd8aab524bf7ae9710dda80bae8f76daf28b",
+    "result_manifest_sha256": "41882c5c653576fce3fb737028217d35476abcc3f9dd0a041ceda47ceca35913",
+    "comparison_sha256": "645f991e82aeda79107aa1f7917f1ae12f0b18eeb1779073a8ae8b53db180d3a",
+    "archived_v3_sha256": "b1e5fbe9829cd677c98315070fd3406dfadd6305a3291dfa601a3df64874cbdd",
+    "current_v3_sha256": "77283a7b0677a43a9c3ff62bf78f353dfbfc6f359c63c1388ea81a7f2ccac779"
+  },
+  "baseline": {
+    "node": "v24.22.0",
+    "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+    "command": [
+      "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+      "experiments/material-facts-v6/verify.mjs"
+    ],
+    "exit_code": 1,
+    "seconds": 0.06742629199288785,
+    "protected_files": 319
+  },
+  "final": {
+    "exit_code": 0,
+    "seconds": 3.4765119159710594,
+    "protected_files": 319,
+    "protected_unchanged": true,
+    "node": "v24.22.0",
+    "source_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+    "command": [
+      "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+      "--test",
+      "scripts/material-facts-v6-frozen-compatibility.test.mjs"
+    ],
+    "tests": 10,
+    "passed": 10,
+    "failed": 0,
+    "tap_duration_ms": 3427.12475,
+    "includes_original_verify_and_summary_check": true,
+    "scoped_eslint_exit": 0
+  },
+  "intermediate_8_test_run": "Before additional symlink safety gates; retained raw logs, not the final artifact validation.",
+  "invariants": [
+    "Original 319 CODE files retained byte-for-byte; current product not replaced.",
+    "Only frozen v3 is archived. All 35 other freeze-bound dependencies must match source and all 36 must match owned temporary tree.",
+    "Old freeze, verifier, summarize, reports, result manifest and comparison bytes are untouched.",
+    "Archived snapshot tampering/missing/additional-path manifest, semantically equal freeze/result-manifest rewrites, unarchived dependency drift reject before callback.",
+    "Current product symlink/directory symlink reject without modifying external target.",
+    "Callback failure removes owned temporary tree; CLI generation/write flags reject.",
+    "Original verify recursively checks old v5/v4 chain; no inference, training or network requests."
+  ],
+  "limits": [
+    "This is historical reproducibility, not validation of current product behavior or new model results.",
+    "Only the original v6 dependency that changed is archived. Future changes to another bound dependency fail and require an explicit verified historical archive.",
+    "No full npm check, HTTP, model call, v7/v25 historical chain, CI rerun, commit or push executed by this agent.",
+    "Parent performs non-implementer review and final integration. The new files do not belong to the already-frozen v25 current code set."
+  ],
+  "callsite_audit": "current-callsite-audit.json"
+}

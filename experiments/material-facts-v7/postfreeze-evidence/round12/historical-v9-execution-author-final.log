@@ -1,0 +1,134 @@
+✔ v9 execution bridge keeps both immutable v1 byte bindings (2.268375ms)
+✔ only the exact v9 read-only CLI is accepted by the new bridge (0.178583ms)
+✔ v9 child and older child inherit one absolute deadline and retain caller options without mutation (2.209333ms)
+✔ invalid and expired inherited states refuse before child allocation (1.163583ms)
+✖ native two-URL policy preload keeps sibling and nested checks inside the same budget; unrelated exec stays bounded (224.615334ms)
+✔ native v9 exit status, stdout and stderr survive the adapter, with owned receipt cleanup (223.649833ms)
+✔ native inherited v1 state keeps its root deadline and receipt ownership in the caller (219.271167ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 791.359042
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-historical-v9-execution.test.mjs:106:1
+✖ native two-URL policy preload keeps sibling and nested checks inside the same budget; unrelated exec stays bounded (224.615334ms)
+  Error: Command failed: /opt/homebrew/Cellar/node/26.11.0/bin/node /var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin v7 v9 native contract OtyKY9/driver.mjs
+  file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11
+  const events=readFileSync(state.receipt_path,'utf8').trim().split('
+                                                                    ^
+  
+  SyntaxError: Invalid or unexpected token
+      at compileSourceTextModule (node:internal/modules/esm/utils:355:16)
+      at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)
+      at #translate (node:internal/modules/esm/loader:441:20)
+      at afterLoad (node:internal/modules/esm/loader:509:29)
+      at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)
+      at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)
+      at afterResolve (node:internal/modules/esm/loader:614:52)
+      at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)
+      at node:internal/modules/esm/loader:639:32
+      at TracingChannel.tracePromise (node:diagnostics_channel:582:22)
+  
+  Node.js v26.11.0
+  {"execution_policy":"material-facts-v7-historical-execution/1","policy_sha256":"cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea","execution_adapter":"historical-v9-execution/1","budget_mode":"shared_absolute_deadline","maximum_root_budget_ms":900000,"cleanup_reserve_per_level_ms":2000,"target":"experiments/material-facts-v7/corrective-assessment-v9.mjs","status":"FAIL","scoring_semantics_changed":false,"archived_source_bytes_changed":false,"events":[{"policy":"material-facts-v7-historical-execution/1","pid":87630,"event":"child_budget","target":"experiments/material-facts-v7/corrective-assessment-v9.mjs","args":["--check"],"depth":1,"requested_timeout_ms":1,"effective_timeout_ms":897999,"parent_deadline_ms":1792309021045,"child_deadline_ms":1792309019045,"cleanup_reserve_ms":2000,"execution_adapter":"historical-v9-execution/1"},{"policy":"material-facts-v7-historical-execution/1","pid":87632,"event":"preload_active","depth":1,"policy_sha256":"cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea"}]}
+  node:internal/errors:999
+    const err = new Error(message);
+                ^
+  
+  Error: Command failed: /opt/homebrew/Cellar/node/26.11.0/bin/node /var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin v7 v9 native contract OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs --check
+  file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11
+  const events=readFileSync(state.receipt_path,'utf8').trim().split('
+                                                                    ^
+  
+  SyntaxError: Invalid or unexpected token
+      at compileSourceTextModule (node:internal/modules/esm/utils:355:16)
+      at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)
+      at #translate (node:internal/modules/esm/loader:441:20)
+      at afterLoad (node:internal/modules/esm/loader:509:29)
+      at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)
+      at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)
+      at afterResolve (node:internal/modules/esm/loader:614:52)
+      at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)
+      at node:internal/modules/esm/loader:639:32
+      at TracingChannel.tracePromise (node:diagnostics_channel:582:22)
+  
+  Node.js v26.11.0
+  
+      at genericNodeError (node:internal/errors:999:15)
+      at wrappedFn (node:internal/errors:544:14)
+      at checkExecSyncError (node:child_process:988:11)
+      at execFileSync (node:child_process:1024:15)
+      at runHistoricalV9CheckSync (file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/historical-v9-execution.mjs:58:12)
+      at run (file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/driver.mjs:6:26)
+      at file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/driver.mjs:7:13
+      at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+      at async node:internal/modules/esm/loader:650:26
+      at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5) {
+    status: 1,
+    signal: null,
+    output: [
+      null,
+      '',
+      'file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11\n' +
+        "const events=readFileSync(state.receipt_path,'utf8').trim().split('\n" +
+        '                                                                  ^\n' +
+        '\n' +
+        'SyntaxError: Invalid or unexpected token\n' +
+        '    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)\n' +
+        '    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)\n' +
+        '    at #translate (node:internal/modules/esm/loader:441:20)\n' +
+        '    at afterLoad (node:internal/modules/esm/loader:509:29)\n' +
+        '    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\n' +
+        '    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)\n' +
+        '    at afterResolve (node:internal/modules/esm/loader:614:52)\n' +
+        '    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)\n' +
+        '    at node:internal/modules/esm/loader:639:32\n' +
+        '    at TracingChannel.tracePromise (node:diagnostics_channel:582:22)\n' +
+        '\n' +
+        'Node.js v26.11.0\n'
+    ],
+    pid: 87632,
+    stdout: '',
+    stderr: 'file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11\n' +
+      "const events=readFileSync(state.receipt_path,'utf8').trim().split('\n" +
+      '                                                                  ^\n' +
+      '\n' +
+      'SyntaxError: Invalid or unexpected token\n' +
+      '    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)\n' +
+      '    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)\n' +
+      '    at #translate (node:internal/modules/esm/loader:441:20)\n' +
+      '    at afterLoad (node:internal/modules/esm/loader:509:29)\n' +
+      '    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\n' +
+      '    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)\n' +
+      '    at afterResolve (node:internal/modules/esm/loader:614:52)\n' +
+      '    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)\n' +
+      '    at node:internal/modules/esm/loader:639:32\n' +
+      '    at TracingChannel.tracePromise (node:diagnostics_channel:582:22)\n' +
+      '\n' +
+      'Node.js v26.11.0\n'
+  }
+  
+  Node.js v26.11.0
+  
+      at genericNodeError (node:internal/errors:999:15)
+      at wrappedFn (node:internal/errors:544:14)
+      at checkExecSyncError (node:child_process:988:11)
+      at execFileSync (node:child_process:1024:15)
+      at file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-historical-v9-execution.test.mjs:138:20
+      at async fixture (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-historical-v9-execution.test.mjs:102:12)
+      at async TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-historical-v9-execution.test.mjs:107:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    status: 1,
+    signal: null,
+    output: [ null, '', `file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11\nconst events=readFileSync(state.receipt_path,'utf8').trim().split('\n                                                                  ^\n\nSyntaxError: Invalid or unexpected token\n    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)\n    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)\n    at #translate (node:internal/modules/esm/loader:441:20)\n    at afterLoad (node:internal/modules/esm/loader:509:29)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\n    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)\n    at afterResolve (node:internal/modules/esm/loader:614:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)\n    at node:internal/modules/esm/loader:639:32\n    at TracingChannel.tracePromise (node:diagnostics_channel:582:22)\n\nNode.js v26.11.0\n{"execution_policy":"material-facts-v7-historical-execution/1","policy_sha256":"cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea","execution_adapter":"historical-v9-execution/1","budget_mode":"shared_absolute_deadline","maximum_root_budget_ms":900000,"cleanup_reserve_per_level_ms":2000,"target":"experiments/material-facts-v7/corrective-assessment-v9.mjs","status":"FAIL","scoring_semantics_changed":false,"archived_source_bytes_changed":false,"events":[{"policy":"material-facts-v7-historical-execution/1","pid":87630,"event":"child_budget","target":"experiments/material-facts-v7/corrective-assessment-v9.mjs","args":["--check"],"depth":1,"requested_timeout_ms":1,"effective_timeout_ms":897999,"parent_deadline_ms":1792309021045,"child_deadline_ms":1792309019045,"cleanup_reserve_ms":2000,"execution_adapter":"historical-v9-execution/1"},{"policy":"material-facts-v7-historical-execution/1","pid":87632,"event":"preload_active","depth":1,"policy_sha256":"cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea"}]}\nnode:internal/errors:999\n  const err = new Error(message);\n              ^\n\nError: Command failed: /opt/homebrew/Cellar/node/26.11.0/bin/node /var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin v7 v9 native contract OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs --check\nfile:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11\nconst events=readFileSync(state.receipt_path,'utf8').trim().split('\n                                                                  ^\n\nSyntaxError: Invalid or unexpected token\n    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)\n    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)\n    at #translate (node:internal/modules/esm/loader:441:20)\n    at afterLoad (node:internal/modules/esm/loader:509:29)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\n    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)\n    at afterResolve (node:internal/modules/esm/loader:614:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)\n    at node:internal/modules/esm/loader:639:32\n    at TracingChannel.tracePromise (node:diagnostics_channel:582:22)\n\nNode.js v26.11.0\n\n    at genericNodeError (node:internal/errors:999:15)\n    at wrappedFn (node:internal/errors:544:14)\n    at checkExecSyncError (node:child_process:988:11)\n    at execFileSync (node:child_process:1024:15)\n    at runHistoricalV9CheckSync (file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/historical-v9-execution.mjs:58:12)\n    at run (file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/driver.mjs:6:26)\n    at file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/driver.mjs:7:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5) {\n  status: 1,\n  signal: null,\n  output: [\n    null,\n    '',\n    'file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11\\n' +\n      "const events=readFileSync(state.receipt_path,'utf8').trim().split('\\n" +\n      '                                                                  ^\\n' +\n      '\\n' +\n      'SyntaxError: Invalid or unexpected token\\n' +\n      '    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)\\n' +\n      '    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)\\n' +\n      '    at #translate (node:internal/modules/esm/loader:441:20)\\n' +\n      '    at afterLoad (node:internal/modules/esm/loader:509:29)\\n' +\n      '    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\\n' +\n      '    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)\\n' +\n      '    at afterResolve (node:internal/modules/esm/loader:614:52)\\n' +\n      '    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)\\n' +\n      '    at node:internal/modules/esm/loader:639:32\\n' +\n      '    at TracingChannel.tracePromise (node:diagnostics_channel:582:22)\\n' +\n      '\\n' +\n      'Node.js v26.11.0\\n'\n  ],\n  pid: 87632,\n  stdout: '',\n  stderr: 'file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11\\n' +\n    "const events=readFileSync(state.receipt_path,'utf8').trim().split('\\n" +\n    '                                                                  ^\\n' +\n    '\\n' +\n    'SyntaxError: Invalid or unexpected token\\n' +\n    '    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)\\n' +\n    '    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)\\n' +\n    '    at #translate (node:internal/modules/esm/loader:441:20)\\n' +\n    '    at afterLoad (node:internal/modules/esm/loader:509:29)\\n' +\n    '    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\\n' +\n    '    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)\\n' +\n    '    at afterResolve (node:internal/modules/esm/loader:614:52)\\n' +\n    '    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)\\n' +\n    '    at node:internal/modules/esm/loader:639:32\\n' +\n    '    at TracingChannel.tracePromise (node:diagnostics_channel:582:22)\\n' +\n    '\\n' +\n    'Node.js v26.11.0\\n'\n}\n\nNode.js v26.11.0\n` ],
+    pid: 87630,
+    stdout: '',
+    stderr: `file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11\nconst events=readFileSync(state.receipt_path,'utf8').trim().split('\n                                                                  ^\n\nSyntaxError: Invalid or unexpected token\n    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)\n    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)\n    at #translate (node:internal/modules/esm/loader:441:20)\n    at afterLoad (node:internal/modules/esm/loader:509:29)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\n    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)\n    at afterResolve (node:internal/modules/esm/loader:614:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)\n    at node:internal/modules/esm/loader:639:32\n    at TracingChannel.tracePromise (node:diagnostics_channel:582:22)\n\nNode.js v26.11.0\n{"execution_policy":"material-facts-v7-historical-execution/1","policy_sha256":"cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea","execution_adapter":"historical-v9-execution/1","budget_mode":"shared_absolute_deadline","maximum_root_budget_ms":900000,"cleanup_reserve_per_level_ms":2000,"target":"experiments/material-facts-v7/corrective-assessment-v9.mjs","status":"FAIL","scoring_semantics_changed":false,"archived_source_bytes_changed":false,"events":[{"policy":"material-facts-v7-historical-execution/1","pid":87630,"event":"child_budget","target":"experiments/material-facts-v7/corrective-assessment-v9.mjs","args":["--check"],"depth":1,"requested_timeout_ms":1,"effective_timeout_ms":897999,"parent_deadline_ms":1792309021045,"child_deadline_ms":1792309019045,"cleanup_reserve_ms":2000,"execution_adapter":"historical-v9-execution/1"},{"policy":"material-facts-v7-historical-execution/1","pid":87632,"event":"preload_active","depth":1,"policy_sha256":"cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea"}]}\nnode:internal/errors:999\n  const err = new Error(message);\n              ^\n\nError: Command failed: /opt/homebrew/Cellar/node/26.11.0/bin/node /var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin v7 v9 native contract OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs --check\nfile:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11\nconst events=readFileSync(state.receipt_path,'utf8').trim().split('\n                                                                  ^\n\nSyntaxError: Invalid or unexpected token\n    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)\n    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)\n    at #translate (node:internal/modules/esm/loader:441:20)\n    at afterLoad (node:internal/modules/esm/loader:509:29)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\n    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)\n    at afterResolve (node:internal/modules/esm/loader:614:52)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)\n    at node:internal/modules/esm/loader:639:32\n    at TracingChannel.tracePromise (node:diagnostics_channel:582:22)\n\nNode.js v26.11.0\n\n    at genericNodeError (node:internal/errors:999:15)\n    at wrappedFn (node:internal/errors:544:14)\n    at checkExecSyncError (node:child_process:988:11)\n    at execFileSync (node:child_process:1024:15)\n    at runHistoricalV9CheckSync (file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/historical-v9-execution.mjs:58:12)\n    at run (file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/driver.mjs:6:26)\n    at file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/driver.mjs:7:13\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5) {\n  status: 1,\n  signal: null,\n  output: [\n    null,\n    '',\n    'file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11\\n' +\n      "const events=readFileSync(state.receipt_path,'utf8').trim().split('\\n" +\n      '                                                                  ^\\n' +\n      '\\n' +\n      'SyntaxError: Invalid or unexpected token\\n' +\n      '    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)\\n' +\n      '    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)\\n' +\n      '    at #translate (node:internal/modules/esm/loader:441:20)\\n' +\n      '    at afterLoad (node:internal/modules/esm/loader:509:29)\\n' +\n      '    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\\n' +\n      '    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)\\n' +\n      '    at afterResolve (node:internal/modules/esm/loader:614:52)\\n' +\n      '    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)\\n' +\n      '    at node:internal/modules/esm/loader:639:32\\n' +\n      '    at TracingChannel.tracePromise (node:diagnostics_channel:582:22)\\n' +\n      '\\n' +\n      'Node.js v26.11.0\\n'\n  ],\n  pid: 87632,\n  stdout: '',\n  stderr: 'file:///private/var/folders/kw/drzz5bb1071clqgd558ql42m0000gn/T/anxin%20v7%20v9%20native%20contract%20OtyKY9/experiments/material-facts-v7/corrective-assessment-v9.mjs:11\\n' +\n    "const events=readFileSync(state.receipt_path,'utf8').trim().split('\\n" +\n    '                                                                  ^\\n' +\n    '\\n' +\n    'SyntaxError: Invalid or unexpected token\\n' +\n    '    at compileSourceTextModule (node:internal/modules/esm/utils:355:16)\\n' +\n    '    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:93:18)\\n' +\n    '    at #translate (node:internal/modules/esm/loader:441:20)\\n' +\n    '    at afterLoad (node:internal/modules/esm/loader:509:29)\\n' +\n    '    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\\n' +\n    '    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36)\\n' +\n    '    at afterResolve (node:internal/modules/esm/loader:614:52)\\n' +\n    '    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:620:12)\\n' +\n    '    at node:internal/modules/esm/loader:639:32\\n' +\n    '    at TracingChannel.tracePromise (node:diagnostics_channel:582:22)\\n' +\n    '\\n' +\n    'Node.js v26.11.0\\n'\n}\n\nNode.js v26.11.0\n`
+  }

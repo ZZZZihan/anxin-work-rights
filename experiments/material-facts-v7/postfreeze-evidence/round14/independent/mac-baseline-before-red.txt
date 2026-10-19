@@ -1,0 +1,77 @@
+{"evidence":"round14_runner_bytes","runner":"v7","sha256":"b2cd57d414e48502795a37a7455479485f36b7ab517a51de9f1c92bab07ed261"}
+{"evidence":"round14_native_process_observation","runner":"v7","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":23,"leafState":null,"killZero":false,"socketOpen":false,"siblingOpen":true,"rebound":true,"leaf":{"pid":9433,"port":55127},"other":{"pid":9432,"port":55126}},"failure":null,"reaped_owned_pids":[9430],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✔ v7: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (426.740125ms)
+{"evidence":"round14_runner_bytes","runner":"cancel","sha256":"9a412e6537328420d43b33aaeffe4501d44fa7e546cf7e68bb540d599d2bd482"}
+{"evidence":"round14_native_process_observation","runner":"cancel","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":2,"leafState":null,"killZero":true,"socketOpen":true,"siblingOpen":true,"rebound":false,"leaf":{"pid":9443,"port":55135},"other":{"pid":9442,"port":55134}},"failure":null,"reaped_owned_pids":[9440],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✖ cancel: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (387.3ms)
+{"evidence":"round14_runner_bytes","runner":"poll","sha256":"fe294cee777904d48be00dd2521b43f8fedef46b23368bfdedefbec6f37a1007"}
+{"evidence":"round14_native_process_observation","runner":"poll","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":2,"leafState":null,"killZero":false,"socketOpen":true,"siblingOpen":true,"rebound":false,"leaf":{"pid":9454,"port":55142},"other":{"pid":9452,"port":55140}},"failure":null,"reaped_owned_pids":[9450],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✖ poll: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (394.411416ms)
+{"evidence":"round14_runner_bytes","runner":"recovery","sha256":"7edec1e8cb38d01613b5da18f9740e8ce72cdabd789a907ecce4c95dcf96c05c"}
+{"evidence":"round14_native_process_observation","runner":"recovery","mode":"reap","observation":{"before":true,"stopError":null,"repeatError":null,"stopMs":2,"leafState":null,"killZero":false,"socketOpen":true,"siblingOpen":true,"rebound":false,"leaf":{"pid":9464,"port":55148},"other":{"pid":9463,"port":55146}},"failure":null,"reaped_owned_pids":[9461],"remaining_owned_children":[],"kernel":"darwin","held_zombies":false}
+✖ recovery: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (396.159208ms)
+﹣ v7: a real retained Linux zombie makes kill(-pgid,0) succeed but must not make completed cleanup fail (0.210125ms) # SKIP
+ℹ tests 5
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 1726.553583
+
+✖ failing tests:
+
+test at scripts/material-facts-http-round14-independent.test.mjs:166:43
+✖ cancel: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (387.3ms)
+  AssertionError [ERR_ASSERTION]: A successful stop must not leave the real descendant listening.
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round14-independent.test.mjs:170:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round14-independent.test.mjs:166:43
+✖ poll: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (394.411416ms)
+  AssertionError [ERR_ASSERTION]: A successful stop must not leave the real descendant listening.
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round14-independent.test.mjs:170:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-http-round14-independent.test.mjs:166:43
+✖ recovery: stop releases a redirected TERM-ignoring descendant socket, preserves an unrelated group and is idempotent (396.159208ms)
+  AssertionError [ERR_ASSERTION]: A successful stop must not leave the real descendant listening.
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-http-round14-independent.test.mjs:170:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

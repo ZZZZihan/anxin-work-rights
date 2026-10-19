@@ -1,0 +1,31 @@
+"""Write only OWN event from the preserved exact-5374 baseline plus two date hunks."""
+from pathlib import Path
+import hashlib
+import json
+import subprocess
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+P = Path(__file__).resolve().parent
+baseline = OWN / '.scratch/issue42/round40/baseline-5374/lib/material-fact-event-review.ts'
+target = OWN / 'lib/material-fact-event-review.ts'
+before = baseline.read_text()
+text = before.replace('(?:[、及和]${dateInterval', '(?:[、及和与]${dateInterval')
+assert text != before and text.count('[、及和与]') == 1
+old = "const shortDate = `(?:${dateNumber}{1,3}月(?:${dateNumber}{1,3}日)?|${dateNumber}{1,3}日)`;"
+new = old + "\n// Preserve a complete source month/day without inventing a missing year. This\n// finite point form is used only by the existing explicit wage-payment layout.\nconst monthDayPaymentDate = /^(?:[1-9]|1[0-2]|[一二三四五六七八九]|十[一二]?)月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)日$/u;"
+assert text.count(old) == 1
+text = text.replace(old, new)
+old = "  if (point.test(value) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)\n    && /^(?:支付|发放|给付|付清)$/u.test(right)) return true;"
+new = "  if ((point.test(value) || monthDayPaymentDate.test(value)) && new RegExp(`^(?:的)?${wage}(?:于|在)$`, 'u').test(left)\n    && /^(?:支付|发放|给付|付清)$/u.test(right)) return true;"
+assert text.count(old) == 1
+text = text.replace(old, new)
+assert target.read_bytes() == (P / 'own-event-before-round40.ts.snapshot').read_bytes()
+target.write_text(text)
+for name, data in [('event.exact-5374.ts.snapshot', baseline.read_bytes()), ('event.date-only.final.ts.snapshot', target.read_bytes())]:
+    with (P / name).open('xb') as stream:
+        stream.write(data)
+patch = subprocess.run(['git', 'diff', '--no-index', '--', str(baseline), str(target)], capture_output=True)
+assert patch.returncode == 1
+with (P / 'event-date-exact-5374.patch').open('xb') as stream:
+    stream.write(patch.stdout)
+print(json.dumps({'target': str(target), 'sha256': hashlib.sha256(target.read_bytes()).hexdigest()}))

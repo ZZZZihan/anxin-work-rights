@@ -1,0 +1,84 @@
+[
+  {
+    "phrase": "工资记录1\n80000元",
+    "amount": "80000.00",
+    "normalization": {
+      "rawValue": "80000元",
+      "status": "exact",
+      "amount": "80000.00",
+      "matchedText": "80000元",
+      "span": {
+        "start": 0,
+        "end": 6
+      },
+      "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+    },
+    "issues": [
+      {
+        "code": "source_relation_unresolved",
+        "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+      }
+    ]
+  },
+  {
+    "phrase": "工资记录每小时\n80000元",
+    "amount": "80000.00",
+    "normalization": {
+      "rawValue": "80000元",
+      "status": "exact",
+      "amount": "80000.00",
+      "matchedText": "80000元",
+      "span": {
+        "start": 0,
+        "end": 6
+      },
+      "reason": "原文中唯一明确金额已精确解析；原始值保持不变。"
+    },
+    "issues": [
+      {
+        "code": "source_relation_unresolved",
+        "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+      }
+    ]
+  },
+  {
+    "phrase": "完整应付80000元\n每月",
+    "amount": null,
+    "normalization": {
+      "rawValue": "80000元",
+      "status": "rate_unit_mismatch",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "源文上下文约束：源文金额直接附着费率单位，与当前总额角色或已声明费率单位冲突，未生成精确金额。"
+    },
+    "issues": [
+      {
+        "code": "source_relation_unresolved",
+        "message": "源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。"
+      },
+      {
+        "code": "rate_unit_mismatch",
+        "message": "候选绑定的源文金额直接附着月、日、小时或件单位，与当前金额角色或费率单位冲突，请核对总额与费率。"
+      },
+      {
+        "code": "source_amount_context_mismatch",
+        "message": "源文局部上下文不支持当前精确金额；未提供精确金额，原始回答与引文仍保留，请核对币种、概数、界限、符号、倍数算式或费率单位。"
+      }
+    ]
+  },
+  {
+    "case": "slash bound",
+    "value": "四万元",
+    "amount": null,
+    "rateUnit": null,
+    "normalization": {
+      "rawValue": "四万元",
+      "status": "unsupported",
+      "amount": null,
+      "matchedText": null,
+      "span": null,
+      "reason": "原文金额直接附着不受支持的费率单位，保留原文且未换算为总额或现有费率单位。"
+    }
+  }
+]

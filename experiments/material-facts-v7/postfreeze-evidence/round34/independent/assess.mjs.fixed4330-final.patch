@@ -1,0 +1,16 @@
+--- 4330/experiments/material-facts-v7/assess.mjs
++++ final-code/experiments/material-facts-v7/assess.mjs
+@@ -24,8 +24,11 @@
+   const after = points.slice(inner.end, outer.end).join('');
+   if (kind === 'money') return /^\s*(?:(?:人民[币幣]|RMB|CNY|[¥￥])\s*)?$/iu.test(before)
+     && /^\s*(?:整|正)?\s*(?:(?:工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬)\s*)?$/u.test(after);
+-  return /^\s*(?:自|从|截至)?\s*$/u.test(before)
+-    && /^\s*(?:起|止|前|后|间|期间)?\s*$/u.test(after);
++  // Fold only the finite date boundary view. The original source, value,
++  // quote and code-point offsets, and literal date equality remain unchanged.
++  const dateBoundary = value => value.replace(/[從後間]/gu, glyph => ({ 從: '从', 後: '后', 間: '间' })[glyph]);
++  return /^\s*(?:自|从|截至)?\s*$/u.test(dateBoundary(before))
++    && /^\s*(?:起|止|前|后|间|期间)?\s*$/u.test(dateBoundary(after));
+ }
+ 
+ function canonical(candidate) {

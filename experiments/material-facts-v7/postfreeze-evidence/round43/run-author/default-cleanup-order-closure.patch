@@ -1,0 +1,33 @@
+--- a/scripts/material-facts-v7-run-preservation.test.mjs
++++ b/scripts/material-facts-v7-run-preservation.test.mjs
+@@ -47,7 +47,11 @@
+   const parent = process.env.MATERIAL_FACT_RUN_PRESERVE_ROOT;
+   if (parent) await mkdir(parent, { recursive: true });
+   const root = await mkdtemp(resolve(parent ?? tmpdir(), `run-preservation-${scenario}-`));
+-  if (!parent) t.after(() => rm(root, { recursive: true, force: true }));
++  const beforeRemove = [];
++  t.after(async () => {
++    for (const cleanup of beforeRemove) await cleanup();
++    if (!parent) await rm(root, { recursive: true, force: true });
++  });
+   await write(root, 'package.json', '{"type":"module"}\n');
+   await write(root, `${E}/run.mjs`, originalRun);
+   // Copy the real publication implementation even for an older verifier body
+@@ -138,7 +142,7 @@
+ ${verificationBody}
+ `;
+   await write(root, `${E}/body-verifier.mjs`, bodyVerifier);
+-  return { root, inputs, python, scenario, calls: resolve(root, 'calls.jsonl'), worker: resolve(root, 'worker-started.marker'),
++  return { root, inputs, python, scenario, beforeRemove, calls: resolve(root, 'calls.jsonl'), worker: resolve(root, 'worker-started.marker'),
+     out: resolve(root, E, 'results/holdout-qwen-1'), verifier: resolve(root, E, 'body-verifier.mjs') };
+ }
+ 
+@@ -176,7 +180,7 @@
+ });
+ 
+ test('a formal runner holds the real lifecycle lock through its final checkpoint',async t=>{
+- const f=await fixture(t,'lifecycle'),running=launch(f);t.after(async()=>{await writeFile(resolve(f.root,'release'),'release');await running.completion;});
++ const f=await fixture(t,'lifecycle'),running=launch(f);f.beforeRemove.push(async()=>{await writeFile(resolve(f.root,'release'),'release');await running.completion;});
+  await until(()=>exists(resolve(f.root,'ready')),'second worker ready');
+  const prefix=JSON.parse(await readFile(resolve(f.out,'outcome.json'),'utf8'));
+  // Seed a synthetic saved report before the competing finalizer; its operation

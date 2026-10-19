@@ -1,0 +1,67 @@
+{
+  "at": "2026-10-18T19:52:52.563987+00:00",
+  "head": "5374d66748a7c329c4c595ec91372d324edff573",
+  "comments": [
+    {
+      "thread": "PRRT_kwDOVApLyM6ttsrj",
+      "resolved": false,
+      "outdated": false,
+      "path": "lib/material-fact-range-review.ts",
+      "line": 64,
+      "id": "PRRC_kwDOVApLyM8AAAABAMzfAA",
+      "databaseId": 4308393728,
+      "createdAt": "2026-10-18T19:24:10Z",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308393728",
+      "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Treat postposed limit phrases as bounds**\n\nWhen a limit follows the amount through a copula, this suffix check misses it: `normalizeMoneyValueV4('4000元为上限')`, `...为下限`, and `以4000元为上限` all return `exact` with `4000.00`. These phrases specify a ceiling or floor rather than a confirmed amount, so allow the bounded `为/作为 + 上限/下限` layout before exposing the value as exact.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+    },
+    {
+      "thread": "PRRT_kwDOVApLyM6ttsrl",
+      "resolved": false,
+      "outdated": false,
+      "path": "lib/material-money-v4.ts",
+      "line": 408,
+      "id": "PRRC_kwDOVApLyM8AAAABAMzfBg",
+      "databaseId": 4308393734,
+      "createdAt": "2026-10-18T19:24:10Z",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308393734",
+      "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept the classifier in hourly rate units**\n\nHourly rates written as `4000元每个小时`, `4000元/个小时`, or their traditional equivalents are classified as unsupported because the optional `个/個` applies only to `月`. These are ordinary spellings of the already-supported `hour` rate unit, so a correctly declared `meaning: \"rate\"` candidate currently loses its amount solely because of the classifier.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+    },
+    {
+      "thread": "PRRT_kwDOVApLyM6ttsrp",
+      "resolved": false,
+      "outdated": false,
+      "path": "lib/material-fact-event-review.ts",
+      "line": 109,
+      "id": "PRRC_kwDOVApLyM8AAAABAMzfCg",
+      "databaseId": 4308393738,
+      "createdAt": "2026-10-18T19:24:10Z",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308393738",
+      "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept yearless month/day payment dates**\n\nWhen the source states an explicit payment event without a year, such as `王甲工资于1月15日支付`, the candidate value `1月15日` receives `source_relation_unresolved` because this point-date branch accepts only `calendarDate`, even though `shortDate` already represents this source-preserving form. Accept a bounded month/day point date in the same owner, wage, and payment-verb envelope rather than requiring the model to invent a year.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+    },
+    {
+      "thread": "PRRT_kwDOVApLyM6ttsrr",
+      "resolved": false,
+      "outdated": false,
+      "path": "lib/material-fact-event-review.ts",
+      "line": 21,
+      "id": "PRRC_kwDOVApLyM8AAAABAMzfDg",
+      "databaseId": 4308393742,
+      "createdAt": "2026-10-18T19:24:10Z",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308393742",
+      "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Accept 与 in parallel wage periods**\n\nParallel wage periods joined with `与` or `與`, such as `王甲2026年1月与2月工资所属期间`, fail attribution while the equivalent `和` and `及` forms pass. The date detection view already folds `與` to `与`, but this complete-list grammar excludes that conjunction, so a valid full `wage_period` candidate is marked `source_relation_unresolved`; include the bounded conjunction alongside the existing separators.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+    },
+    {
+      "thread": "PRRT_kwDOVApLyM6ttsrt",
+      "resolved": false,
+      "outdated": false,
+      "path": "lib/material-fact-event-review.ts",
+      "line": 154,
+      "id": "PRRC_kwDOVApLyM8AAAABAMzfEQ",
+      "databaseId": 4308393745,
+      "createdAt": "2026-10-18T19:24:10Z",
+      "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/45#discussion_r4308393745",
+      "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Recognize 应发 and 实发 complete totals**\n\nCommon payroll totals such as `王甲2026年1月应发工资合计4000元` and `王甲2026年1月实发工资合计3500元` fail this relationship gate: the due branch requires `应付`, while the paid branch recognizes `实付` but not `实发`. These terms are already treated as due/paid totals by the repository's extraction vocabulary, so an otherwise explicit individual complete total receives `source_relation_unresolved` and cannot populate the corresponding suggestion.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+    }
+  ],
+  "classification": "Review findings only; not independently reproduced by this CI audit."
+}

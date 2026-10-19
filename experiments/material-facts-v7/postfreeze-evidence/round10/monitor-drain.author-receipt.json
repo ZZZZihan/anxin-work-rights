@@ -1,0 +1,95 @@
+{
+  "task": "PR46 review 4306002153 / PRRT_kwDOVApLyM6tn_sK",
+  "recorded_at_utc": "2026-10-18T06:34:21.390862+00:00",
+  "status": "author_targeted_checks_passed",
+  "source_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+  "source_run_sha256": "ecdbfebd4ccf96b5f7c3273bc208137ff53f69ea0edd62dba0baa9b66d4177bf",
+  "engineering_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money",
+  "code_sha256": {
+    "experiments/material-facts-v7/run.mjs": "72646a5a0deea048f368b0e809acf4f3bffd4c42a97d87e0fc96c8d5ca665cd0",
+    "scripts/material-facts-v7-run-monitor-drain.test.mjs": "6cb71d88325ed10ea5f4b692e4fcac5eca22a3c7e959f66a614995d08e988eb1"
+  },
+  "changes": [
+    "Track the complete in-flight memory monitor task; retain the existing single-sample concurrency guard.",
+    "After worker close, await output writes and the monitor task before terminal result/outcome publication and diagnostic-lock release.",
+    "Preserve monitor errors after worker exit as failed attempts, recording only Error.name in monitor_error_type; retain raw worker events and original finish_reason.",
+    "Clear interval and process/request/kill timers using the existing exit/close/finally ordering; no new timeout or PID-based kill path."
+  ],
+  "checks": [
+    {
+      "log": "monitor-drain.before-red.txt",
+      "exit_code": 1,
+      "counts": {
+        "tests": 3,
+        "pass": 1,
+        "fail": 2
+      },
+      "meaning": "Actual baseline runner published outcome while a controlled memory append was pending; two barrier scenarios fail at premature terminal publication."
+    },
+    {
+      "log": "monitor-drain.after-green.txt",
+      "exit_code": 0,
+      "counts": {
+        "tests": 3,
+        "pass": 3,
+        "fail": 0
+      },
+      "meaning": "Initial green; test later had one unused constant removed for final lint."
+    },
+    {
+      "log": "monitor-drain.final-after-green.txt",
+      "exit_code": 0,
+      "counts": {
+        "tests": 3,
+        "pass": 3,
+        "fail": 0
+      },
+      "meaning": "Exact final author test and implementation: delayed success, late append rejection, no-pending-sample exit. Checks real diagnostic lock, terminal-write ordering, failure metadata and autonomous bounded exit."
+    },
+    {
+      "log": "lifecycle.after-green.txt",
+      "exit_code": 0,
+      "counts": {
+        "tests": 10,
+        "pass": 10,
+        "fail": 0
+      },
+      "meaning": "Existing author lifecycle tests, current run: queued request timer race, stdout/stderr caps/backpressure, stubborn worker termination, UTF-8 and experiment-lock boundaries."
+    },
+    {
+      "log": "monitor-drain.eslint.txt",
+      "exit_code": 0,
+      "meaning": "Scoped ESLint for the two final changed code/test files."
+    }
+  ],
+  "commands": {
+    "monitor": "MATERIAL_FACTS_V7_SOURCE_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards MATERIAL_FACTS_V7_ENGINEERING_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money node --test scripts/material-facts-v7-run-monitor-drain.test.mjs",
+    "lifecycle": "MATERIAL_FACTS_V7_SOURCE_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards MATERIAL_FACTS_V7_ENGINEERING_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money node --test scripts/material-facts-v7-run-lifecycle.test.mjs",
+    "lint": "node node_modules/eslint/bin/eslint.js experiments/material-facts-v7/run.mjs scripts/material-facts-v7-run-monitor-drain.test.mjs"
+  },
+  "boundary": {
+    "actual_model_calls": 0,
+    "training": false,
+    "production_deployment": false,
+    "actual_freeze_created": false,
+    "holdout_read": false,
+    "historical_artifacts_modified": false,
+    "fixture": "Owned temporary roots, copied development input/runtime code/policy only; finite local Node worker, fake sysctl, delayed fs.appendFile through preload. No actual Python model process or network request."
+  },
+  "limits": [
+    "This author check is not the independent peer review or root integration/full-project check.",
+    "Real machine memory pressure, actual model inference and real experimental freeze publication were not re-run.",
+    "The drain intentionally waits for filesystem append settlement and preserves the existing bounded sysctl calls; it does not claim recovery from an indefinitely wedged kernel/filesystem.",
+    "An I/O error message/path is intentionally not logged; monitor_error_type and stop_reason identify failure without exposing private paths.",
+    "The final runtime hash must be bound by the parent current-code freeze dependencies; historical freeze/result/label artifacts stay unchanged."
+  ],
+  "evidence_sha256": {
+    "lifecycle.after-green.txt": "0f3163773472575e885576acb8c7cba8585cd7b5edb672e76b5152e3de3ff634",
+    "monitor-drain.after-green.txt": "74af8c570b22787b4bb35ae812bde41d4380258a4f871e1ba69c7c6c96a31e07",
+    "monitor-drain.before-red.txt": "398197d1c58e4aee5b513116644448a622c9a12ad9adafba6c61f623e6ba7790",
+    "monitor-drain.eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "monitor-drain.final-after-green.txt": "27a5bc2bec41cea6699ec48bc34247df66d2f9d99887378cbf678247cb6975df",
+    "monitor-drain.patch": "22ed96ca8d03035e6f7997f8e6307d9ecbe20b4ab6fd82049232a0dd8b2598c1",
+    "run.mjs.baseline.snapshot": "ecdbfebd4ccf96b5f7c3273bc208137ff53f69ea0edd62dba0baa9b66d4177bf"
+  }
+}

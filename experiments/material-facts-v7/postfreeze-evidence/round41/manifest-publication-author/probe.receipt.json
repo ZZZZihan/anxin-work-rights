@@ -1,0 +1,67 @@
+{
+  "schema": "issue42-a8d0-result-manifest-fault-triage/1",
+  "scope": "Exact a8d0 publication statement with native fs/promises.writeFile; no full verifier/preflight/scorer/model/network execution",
+  "baseline_commit": "a8d0b70448a11e62c8b2abe1d02298a3e4d3c04e",
+  "node": "v24.22.0",
+  "source_files": {
+    "experiments/material-facts-v7/verify.mjs": {
+      "sha256": "c9f5b7eb1ebe882d2aec76477616271aa31e00639ad3935ad829253d2dedae38",
+      "actual_current_matches_fixed_base": true
+    },
+    "experiments/material-facts-v7/verify-frozen.mjs": {
+      "sha256": "8ba86824edb3234639940c6539998090b5fb27667d1f2f4463173cd5a3b2ef0e",
+      "actual_current_matches_fixed_base": true
+    },
+    "experiments/material-facts-v7/verify-correction-v29.mjs": {
+      "sha256": "d4963d5424e21731fdd4725a0d4d37123afe26acf4deef81494558b9e6b121da",
+      "actual_current_matches_fixed_base": true
+    },
+    "experiments/material-facts-v7/corrective-assessment-v30.mjs": {
+      "sha256": "e9753460f40dcca31b505d46656dc66255bf2ea586f3f604e0466860eb97e5ad",
+      "actual_current_matches_fixed_base": true
+    },
+    ".github/workflows/ci.yml": {
+      "sha256": "d96cdd5bff622a2008cb86a7c1749419aae2d34734760f7b8cdb9d266803b31f",
+      "actual_current_matches_fixed_base": true
+    }
+  },
+  "publication_statement": "if (writeManifest) await writeFile(destination, JSON.stringify(manifest, null, 2) + '\\n', { flag: 'wx' });",
+  "control": {
+    "successful_publication": true,
+    "repeat_refused_without_overwrite": true
+  },
+  "fault": {
+    "native_error": "EFBIG",
+    "partial_bytes": 128,
+    "expected_bytes": 7433,
+    "json_parse_error": "Unterminated string starting at: line 4 column 20 (char 85)",
+    "retry_error": "EEXIST",
+    "fragment_retained_unchanged": true,
+    "limitation": "Native bounded-file I/O failure, not a reproduced SIGKILL or whole verifier crash"
+  },
+  "current_frozen_artifact_checks": {
+    "first_result_manifest_sha256": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+    "first_result_manifest_expected_sha256": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+    "first_result_artifacts": {
+      "count": 60,
+      "all_match": true
+    },
+    "current_v30_code": {
+      "count": 109,
+      "all_match": true
+    },
+    "current_v30_reports_and_comparison": {
+      "count": 4,
+      "all_match": true
+    },
+    "v29_archive_code": {
+      "count": 106,
+      "all_match": true
+    }
+  },
+  "protected_root_paths": 284,
+  "all_root_bytes_unchanged": true,
+  "source_or_root_modified": false,
+  "inference": false,
+  "network": false
+}

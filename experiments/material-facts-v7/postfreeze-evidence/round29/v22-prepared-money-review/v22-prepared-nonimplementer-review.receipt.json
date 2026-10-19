@@ -1,0 +1,121 @@
+{
+  "schema": "material-facts-v7-round29-v22-prepared-nonimplementer-review/1",
+  "reviewed_at_utc": "2026-10-18T14:17:10.607672+00:00",
+  "status": "passed_prepared_tooling_scope_only",
+  "reviewer": "v7_money; did not implement the three v22 tools or their gate tests",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "actual_backend_independently_verified": false,
+  "scope": [
+    "historical-v21-execution.mjs",
+    "verify-correction-v21.mjs",
+    "corrective-assessment-v22.mjs",
+    "correction-code-v21 82 snapshots",
+    "historical-v21 native7 author test",
+    "historical v21 and current v22 gates static only",
+    "package runtime concurrency and CI entries"
+  ],
+  "executed": [
+    {
+      "kind": "nonimplementer execution of existing author synthetic native tests",
+      "node": "v26.11.0",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "log": "v22-prepared-native7.actual.log"
+    },
+    {
+      "kind": "new nonimplementer bounded read-only/owned-temp callback probe",
+      "log": "v22-prepared-readonly-v2.actual.log",
+      "archived_snapshots_verified": 82,
+      "restored_files_verified": 82,
+      "callback_throw_identity_preserved": true,
+      "owned_temp_removed": true,
+      "protected_root_hashes_unchanged": true,
+      "dependency_union": 85
+    }
+  ],
+  "static_findings": [
+    "New historical v21 bridge differs from v20 only in finite version labels/identifiers; unchanged immutable v1 policy carries a 900000ms absolute root budget and 2000ms cleanup reserve per nested level. It does not reset a descendant or sibling budget.",
+    "Exact archived v21 --check is the sole new bridge target. Current v22 is absent from both old policy and the v21 target; no broad allowlist extension.",
+    "Archived v21 wrapper checks exact path set, correction-manifest hash, each snapshot hash and safe relative path before copying; restores only in owned temp and finally removes it even if callback throws.",
+    "Current v22 first verifies restored v21 chain, then calls computeCorrection once over the same original result rows; it does not launch inference. Union includes all 82 previous paths and three new tools.",
+    "Artifact publication uses existing publishArtifacts path; --check binds canonical manifest bytes plus exact report file set and hashes. Static gates contain real CLI manifest-whitespace/code-byte drift negatives; these negative CLI tests were not executed in this review.",
+    "package test:fact-runtime has 148 Node scripts with concurrency=2; CI explicitly runs archived verify-correction-v21 and current corrective-assessment-v22 --check."
+  ],
+  "original_result_file_count": 60,
+  "bindings_and_probe_result": {
+    "status": "PASS",
+    "execution": "static_and_owned_temp_callback_only",
+    "node": "v26.11.0",
+    "archive_files": 82,
+    "restored_files": 82,
+    "current_dependency_union": 85,
+    "root_protected_bytes_unchanged": {
+      "freeze.json": "0caa5b58d498a9c3ea57fc3f807118cd1faa0169a80e41b9935eacf3853ccab2",
+      "result-manifest.json": "3733e4c6939184fbe79b56e4a4bdc2db35f4e6f99a20fc91c48bd24913ce53ee",
+      "corrections/manifest.json": "eb5d86b831a8a6df99b52a02cd062fe977a2a03ed5ef5ef168406c1a10a010de",
+      "corrections-v2/manifest.json": "1bb6add63ec732bca31dfe65c50844411e7fba45d0addc45b0f69a11a3175f80",
+      "corrections-v3/manifest.json": "72e07756ce1901dd1060d4b03c53fb443eebd9048bf7f6bece6c6cbf3ec0c841",
+      "corrections-v4/manifest.json": "3bceefdb375173567fa7ce60c662eae991957ade70bb89f0da989edb7ebd9db6",
+      "corrections-v5/manifest.json": "eb79da00daa92966f081a2eba35d7355e258a45d18411570834efc62d632e32e",
+      "corrections-v6/manifest.json": "0c9ef56e30e278c816e088a934df1cb8f0cdc944c262b9bd9f88be146909ee69",
+      "corrections-v7/manifest.json": "1fb40b4c0694744f5a83c6b9ddc87bfd1958a2b85185fb178273cec13b422e31",
+      "corrections-v8/manifest.json": "8fa3100c348a94af0471e93a5a2dab8d405df2dd4debc603b3fe3dbe89fac06b",
+      "corrections-v9/manifest.json": "ccb4dce9e91f74fd24f5115133db468288b9c988f76ce28136bfd61e00bce764",
+      "corrections-v10/manifest.json": "c403c8c44146e78b4b15d775d0701cbb94455f0f33a3ebecce939092596f1718",
+      "corrections-v11/manifest.json": "42f13c238e7f88c044de27c858327b92ffd20a576970c836b1a52654421b1345",
+      "corrections-v12/manifest.json": "d74fb4e43136d6c0a18739daa79065e8ceaef6519ce2d9ddf82de72650a1184e",
+      "corrections-v13/manifest.json": "7d65625d6dd48f1319eec1ca86066fcc4bfaeed0d5f23c7195157d5e7a3fc04c",
+      "corrections-v14/manifest.json": "7ad12cb5543f7c750c7393366d115205e876ca0817333cef0a5462d2a39562cd",
+      "corrections-v15/manifest.json": "bc7ba849ed3394cfc6e1a74aa01f93ccbced443602165f43f4900e9d4cb5d292",
+      "corrections-v16/manifest.json": "5e229a33ed6e71f26b4fb01c92e9f28da66122bffde84d23e8e82c1fb6dbca69",
+      "corrections-v17/manifest.json": "55ec4fd2dae91d3b0512b3bc0e75284a44008c6388e479d553896abf0db9badd",
+      "corrections-v18/manifest.json": "67cfc9e3746d5de87492bebe903da1d773fa39e50da056978104b0b8a32c99aa",
+      "corrections-v19/manifest.json": "5f39f3870bf50c03bb8d202a021c6643c5000f770259005ebd6cfe4ac64033c7",
+      "corrections-v20/manifest.json": "6bddae4eb7d7da1fd744a79a399620e8fa60e7c5fe79d1ef7aaf8a072b491a87",
+      "corrections-v21/manifest.json": "e9d350b5e634fed62e7688ec940440a8889f90f61cbcd8dba875abcce0b05504",
+      "correction-code-v21/manifest.json": "57b4b9c649415031c461cf0eaa91ea1f7c1cce112415c6d95f20870b42f78a44",
+      "historical-execution-policy-v1.mjs": "cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea",
+      "historical-execution-v1.mjs": "0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c",
+      "historical-v9-execution.mjs": "d02aa0b5881a9699d71478ed8e2a78f9b7f17dfda7c806cda58c788e1c3df10e",
+      "historical-v20-execution.mjs": "a961dbbde9e4a37b492e5da8c3fa4bac7f3823029a452425ad5b504294b2a426"
+    },
+    "runtime_script_count": 148,
+    "runtime_concurrency": 2,
+    "current_v22_manifest_present": false,
+    "model_requests": 0,
+    "historical_cli_calls": 0,
+    "full_gate_calls": 0,
+    "tool_sha256": {
+      "verify-correction-v21.mjs": "29fb2b2961a1c18fb1be2e463076e100c95913245a671bb66fc485e65990ddaf",
+      "historical-v21-execution.mjs": "8b1cc5dfc3607d952a0bd777f7fb923a3e80ba9b8f0a66430b5bae81d6b11481",
+      "corrective-assessment-v22.mjs": "647fd6f23de44f33d627d1cdfd9cd65f4c8130175612e0112772c41b13c53323"
+    },
+    "test_sha256": {
+      "material-facts-v7-historical-v21-execution.test.mjs": "a58c9f3ce75cd62341bed41ed6d8face7663c4333612d9c232ffa6fbc66bdcaf",
+      "material-facts-v7-correction-v21-gates-independent.test.mjs": "73098d2bd2ab683cce50b7993238f99d1efd6cdd0be44c064d7a8121d704d1b4",
+      "material-facts-v7-correction-v22-gates-independent.test.mjs": "d93e7c0b9dc34a0bea2553c904ad6f0cb8c68d8db87637ade602e61fb83accda"
+    },
+    "package_sha256": "6de69851922fa85e140c4b26c517114af9c04836a888570487da0d739e772296",
+    "ci_sha256": "1d94c1922f0aa8f600ffd57bb3ae1e4ddf47b281c609a12339bd7a1d38eb7847"
+  },
+  "initial_probe_fixture_failure": {
+    "log": "v22-prepared-readonly.actual.log",
+    "classification": "review probe normalization omitted uppercase V21 function identifiers; assertion failed before restore/CLI; no product failure",
+    "corrected_probe": "v22-prepared-readonly-v2.probe.mjs",
+    "both_attempts_preserved": true
+  },
+  "not_executed": [
+    "historical CLI check chain",
+    "current v22 write or check",
+    "full historical/current gates",
+    "full project check",
+    "HTTP",
+    "model calls",
+    "training",
+    "deployment"
+  ],
+  "boundary": "v22 manifest absent at probe time; review establishes prepared tooling contracts and bounded synthetic native behavior only, not publication, full-chain verification, model quality or business acceptance.",
+  "blocking_findings": []
+}

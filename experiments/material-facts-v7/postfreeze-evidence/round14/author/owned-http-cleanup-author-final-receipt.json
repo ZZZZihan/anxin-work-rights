@@ -1,0 +1,55 @@
+{
+  "scope": "ROUND14 HTTP runner owned-process cleanup only",
+  "baselineCodeCommit": "92ba4dd615eb3b5a43508902e3e217b96ea6df9c",
+  "baselineComparisonCommit": "2b0c0e516d3d89b7576fc81d7337caebed9004e7",
+  "files": {
+    "scripts/owned-http-process-group.mjs": "37c86a25a10bcf666ad9144971627f0b83b31a5d3d3d1e70768f09ca7ba94435",
+    "scripts/material-facts-v7-http-regression.mjs": "080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88",
+    "scripts/material-facts-cancel-http-regression.mjs": "c0fc1f02fde789cfd790e18364b2a5bf13aa9e370cdd4514052f784f64f5b459",
+    "scripts/material-facts-v7-http-process-tree.test.mjs": "7323a90a924f44e7873732e7e5441f20ea3572d885f3897df364835a522df8d9",
+    "scripts/material-facts-http-owned-cleanup.test.mjs": "117d1dfe5daf127bbc9f2a9d16255689ebaa052e4c870328af4428ec7d146d04"
+  },
+  "patchSha256": "5dd63b20ec8ed9df90710609403acba172a9e78acea434600e863e6c99a29b71",
+  "functionalScenariosBeforeRestartByteUnchanged": true,
+  "cancelNativeOld": {
+    "passed": 0,
+    "failed": 2,
+    "log": "cancel-owned-author-red.tap"
+  },
+  "cancelNativeFinal": {
+    "passed": 2,
+    "failed": 0,
+    "log": "cancel-owned-author-final-green.tap"
+  },
+  "v7NativeIntermediate": {
+    "passed": 3,
+    "failed": 2,
+    "log": "v7-process-query-boundary-intermediate-red.tap",
+    "cause": "The first helper passed the remaining grace-period milliseconds to ps; at the deadline 1ms killed a healthy query. Fixed by an independent bounded query budget."
+  },
+  "psQueryBudgetMs": 1000,
+  "psCloseHardAllowanceMs": 500,
+  "termPollingBudgetMs": 5000,
+  "killPollingBudgetMs": 5000,
+  "deadlineBoundary": "Each polling phase may exceed its deadline by at most one 1500ms query/close allowance. An initial already-closed inspection has its own same allowance. Query failure remains failure and still attempts owned SIGKILL.",
+  "actualKernelPlatform": "Darwin arm64; actual child/descendant loopback sockets, no mock substitution for the two cancel reproductions",
+  "linuxZombieAuthorExecution": false,
+  "windowsAuthorExecution": false,
+  "fullHttpAuthorExecution": false,
+  "actualModelCalls": 0,
+  "builds": 0,
+  "commits": 0,
+  "oldFrozenFilesModified": false,
+  "v7NativeFinal": {
+    "passed": 5,
+    "failed": 0,
+    "log": "v7-process-tree-final-bytes-green.tap",
+    "runnerSha256": "080aa9fe86765c491f03b5cfc57fd00c95b97322a42f1027663dd38fc643df88"
+  },
+  "staticChecks": {
+    "nodeCheckFiles": 5,
+    "passed": 5,
+    "scopedEslintExitCode": 0,
+    "receipt": "owned-cleanup-final-static.json"
+  }
+}

@@ -1,0 +1,29 @@
+--- prepared.py
++++ final.py
+@@ -43,7 +43,7 @@
+ manifest_bytes = (base / "corrections-v27/manifest.json").read_bytes()
+ assert sha(manifest_bytes) == expected_manifest_sha
+ manifest = json.loads(manifest_bytes)
+-assert manifest["schema"] == "material-facts-v7-postfreeze-correction-manifest/26"
++assert manifest["schema"] == "material-facts-v7-postfreeze-correction-manifest/27"
+ assert manifest["previous_correction_manifest_sha256"] == historical["corrections-v26/manifest.json"]
+ assert manifest["first_result_manifest_sha256"] == historical["result-manifest.json"]
+ assert manifest["freeze_sha256"] == historical["freeze.json"]
+@@ -60,7 +60,7 @@
+ assert archive["correction_manifest_sha256"] == historical["corrections-v26/manifest.json"]
+ assert set(archive["files"]) == set(previous["code_sha256"])
+ assert len(archive["files"]) == 97
+-assert archive["schema"] == "material-facts-v7-correction-code/25"
++assert archive["schema"] == "material-facts-v7-correction-code/26"
+ assert {str(path.relative_to(archive_base)) for path in archive_base.rglob("*.snapshot")} == {path + ".snapshot" for path in archive["files"]}
+ for path, digest in archive["files"].items():
+     assert previous["code_sha256"][path] == digest
+@@ -80,7 +80,7 @@
+ for path, digest in manifest["files"].items():
+     assert sha((base / "corrections-v27" / path).read_bytes()) == digest, path
+ comparison = read(base / "corrections-v27/comparison.json")
+-assert comparison["schema"] == "material-facts-v7-postfreeze-correction/26"
++assert comparison["schema"] == "material-facts-v7-postfreeze-correction/27"
+ assert comparison["expected_facts"] == 43 and comparison["planned_per_backend"] == 12
+ assert comparison["inference"] is False and comparison["new_holdout_run"] is False
+ prior_comparison = read(base / "corrections-v26/comparison.json")

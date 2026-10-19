@@ -1,0 +1,132 @@
+{
+  "schema": "anxin-round28-money-author/1",
+  "baseline_commit": "b4974a3938b865147aa5714e659a4b19d4a8c771",
+  "status": "passed_scoped_author_and_data_combination_checks",
+  "product_sha256": {
+    "lib/material-money-v4.ts": "9418e8552d8af20b3b3da1b389bca74d2288e30549be1b5974df2b25e5bbaacf",
+    "lib/material-fact-range-review.ts": "4bb5f5fa446a8bf5dec309e7faa04c18ee8f3c132893a2bacbc65c3875154723",
+    "scripts/material-facts-v7-round28-money-author.test.mjs": "94288a426965fabd429ace114edfc78254ac35ef471b38a60e986a91acff9b86"
+  },
+  "api_changes": false,
+  "implementation_scope": [
+    "lib/material-money-v4.ts",
+    "lib/material-fact-range-review.ts"
+  ],
+  "runtime": "Node v26.11.0 (local author/crossreview execution only; no claim about parent Node24)",
+  "requested_configuration": "GPT-6.1 Sol ultra; actual backend not independently verified",
+  "checks": [
+    {
+      "role": "author",
+      "log": "minimal-before.actual.log",
+      "baseline": "exact b497",
+      "tests": 12,
+      "pass": 0,
+      "fail": 12,
+      "exit_code": 1
+    },
+    {
+      "role": "author_initial_fixture",
+      "log": "author-fixedb497-before.actual.log",
+      "test_snapshot": "author-initial-157.snapshot",
+      "tests": 157,
+      "pass": 81,
+      "fail": 76,
+      "exit_code": 1
+    },
+    {
+      "role": "author_intermediate",
+      "log": "author-after-first.actual.log",
+      "tests": 157,
+      "pass": 151,
+      "fail": 6,
+      "exit_code": 1
+    },
+    {
+      "role": "author_same_final_test_baseline",
+      "log": "author-final-fixedb497-before.actual.log",
+      "tests": 157,
+      "pass": 81,
+      "fail": 76,
+      "exit_code": 1,
+      "command": "MATERIAL_FACT_TEST_ROOT=<b497-baseline> MATERIAL_FACT_PATCH_ROOT=<b497-baseline> node --test scripts/material-facts-v7-round28-money-author.test.mjs"
+    },
+    {
+      "role": "author_current",
+      "log": "author-after-second.actual.log",
+      "tests": 157,
+      "pass": 157,
+      "fail": 0,
+      "exit_code": 0,
+      "command": "MATERIAL_FACT_TEST_ROOT=<b497-baseline> node --test scripts/material-facts-v7-round28-money-author.test.mjs"
+    },
+    {
+      "role": "author_critical_old_regressions",
+      "log": "key-round26-27.actual.log",
+      "tests": 486,
+      "pass": 486,
+      "fail": 0,
+      "exit_code": 0
+    },
+    {
+      "role": "author_critical_old_regressions",
+      "log": "key-mixed-subunits.actual.log",
+      "tests": 191,
+      "pass": 191,
+      "fail": 0,
+      "exit_code": 0,
+      "note": "Old mixed-subunit script overlays money only; b497 range dependency retained."
+    },
+    {
+      "role": "author_integrated_with_data_final",
+      "log": "author-final-data-combined.actual.log",
+      "tests": 157,
+      "pass": 157,
+      "fail": 0,
+      "exit_code": 0,
+      "command": "MATERIAL_FACT_TEST_ROOT=<b497-baseline> MATERIAL_FACT_SOURCE_FILE=<DATA source> MATERIAL_FACT_EVENT_FILE=<DATA event> node --test scripts/material-facts-v7-round28-money-author.test.mjs"
+    },
+    {
+      "role": "nonimplementer_execution_of_DATA_author_fixtures",
+      "log": "data-author-combined-crossreview.actual.log",
+      "tests": 125,
+      "pass": 125,
+      "fail": 0,
+      "exit_code": 0,
+      "command": "MATERIAL_FACT_TEST_ROOT=<b497-baseline> MATERIAL_FACT_PATCH_ROOT=<DATA> MATERIAL_FACT_MONEY_PATCH_ROOT=<MONEY> node --test <DATA>/scripts/material-fact-date-name-boundaries.test.mjs",
+      "note": "I did not implement source/event; this repeats DATA synthetic author fixtures, not a new independent dataset or business acceptance."
+    },
+    {
+      "role": "lint",
+      "log": "lint.actual.log",
+      "exit_code": 0,
+      "command": "eslint lib/material-money-v4.ts lib/material-fact-range-review.ts scripts/material-facts-v7-round28-money-author.test.mjs"
+    }
+  ],
+  "data_dependencies": {
+    "lib/material-fact-source-review.ts": "fd215d6ace9b9b9ce019fd28b5f9f3a4bc35b1e79162a62ca52abc0e31ee5714",
+    "lib/material-fact-event-review.ts": "114041f777f516baed78df4ec1086d2b8c06e4d0a9e957f28e1c32e57e1a6c82",
+    "scripts/material-fact-date-name-boundaries.test.mjs": "8af425e3a95d28f86c03682f6db0c9f9395aade0bfdbff3cf384016b1ecf4d16"
+  },
+  "failure_retention": {
+    "initial_red_logs_preserved": true,
+    "first_6_failures_preserved": true,
+    "final_baseline_rerun_same_script": true,
+    "author_expectation_scope_correction": "Three extra OCR-split ordinary-word cases keep conservative source-only null instead of incorrectly claiming current source-clause support. Initial script/log retained; 2 unsafe same-block cents crops and one ordinary 内陸 validation-copy issue were fixed."
+  },
+  "new_capability_closure": {
+    "red_probe": "cross-block-subunit-probe.actual.json",
+    "finding": "Adjacent blocks 5角 / 2分RMB yielded 0.02 after new postfix parse; source layout-before numeric+unit guard required.",
+    "owner": "DATA",
+    "final_source_sha256": "fd215d6ace9b9b9ce019fd28b5f9f3a4bc35b1e79162a62ca52abc0e31ee5714",
+    "coverage": "DATA125 author execution passed including source fresh/history raw/CP and separate-event punctuation controls."
+  },
+  "nonimplementer_static_review_DATA": "Read exact b497 diff of final DATA source/event. Short-name exemption requires unique literal owner at allowed clause heading and prefix/name-end alignment; explicit standards and longer swallowed subjects retain rate guards. Traditional date aliases and finite payment layouts do not absorb another person/date/negation. New truncatedMoneyToken layout-before check only joins directly ending numeric monetary unit, keeping punctuation/ordinary unit words/new owner boundaries. No blocking issue found within reviewed scope.",
+  "limits": [
+    "Finite grammar, not all Chinese prose. Unknown expressions remain reviewable with amount null.",
+    "OCR word-internal newline ordinary continuations can remain source-only null due existing local-clause boundary; not claimed fixed.",
+    "Historical unsupported remains null; no automatic upgrading or writing persisted history/state.",
+    "No fullcheck, HTTP, deep historical CLI, holdout data read, model calls, training, deployment, commit or push by this agent.",
+    "Parent integrated checks and REVIEW nonimplementer checks remain separate evidence."
+  ],
+  "products_locked_no_further_change": true
+}

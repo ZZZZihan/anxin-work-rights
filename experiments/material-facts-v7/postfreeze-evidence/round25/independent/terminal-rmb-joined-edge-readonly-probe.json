@@ -1,0 +1,216 @@
+{
+  "scope": "finite interaction of the two reported RMB/terminal wrappers with existing safety guards; read-only observations",
+  "probe": "\nimport {pathToFileURL} from 'node:url';import{resolve}from'node:path';\nconst root=process.env.V7_REVIEW_ROOT;const load=p=>import(pathToFileURL(resolve(root,p)));\nconst{ingestRuntimeCandidates:fresh}=await load('lib/material-fact-runtime-ingest.ts');const{emptyFactState}=await load('lib/material-facts-v3.ts');\nconst tails=['整人民币至4','正RMB至4','整人民币？','正RMB待定','整人民币5角','整人民币至5000元','整。李乙工资5角待定。'];const rows=[];\nfor(const after of tails)for(const layout of['same','block']){\n const texts=layout==='same'?['😀王甲工资4000元'+after+'。']:['😀王甲工资4000元',after+'。'];\n const source={id:'r25-joined',name:'synthetic.txt',sha256:'b'.repeat(64),analysisRevision:25,ready:true,blocks:texts.map((text,i)=>({id:'b'+(i+1),page:1,text,bbox:null,confidence:null}))};\n const item={kind:'money',value:'4000元',quote:'4000元',blockId:'b1',subject:'王甲',scope:'individual',meaning:'other_money',completeness:'not_applicable',period:null,rateUnit:null,assertion:'narrated'};\n const raw=JSON.stringify({schemaVersion:3,candidates:[item]});const state=fresh(emptyFactState(25),source,{raw},'independent','synthetic','2026-10-18T20:00:00.000Z',null);const fact=state.materials[0].candidates[0];rows.push({after,layout,amount:fact?.amount,status:fact?.normalization?.status,rawPreserved:state.materials[0].raw===raw});\n}console.log(JSON.stringify(rows,null,2));\n",
+  "results": {
+    "fixed-f16": {
+      "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/.scratch/round25-fixed-f16",
+      "exit_code": 0,
+      "observations": [
+        {
+          "after": "整人民币至4",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币至4",
+          "layout": "block",
+          "amount": "4000.00",
+          "status": "exact",
+          "rawPreserved": true
+        },
+        {
+          "after": "正RMB至4",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "正RMB至4",
+          "layout": "block",
+          "amount": "4000.00",
+          "status": "exact",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币？",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币？",
+          "layout": "block",
+          "amount": "4000.00",
+          "status": "exact",
+          "rawPreserved": true
+        },
+        {
+          "after": "正RMB待定",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "正RMB待定",
+          "layout": "block",
+          "amount": "4000.00",
+          "status": "exact",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币5角",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币5角",
+          "layout": "block",
+          "amount": "4000.00",
+          "status": "exact",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币至5000元",
+          "layout": "same",
+          "amount": null,
+          "status": "range",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币至5000元",
+          "layout": "block",
+          "amount": "4000.00",
+          "status": "exact",
+          "rawPreserved": true
+        },
+        {
+          "after": "整。李乙工资5角待定。",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整。李乙工资5角待定。",
+          "layout": "block",
+          "amount": "4000.00",
+          "status": "exact",
+          "rawPreserved": true
+        }
+      ],
+      "stderr": ""
+    },
+    "code-final": {
+      "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+      "exit_code": 0,
+      "observations": [
+        {
+          "after": "整人民币至4",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币至4",
+          "layout": "block",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "正RMB至4",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "正RMB至4",
+          "layout": "block",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币？",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币？",
+          "layout": "block",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "正RMB待定",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "正RMB待定",
+          "layout": "block",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币5角",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币5角",
+          "layout": "block",
+          "amount": "4000.00",
+          "status": "exact",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币至5000元",
+          "layout": "same",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整人民币至5000元",
+          "layout": "block",
+          "amount": null,
+          "status": "unsupported",
+          "rawPreserved": true
+        },
+        {
+          "after": "整。李乙工资5角待定。",
+          "layout": "same",
+          "amount": "4000.00",
+          "status": "exact",
+          "rawPreserved": true
+        },
+        {
+          "after": "整。李乙工资5角待定。",
+          "layout": "block",
+          "amount": "4000.00",
+          "status": "exact",
+          "rawPreserved": true
+        }
+      ],
+      "stderr": ""
+    }
+  }
+}

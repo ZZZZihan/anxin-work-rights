@@ -1,0 +1,480 @@
+{
+  "schema": "round36-v26-light-nonscorer-review/1",
+  "status": "PASS_WITHIN_TECHNICAL_SCOPE",
+  "reviewed_at_utc": "2026-10-18T18:15:09.812414+00:00",
+  "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+  "reviewer_role": {
+    "implemented": "money parsing and selected production source guards",
+    "not_implemented": "provisional labels and scorer matching implementation",
+    "requested_model": "GPT-6.1 Sol ultra",
+    "actual_backend_independently_verified": false,
+    "interpretation": "technical LIGHT audit; not independent expert annotation or human business acceptance"
+  },
+  "manifest": {
+    "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/experiments/material-facts-v7/corrections-v26/manifest.json",
+    "sha256": "3046e7bf9318945e38d3c4de724563cd32fbf251629314aedaa419d81cf654cf",
+    "current_code_paths": 97,
+    "archived_v25_code_paths": 94,
+    "original_result_files": 60
+  },
+  "actual_independent_audit": {
+    "schema": "round35-v26-light-audit-execution/1",
+    "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+    "argv": [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round35/v26-light/v26-independent-report-check.final.py",
+      "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+      "3046e7bf9318945e38d3c4de724563cd32fbf251629314aedaa419d81cf654cf"
+    ],
+    "script_sha256": "906e4c1b09af5703a8f8d2ee6aac85913a80c97722a2c0702d421ee8698e2109",
+    "started_at": "2026-10-18T18:13:55.759450+00:00",
+    "elapsed_seconds": 0.06357408303301781,
+    "exit_code": 0,
+    "stdout_sha256": "ef048d3dd97c7ee277c49172a785ff909c0f78c872a8292118d69ffdb42eff76",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "protected_count": 1838,
+    "protected_unchanged": true,
+    "manifest_sha256": "3046e7bf9318945e38d3c4de724563cd32fbf251629314aedaa419d81cf654cf",
+    "parent_prewrite_protected_count": 1717,
+    "parent_prewrite_protected_all_match": true,
+    "audit_prepared_only_until_explicit_authorization": false,
+    "deep_chain_calls": 0,
+    "scorer_imports": 0,
+    "model_calls": 0,
+    "http_calls": 0
+  },
+  "independently_checked": {
+    "holdout_cases": 12,
+    "gold_facts": 43,
+    "event_anchor_spans": 41,
+    "case_layer_partitions": 216,
+    "backend_layer_metric_sets": 18,
+    "saved_match_partition_rule": "Each saved pair/missing/extra partition uniquely covers every gold and candidate index; event IDs agree with saved event alignment; P/R/F1 recomputed from saved TP/FP/FN. No semantic rematching.",
+    "current97_sha256_match": true,
+    "archive94_snapshot_bytes_match_v25_manifest": true,
+    "original60_sha256_match": true,
+    "parent_prewrite1717_sha256_match": true,
+    "all1838_protected_bytes_before_after_match": true,
+    "v25_three_reports_byte_identical": true,
+    "comparison_models_equal_v25": true,
+    "raw_total": 116,
+    "accepted_total": 104,
+    "rejected_total": 12,
+    "accepted_money": 46,
+    "accepted_money_normalization_totals": {
+      "exact": 21,
+      "approximate": 23,
+      "unsupported": 2
+    },
+    "accepted_money_relation_unresolved": 46,
+    "exact_money_with_no_review_issue": 0,
+    "saved_calculation_authorized_true": 0
+  },
+  "models": {
+    "rules": {
+      "cases": 12,
+      "expected_facts": 43,
+      "raw": 2,
+      "accepted": 2,
+      "rejected": 0,
+      "report_sha256": "0553db2f6eb0801c6311021f16ce67268a165cd8198afe66fa4821ee737dbaf7",
+      "v25_v26_report_byte_identical": true,
+      "metrics_recounted_from_saved_match_partitions": {
+        "raw_basic": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 41,
+          "precision": 1.0,
+          "recall": 0.046511627906976744,
+          "f1": 0.08888888888888889
+        },
+        "raw_relational": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "raw_strict": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "accepted_basic": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 41,
+          "precision": 1.0,
+          "recall": 0.046511627906976744,
+          "f1": 0.08888888888888889
+        },
+        "accepted_relational": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "accepted_strict": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 43,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        }
+      },
+      "metrics_unchanged_from_v25": true,
+      "partition_changes_from_v25": [],
+      "original_defense": {
+        "normalizations": {
+          "exact": 2
+        },
+        "accepted_money": 2,
+        "amount_nonnull": 2,
+        "source_relation_unresolved": 2,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "source_relation_unresolved": 2
+        }
+      },
+      "v25_defense": {
+        "normalizations": {
+          "exact": 2
+        },
+        "accepted_money": 2,
+        "amount_nonnull": 2,
+        "source_relation_unresolved": 2,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "source_relation_unresolved": 2
+        }
+      },
+      "v26_defense": {
+        "normalizations": {
+          "exact": 2
+        },
+        "accepted_money": 2,
+        "amount_nonnull": 2,
+        "source_relation_unresolved": 2,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "source_relation_unresolved": 2
+        }
+      },
+      "defense_changes_from_original": [],
+      "defense_changes_from_v25": []
+    },
+    "qwen": {
+      "cases": 12,
+      "expected_facts": 43,
+      "raw": 63,
+      "accepted": 51,
+      "rejected": 12,
+      "report_sha256": "c9c010d4bd857745f52385bc13b4e4d36aa6b715a508f6b1df8f0b5d7e564f38",
+      "v25_v26_report_byte_identical": true,
+      "metrics_recounted_from_saved_match_partitions": {
+        "raw_basic": {
+          "tp": 16,
+          "fp": 47,
+          "fn": 27,
+          "precision": 0.25396825396825395,
+          "recall": 0.37209302325581395,
+          "f1": 0.3018867924528302
+        },
+        "raw_relational": {
+          "tp": 10,
+          "fp": 53,
+          "fn": 33,
+          "precision": 0.15873015873015872,
+          "recall": 0.23255813953488372,
+          "f1": 0.18867924528301888
+        },
+        "raw_strict": {
+          "tp": 8,
+          "fp": 55,
+          "fn": 35,
+          "precision": 0.12698412698412698,
+          "recall": 0.18604651162790697,
+          "f1": 0.1509433962264151
+        },
+        "accepted_basic": {
+          "tp": 16,
+          "fp": 35,
+          "fn": 27,
+          "precision": 0.3137254901960784,
+          "recall": 0.37209302325581395,
+          "f1": 0.3404255319148936
+        },
+        "accepted_relational": {
+          "tp": 10,
+          "fp": 41,
+          "fn": 33,
+          "precision": 0.19607843137254902,
+          "recall": 0.23255813953488372,
+          "f1": 0.2127659574468085
+        },
+        "accepted_strict": {
+          "tp": 8,
+          "fp": 43,
+          "fn": 35,
+          "precision": 0.1568627450980392,
+          "recall": 0.18604651162790697,
+          "f1": 0.1702127659574468
+        }
+      },
+      "metrics_unchanged_from_v25": true,
+      "partition_changes_from_v25": [],
+      "original_defense": {
+        "normalizations": {
+          "approximate": 10,
+          "exact": 8,
+          "unsupported": 3
+        },
+        "accepted_money": 21,
+        "amount_nonnull": 8,
+        "source_relation_unresolved": 21,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "partial_due_total": 2,
+          "source_relation_unresolved": 21,
+          "partial_paid_total": 2,
+          "source_amount_context_mismatch": 1,
+          "scope_text_mismatch": 1
+        }
+      },
+      "v25_defense": {
+        "normalizations": {
+          "approximate": 10,
+          "exact": 9,
+          "unsupported": 2
+        },
+        "accepted_money": 21,
+        "amount_nonnull": 9,
+        "source_relation_unresolved": 21,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "partial_due_total": 2,
+          "source_relation_unresolved": 21,
+          "partial_paid_total": 2,
+          "scope_text_mismatch": 1
+        }
+      },
+      "v26_defense": {
+        "normalizations": {
+          "approximate": 10,
+          "exact": 9,
+          "unsupported": 2
+        },
+        "accepted_money": 21,
+        "amount_nonnull": 9,
+        "source_relation_unresolved": 21,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "partial_due_total": 2,
+          "source_relation_unresolved": 21,
+          "partial_paid_total": 2,
+          "scope_text_mismatch": 1
+        }
+      },
+      "defense_changes_from_original": [
+        {
+          "case_id": "mf7-bjkfq-2025-2222",
+          "raw_index": 1,
+          "candidate": {
+            "kind": "money",
+            "value": "八百零四元六角",
+            "quote": "向谷某支付2023年2月7日至2024年12月2日期间应发未休年休假工资八百零四元六角整",
+            "blockId": "b02",
+            "subject": "谷某",
+            "scope": "individual",
+            "meaning": "award",
+            "completeness": "not_applicable",
+            "period": "2023年2月7日至2024年12月2日",
+            "rateUnit": null,
+            "assertion": "decided"
+          },
+          "before": {
+            "amount": null,
+            "normalization": "unsupported",
+            "issues": [
+              "source_relation_unresolved",
+              "source_amount_context_mismatch"
+            ],
+            "exact_money_without_review_issue": false,
+            "calculation_authorized": false
+          },
+          "after": {
+            "amount": "804.60",
+            "normalization": "exact",
+            "issues": [
+              "source_relation_unresolved"
+            ],
+            "exact_money_without_review_issue": false,
+            "calculation_authorized": false
+          }
+        }
+      ],
+      "defense_changes_from_v25": []
+    },
+    "deepseek": {
+      "cases": 12,
+      "expected_facts": 43,
+      "raw": 51,
+      "accepted": 51,
+      "rejected": 0,
+      "report_sha256": "1c782cd8ff265bfb9308562f917bb7ce3f153f949a883078d3b2aabaed0523e3",
+      "v25_v26_report_byte_identical": true,
+      "metrics_recounted_from_saved_match_partitions": {
+        "raw_basic": {
+          "tp": 34,
+          "fp": 17,
+          "fn": 9,
+          "precision": 0.6666666666666666,
+          "recall": 0.7906976744186046,
+          "f1": 0.723404255319149
+        },
+        "raw_relational": {
+          "tp": 27,
+          "fp": 24,
+          "fn": 16,
+          "precision": 0.5294117647058824,
+          "recall": 0.627906976744186,
+          "f1": 0.574468085106383
+        },
+        "raw_strict": {
+          "tp": 25,
+          "fp": 26,
+          "fn": 18,
+          "precision": 0.49019607843137253,
+          "recall": 0.5813953488372093,
+          "f1": 0.5319148936170213
+        },
+        "accepted_basic": {
+          "tp": 34,
+          "fp": 17,
+          "fn": 9,
+          "precision": 0.6666666666666666,
+          "recall": 0.7906976744186046,
+          "f1": 0.723404255319149
+        },
+        "accepted_relational": {
+          "tp": 27,
+          "fp": 24,
+          "fn": 16,
+          "precision": 0.5294117647058824,
+          "recall": 0.627906976744186,
+          "f1": 0.574468085106383
+        },
+        "accepted_strict": {
+          "tp": 25,
+          "fp": 26,
+          "fn": 18,
+          "precision": 0.49019607843137253,
+          "recall": 0.5813953488372093,
+          "f1": 0.5319148936170213
+        }
+      },
+      "metrics_unchanged_from_v25": true,
+      "partition_changes_from_v25": [],
+      "original_defense": {
+        "normalizations": {
+          "approximate": 13,
+          "exact": 10
+        },
+        "accepted_money": 23,
+        "amount_nonnull": 10,
+        "source_relation_unresolved": 23,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "source_relation_unresolved": 23,
+          "partial_paid_total": 2
+        }
+      },
+      "v25_defense": {
+        "normalizations": {
+          "approximate": 13,
+          "exact": 10
+        },
+        "accepted_money": 23,
+        "amount_nonnull": 10,
+        "source_relation_unresolved": 23,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "source_relation_unresolved": 23,
+          "partial_paid_total": 2
+        }
+      },
+      "v26_defense": {
+        "normalizations": {
+          "approximate": 13,
+          "exact": 10
+        },
+        "accepted_money": 23,
+        "amount_nonnull": 10,
+        "source_relation_unresolved": 23,
+        "exact_money_without_review_issue": 0,
+        "calculation_authorized": 0,
+        "issue_counts": {
+          "source_relation_unresolved": 23,
+          "partial_paid_total": 2
+        }
+      },
+      "defense_changes_from_original": [],
+      "defense_changes_from_v25": []
+    }
+  },
+  "parent_writer_and_check_receipts": {
+    "write": {
+      "receipt_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round36/v26-final-write.receipt.json",
+      "receipt_sha256": "59437d99bc37a0b143a471d772134db953e111826d0520b70994bd010b44b5c2",
+      "exit_code": 0,
+      "duration_seconds": 256.13432125002146,
+      "log_hashes_checked": {
+        ".scratch/issue42/round36/v26-final-write.stdout.log": "632c4bc14a8732c597e18dda16415e86da0fd2333d52ab39f0131827219282ce",
+        ".scratch/issue42/round36/v26-final-write.stderr.log": "fa0f8dce4d46261f325d258ed6850ea0dc4bb14fbe1881ea995995c083ac7a58"
+      },
+      "execution_by": "parent agent; not independently re-executed"
+    },
+    "check": {
+      "receipt_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/.scratch/issue42/round36/v26-final-check.receipt.json",
+      "receipt_sha256": "1a2d682d5831c79e26362550ca6fd3184e3d3133fdaddb9137e72c1aa23719fa",
+      "exit_code": 0,
+      "duration_seconds": 247.75239212502493,
+      "log_hashes_checked": {
+        ".scratch/issue42/round36/v26-final-check.stdout.log": "1d665f0a752bb8a9801294a00e9ce232567fd135d12db98fd342eeee30f2f28d",
+        ".scratch/issue42/round36/v26-final-check.stderr.log": "876d29540e8a5ba04ab0aa2e15b9c6910df709afac0f55f598fee419ee3d57aa"
+      },
+      "execution_by": "parent agent; not independently re-executed"
+    }
+  },
+  "no_calls": {
+    "scorer": 0,
+    "historical_cli": 0,
+    "models": 0,
+    "http": 0,
+    "build": 0,
+    "full_check": 0
+  },
+  "limitations": [
+    "P/R/F1 was recomputed from saved matching partitions; this does not independently validate legal semantics, annotation completeness, or whether saved matches are expert-correct.",
+    "All 46 accepted money candidates still carry source_relation_unresolved. The 21 exact numeric normalizations are not 21 business-usable or calculation-approved claims.",
+    "calculation_authorized=false is a conservative report constant, not evidence that a real production confirmation/calculation workflow was executed.",
+    "This checks a post-freeze reassessment of the same single 12-case/43-gold original comparison. No new model inference, new holdout, training, deployment or human acceptance occurred.",
+    "The source-level Qwen 804.60 change relative to the original report is a normalization/issue change already present in v25; it is not an F1 improvement or a new v26 change.",
+    "The process-tree fixture correction is outside the 97-path v26 code binding and was separately reviewed using 9 native tests."
+  ]
+}

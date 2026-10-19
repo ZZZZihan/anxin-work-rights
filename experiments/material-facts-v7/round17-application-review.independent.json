@@ -1,0 +1,96 @@
+{
+  "schema": "material-facts-v7-round17-application-independent-review/1",
+  "status": "PASS_WITHIN_FINITE_REVIEW_SCOPE",
+  "created_at": "2026-10-18T09:16:52.571362+00:00",
+  "reviewer": "Independent test author and non-implementer of all five production changes and the scorer.",
+  "requested_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "model_requests": 0,
+  "builds": 0,
+  "services_started": 0,
+  "frozen_files_modified": false,
+  "baseline_commit": "eb867361742bff21f9d724fb4b212afbe6123c6d",
+  "current_application_scope_sha256": {
+    "lib/material-money-v4.ts": "638ce714a35886481731c6c1bfd58e8887597b6d15940c3c3ed0ef7b7fecee8f",
+    "lib/material-fact-runtime-ingest.ts": "93b6b213871eb3fd8d98fd3f3eb1bd735190746438b96bbf69e9c745971296ea",
+    "lib/material-fact-currency-review.ts": "9e96fd7a53b30da0b7858f09e5bc9f7c7f99b19ec4f45d6aec056bdcbd139804",
+    "lib/material-fact-source-review.ts": "461379bfaa9d3238f8d6f849ce8c3d52a19221cb68da84a0d230b4d8abce0c16",
+    "experiments/material-facts-v7/assess.mjs": "d4f0c98828d091f9f99681a5c404091f76fd1f4e4103aae0a056e5d493ce9e9d"
+  },
+  "review_comments": [
+    4306433802,
+    4306433806,
+    4306433811,
+    4306433814,
+    4306433818
+  ],
+  "independent_tests": {
+    "script": "scripts/material-facts-v7-round17-money-independent.test.mjs",
+    "sha256": "351c21ae2c900473eac3a1b2a3d428d0a30ef6819532949805d8ecdcc743c3bf",
+    "same_final_script_baseline": {
+      "tests": 40,
+      "pass": 17,
+      "fail": 23,
+      "exit_code": 1
+    },
+    "current_integrated": {
+      "tests": 40,
+      "pass": 40,
+      "fail": 0,
+      "exit_code": 0,
+      "duration_ms": 352.897458
+    },
+    "scoped_eslint": {
+      "exit_code": 0,
+      "stdout_bytes": 0
+    }
+  },
+  "covered_behavior": [
+    "Cropped full/short quote foreign-currency 折合 attribution is removed from exact RMB in current ingestion and forced-exact historical display; explicit RMB conversion and other events retain their own amounts.",
+    "Whole ordinary 元/圆 compounds cannot expose fabricated exact currency; cropped units in source and adjacent-block continuations are unavailable, while 5元组装费 and exact monetary terminators remain usable derived values.",
+    "Definite amount-free 拖欠/欠付/未付/本期应付 wage labels are rejected with original raw retained; unknown markers and financial unknown wording remain accepted/null.",
+    "Names 王一/李三/赵十 do not become calendar prefixes: false totals are unavailable, correct monthly rates and real explicit calendar wage totals remain exact.",
+    "Traditional 人民幣 nesting is one uniquely located event in either output order; raw duplicate stays FP, accepted single event scores once in all three modes. Separate equal-valued source events remain two accepted facts and two matches.",
+    "Synthetic Unicode quote offsets, original representations/raw, immutable historical source state, null confirmations/calculation and calculation_authorized=false are asserted."
+  ],
+  "nonimplementer_source_review": {
+    "blocking_findings": [],
+    "currency": "Only 折合 is appended to the existing finite same-event attribution bridge. Clause and person boundaries remain unchanged; detection copies do not replace original evidence.",
+    "ordinary_yuan": "One shared finite compound predicate is called by whole normalization, quote review and full/neighbor source review, including cropped bare/unit edges. Its explicit 元组装/元組裝 exception preserves a yuan amount followed by assembly fee. It is not a general Chinese segmenter.",
+    "noamount": "Only 本期 stage and 拖欠/欠付/未付 modifiers are added to the complete value grammar; no global deletion of wage words or unknown markers.",
+    "name_rate": "The calendar numeral exemption now also requires that the prefix is not exactly ending in the complete supplied subject; relative-month/day safeguards remain.",
+    "dedup_and_score": "Both nested occurrence deduplication and permitted event containment use the same 人民[币幣] prefix. Unique occurrence/attribute/status requirements stay intact; arbitrary narrative super-spans remain excluded."
+  },
+  "archival_review": {
+    "formal_v14_executed": false,
+    "native_v13_bridge_independently_executed": {
+      "pass": 7,
+      "fail": 0,
+      "duration_ms": 1412.998083
+    },
+    "modules_reviewed_sha256": {
+      "historical-v13-execution.mjs": "5985244ed68f145b82da5121224a78a98247f76b0d0f333b817c912ea5426d7e",
+      "verify-correction-v13.mjs": "220ba614addd1879d77460fcb9ffdd1d00bd2df935b3985ad3797daafc502bf9",
+      "corrective-assessment-v14.mjs": "db19f65a8e6689bc9beac2cca920fcf2797c0c908a8fe72dd05eac89618a5289"
+    },
+    "boundary": "Read-only exact historical v13 target, unchanged shared absolute deadline, 58 archived paths, subsequent 61-current-code binding. No formal v14 artifact claim before main write."
+  },
+  "limits": [
+    "Finite review inputs do not prove arbitrary Chinese currency or lexical semantics.",
+    "Accepted candidate and derived amount do not grant calculation authorization; no user confirmation was synthesized.",
+    "No HTTP, full npm check or remote CI was run by this reviewer for ROUND17; main-agent evidence remains separate.",
+    "The historical ROUND16 artifact PASS/application-blocked receipt is preserved rather than rewritten after this current-code fix."
+  ],
+  "evidence_base_absolute": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+  "evidence_sha256": {
+    "scripts/material-facts-v7-round17-money-independent.test.mjs": "351c21ae2c900473eac3a1b2a3d428d0a30ef6819532949805d8ecdcc743c3bf",
+    "postfreeze-evidence/round17/baseline.receipt.json": "ae8084bc09879411e42e56349c4cb61f526c70a30b7574ee0f1f2b5ee47ea570",
+    "postfreeze-evidence/round17/eb86736-before-red.txt": "9144b4b6f274157285228dff94aa1e7a125181ccc9af83c4c1ece80362e5c05e",
+    "postfreeze-evidence/round17/code-integrated-first-green.txt": "b3b781c3a5833b2c1c9fdf9e97882512196aca43475a893760199db1f728e38d",
+    "postfreeze-evidence/round17/independent-scoped-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postfreeze-evidence/round17/historical-v13-native-independent-execution.txt": "552aa70b0b68d7114ae5b1e489fd54751bd20b25f79dc56e9e1be0e83899c2c3"
+  }
+}

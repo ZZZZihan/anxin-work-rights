@@ -1,0 +1,20 @@
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const root = process.env.MATERIAL_FACT_TEST_ROOT;
+const load = file => import(pathToFileURL(resolve(root, 'lib', file)).href);
+const { emptyFactState, buildFactView } = await load('material-facts-v3.ts');
+const { ingestRuntimeCandidates } = await load('material-fact-runtime-ingest.ts');
+for (const subject of ['王氏兄弟', '双方']) {
+  const text = `😀${subject}2026年1月全部应付工资合计4000元。`;
+  const source = { id: 'r39-probe', name: 'synthetic.txt', sha256: '9'.repeat(64), analysisRevision: 39, ready: true,
+    blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }] };
+  const item = { kind: 'money', value: '4000元', quote: '4000元', blockId: 'b1', subject, scope: 'individual',
+    meaning: 'due_total', completeness: 'complete', period: '2026年1月', rateUnit: null, assertion: 'narrated' };
+  const state = ingestRuntimeCandidates(emptyFactState(39), source, { raw: JSON.stringify({ schemaVersion: 3, candidates: [item] }) }, 'synthetic', 'fixture', '2026-10-19T20:00:00.000Z');
+  state.scope = { worker: subject, employer: '甲公司', start: '2026-01-01', end: '2026-01-31' };
+  state.scopeReview = { note: 'Synthetic scope only; no amount confirmation.', actor: 'fixture', at: '2026-10-19T20:00:00.000Z' };
+  const view = buildFactView(state, [source]);
+  console.log(JSON.stringify({ subject, amount: state.materials[0].candidates[0].amount,
+    issues: state.materials[0].candidates[0].reviewIssues, due_values: view.fields.due.values,
+    canCalculate: view.canCalculate, confirmations: state.confirmations }));
+}

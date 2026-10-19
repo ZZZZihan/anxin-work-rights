@@ -1,0 +1,208 @@
+#!/usr/bin/env python3
+"""Read saved synthetic HTTP artifacts only; never start a service or scorer."""
+import collections
+import datetime
+import difflib
+import hashlib
+import json
+import pathlib
+import subprocess
+
+CODE = pathlib.Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+OUT = pathlib.Path(__file__).resolve().parent
+EVIDENCE = CODE / '.scratch/issue42/round40'
+BASE = '5374d66748a7c329c4c595ec91372d324edff573'
+RUNNER = CODE / 'scripts/material-facts-v7-http-regression.mjs'
+
+def digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+def load(path):
+    return json.loads(path.read_bytes())
+
+def save(name, value):
+    with (OUT / name).open('x', encoding='utf-8') as f:
+        if isinstance(value, str):
+            f.write(value)
+        else:
+            json.dump(value, f, ensure_ascii=False, indent=2)
+            f.write('\n')
+
+paths = [RUNNER, CODE / 'scripts/owned-http-process-group.mjs']
+for stem in ['http481-before', 'http481-after', 'http481-final']:
+    paths += [EVIDENCE / (stem + suffix) for suffix in [
+        '.json', '.receipt.json', '.stdout.log', '.stderr.log']]
+paths += [EVIDENCE / name for name in [
+    'http-first-runner.mjs.snapshot', 'http-runner-correction.json',
+    'final-source-lock.json', 'full-check.receipt.json']]
+paths += [CODE / '.scratch/issue42/round39/http464-after.json']
+before = {str(p): digest(p.read_bytes()) for p in paths}
+lock = load(EVIDENCE / 'final-source-lock.json')
+for path, expected in lock['files'].items():
+    p = CODE / path
+    assert digest(p.read_bytes()) == expected, path
+    before[str(p)] = expected
+
+runner = RUNNER.read_bytes()
+baseline_runner = subprocess.check_output(
+    ['git', 'show', BASE + ':scripts/material-facts-v7-http-regression.mjs'], cwd=CODE)
+start = runner.index(b'  // ROUND40:')
+stop = runner.index(b'  // End ROUND40 additions.\n', start) + len(b'  // End ROUND40 additions.\n')
+assert runner[:start] + runner[stop:] == baseline_runner
+save('runner-exact5374.snapshot', baseline_runner.decode())
+save('runner-final.snapshot', runner.decode())
+save('round40-additions.snapshot', runner[start:stop].decode())
+
+reports = {name: load(EVIDENCE / (name + '.json')) for name in [
+    'http481-before', 'http481-after', 'http481-final']}
+previous = load(CODE / '.scratch/issue42/round39/http464-after.json')
+final = reports['http481-final']
+def raw_without_ids(row):
+    # Only two outer run-specific IDs are removed. The exact raw string,
+    # candidates (including source block IDs) and finish_reason remain intact.
+    return {k: v for k, v in row.items() if k not in ['evidenceId', 'jobId']}
+
+def restart(report):
+    rows = [x for x in report['observations'] if x['name'].startswith('worker_restart')]
+    assert len(rows) == 1
+    return rows[0]
+
+def old_observations(report):
+    return [x for x in report['observations'] if not x['name'].startswith('round40_')
+            and not x['name'].startswith('worker_restart')]
+
+final_raw = list(map(raw_without_ids, final['syntheticOutputs']))
+assert len(final_raw) == 482
+assert sum(len(x['candidates']) for x in final_raw) == 508
+assert len(final['observations']) == 481
+assert final['status'] == 'PASS' and final['failure'] is None and final['interruption'] is None
+assert all(x['status'] == 'PASS' for x in final['observations'])
+assert final['cleanup'] == {'status': 'PASS', 'failures': []}
+assert len(old_observations(final)) == 463
+assert old_observations(previous) == old_observations(final)
+assert len(previous['observations']) == 464 and previous['status'] == 'PASS'
+assert len(previous['syntheticOutputs']) == 465
+assert restart(previous)['checkedCases'] == 463
+assert restart(final)['checkedCases'] == 480
+assert restart(final)['storedRawAndHistoryUnchanged']
+assert restart(final)['privateServiceAuthentication']
+
+summaries = {}
+for name, report in reports.items():
+    count = dict(collections.Counter(x['status'] for x in report['observations']))
+    assert len(report['observations']) == 481
+    assert len(report['syntheticOutputs']) == 482
+    assert list(map(raw_without_ids, report['syntheticOutputs'])) == final_raw
+    assert old_observations(report) == old_observations(final)
+    assert report['cleanup'] == {'status': 'PASS', 'failures': []}
+    assert report['actualModelInference'] is False
+    assert report['syntheticInputs'] is True and report['holdoutRead'] is False
+    assert report['historicalReportsOverwritten'] is False
+    assert len(report['serviceCalls']) == 2410
+    assert all(x['authenticated'] for x in report['serviceCalls'])
+    assert len(report['retiredServiceJobs']) == 964
+    assert all(x['persistedBeforeRetirement'] for x in report['retiredServiceJobs'])
+    receipt = load(EVIDENCE / (name + '.receipt.json'))
+    for relative, expected in receipt['logs'].items():
+        assert digest((CODE / relative).read_bytes()) == expected
+    summaries[name] = {
+        'status': report['status'], 'counts': count, 'outputs': 482,
+        'candidate_entries': sum(len(x['candidates']) for x in report['syntheticOutputs']),
+        'restart_snapshots_actually_checked': restart(report)['checkedCases'],
+        'cleanup': report['cleanup'], 'actual_exit_code': receipt['exitCode'],
+        'actual_duration_seconds': receipt['durationSeconds'],
+        'first_failed_assertions': [x for x in report['observations'] if x['status'] != 'PASS'],
+    }
+assert summaries['http481-before']['counts'] == {'PASS': 466, 'FAIL': 15}
+assert summaries['http481-after']['counts'] == {'PASS': 467, 'FAIL': 14}
+assert summaries['http481-final']['counts'] == {'PASS': 481}
+assert summaries['http481-final']['actual_exit_code'] == 0
+
+old_raw = list(map(raw_without_ids, previous['syntheticOutputs']))
+assert final_raw[:460] + final_raw[477:] == old_raw
+raw_opcodes = difflib.SequenceMatcher(
+    a=[json.dumps(x, ensure_ascii=False, sort_keys=True) for x in old_raw],
+    b=[json.dumps(x, ensure_ascii=False, sort_keys=True) for x in final_raw],
+    autojunk=False).get_opcodes()
+assert raw_opcodes == [('equal', 0, 460, 0, 460), ('insert', 460, 460, 460, 477),
+                       ('equal', 460, 465, 477, 482)]
+new = [x for x in final['observations'] if x['name'].startswith('round40_')]
+assert len(new) == 17
+unavailable = [x for x in new if x['name'].startswith('round40_unavailable_')]
+assert len(unavailable) == 8
+assert all(x['amount'] is None and x['historicalExactDowngraded']
+           and x['rawAndStoredHistoryUnchanged'] for x in unavailable)
+totals = [x for x in new if x['name'].startswith('round40_total_')]
+assert [x['scopedSuggestion'] for x in totals] == [['4000.00'], ['3500.00']]
+assert all(x['calculationStillUnconfirmed'] for x in totals)
+hours = [x for x in new if x['name'].startswith('round40_hour_')]
+assert [x['amount'] for x in hours] == ['4000.00', '4000.00', None]
+assert all(x['hourlyClassifierPreserved'] and x['uncertaintyPreserved'] for x in hours)
+assert len([x for x in new if x['name'].startswith('round40_qualified_')]) == 2
+assert len([x for x in new if x['name'].startswith('round40_date_')]) == 2
+
+after = {path: digest(pathlib.Path(path).read_bytes()) for path in before}
+assert after == before
+save('read-input-hashes.json', [{'path': p, 'sha256': h} for p, h in sorted(before.items())])
+save('input-protection-after.json', after)
+save('report-comparison.json', {
+    'summaries': summaries, 'new_scenarios': new,
+    'all_three_482_ordered_outputs_equal_after_only_outer_id_removal': True,
+    'outer_keys_removed': ['evidenceId', 'jobId'],
+    'all_463_old_nonrestart_observations_equal': True,
+    'old_465_outputs_recovered_by_removing_new_17_at_indices_460_477': True,
+    'raw_sequence_opcodes': raw_opcodes,
+})
+save('static-and-final-review.receipt.json', {
+    'schema': 'anxin.round40.http481.readonly-review.v1',
+    'recorded_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'reviewer_role': 'HTTP fixture/report nonimplementer; participated in total-event implementation. Not independent product-source acceptance.',
+    'requested_model': 'gpt-6.1-sol', 'requested_reasoning': 'ultra',
+    'actual_backend_independently_verified': False,
+    'status': 'PASS_WITH_EXPLICIT_EVIDENCE_LIMITS', 'blocking_findings': [],
+    'actions': ['read runner and saved JSON/log receipts', 'read git blob for exact baseline runner',
+                'compare SHA and JSON using this light script', 'write only OWN review artifacts'],
+    'not_executed': ['HTTP', 'build', 'full test', 'historical/scoring CLI', 'model request',
+                     'training', 'deployment', 'human business acceptance'],
+    'runner_sha256': digest(runner), 'baseline_commit': BASE,
+    'baseline_runner_sha256': digest(baseline_runner),
+    'runner_without_round40_block_byteidentical_to_baseline': True,
+    'addition_lines': [runner[:start].count(b'\n') + 1, runner[:stop].count(b'\n')],
+    'final_actual': summaries['http481-final'],
+    'raw_comparison': {'outputs': 482, 'candidate_entries': 508, 'all_three_equal': True,
+                       'excluded_only_outer_keys': ['evidenceId', 'jobId'],
+                       'old_outputs': 465, 'inserted_outputs': 17},
+    'old_observations': {'old_total': 464, 'nonrestart_identical': 463,
+                         'old_restart': 463, 'final_restart': 480},
+    'scenario_partition': {'unavailable_full_and_cropped_with_old_exact_GET': 8,
+                           'hour_rate_including_unknown': 3, 'qualified_RMB_CNY': 2,
+                           'strict_total_scope_suggestions': 2, 'date_roles': 2},
+    'static_checks': {
+        'raw_value_quote_CP_SHA_original_representation_asserted': True,
+        'actual_upload_TXT_source_and_download_bytes_asserted': True,
+        'ready_queue_injection_only_rules_service_no_real_model': True,
+        'eight_unavailable_old_exact_GET_null_without_storage_history_write': True,
+        'total_synthetic_scope_confirmation_then_revoke': True,
+        'total_amount_confirmations_remain_null_calculation_disabled': True,
+        'exclusive_report_creation_and_cleanup_failure_records_preserved': True,
+        'service_retirement_after_persistence_authenticated': True,
+    },
+    'failure_record_boundaries': [
+        'http481-before.json = old-service 466P15F; one hour-unknown assertion read nonexistent top-level rateUnit. That assertion failure is fixture-invalid, not a product defect.',
+        'http481-after.json = corrected fixture but still old-service 467P14F, started during build. Filename is premature; it is NOT repaired-service evidence and no exact-build acceptance is inferred.',
+        'http481-final.json = separately named actual final 481P after recorded build completion. Previous artifacts retained.',
+        'A failed scenario stops at its first thrown assertion; subsequent D1 seed/GET/restart steps in that body are not credited to old runs. The final run completed all bodies.',
+    ],
+    'limits': [
+        'Synthetic results injected into a real local Worker/TXT/queue/D1/R2 HTTP flow. This is not fresh model accuracy or legal/business/human acceptance.',
+        'Eight final unavailable cases assert candidate amount null and raw/storage/history preservation; no extra normalization-status contract is inferred.',
+        'Restart asserts stored state, raw and history snapshots unchanged, not every derived amount reasserted after restart.',
+        'Scope verified:true and note are explicit synthetic API actions. They produce suggestions only; no amount confirmation or automatic calculation.',
+        'First-run source/gold/model manifests were not fully reverified by this HTTP-only review.',
+    ],
+    'protected_input_paths': len(before), 'before_after_input_hashes_unchanged': True,
+})
+print(json.dumps({'status': 'PASS', 'actual_http_executed_by_reviewer': False,
+                  'final_observations': 481, 'raw_outputs': 482,
+                  'old_nonrestart_equal': 463, 'restart': 480,
+                  'protected_paths': len(before), 'new': 17}, ensure_ascii=False))

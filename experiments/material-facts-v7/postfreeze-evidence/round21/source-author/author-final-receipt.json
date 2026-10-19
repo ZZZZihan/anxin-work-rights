@@ -1,0 +1,83 @@
+{
+  "schema": "material-facts-v7-round21-source-rate-author/1",
+  "status": "AUTHOR_CHECKS_PASSED_AWAITING_INDEPENDENT_INTEGRATION",
+  "at_utc": "2026-10-18T10:31:43.994670+00:00",
+  "baseline_commit": "91a364f0fd54cdeaa95a69d0a9e48d231f5b22f7",
+  "baseline_source_sha256": "b4aa1f248a6a12b3565002f88ca3631a440c94d2bc210e476acf73a9b5a4c874",
+  "files": {
+    "lib/material-fact-source-review.ts": "736b772e68425851097a0f3f70d4be50dcf6b78a79ea45fc7e069bc1ca91a254",
+    "scripts/material-facts-v7-round21-source-rate-author.test.mjs": "482dea1a3a80a39a3a4e905cf453f28840259d1d67ba95feee4e9b63dcde85a8"
+  },
+  "patch_sha256": "fcd06559b46d245f080aa1c90c9a16b9d55df3dca535be28c85ddf8a204db58d",
+  "scope": "Only source-review production module plus new author test/evidence. No money parser, currency, range, schema, frozen artifacts, ROOT or CODE written.",
+  "implementation": {
+    "shared_detection_view": "Existing supported rate logic uses same NFKC/Cf/horizontal-space/traditional detection copy; raw text and CP offsets unchanged.",
+    "unsupported_prefix": "Explicit 每 or 按 followed by 年/年度/周/週/星期/季度/季/次/分钟/分鐘/秒/公里/人/班. Only existing finite 标准/约定/为/是/计/共/合计/基本工资/工资/薪酬/薪资/金额/人民币/RMB/CNY/symbol connectors may occur before the anchored amount.",
+    "layout": "Only explicit incomplete rate prefix may cross whitespace/line/block layout. Sentence/commas and intervening subject or prose cannot be crossed. A literal supplied subject ending 每周/按年/每季度 does not create a denominator.",
+    "availability": "After existing currency/range/qualifier/arithmetic/truncation checks, unsupported prefix gives amount null and normalization unsupported regardless of valid model rate/total attributes; never mapped to a supported enum.",
+    "preservation": "Original representation/raw/value/quote/source/CP and stored history/state remain unchanged; read-time historical exact can downgrade; prior null never auto-upgrades."
+  },
+  "actual_checks": [
+    {
+      "log": "minimal-before-91a.actual.log",
+      "exit_code": 1,
+      "tests": 2,
+      "passed": 0,
+      "failed": 2,
+      "type": "fixed91a minimal true production red, both exact40000 vs expected null"
+    },
+    {
+      "log": "all-final-test-before-91a.actual.log",
+      "exit_code": 1,
+      "tests": 90,
+      "passed": 32,
+      "failed": 58,
+      "type": "final author suite on exact fixed91a all-lib baseline"
+    },
+    {
+      "log": "all-final-test-after.actual.log",
+      "exit_code": 0,
+      "tests": 90,
+      "passed": 90,
+      "failed": 0,
+      "type": "same final author suite on fixed91a libs + single source overlay"
+    },
+    {
+      "log": "existing-rate-source-regressions.actual.log",
+      "exit_code": 0,
+      "tests": 215,
+      "passed": 215,
+      "failed": 0,
+      "type": "two unchanged existing native supported-rate/currency/source suites with single source overlay"
+    },
+    {
+      "log": "lint.actual.log",
+      "exit_code": 0,
+      "type": "scoped ESLint on production file and new test"
+    }
+  ],
+  "preserved_initial_test_attempts": {
+    "all-before-91a.actual.log": "Original author suite baseline 23P67F; 9 failures were invalid attribute fixtures that should already be protocol-rejected. Not claimed as 67 production defects.",
+    "all-after-first.actual.log": "Initial patch run 81P9F; all 9 are same invalid fixture assumption. Final suite keeps those nine cases but explicitly asserts existing protocol rejection and raw preservation.",
+    "original_logs_unchanged": true
+  },
+  "log_sha256": {
+    "all-after-first.actual.log": "f4dfa52b83fe41724c70d53c9e5d69223a4818068f174fee10d7eacbeb8c8249",
+    "all-before-91a.actual.log": "efa6dc14521ce76a78dabff2b8ad9d98f23d1485b464284c3e5df270dfabc343",
+    "all-final-test-after.actual.log": "e3ad54c23209f6c348a0d5718fcd7fe5e41427034747e40162d716c81b525d04",
+    "all-final-test-before-91a.actual.log": "8b5c1a3bdcc4566a0b776b236b300dfad0e68fa29c8a120c45aa65580610d9c3",
+    "existing-rate-source-regressions.actual.log": "64d32d47553bc5aa217c5c091e4e1a61bf4210ca318037ed093f8424e67382a1",
+    "lint.actual.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "minimal-before-91a.actual.log": "4d1baefff34bc7c23caebbe3f7a021a2103647d236114f6a4cb95b2f027dff15"
+  },
+  "limits": [
+    "Finite explicit source-denominator syntax only; no claim to recognize all arbitrary prose or novel units.",
+    "Monthly/day/hour/piece correct rates remain supported; no new RateUnit schema enum or conversion/calculation.",
+    "No HTTP, fullcheck, deep historical CLI, model, training, deployment, commit or push by this author.",
+    "Independent non-implementer and parent integrated checks remain separate from these author checks."
+  ],
+  "model_requests": 0,
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "actual_runtime_configuration_independently_verified": false
+}

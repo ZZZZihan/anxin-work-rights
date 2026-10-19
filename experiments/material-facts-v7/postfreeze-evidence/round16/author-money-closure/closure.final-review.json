@@ -1,0 +1,59 @@
+{
+  "status": "scoped_final_integration_review_passed",
+  "read_only_code_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "verified_code_sha256": {
+    "lib/material-money-v4.ts": "b12b3d2c75b704f1f29ad8124edf0d0b99212d5c591e15a51e3fa5e91b7666c0",
+    "lib/material-fact-source-review.ts": "a737f6e9aa0285787601f8983d4d835ce40b4dfa54dc9b53f5f2676b83721cce"
+  },
+  "author_scope": "I implemented the money export-only change; I did not implement the source-review wiring. The source part below is a non-implementer review.",
+  "static_review": [
+    "The export reuses the exact pre-existing RANGE_NUMERIC_AFTER / RANGE_TIME_AFTER regex pair and detection copy. No range lexical rule changed.",
+    "The original complete-quote path calls the export in the same branch position as its original inline predicate.",
+    "Source review calls the same export with layout.after only after complete monetary range endpoint detection.",
+    "The source branch only downgrades a non-null derived amount to null/uncertain; downstream review retains the original raw/value/quote and does not upgrade prior unavailable history."
+  ],
+  "checks": {
+    "author_api_and_quote": {
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "log": "shared-api.after-green.txt",
+      "sha256": "521dbf214959c9e617b9d8098688dd8992bb063cc92857ca0e613520f4d09029"
+    },
+    "prior_bound_regressions": {
+      "tests": 262,
+      "pass": 262,
+      "fail": 0,
+      "log": "prior-qualified-bounds.regression-green.txt",
+      "sha256": "07c622a520e265ce50d8ee7ade69ce84036ff37835b1e18ca3b38cc86bee9f87"
+    },
+    "source_actual_before": {
+      "tests": 6,
+      "pass": 2,
+      "fail": 4,
+      "log": "source-layout.corrected-command-before-red.txt",
+      "sha256": "6efa98e8abb29546061b4b50bc0abe7affcee4247d4e43e0dede5b86dfd3f1d3"
+    },
+    "source_final": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "log": "source-layout.final-code-green.txt",
+      "sha256": "4a874253cad64e67efe73aba7a44f53aaf2a44ddad279d0f31dfd5a9a39b2e61"
+    },
+    "scoped_eslint": {
+      "exit": 0,
+      "log": "scoped-lint.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "source_probe_result": "Same-line, same-block newline, and adjacent-block partial endpoints all remain null for fresh short quotes and forced-exact history; original raw and historical input state remain unchanged.",
+  "blocking_findings": [],
+  "limits": [
+    "The six source integration probes use synthetic source blocks and old forced-exact persisted state, not real model/API traffic or HTTP.",
+    "I did not repeat the project full check, parent HTTP suite or peer seven-case independent matrix in this closure review.",
+    "The numeric fallback remains finite and is not a new semantic range parser; complete monetary ranges must be checked first.",
+    "The two mistaken initial fixture/invocation runs and the initial RMB4 expectation mismatch are preserved and explicitly identified in author-receipt.json; they are not counted as semantic regression evidence."
+  ],
+  "immutability": "Only own money-v4, one new author test and new closure evidence written. Source/CODE/frozen v12 and previous evidence unchanged. No model, training, deployment, commit or push."
+}

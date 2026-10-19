@@ -1,0 +1,131 @@
+--- a/lib/material-fact-source-review.ts
++++ b/lib/material-fact-source-review.ts
+@@ -122,7 +122,7 @@
+ function truncatedMoneyToken(context: AnchoredSourceEvent, normalized: CandidateNormalization, layoutAfter?: string): boolean {
+   const edges = monetaryEdges(context, normalized);
+   if (!edges) return false;
+-  const numerals = '0-9０-９零〇一二三四五六七八九十百千万萬亿億两兩壹贰叁肆伍陆柒捌玖拾佰仟';
++  const numerals = '0-9０-９零〇一二三四五六七八九十百千万萬亿億两兩壹贰貳叁參肆伍陆陸柒捌玖拾佰仟';
+   if (new RegExp(`[${numerals}.．]$`, 'u').test(edges.before)
+     || new RegExp(`[${numerals}][^\\S\\r\\n]*[,，]$`, 'u').test(edges.before)) return true;
+   if (!/[元圆圓角分](?:整|正)?$/u.test(edges.matched)) {
+@@ -153,16 +153,25 @@
+   return /(?:每|按)\s*(?:年(?:度)?|周|週|星期|季度|季|次|分钟|分鐘|秒|公里|人|班)\s*(?:(?:标准|约定|为|是|计|共|合计|基本工资|工资|薪酬|薪资|金额|人民币|RMB|CNY|[¥￥:=])\s*)*$/u.test(before);
+ }
+ 
+-function sourcePostposedRate(afterEdge: string): { unit: RateUnit; uncertain: boolean } | null {
++function sourcePostposedRate(afterEdge: string): { unit: RateUnit | null; uncertain: boolean } | null {
+   // Only this explicit 按+unit branch may continue through OCR layout. Its
+   // finite tail excludes payment dates (按月15日) and prose (按时支付/计数).
+   const after = sourceRateDetectionText(afterEdge);
+-  const match = after.match(/^\s*(?:[元圆圓]\s*)?(?:[整正]\s*)?按\s*(?:(小时|月|日|天|件)(?:\s*(?:计算|计酬|计价|计薪|计))?|(时)\s*(?:计算|计酬|计价|计薪|计))/u);
+-  if (!match) return null;
+-  const tail = after.slice(match[0].length), uncertain = hasPostposedMoneyUncertainty(tail);
+-  if (!/^\s*(?:$|[，,。；;！!？?）)】\]])/u.test(tail) && !uncertain) return null;
++  const supported = after.match(/^\s*(?:[元圆圓]\s*)?(?:[整正]\s*)?按\s*(?:(小时|月|日|天|件)(?:\s*(?:计算|计酬|计价|计薪|计))?|(时)\s*(?:计算|计酬|计价|计薪|计))/u);
++  // Known unsupported units may be bare. Unknown bounded unit names need an
++  // explicit pricing verb, so 按时支付/按月15日/按季度汇总 stay ordinary prose.
++  const knownUnsupported = after.match(/^\s*(?:[元圆圓]\s*)?(?:[整正]\s*)?按\s*(?:年(?:度)?|周|週|星期|季度|季|次|分钟|分鐘|秒|公里|人|班)(?:\s*(?:计算|计酬|计价|计薪|计))?/u);
++  const namedUnsupported = after.match(/^\s*(?:[元圆圓]\s*)?(?:[整正]\s*)?按\s*(?:\p{Script=Han}{1,12}|[A-Za-z]{1,16})\s*(?:计算|计酬|计价|计薪|计)/u);
+   const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
+-  return { unit: units[match[1] ?? match[2]], uncertain };
++  // A supported unit's partial prefix (月 in 月度) must not hide a complete
++  // unsupported pricing unit. Test each candidate's own right boundary.
++  for (const match of [supported, knownUnsupported, namedUnsupported]) {
++    if (!match) continue;
++    const tail = after.slice(match[0].length), uncertain = hasPostposedMoneyUncertainty(tail);
++    if (/^\s*(?:$|[，,。；;！!？?）)】\]])/u.test(tail) || uncertain)
++      return { unit: match === supported ? units[match[1] ?? match[2]] : null, uncertain };
++  }
++  return null;
+ }
+ 
+ function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null, postposedUnit?: RateUnit): RateUnit | null {
+@@ -285,10 +294,10 @@
+       else if (truncatedMoneyToken(context, sourceNormalized.normalization, layout?.after)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '候选只覆盖源文金额数值的一部分，可能截去了前导数字、小数、分组、中文单位或角分，未生成精确金额。', 'unsupported'),
+       };
+-      else if (layout && sourceHasUnsupportedRate(layout.before)) sourceNormalized = {
+-        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额前明确附着不受支持的费率分母，未换算成总额或现有费率单位，请人工核对。', 'unsupported'),
+-      };
+-      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject, postposedRate?.unit))) sourceNormalized = {
++      else if (layout && (sourceHasUnsupportedRate(layout.before) || postposedRate?.unit === null)) sourceNormalized = {
++        ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着不受支持的费率分母，未换算成总额或现有费率单位，请人工核对。', 'unsupported'),
++      };
++      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject, postposedRate?.unit ?? undefined))) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着费率单位，与当前总额角色或已声明费率单位冲突，未生成精确金额。', 'rate_unit_mismatch'),
+       };
+       else if (!sourceMoneyHasExplicitRmbCurrency(context, sourceNormalized.normalization)) sourceNormalized = {
+--- a/lib/material-fact-event-review.ts
++++ b/lib/material-fact-event-review.ts
+@@ -27,10 +27,14 @@
+ // subject/period offsets are located. No source text or candidate is rewritten.
+ const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总', 額: '额', 計: '计', 實: '实', 幣: '币', 圓: '圆', 稅: '税', 間: '间', 補: '补', 貼: '贴', 預: '预', 賠: '赔', 償: '偿', 決: '决', 給: '给', 單: '单', 標: '标', 準: '准', 費: '费', 時: '时', 領: '领', 為: '为' };
+ const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
++// Date-only cue/bridge aliases, after literal owner/value positions are found.
++// Folding never changes the subject, date literal, quote or source offsets.
++const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结' };
++const dateRole = (text: string) => compact(text).replace(/[於職資歸屬間簽訂勞動關終開廠離約發計領實該時為調傷並與結]/gu, glyph => dateGlyphs[glyph]);
+ const collectiveSubject = /[、和与與及等]|班[组組]|公司|[单單]位|集[团團]|工人|[员員]工|[劳勞][动動]者|群[体體]|集[体體]|[众眾]人/u;
+ 
+ function dateSide(text: string): { meanings: DateMeaning[]; joins: number } | null {
+-  let remaining = compact(text), needsCue = false, joins = 0;
++  let remaining = dateRole(text), needsCue = false, joins = 0;
+   const meanings: DateMeaning[] = [];
+   while (remaining) {
+     const cue = dateCues.map(([meaning, pattern]) => ({ meaning, text: remaining.match(pattern)?.[0] })).find(item => item.text);
+@@ -124,11 +128,11 @@
+     const periodStart = role.indexOf(raw.period);
+     if (periodStart < 0 || role.indexOf(raw.period, periodStart + 1) >= 0) return false;
+     const bridge = role.slice(0, periodStart).trim();
+-    if (!/^(?:(?:一人|本人|个人|的|于|自|从|在)|(?:在[\p{L}\p{N}（）()·]{1,60}(?:公司|单位|工厂|工地|项目部|厂|店))|\s)*$/u.test(bridge)) return false;
++    if (!/^(?:(?:一人|本人|个人|的|于|自|从|在)|(?:在[\p{L}\p{N}（）()·]{1,60}(?:公司|单位|工厂|工地|项目部|厂|店))|\s)*$/u.test(raw.kind === 'date' ? dateRole(bridge) : bridge)) return false;
+     role = role.slice(periodStart + raw.period.length);
+   }
+-  role = raw.kind === 'date' ? compact(role) : moneyRole(role);
+-  const attributionText = raw.kind === 'date' ? `${role}${after}` : role;
++  role = raw.kind === 'date' ? dateRole(role) : moneyRole(role);
++  const attributionText = raw.kind === 'date' ? `${role}${dateRole(after)}` : role;
+   const receipt = /收到|领取/u.test(attributionText);
+   // A payment verb establishes a payer, not the wage beneficiary requested by
+   // the extraction contract. Preserve the label but warn if receipt is unsupported.
+--- a/lib/material-fact-arithmetic-review.ts
++++ b/lib/material-fact-arithmetic-review.ts
+@@ -49,6 +49,16 @@
+ const SUFFIX_FRACTION = new RegExp(`^(?:${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${EXPLICIT_OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
+ const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
+ const SUFFIX_COEFFICIENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${COEFFICIENT_OPERAND}`, 'u');
++// A named wage component is an unknown operand only on an explicit operation.
++// Bound a complete Han component name to 16 code points and require one of the
++// finite payroll noun endings. Thus 销售提成/工龄津贴 share the guard without
++// accepting arbitrary prose. Ordinary 加班费, 奖金发放 or a separate worker's
++// payment narrative cannot be cut into an operation.
++const PAY_COMPONENT = ['基本工资', '岗位工资', '绩效工资', '计件工资', '工资', '薪资', '薪酬', '奖金', '年终奖', '绩效奖金', '绩效奖',
++  '加班费', '提成', '佣金', '津贴', '交通补贴', '补贴', '餐补', '房补', '补助金', '补助', '劳务费', '劳动报酬', '经济补偿金', '赔偿金']
++  .map(noun => `(?:[\\p{Script=Han}]${LINE}*){0,${16 - Array.from(noun).length}}${Array.from(noun).join(`${LINE}*`)}`).join('|');
++const PAY_COMPONENT_OPERAND = `(?:(?:${OPERAND_MODIFIER})${LINE}*(?:的${LINE}*)?){0,2}(?:${PAY_COMPONENT})(?!\\p{L}|\\p{N})`;
++const SUFFIX_PAY_COMPONENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${PAY_COMPONENT_OPERAND}`, 'u');
+ // A presentation hyphen can introduce a payment date or duration. Require a
+ // complete time unit: a bare -2000, -200元 or -50% remains subtraction. This
+ // exception does not apply to an explicit 减/减去 or the mathematical minus −.
+@@ -59,7 +69,7 @@
+ const HYPHEN_TIME = new RegExp(`^-${LINE}*(?:[0-9]{4}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12][0-9]|3[01])|${TIME_INTEGER}年(?:${LINE}*${TIME_INTEGER}月(?:${LINE}*${TIME_INTEGER}日)?)?|${NUMBER}(?:个?月|日|天|小时|分钟|秒))(?![${NUMERALS}点.元圆圓角分%/×*xX÷+−-])`, 'u');
+ 
+ function suffixIsOperation(suffix: string): boolean {
+-  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
++  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
+ }
+ const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
+ // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
+@@ -75,8 +85,10 @@
+ const LEADING_AMOUNT_NOUN = new RegExp(`^(?:${AMOUNT_NOUN})${CONTINUATION_BRIDGE}(?=的|打|${OPERATOR}|${OPERAND}${CONTINUATION_BRIDGE}倍|${PROPORTION})`, 'u');
+ 
+ function detectionView(value: string): string {
++  const glyphs: Record<string, string> = { 貳: '贰', 參: '叁', 陸: '陆', 獎: '奖', 終: '终', 費: '费', 資: '资', 績: '绩', 貼: '贴', 補: '补', 勞: '劳', 務: '务', 動: '动', 報: '报', 經: '经', 濟: '济', 償: '偿', 賠: '赔', 減: '减', 當: '当', 實: '实', 應: '应', 約: '约', 適: '适', 計: '计', 發: '发', 齡: '龄', 數: '数' };
+   return value.normalize('NFKC').replace(/\p{Cf}/gu, '')
+-    .replace(/[^\S\r\n\u2028\u2029]/gu, '');
++    .replace(/[^\S\r\n\u2028\u2029]/gu, '')
++    .replace(/[貳參陸獎終費資績貼補勞務動報經濟償賠減當實應約適計發齡數]/gu, glyph => glyphs[glyph]);
+ }
+ 
+ /** Inspect raw text immediately before and after one already anchored money span.

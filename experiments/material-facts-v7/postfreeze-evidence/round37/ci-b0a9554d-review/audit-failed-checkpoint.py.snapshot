@@ -1,0 +1,51 @@
+from pathlib import Path
+import json,hashlib,re,datetime,subprocess
+P=Path(__file__).resolve().parent
+CODE=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+HEAD='b0a9554d0b7ab1a064ce490cee181d2197c31b0c'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def read(n):return json.loads((P/n).read_text())
+def save(n,o):
+ b=o if isinstance(o,bytes) else (json.dumps(o,ensure_ascii=False,indent=2)+'\n').encode()
+ with (P/n).open('xb') as f:f.write(b)
+run=read('terminal-run.json');jobs=read('terminal-jobs.json')['jobs'];steps=jobs[0]['steps'];assert run['head_sha']==HEAD and run['conclusion']=='failure' and jobs[0]['conclusion']=='failure'
+assert [x['name'] for x in steps if x['conclusion']=='failure']==['Run npm run check']
+logpath=P/'original-logs/check/12_Run npm run check.txt';raw=logpath.read_text();log=re.sub(r'\x1b\[[0-9;]*m','',raw);lines=log.splitlines()
+matches=re.findall(r'ℹ tests (\d+).*?ℹ pass (\d+).*?ℹ fail (\d+).*?ℹ cancelled (\d+).*?ℹ skipped (\d+).*?ℹ duration_ms ([0-9.]+)',log,re.S)
+assert len(matches)==2
+counts=[dict(zip(['tests','pass','fail','cancelled','skipped','duration_ms'],[int(x) for x in a[:5]]+[float(a[5])])) for a in matches]
+assert counts[0]['pass']==68 and counts[0]['fail']==0
+assert counts[1]['tests']==9075 and counts[1]['pass']==9074 and counts[1]['fail']==1 and counts[1]['skipped']==0
+vitest={'files':int(re.search(r'Test Files\s+(\d+) passed',log).group(1)),'tests':int(re.search(r'Tests\s+(\d+) passed',log).group(1))};assert vitest=={'files':46,'tests':1789}
+py=[int(x) for x in re.findall(r'Ran (\d+) tests? in',log)];assert py==[9,11,16]
+assert 'actual v7 CLI drains migration after SIGINT repeated during cleanup' in log
+assert 'The detached launcher socket must be released before CLI exit.' in log
+assert '"sockets":{"launcher":true,"descendant":false,"unrelated":true}' in log
+assert 'ERR_TEST_TIMEOUT' not in log
+identity=read('static-identity-with-local-tree.json');merge=identity['pull_merge_sha_at_read'];m=read('merge-commit-api-terminal.json')
+alllog=(P/'original-logs/0_check.txt').read_text()
+assert f'HEAD is now at {merge[:7]} Merge {HEAD}' in alllog
+assert m['tree']['sha']==identity['remote_head_tree']==identity['local_head_tree'] and HEAD in [x['sha'] for x in m['parents']]
+originals=read('local-original-results-vs-exact-head.json')['files'];after=[]
+for x in originals:
+ b=(CODE/x['path']).read_bytes();assert sha(b)==x['sha256'];after.append({'path':x['path'],'sha256':sha(b)})
+save('original-files-after-audit.json',after)
+products=[]
+for x in read('exact-commit-vs-tested-worktree.json'):
+ b=(CODE/x['path']).read_bytes();assert sha(b)==x['head_sha256'];products.append({'path':x['path'],'sha256':sha(b)})
+save('bound-current-files-after-audit.json',products)
+for rel in ['scripts/material-facts-http-repeat-signal.test.mjs','scripts/owned-http-process-group.mjs','scripts/material-facts-v7-http-regression.mjs']:
+ r=subprocess.run(['git','show',HEAD+':'+rel],cwd=CODE,capture_output=True);assert r.returncode==0;save(rel.rsplit('/',1)[-1]+'.snapshot',r.stdout)
+arts=read('artifacts-terminal.json');assert arts['total_count']==0 and read('downloaded-artifacts-manifest.json')==[]
+for x in read('original-logs-manifest.json')['entries']:
+ if x['extracted']:assert sha((P/'original-logs'/x['name']).read_bytes())==x['sha256']
+for v in [5,6]:
+ row=next(x for x in read('local-historical-manifests-hashes.json') if x['path']==f'experiments/material-facts-v{v}/result-manifest.json');assert row['sha256'] in alllog
+assert '"execution":"original_v6_verify_and_summary_in_temporary_tree"' in alllog and '"summary_checked":true' in alllog
+rev=read('review-thread-state-terminal.json')
+failure={'test':'actual v7 CLI drains migration after SIGINT repeated during cleanup','definition':'scripts/material-facts-http-repeat-signal.test.mjs:68','assertion':'scripts/material-facts-http-repeat-signal.test.mjs:138','actual':True,'expected':False,'message':'The detached launcher socket must be released before CLI exit.','duration_ms':9654.282355,'native_diagnostic':{'cli_exit':{'code':1,'signal':None},'launcher_port_alive':True,'descendant_port_alive':False,'unrelated_port_alive':True},'timeout':False,'interpretation':'A real observed cleanup assertion failure. Port liveness alone does not identify the owner of that port, so this evidence does not yet distinguish a surviving owned launcher from port reuse or a fixture ordering problem. No silent rerun, product fix, or fixture relaxation by this reviewer.'}
+extract=[{'line':i+1,'text':s} for i,s in enumerate(lines) if ('✖ actual v7 CLI drains migration after SIGINT' in s or '"sockets":{"launcher":true' in s or 'ℹ tests ' in s or 'ℹ pass ' in s or 'ℹ fail ' in s or 'test at scripts/material-facts-http-repeat-signal.test.mjs' in s)]
+save('failure-log-locations.json',extract)
+result={'schema':'issue42-round37-exact-head-ci-failure-review/1','observed_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'state':'CI_FAIL_CLEANUP_ASSERTION_APPLICATION_NOT_VALIDATED','repo':'ZZZZihan/anxin-work-rights','pr':45,'head':HEAD,'run_id':run['id'],'run_attempt':run['run_attempt'],'run_url':run['html_url'],'ci_conclusion':'failure','run_timing':{k:run[k] for k in ['created_at','run_started_at','updated_at']},'actual_checkout_merge':merge,'head_and_checkout_tree':m['tree']['sha'],'tree_equal':True,'all_steps':steps,'counts':{'vitest':vitest,'materials':counts[0],'runtime':counts[1],'python':py},'sole_actual_failure':failure,'frozen_steps_success':[x['name'] for x in steps if x['name'].startswith('Frozen') and x['conclusion']=='success'],'v6_original_verifier_and_summary_owned_temporary_tree':True,'postcheck_http_ocr':'SKIPPED_NOT_EXECUTED','artifacts':{'api_total':0,'zip_count':0,'digests_verified':None,'note':'Successful upload-artifact workflow steps contained no report files after earlier check failure; no artifact, HTTP, OCR or cleanup-pass claim can be made for this CI run.'},'original_logs':{'zip_sha256':sha((P/f'run{run["id"]}-original-logs.zip').read_bytes()),'members':len(read('original-logs-manifest.json')['entries'])},'protected_original_files':len(after),'originals_unchanged_and_equal_head_git_blobs':True,'current_file_hashes_equal_before_after':len(products),'github_deployments':{'head_count':len(read('deployments-exact-head-terminal.json')),'merge_count':len(read('deployments-merge-terminal.json')),'scope':'Only exact two SHA API queries; not proof of every external deployment system.'},'review_threads':{'total':rev['threads'],'unresolved':len(rev['unresolved']),'snapshot_head':rev['head_at_review_read'],'ids':[x['comments']['nodes'][0]['databaseId'] for x in rev['unresolved']],'note':'isOutdated never treated as isResolved.'},'evidence_boundaries':['This audit fetched and parsed exact remote logs/API; it did not run local HTTP/fullcheck, rerun CI, change code, resolve comments, deploy, or call a model.','Parent local HTTP428/all-PASS and local fullcheck evidence remain separate; they do not replace this failed remote check.','Reviewer authored the R37 event implementation; the separate MONEY doubling review is nonimplementer evidence.','Requested GPT-6.1 Sol / ultra; actual backend cannot be independently verified.']}
+save('ci-b0a9554d-review.independent.json',result)
+print(json.dumps({'state':result['state'],'runtime':counts[1],'artifacts':0,'originals':len(after),'code_files':len(products),'unresolved':len(rev['unresolved'])}))

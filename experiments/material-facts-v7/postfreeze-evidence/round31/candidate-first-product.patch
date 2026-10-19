@@ -1,0 +1,74 @@
+diff --git a/lib/material-fact-event-review.ts b/lib/material-fact-event-review.ts
+index 6d47c22..11f7de0 100644
+--- a/lib/material-fact-event-review.ts
++++ b/lib/material-fact-event-review.ts
+@@ -22,15 +22,15 @@ const completeWageDates = new RegExp(`^${dateInterval(calendarDate)}(?:[、及
+ const compact = (text: string) => text.normalize('NFKC').replace(/\s+/gu, '');
+ // Recurring payment days are explicit source dates, without an invented year or
+ // month. Keep their finite valid day range separate from other calendar roles.
+-const recurringPaymentDate = /^每月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)日$/u;
++const recurringPaymentDate = /^每月(?:[1-9]|[12][0-9]|3[01]|[一二三四五六七八九]|十[一二三四五六七八九]?|二十[一二三四五六七八九]?|三十一?)[日号號]$/u;
+ // Fold only detection copies of the existing money-role vocabulary, after raw
+ // subject/period offsets are located. No source text or candidate is rewritten.
+ const roleGlyphs: Record<string, string> = { 應: '应', 資: '资', 總: '总', 額: '额', 計: '计', 實: '实', 幣: '币', 圓: '圆', 稅: '税', 間: '间', 補: '补', 貼: '贴', 預: '预', 賠: '赔', 償: '偿', 決: '决', 給: '给', 單: '单', 標: '标', 準: '准', 費: '费', 時: '时', 領: '领', 為: '为' };
+ const moneyRole = (text: string) => compact(text).replace(/[應資總額計實幣圓稅間補貼預賠償決給單標準費時領為]/gu, glyph => roleGlyphs[glyph]);
+ // Date-only cue/bridge aliases, after literal owner/value positions are found.
+ // Folding never changes the subject, date literal, quote or source offsets.
+-const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须' };
+-const dateRole = (text: string) => compact(text).replace(/[於職資歸屬間簽訂勞動關終開廠離約發計領實該時為調傷並與結後從應須]/gu, glyph => dateGlyphs[glyph]);
++const dateGlyphs: Record<string, string> = { 於: '于', 職: '职', 資: '资', 歸: '归', 屬: '属', 間: '间', 簽: '签', 訂: '订', 勞: '劳', 動: '动', 關: '关', 終: '终', 開: '开', 廠: '厂', 離: '离', 約: '约', 發: '发', 計: '计', 領: '领', 實: '实', 際: '际', 係: '系', 該: '该', 時: '时', 為: '为', 調: '调', 傷: '伤', 並: '并', 與: '与', 結: '结', 後: '后', 從: '从', 應: '应', 須: '须' };
++const dateRole = (text: string) => compact(text).replace(/[於職資歸屬間簽訂勞動關終開廠離約發計領實際係該時為調傷並與結後從應須]/gu, glyph => dateGlyphs[glyph]);
+ const groupLabel = /[、，,]|班[组組]|公司|[单單]位|集[团團]|工人|[员員]工|[劳勞][动動]者|群[体體]|集[体體]|[众眾]人/u;
+ // Single surnames and placeholder people can form coordinated short subjects
+ // (张和李/甲和乙). These are ambiguity cues, not a whitelist proving identity.
+diff --git a/lib/material-money-v4.ts b/lib/material-money-v4.ts
+index 60184e9..6501e34 100644
+--- a/lib/material-money-v4.ts
++++ b/lib/material-money-v4.ts
+@@ -57,8 +57,8 @@ function result(rawValue: string, status: CandidateNormalization['status'], reas
+ // the numeric token. It cannot silently turn 数十万 or 负数四万 into its tail.
+ function monetaryDetectionView(value: string): string {
+   // Fold only detection copies; keep line boundaries and every raw offset.
+-  return moneyQualifierDetectionView(value).replace(/[兩億詳無確認載記註實補暫計給發號]/gu,
+-    glyph => ({ 兩: '两', 億: '亿', 詳: '详', 無: '无', 確: '确', 認: '认', 載: '载', 記: '记', 註: '注', 實: '实', 補: '补', 暫: '暂', 計: '计', 給: '给', 發: '发', 號: '号' })[glyph]!);
++  return moneyQualifierDetectionView(value).replace(/[兩億詳無確認載記註實補暫計給發號時]/gu,
++    glyph => ({ 兩: '两', 億: '亿', 詳: '详', 無: '无', 確: '确', 認: '认', 載: '载', 記: '记', 註: '注', 實: '实', 補: '补', 暫: '暂', 計: '计', 給: '给', 發: '发', 號: '号', 時: '时' })[glyph]!);
+ }
+ 
+ // Only uncertainty matching joins layout inside its finite existing words;
+diff --git a/scripts/owned-http-process-group.mjs b/scripts/owned-http-process-group.mjs
+index 7b2bea8..5e80d5f 100644
+--- a/scripts/owned-http-process-group.mjs
++++ b/scripts/owned-http-process-group.mjs
+@@ -7,7 +7,12 @@ const owned = new WeakMap();
+ const pause = ms => new Promise(done => setTimeout(done, ms));
+ 
+ export function spawnOwnedChild(command, args, options = {}) {
+-  const child = spawn(command, args, { stdio: 'ignore', ...options, detached: process.platform !== 'win32' });
++  // Windows has no POSIX process group. Killing only the launcher (or using
++  // taskkill after that launcher exits) cannot prove its descendants are gone.
++  // Until a native owned-tree implementation is available and tested, refuse
++  // before spawning so a failed runner cannot leave a worker behind.
++  if (process.platform === 'win32') throw Object.assign(new Error('Windows HTTP runners require a verified owned process-tree implementation; no child was started.'), { code: 'ERR_OWNED_HTTP_PLATFORM_UNSUPPORTED' });
++  const child = spawn(command, args, { stdio: 'ignore', ...options, detached: true });
+   const state = { closed: false };
+   child.once('close', () => { state.closed = true; });
+   child.once('error', () => {}); // The caller still handles startup errors.
+@@ -20,8 +25,7 @@ export function signalOwnedChild(child, signal) {
+   assert(owned.has(child), 'Only runner-owned detached children may be signalled.');
+   if (!child.pid) return;
+   try {
+-    if (process.platform === 'win32') child.kill(signal);
+-    else process.kill(-child.pid, signal);
++    process.kill(-child.pid, signal);
+   } catch (error) { if (error.code !== 'ESRCH') throw error; }
+ }
+ 
+@@ -48,7 +52,6 @@ function processTable(timeoutMs) {
+ export async function ownedGroupAlive(child, timeoutMs = 1000) {
+   assert(owned.has(child), 'Only runner-owned process groups may be inspected.');
+   if (!child.pid) return false;
+-  if (process.platform === 'win32') return child.exitCode === null && child.signalCode === null;
+   // Group signal probes can report EPERM after the group has disappeared on
+   // macOS. The bounded, validated process table below establishes live members;
+   // a signal error or a failed/empty table never counts as successful cleanup.

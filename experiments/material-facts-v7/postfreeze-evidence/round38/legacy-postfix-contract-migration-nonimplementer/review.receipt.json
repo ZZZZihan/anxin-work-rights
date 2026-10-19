@@ -1,0 +1,125 @@
+{
+  "schema": "round38-legacy-postfix-symbol-contract-migration-nonimplementer/1",
+  "reviewed_at_utc": "2026-10-18T19:17:43.820043+00:00",
+  "status": "no_blocking_issue_in_reviewed_migration_scope",
+  "role": "Nonimplementer of root postfix-symbol product patch and these legacy test edits; author of separate money/range/arithmetic components.",
+  "baseline": "d963425ef16831768395ba6a233df272dbaee196",
+  "review_method": "Read exact test diff, original snapshots and already completed root logs. No test rerun or product edit in this review.",
+  "changed_qualified_case_instances": [
+    {
+      "expression": "四万元¥以内",
+      "value": "四万元",
+      "before": "approximate",
+      "after": "unsupported"
+    },
+    {
+      "expression": "40000¥以内",
+      "value": "40000",
+      "before": "approximate",
+      "after": "unsupported"
+    },
+    {
+      "expression": "30000元¥左右至约40000元¥",
+      "value": "30000元",
+      "before": "range",
+      "after": "unsupported"
+    },
+    {
+      "expression": "30000元¥左右至约40000元¥",
+      "value": "40000元",
+      "before": "range",
+      "after": "unsupported"
+    },
+    {
+      "expression": "四万元￥以内",
+      "value": "四万元",
+      "before": "approximate",
+      "after": "unsupported"
+    },
+    {
+      "expression": "40000￥以内",
+      "value": "40000",
+      "before": "approximate",
+      "after": "unsupported"
+    },
+    {
+      "expression": "30000元￥左右至约40000元￥",
+      "value": "30000元",
+      "before": "range",
+      "after": "unsupported"
+    },
+    {
+      "expression": "30000元￥左右至约40000元￥",
+      "value": "40000元",
+      "before": "range",
+      "after": "unsupported"
+    },
+    {
+      "expression": "40000圆¥以内",
+      "value": "40000",
+      "before": "approximate",
+      "after": "unsupported"
+    }
+  ],
+  "changed_terminator_test_branch": {
+    "before": "all zero/one RMB suffixes expected safe",
+    "after": "currency === '￥' expected unsafe; plain/named suffixes preserve false",
+    "loop_assertion_count_is_not_the_10_case_count": true
+  },
+  "counts": {
+    "qualified_test_instances": 9,
+    "terminator_test_branches": 1,
+    "total_reported_leaf_failures": 10
+  },
+  "safety_findings": [
+    "All affected amount-null assertions are unchanged. No value, quote, source codepoint or stored-history assertion is removed.",
+    "Prefix ¥/￥ placements retain prior approximate/range statuses and root symbol author positive controls. Named 人民币/人民幣/RMB/CNY suffixes retain previous safe/qualified behavior.",
+    "Postfix ¥/￥ is malformed in the supported grammar. Restoring old status precedence would contradict the explicit new contract; unsupported with amount null is the intended result."
+  ],
+  "root_executed_evidence": {
+    "original_full_check": {
+      "pass_count": 9294,
+      "fail_count": 10,
+      "skip_count": 1,
+      "exit_code": 1
+    },
+    "targeted_after_migration": {
+      "pass_count": 853,
+      "fail_count": 0,
+      "exit_code": 0,
+      "command": [
+        "npm",
+        "exec",
+        "--yes",
+        "--package=node@24",
+        "--",
+        "node",
+        "--test",
+        "scripts/material-fact-qualified-money-bounds.test.mjs",
+        "scripts/material-fact-whole-money-terminator.test.mjs",
+        "scripts/material-facts-v7-round38-symbol-author.test.mjs"
+      ],
+      "reviewer_reran": false
+    }
+  },
+  "scope_limits": [
+    "This is synthetic/local contract evidence and static nonimplementer review, not full integration completion, CI completion, model quality, real-case accuracy or user acceptance.",
+    "Ten means nine affected qualified test instances and one terminator test branch; the terminator branch contains multiple loop assertions.",
+    "Original failing scripts and full-check logs remain preserved in CODE; this review does not rewrite their history."
+  ],
+  "reviewed_inputs_sha256": {
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round38/qualified-money-bounds.before.test.mjs.snapshot": "ec8f9ce0ff75a9b8e30f3dc431a70e77dd5066883c319ac0ef7647982399b79f",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-fact-qualified-money-bounds.test.mjs": "3ec2510d400fc3513d39a759b0d6b3e1425fd9d32624689fc32228a5ad5dc5cd",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round38/whole-money-terminator.before.test.mjs.snapshot": "82c4954c0d509a3cce3ee79bf88813fef3761d5fd22b301553c413a7aa22838a",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-fact-whole-money-terminator.test.mjs": "261793eeb42a0bdf68b87b7cb34e95a6a764da16fdbd3d98e09c5fd0ac6bf292",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/lib/material-money-v4.ts": "b6c0d054856d2cda2cb472eedb88d8c877add7906138cd4850aa9859f70f619e",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-facts-v7-round38-symbol-author.test.mjs": "df27d16725a921aca0e759e310263cb968cca1d49a972b99b7c74370b43d183c",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round38/contract-migration.receipt.json": "3691f7c4048d6bf4570ddd81ca071e98f06e4764e937791fb3c973dfe91629f6",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round38/contract-migration.stdout.log": "1a8cd33b8c1b1adc2a44a7adee8909211cc227151e3672499aba90226388e63e",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round38/contract-migration.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round38/full-check.receipt.json": "cf77df3a1c7759c56aee41f8f9bd481853971ee619679ceafc31c86ae4a89f51",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round38/full-check.stdout.log": "e80f983dc57110422a08148a0bb2d6247a72bc1b42f4307e47506b26a90ffd03",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round38/full-check.stderr.log": "428201862cbe63d24132a8059476d2ad887c514b6f3a7aa4719dab599ab93118"
+  },
+  "model_request": "gpt-6.1-sol / ultra; actual backend not independently verified"
+}

@@ -1,0 +1,14 @@
+from pathlib import Path
+import subprocess,json,concurrent.futures,zipfile,hashlib
+O=Path(__file__).parent;R='ZZZZihan/anxin-work-rights';RUN=39146980559;H='1cc56d6bc52b67f5c53e7805a9bac0614dfaecd1'
+def api(item):
+ name,endpoint=item;p=subprocess.run(['gh','api',endpoint],capture_output=True)
+ with (O/name).open('xb') as f:f.write(p.stdout)
+ with (O/(name+'.stderr')).open('xb') as f:f.write(p.stderr)
+ assert p.returncode==0,(name,p.returncode)
+items={'run.json':f'repos/{R}/actions/runs/{RUN}','jobs.json':f'repos/{R}/actions/runs/{RUN}/jobs?per_page=100','artifacts.json':f'repos/{R}/actions/runs/{RUN}/artifacts?per_page=100','deployments-exact-head.json':f'repos/{R}/deployments?sha={H}&per_page=100','logs.zip':f'repos/{R}/actions/runs/{RUN}/logs'}
+with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:list(pool.map(api,items.items()))
+with zipfile.ZipFile(O/'logs.zip') as z:
+ assert all(not Path(n).is_absolute() and '..' not in Path(n).parts for n in z.namelist());z.extractall(O/'logs')
+r=json.loads((O/'run.json').read_text());a=json.loads((O/'artifacts.json').read_text());assert r['head_sha']==H
+print(json.dumps({'status':r['status'],'conclusion':r['conclusion'],'artifacts':a['total_count'],'logs_bytes':(O/'logs.zip').stat().st_size,'logs_sha256':hashlib.sha256((O/'logs.zip').read_bytes()).hexdigest()}))

@@ -1,0 +1,46 @@
+--- a/lib/material-fact-arithmetic-review.ts
++++ b/lib/material-fact-arithmetic-review.ts
+@@ -48,6 +48,11 @@
+ const SUFFIX_EXPLICIT_MULTIPLIER = new RegExp(`^${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}倍`, 'u');
+ const SUFFIX_FRACTION = new RegExp(`^(?:${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}(?:分${LINE}*之|/)${CONTINUATION_BRIDGE}${EXPLICIT_OPERAND}|[+−负負-]?(?:一${LINE}*)?半|${EXPLICIT_OPERAND}${CONTINUATION_BRIDGE}%)`, 'u');
+ const SUFFIX_OPERATOR = new RegExp(`^${OPERATOR}${CONTINUATION_BRIDGE}${OPERAND}`, 'u');
++// Half proportions have no leading numeric factor. They are operands only
++// after an explicit operation. A finite calculation/payment verb may follow;
++// arbitrary noun continuations such as 半成品 must keep their word boundary.
++const PROPORTION_ACTION = ['计算', '计发', '支付'].map(word => Array.from(word).join(`${LINE}*`)).join('|');
++const SUFFIX_PROPORTION_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${PROPORTION}(?:(?!\\p{L}|\\p{N})|(?=(?:${PROPORTION_ACTION})))`, 'u');
+ const SUFFIX_COEFFICIENT_OPERATOR = new RegExp(`^${COEFFICIENT_OPERATOR}${CONTINUATION_BRIDGE}${COEFFICIENT_OPERAND}`, 'u');
+ // A named wage component is an unknown operand only on an explicit operation.
+ // Bound a complete Han component name to 16 code points and require one of the
+@@ -71,7 +76,7 @@
+ const HYPHEN_TIME = new RegExp(`^-${LINE}*(?:[0-9]{4}[-/.](?:0?[1-9]|1[0-2])[-/.](?:0?[1-9]|[12][0-9]|3[01])|${TIME_INTEGER}年(?:${LINE}*${TIME_INTEGER}月(?:${LINE}*${TIME_INTEGER}日)?)?|${NUMBER}(?:个?月|日|天|小时|分钟|秒))(?![${NUMERALS}点.元圆圓角分%/×*xX÷+−-])`, 'u');
+ 
+ function suffixIsOperation(suffix: string): boolean {
+-  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
++  return (SUFFIX_OPERATOR.test(suffix) || SUFFIX_PROPORTION_OPERATOR.test(suffix) || SUFFIX_COEFFICIENT_OPERATOR.test(suffix) || SUFFIX_PAY_COMPONENT_OPERATOR.test(suffix)) && !HYPHEN_TIME.test(suffix);
+ }
+ const LEADING_BRIDGE = new RegExp(`^${CONTINUATION_BRIDGE}`, 'u');
+ // Once 的 is explicit, 二分之一 is a fraction, not a cropped 二分 currency tail.
+--- a/lib/material-fact-range-review.ts
++++ b/lib/material-fact-range-review.ts
+@@ -50,6 +50,11 @@
+ const ATTACHED_PREFIX = new RegExp(`(?:${MONEY_BOUND_PREFIX}|(?<!最)近)${QUALIFIER_BRIDGE}$`, 'iu');
+ const SIGNED_BRIDGE = `(?:${CURRENCY_BRIDGE_PART}|的|为|為|是|金额|金額|数值|數值|工资|工資|薪资|薪資|薪酬|计|計|共|合计|合計)*`;
+ const ATTACHED_SIGNED = new RegExp(`(?:负数|負數|负值|負值|正数|正數|正值|[负負+＋\\-－−﹣±])${SIGNED_BRIDGE}$`, 'iu');
++// A postposed negative annotation belongs to this anchored amount only when
++// its finite words are adjacent. Layout may split the annotation, but another
++// subject, number or sentence cannot bridge it. Never convert it into -amount.
++const NEGATIVE_ANNOTATION_TAIL = `(?:记${SPACE}录|記${SPACE}錄|金${SPACE}[额額])`;
++const ATTACHED_NEGATIVE_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[(]${SPACE})?(?:(?:金额|金額|数值|數值)${SPACE})?(?:(?:为|為|是)${SPACE})?[负負]${SPACE}(?:[数數]|值)(?:(?!\\p{L}|\\p{N})|(?=${NEGATIVE_ANNOTATION_TAIL}))`, 'iu');
+ const ATTACHED_INDEFINITE = new RegExp(`(?:数|數|几|幾)${CURRENCY_BRIDGE}$`, 'iu');
+ const ATTACHED_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[/／]${SPACE}(?:小时|月|日|天|时|件)${SPACE})?${MONEY_BOUND_SUFFIX}`, 'iu');
+ // A comparison's left operand is no more an exact total than its right one.
+@@ -61,7 +66,7 @@
+  * A signed amount remains unsupported, distinct from an approximate bound. */
+ export function attachedMoneyQualifierStatus(before: string, after: string): 'unsupported' | 'approximate' | null {
+   const prefix = view(before), suffix = view(after);
+-  if (ATTACHED_SIGNED.test(prefix)) return 'unsupported';
++  if (ATTACHED_SIGNED.test(prefix) || ATTACHED_NEGATIVE_SUFFIX.test(suffix)) return 'unsupported';
+   return ATTACHED_INDEFINITE.test(prefix) || ATTACHED_PREFIX.test(prefix) || ATTACHED_SUFFIX.test(suffix)
+     || ATTACHED_COMPARISON_SUFFIX.test(suffix) ? 'approximate' : null;
+ }

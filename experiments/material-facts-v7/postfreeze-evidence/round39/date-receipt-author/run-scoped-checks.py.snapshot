@@ -1,0 +1,11 @@
+from pathlib import Path
+import subprocess,os,time,json,hashlib
+own=Path(__file__).resolve().parents[3];e=Path(__file__).resolve().parent;code=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+node='/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node';env=os.environ.copy();env['MATERIAL_FACT_EVENT_FILE']=str(own/'lib/material-fact-event-review.ts');env['MATERIAL_FACT_TEST_ROOT']=str(own/'.scratch/issue42/round39/baseline-66581')
+rows=[]
+checks=[('existing-pure-date-modules',[node,'--experimental-strip-types','--experimental-specifier-resolution=node','--test',*[str(code/'scripts'/f'material-facts-v7-round{n}-event-author.test.mjs') for n in [31,32,34]]],own),('scoped-eslint',[node,str(code/'node_modules/eslint/bin/eslint.js'),'lib/material-fact-event-review.ts','scripts/material-facts-v7-round39-date-receipt-author.test.mjs'],own)]
+for label,cmd,cwd in checks:
+ t=time.monotonic();r=subprocess.run(cmd,cwd=cwd,env=env,capture_output=True);(e/(label+'.stdout.log')).write_bytes(r.stdout);(e/(label+'.stderr.log')).write_bytes(r.stderr)
+ rows.append({'label':label,'command':cmd,'exit':r.returncode,'duration_seconds':time.monotonic()-t,'stdout_sha256':hashlib.sha256(r.stdout).hexdigest(),'stderr_sha256':hashlib.sha256(r.stderr).hexdigest()});print(label,r.returncode,r.stdout[-650:].decode(),r.stderr[-650:].decode())
+ if r.returncode:raise RuntimeError('Scope check failed; retained originals')
+(e/'scoped-checks.receipt.json').write_text(json.dumps(rows,indent=2)+'\n')

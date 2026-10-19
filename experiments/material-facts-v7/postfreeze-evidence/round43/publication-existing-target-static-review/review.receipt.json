@@ -1,0 +1,29 @@
+{
+  "schema": "material-facts-v7/publication-existing-target-static-review/1",
+  "created_at": "2026-10-19T00:48:20.562985+00:00",
+  "reviewer_role": "Did not implement these two files. Static source and test-contract review only. No test suite rerun.",
+  "files": [
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/immutable-artifact-publication.mjs",
+      "sha256": "70ee51e28f65684b703e6031aa0f4b6be96dfaf94114d69bacfc13caadafdb48"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-publication-existing-target.test.mjs",
+      "sha256": "82f12224f574f25c62c1db8655a8b72917ab65a65ba52a48c6611a8a50c338be"
+    }
+  ],
+  "conclusion": "No blocking issue found within the authorized existing-target/no-replace publication change.",
+  "findings": [
+    "lstat rejects an existing regular file, directory or dangling symlink before stage creation.",
+    "Publication uses unique same-directory wx stage and native no-replace link.",
+    "A concurrent EEXIST loser removes only its own completed stage; cleanup failure retains the original EEXIST object, error code, stage path and visible message.",
+    "write/sync/close failures retain the stage, and successful publication followed by unlink failure returns a cleanup warning without revoking publication.",
+    "Test worker invokes the actual helper and uses a controlled pre-link barrier for concurrent contenders, plus injected native-write/sync/close/cleanup failures."
+  ],
+  "not_claimed": [
+    "No independent rerun of the authors ten tests",
+    "No power-loss durability or arbitrary-filesystem portability guarantee",
+    "No change to the runner checkpoint policy, labels, saved results or historical snapshots"
+  ],
+  "requested_model": "gpt-6.1-sol/ultra; actual backend not independently verified"
+}

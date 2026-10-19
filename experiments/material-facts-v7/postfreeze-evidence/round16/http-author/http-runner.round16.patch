@@ -1,0 +1,50 @@
+--- a/scripts/material-facts-v7-http-regression.mjs
++++ b/scripts/material-facts-v7-http-regression.mjs
+@@ -622,6 +622,47 @@
+     return { amount: spec.amount, originalValue: spec.value, rawAndStoredHistoryUnchanged: true, automaticCalculation: false };
+   });
+   // End ROUND15 additions.
++  // ROUND16 additions: retain the original 86 scenarios and lifecycle code.
++  // The real TXT service creates one block per non-empty line. These fixtures
++  // assert that layout explicitly, then preserve the original queue raw and D1.
++  for (const spec of [
++    { name: 'unfinished-bare-four-layout', continuation: '4。', amount: null },
++    { name: 'unfinished-approx-four-adjacent-block', continuation: '约4。', amount: null },
++    { name: 'explicit-four-months-control', continuation: '4个月内付清。', amount: '30000.00' },
++    { name: 'new-subject-sentence-control', continuation: '测试王乙2026年1月工资4万元。', amount: '30000.00', sentenceEnd: true },
++  ]) await scenario(`round16_${spec.name}_source_guard_raw_and_history`, async () => {
++    const text = `测试王甲2026年1月完整应付工资3万元${spec.sentenceEnd ? '。' : '至'}\n${spec.continuation}`;
++    const [item] = await fixture(`round16-${spec.name}`, [{ text, candidates: [money('3万元', '3万元')] }]);
++    const blocks = item.analysis.result.blocks;
++    assert.equal(blocks.length, 2, 'The actual TXT path must expose two adjacent source blocks.');
++    assert(blocks[0].text.endsWith(`3万元${spec.sentenceEnd ? '。' : '至'}`));
++    assert.equal(blocks[1].text, spec.continuation);
++    const material = rawAndLocations(item, await extract(item));
++    assert.equal(material.candidates.length, 1); assert.equal(material.rejected.length, 0);
++    const candidate = material.candidates[0];
++    assert.equal(candidate.amount, spec.amount); assert.equal(candidate.normalization.amount, spec.amount);
++    assert.equal(candidate.normalization.status, spec.amount === null ? 'uncertain' : 'exact');
++    assert.equal(candidate.value, '3万元'); assert.equal(candidate.quote, '3万元');
++    assert.equal(JSON.parse(material.raw).candidates[0].value, '3万元');
++    if (spec.amount === null) {
++      // Emulate only an obsolete derived amount in this disposable D1 row.
++      // The original model raw, representation, quote and audit are unchanged.
++      const legacy = stored(item.caseId), old = legacy.state.materials[0].candidates[0];
++      old.amount = '30000.00';
++      old.normalization = { rawValue: '3万元', amount: '30000.00', status: 'exact', matchedText: '3万元', span: { start: 0, end: 3 }, reason: 'Synthetic pre-fix exact incomplete-range endpoint' };
++      db.prepare('UPDATE case_material_facts SET state_json=? WHERE case_id=? AND user_id=?').run(JSON.stringify(legacy.state), item.caseId, owner);
++    }
++    const before = stored(item.caseId), read = await request(item.path);
++    assert.equal(read.status, 200); unconfirmed(read.body);
++    const checked = rawAndLocations(item, read.body).candidates[0];
++    assert.equal(checked.amount, spec.amount); assert.equal(checked.normalization.amount, spec.amount);
++    assert.equal(checked.normalization.status, spec.amount === null ? 'uncertain' : 'exact');
++    assert.deepEqual(stored(item.caseId), before); assert.deepEqual(read.body.state.history, before.state.history);
++    durableSnapshots.push({ name: `round16-${spec.name}`, item, state: before });
++    return { amount: spec.amount, sourceBlocks: blocks.length, originalValue: '3万元', historicalExactDowngraded: spec.amount === null,
++      rawAndStoredHistoryUnchanged: true, automaticCalculation: false };
++  });
++  // End ROUND16 additions.
+   await scenario('malformed_raw_failure_does_not_rewrite_other_material_or_prior_audit', async () => {
+     const quote = '测试王甲2026年1月完整应付工资四万元';
+     const [first, bad] = await fixture('raw-failure-history', [

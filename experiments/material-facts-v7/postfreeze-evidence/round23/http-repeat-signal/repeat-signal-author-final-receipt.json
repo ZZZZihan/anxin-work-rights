@@ -1,0 +1,104 @@
+{
+  "at": "2026-10-18T11:05:04.769300+00:00",
+  "baseline_code_head": "409cb86e08467499fb2c5922a8b59ac5689cc29b",
+  "files": {
+    "scripts/material-facts-v7-http-regression.mjs": "9afd2f164f0ce16b19a4900f966ae2a8b107040c4a880e9acdb7441e89bafa90",
+    "scripts/material-facts-recovery-http-regression.mjs": "a8118fea949db37bd853d9dd725f025a236ffd0fdaac8721db36019e8ecd5811",
+    "scripts/material-facts-http-repeat-signal.test.mjs": "dfcfca8734cd4d6d2bac826a7d15a72d589180dbf2ed89d590a5c178fa8744d9"
+  },
+  "unchanged_shared_helper_sha256": "460130907f28e027bcc15368aac87bf82c7e9b7dfa7c22eefe021895cddd007a",
+  "main_scenarios": {
+    "scripts/material-facts-v7-http-regression.mjs": {
+      "main_scenario_bytes_identical": true,
+      "scenario_sha256": "4b2c38602375de72bb7d72da0534e207f28b8e9977f79e36f837ea9162dfef02"
+    },
+    "scripts/material-facts-recovery-http-regression.mjs": {
+      "main_scenario_bytes_identical": true,
+      "scenario_sha256": "856e54466e4258d739d379c1b4d2091c34ac24eb54a1ad677cfb1d16271f46b1"
+    }
+  },
+  "status": "passed_author_native_process_regression",
+  "role": "Implementer author checks, not an independent review or application HTTP acceptance",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "runtime_configuration_note": "The requested model configuration is not asserted as independently verified here. Native fixture runtime reports Node v26.11.0.",
+  "scope": [
+    "Only the two HTTP regression CLI runners and one new native process test were edited; old evidence, frozen source/data/labels/results and application production code were not edited.",
+    "The persistent handlers are idempotent; interruption is recorded separately from the first execution failure, and existing owned-process cleanup/reporting contracts are retained.",
+    "Both main scenario bodies match the exact 409 baseline bytes. No change was made to the shared process-group helper."
+  ],
+  "actual_checks": [
+    {
+      "kind": "native_cli_fixture_before",
+      "baseline": "409cb86e08467499fb2c5922a8b59ac5689cc29b",
+      "test_revision_sha256": "274d5aefba1b971f0e340add01dddf617edf2eb1db0643f2b4da45f113f3c114",
+      "exit_code": 1,
+      "passed": 0,
+      "failed": 8,
+      "log": "before-409.actual.log",
+      "observed": "Repeated real SIGINT or SIGTERM during cleanup terminates the CLI by signal, leaving the redirected TERM-ignoring descendant socket alive until the test emergency cleanup."
+    },
+    {
+      "kind": "native_cli_fixture_after_first",
+      "exit_code": 0,
+      "passed": 8,
+      "failed": 0,
+      "log": "after-first.actual.log"
+    },
+    {
+      "kind": "native_cli_fixture_after_final",
+      "test_sha256": "dfcfca8734cd4d6d2bac826a7d15a72d589180dbf2ed89d590a5c178fa8744d9",
+      "exit_code": 0,
+      "passed": 8,
+      "failed": 0,
+      "node": "v26.11.0",
+      "log": "after-final.actual.log",
+      "additional_final_assertions": "Require exact cleanup PASS with no diagnostic failures and ENOENT for the owned disposable Wrangler config/state. Atomic fixture marker publication prevents partial JSON reads."
+    },
+    {
+      "kind": "syntax",
+      "files": [
+        "scripts/material-facts-v7-http-regression.mjs",
+        "scripts/material-facts-recovery-http-regression.mjs"
+      ],
+      "exit_code": 0
+    },
+    {
+      "kind": "eslint",
+      "files": [
+        "scripts/material-facts-v7-http-regression.mjs",
+        "scripts/material-facts-recovery-http-regression.mjs",
+        "scripts/material-facts-http-repeat-signal.test.mjs"
+      ],
+      "exit_code": 0,
+      "log": "lint-final.actual.log"
+    },
+    {
+      "kind": "exact_baseline_scenario_preservation",
+      "passed": true,
+      "log": "main-scenario-preservation.actual.log"
+    }
+  ],
+  "covered_behaviour": [
+    "Both runners, first SIGINT and first SIGTERM, followed by the same signal twice while the real owned descendant ignores TERM.",
+    "Both migration still running and migration exit 23 followed by interruption during owned-group cleanup.",
+    "Interrupted CLI exits code 1 without signal termination, report is readable JSON FAIL, first interruption is recorded, and earlier migration failure 23 remains primary.",
+    "Launcher and redirected descendant sockets close and the real owned process group becomes empty before exit; an unrelated detached group/socket survives.",
+    "Confirmed cleanup permits deletion of disposable private Wrangler configuration/state; the test itself retains an emergency cleanup for its own groups on old-red failure."
+  ],
+  "limits": [
+    "This is real native CLI/signal/socket execution with synthetic Wrangler and material-service fixtures; it performs zero model calls and does not run the 160 application HTTP scenarios or the complete recovery HTTP suite.",
+    "The native tests ran under Node v26.11.0, not the parent integration Node 24 environment.",
+    "The fixture directly targets the repeated-signal cleanup window and prior-failure preservation, not every possible timing point in HTTP execution or report publication.",
+    "No independent review result is claimed by this author receipt; the non-implementer review is separately coordinated by the parent."
+  ],
+  "log_sha256": {
+    "before-409.actual.log": "09a3cdadccce37e2ff1984d15b2b12030c3347cfbb7c266b4bac96fdcc468f7e",
+    "after-first.actual.log": "6329b0d1df1ef059136867a0286da9fef833d972d9360e7b4adef688d290e2f2",
+    "after-final.actual.log": "01ad2afcf7240f9546cc44d83a178d435ea6700a5759768cd4b8a99fca96c3c5",
+    "lint-first.actual.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lint-final.actual.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "main-scenario-preservation.actual.log": "7962cbb0011e923f9b4a7babab18c83811f276eb3cb70b5b920a71676f3bb487",
+    "repeat-signal-vs-409.patch": "4d4591b424d492df349fe9c69f9a2ef75ea9e108af8d3277683790d0172e1e53"
+  }
+}

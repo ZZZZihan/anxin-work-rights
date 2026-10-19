@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const root = resolve(process.argv[2]);
+const E = 'experiments/material-facts-v7';
+const { withCorrectionV28Code } = await import(pathToFileURL(resolve(root, E, 'verify-correction-v28.mjs')));
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const archived = JSON.parse(await readFile(resolve(root, E, 'corrections-v28/manifest.json')));
+assert.equal(Object.keys(archived.code_sha256).length, 103);
+const policyPath = `${E}/historical-execution-policy-v1.mjs`;
+const original = await readFile(resolve(root, E, 'result-manifest.json'));
+const policy = await readFile(resolve(root, policyPath));
+let owned, count = 0;
+const expected = new Error('Synthetic v28 callback throw; no historical command invoked');
+await assert.rejects(withCorrectionV28Code(async temporary => {
+  owned = temporary;
+  for (const [path, digest] of Object.entries(archived.code_sha256)) {
+    assert.equal(sha(await readFile(resolve(temporary, path))), digest, path);
+    count++;
+  }
+  assert.deepEqual(await readFile(resolve(temporary, E, 'result-manifest.json')), original);
+  assert.deepEqual(await readFile(resolve(temporary, policyPath)), policy);
+  throw expected;
+}, root), error => error === expected);
+assert(owned);
+await assert.rejects(readFile(resolve(owned, 'package.json')), { code: 'ENOENT' });
+console.log(JSON.stringify({ status: 'PASS', restored_paths: count, original_result_manifest_sha256: sha(original),
+  policy_sha256: sha(policy), callback_error_identity_preserved: true, owned_temporary_removed: true,
+  historical_cli_executed: false, scorer_executed: false, model_requests: 0 }));

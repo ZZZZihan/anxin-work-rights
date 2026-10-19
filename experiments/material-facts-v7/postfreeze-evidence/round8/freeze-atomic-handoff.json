@@ -1,0 +1,47 @@
+{
+  "baseline": {
+    "root_head": "ba3d5cc5cae1fbe1b5f554c0b9affd649f8fc7cc",
+    "source_file": "experiments/material-facts-v7/freeze.mjs",
+    "sha256": "e0e97a7806219737ac65502f25b1ca3271c3f522f76389fd00034c3e490194b1",
+    "scope": "Read current ROOT bytes including authorized pre-existing WIP; snapshot before atomic-publication change"
+  },
+  "files": {
+    "experiments/material-facts-v7/freeze.mjs": "ad24ff7d917885f513fef55124cc9d6a8430ae5068814db37f93b32ec8ac86bb",
+    "scripts/material-facts-v7-freeze-atomic-publication.test.mjs": "19f50b42d1d7f0072c18cb02daf6beb4f74b9418db74e69ae195e505aa955a5e"
+  },
+  "patchSha256": "05b87313dfba214569ae48544b925c8fb66e0607917c4394d135aa6b7e967121",
+  "checks": [
+    {
+      "receipt": "freeze-atomic-final-before-red.receipt.json",
+      "exitCode": 1,
+      "logSha256": "7cd5b8ad65389caf71e7fd121050300c552b9a4c680eb635b88437ee29b05220"
+    },
+    {
+      "receipt": "freeze-atomic-final-after-green.receipt.json",
+      "exitCode": 0,
+      "logSha256": "34a1d703c4d8574c2528a1cff53232196c2a181e9ab8a00294bc51e4f5be584c"
+    },
+    {
+      "receipt": "freeze-atomic-prior-lock-regression.receipt.json",
+      "exitCode": 0,
+      "logSha256": "4c6d24d530436623949d2764790a2d78d1fc3babc37ed4c3f1a41d0a3dc2bd32"
+    },
+    {
+      "receipt": "freeze-atomic-scoped-eslint.receipt.json",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "behavior": [
+    "Same-directory unique wx temporary file, complete write, sync, close, then exclusive hard-link publication under existing shared lock",
+    "Pre-publication failure leaves no pseudo-freeze, retains temporary bytes plus best-effort exclusive failure receipt, preserves original/aggregate errors",
+    "link is commit boundary: successful complete final is never overwritten or rolled back; later cleanup failures return committed freeze with explicit warning and retained evidence",
+    "SIGKILL retains temporary bytes and owner lock for manual reconciliation; no automatic stale recovery"
+  ],
+  "limits": [
+    "Native multi-process/filesystem fixtures; readiness/data/model/legacy gates are explicitly synthetic stubs",
+    "No real freeze, model call, build, HTTP, training, deployment, commit or push",
+    "No old immutable freeze/results/correction archive altered",
+    "No power-loss durability or cross-filesystem publication claim"
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-18T15:48:45.008731+00:00",
+  "reviewer": "/root/v7_money",
+  "role": "implementer_self_check",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning_effort": "ultra",
+  "actual_backend_independently_verified": false,
+  "status": "IMPLEMENTER_MODULE_CHECKS_PASSED_READY_FOR_INTEGRATION",
+  "baseline_commit": "35bdbde669f639a497f8685383e7a3fd7c948c3f",
+  "baseline_source": "Exact git archive lib from CODE commit, 77 files; no live WIP or holdout/model outputs copied.",
+  "products": [
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-money-v4.ts",
+      "relative_path": "lib/material-money-v4.ts",
+      "sha256": "7025a1a3f57da7e6edf6c74973d5759fcf7130f832b4eb4e406b48b4930eaadb"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-fact-currency-review.ts",
+      "relative_path": "lib/material-fact-currency-review.ts",
+      "sha256": "2102e37e68aeb8438a3322baf2a133d3ec17cfd115679365338c6fa3b6920e78"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-round32-angle-author.test.mjs",
+      "relative_path": "scripts/material-facts-v7-round32-angle-author.test.mjs",
+      "sha256": "7bebafd8bb2f0218e78d446abecd5c3f46c8f59397a12aece120c7ec0ebac0d0"
+    }
+  ],
+  "api": {
+    "export": "isNonCurrencyAngleCountWord(value: string): boolean",
+    "module": "lib/material-fact-currency-review.ts",
+    "accepted_complete_word_tails": [
+      "角度",
+      "角形",
+      "角星",
+      "角洲",
+      "角亭",
+      "角大楼",
+      "角大樓"
+    ],
+    "detection_copy": "Existing NFKC/Cf/layout whitespace folding only; source raw and offsets are not rewritten.",
+    "usage": "money classifier requires an entire numeral+complete word; existing token/source guards reuse the same finite compound alternatives."
+  },
+  "changes": [
+    "Definite complete numeral+angle compounds are not_monetary before the explicit-subunit branch; schema-valid fresh money candidates are rejected with original raw and rejection index retained.",
+    "Shared subunit-word boundary guards now prevent explicit RMB from converting an angle word into cents, including value/quote double cropping and layout continuation.",
+    "Unknown tails, Latin prefixes/suffixes and text containing an actual monetary amount do not match the definite whole-word gate.",
+    "Existing stored observations are not removed; source re-review only downgrades old exact derivatives and never upgrades stored unsupported/null."
+  ],
+  "evidence": {
+    "minimal_probe": "minimal-35b-before.stdout.json",
+    "same_author_script": {
+      "file": "scripts/material-facts-v7-round32-angle-author.test.mjs",
+      "sha256": "7bebafd8bb2f0218e78d446abecd5c3f46c8f59397a12aece120c7ec0ebac0d0",
+      "fixed_baseline": {
+        "tests": 67,
+        "pass": 26,
+        "fail": 41,
+        "exit_code": 1,
+        "stdout": "author-fixed35b-before.stdout.tap",
+        "execution": "author-fixed35b-before.execution.json"
+      },
+      "final": {
+        "tests": 67,
+        "pass": 67,
+        "fail": 0,
+        "exit_code": 0,
+        "stdout": "author-fixed35b-after.stdout.tap",
+        "execution": "author-fixed35b-after.execution.json"
+      }
+    },
+    "key_existing_modules": {
+      "tests": 357,
+      "pass": 357,
+      "fail": 0,
+      "exit_code": 0,
+      "breakdown": {
+        "material-fact-lexical-subunit-gate.test.mjs": 36,
+        "material-fact-mixed-subunits.test.mjs": 191,
+        "material-facts-v7-round31-hour-author.test.mjs": 130
+      },
+      "stdout": "key-existing-after.stdout.tap",
+      "execution": "key-existing-after.execution.json"
+    },
+    "lint": {
+      "exit_code": 0,
+      "execution": "targeted-lint.execution.json"
+    },
+    "runtime": "Node v26.11.0 only in implementer runs; independent dual-runtime/integrated checks remain parent/reviewer work."
+  },
+  "original_vs_adjacent_findings": {
+    "original_four_words": "Fixed35b parse amount already null; erroneous classifier monetary/fresh accepted1. Do not call these existing exact-money leaks.",
+    "explicit_rmb_compound": "Fixed35b 人民币五角星 parsed/fresh exact0.50; cropped 人民币五角 also exact0.50. This same-family adjacent leak is separately recorded and fixed.",
+    "nearby_positive": "人民币五角钱/人民幣五角錢 retain0.50; 五角钱/五角錢 remain reviewable/null rather than inferring a missing currency."
+  },
+  "limits": [
+    "Finite Chinese compound recognition, not a general Chinese/English lexical classifier. Unlisted or complex terms retain conservative review behavior.",
+    "Synthetic module/runtime schema and source re-review only; no new independent material or model evaluation, database/HTTP/UI acceptance or deployment.",
+    "No new automatic amount calculation or history upgrade; natural legal/semantic correctness and human business acceptance remain unverified."
+  ],
+  "not_executed": [
+    "model/inference/training",
+    "scorer",
+    "HTTP",
+    "build",
+    "fullcheck",
+    "history CLI/deep chain",
+    "commit/push/merge/deploy"
+  ],
+  "writes": "Only owned money+authorized shared currency production files, new author script, and new OWN round32 evidence. ROOT/CODE/frozen files/data/results/prior evidence unchanged.",
+  "code_freeze_statement": "Final product and author hashes locked; no further rule changes planned absent an actual blocking finding."
+}

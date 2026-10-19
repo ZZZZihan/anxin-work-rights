@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "task": "issue42-round28-http248-runner-nonimplementer-review",
+  "created_at": "2026-10-18T13:51:24.678832+00:00",
+  "verdict": "NO_BLOCKING_FIXTURE_FINDING_IN_REVIEWED_SCOPE",
+  "reviewer_scope": "Reviewer did not implement this HTTP runner. Reviewer did implement related source/event product modules; this receipt is independent HTTP-fixture/static-evidence review, not independent review of the reviewer own product implementation.",
+  "evidence_class": "Read-only source comparison, static loop-name enumeration with scenario callbacks never invoked, literal fixture and assertion inspection. No HTTP/build/full check/history chain/model execution.",
+  "requested_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "actual_read_files": [
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-facts-v7-http-regression.mjs",
+      "sha256": "5c557b36cb40a6d06465e07bbb046e2283b8877d65235117b0f945616f25fcff",
+      "reviewed_scope": "New ROUND28 insertion, common upload/bind/extract/raw/no-calculation/read-only restart/auth/retirement/cleanup/report helpers"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round28/http222-b497-baseline.mjs.snapshot",
+      "sha256": "30144c103ca92864c284b0deda55526ec6eb6d90d01980841d185fe460a2e35d",
+      "reviewed_scope": "Byte-for-byte reference for all inherited 222 scenarios and lifecycle code"
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-service.mjs",
+      "sha256": "c796d7ea9099d18decb4f74734fa3b2db9fad7dc74cb3ee86433b4e7af154404",
+      "reviewed_scope": "TXT OCR lines-to-blocks implementation around lines260-262; not a full service review"
+    }
+  ],
+  "preservation": {
+    "method": "Byte equality after removal of exactly one ROUND28 insertion; scenario-loop expansion only (callbacks not invoked, no application imports or HTTP).",
+    "runner_sha256": "5c557b36cb40a6d06465e07bbb046e2283b8877d65235117b0f945616f25fcff",
+    "old222_sha256": "30144c103ca92864c284b0deda55526ec6eb6d90d01980841d185fe460a2e35d",
+    "restored_sha256": "30144c103ca92864c284b0deda55526ec6eb6d90d01980841d185fe460a2e35d",
+    "old222_byte_exact": true,
+    "insertion_utf8_bytes": 12632,
+    "insertion_start_line": 1090,
+    "insertion_end_line": 1190,
+    "unique_new_scenarios": 26,
+    "scenario_names": [
+      "round28_postposed_subunit_5角人民币",
+      "round28_postposed_subunit_5角2分RMB",
+      "round28_postposed_subunit_2分CNY",
+      "round28_traditional_ratio_出勤率為百分之八十",
+      "round28_traditional_ratio_支付比例為80%",
+      "round28_traditional_ratio_百分比為80%",
+      "round28_date_traditional-after",
+      "round28_date_traditional-from",
+      "round28_date_postposed-receipt",
+      "round28_date_payment-deadline",
+      "round28_subject_suffix_王月",
+      "round28_subject_suffix_王日",
+      "round28_subject_suffix_王时",
+      "round28_subject_conjunction_王和平",
+      "round28_subject_conjunction_何和",
+      "round28_subject_conjunction_周及",
+      "round28_subject_conjunction_甲和乙",
+      "round28_payment_prose_以下列方式支付",
+      "round28_payment_prose_以上海银行卡支付",
+      "round28_payment_prose_以内地银行支付",
+      "round28_cross_block_subunit_tail_RMB",
+      "round28_cross_block_subunit_tail_人民币",
+      "round28_subunit_after_separate_worker_sentence",
+      "round28_collective_subject_王等",
+      "round28_collective_subject_甲等",
+      "round28_collective_subject_他们"
+    ],
+    "old_count_from_task": 222,
+    "planned_total": 248,
+    "executed_scenario_callbacks": 0
+  },
+  "families": [
+    {
+      "name": "postposed explicit RMB subunits",
+      "count": 3,
+      "checks": "5角人民币=0.50, 5角2分RMB=0.52, 2分CNY=0.02 fresh exact; forced stored unsupported stays null on GET; raw/history/D1 unchanged."
+    },
+    {
+      "name": "traditional ratio descriptions without money",
+      "count": 3,
+      "checks": "為 percentage descriptions accepted0/rejected1 with nonmoney reason; raw candidate retained; GET preserves rejection/storage/history."
+    },
+    {
+      "name": "traditional full date boundary and wage payment date",
+      "count": 4,
+      "checks": "後/從 full value, old-green receipt control, explicit payment deadline; no unresolved relationship on extract/GET. Subject and period fields occur in source or are null."
+    },
+    {
+      "name": "owner final character is not a wage-rate unit",
+      "count": 3,
+      "checks": "王月/王日/王时 fresh4000, no rate mismatch, but incomplete total relationship deliberately remains unresolved; GET4000 and unchanged persisted state."
+    },
+    {
+      "name": "name-internal conjunction versus true short-person coordination",
+      "count": 4,
+      "checks": "王和平/何和/周及 full owner-period-total supported; 甲和乙 remains unresolved; no automatic confirmation or calculation."
+    },
+    {
+      "name": "ordinary prose after monetary token",
+      "count": 3,
+      "checks": "以下列/以上海/以内地 payment prose keeps exact4000 but unresolved ownership-total context; does not turn ordinary tails into amount bounds."
+    },
+    {
+      "name": "cross-block clipped cents tail",
+      "count": 2,
+      "checks": "5角 newline 2分RMB/人民币 produces2 TXT blocks and null nonexact fresh; forced stored exact0.02 downgrades on GET; D1/raw/history not rewritten."
+    },
+    {
+      "name": "separate worker/sentence blocks are not concatenated into an amount",
+      "count": 1,
+      "checks": "5角 sentence followed by 王乙 full owner-period-total2分RMB remains exact0.02 in extract/GET; actual2-block assertion."
+    },
+    {
+      "name": "terminal collective suffix and explicit collective pronoun",
+      "count": 3,
+      "checks": "王等/甲等/他们 retain unresolved relationship in extract/GET. Correct contract is review warning and no calculation; literal4000 need not be rejected or changed to null."
+    }
+  ],
+  "shared_assertions": {
+    "source_bytes": "exactSource=true for all26 fixtures, expected SHA and download bytes checked; no synthetic unknown-Han prelude added. Candidate quotes bound to exactly one real TXT source block.",
+    "protocol_contract": "money defaults subject测试王甲/period2026年1月 are overridden where absent. Date and ratio cases use null period; ratio subject=null; unit/prose/tail cases use null period. Valid source/attribute matching is not defeated by protocol rejection.",
+    "raw_and_evidence": "rawAndLocations equals persisted raw with injected raw, validates full original representation, quote containment, sourceSHA and Unicode code-point quote slice. Ratio rejection keeps the entire raw envelope.",
+    "not_calculable": "extract() and new GET paths call unconfirmed(): canCalculate=false, scope=null, due/paid confirmations null, calculation null and due/paid fields empty.",
+    "historical_read": "Every new scenario compares stored D1 revision/state and history before versus after GET.3 new supported literals explicitly test old unsupported not upgraded;2 tails explicitly test old exact downgraded. These are deliberate synthetic historical-state injections.",
+    "restart": "Every new scenario appends one durable snapshot after successful assertions. Existing restart path checks persisted state, history and raw equality plus unconfirmed fields. It does not reassert every derived GET amount/status after restart.",
+    "authorization_retirement_cleanup": "All inherited code outside the insertion is byte-identical: loopback-only services, random private token, rules queue and ready-result injection, owned-only completed service-job retirement, owned-process cleanup, cleanup-failure FAIL and retained private resources. Static preservation is not a claim that cleanup succeeded in a new run."
+  },
+  "limitations": [
+    "This is static fixture review; no new HTTP pass/fail or clean-up result is claimed. Actual248 report remains the parent integration responsibility.",
+    "Postposed receipt 王甲于某日收到工资 was already green in b497 and is intentionally a control, not a new business defect.",
+    "The new26 use exactSource to avoid unknown prelude inference. They do not add an astral sentinel distinguishing UTF-16 from codepoints; the old222 astral-location test remains byte-identical and new generic rawAndLocations uses Array.from.",
+    "The new26 are targeted synthetic cases, not exhaustive date/name recognition or human/legal business acceptance. Source/event production implementation has separate non-implementer teammate review.",
+    "Reboot persistence checks stored/raw/history equality and no-confirmation state, not a second round of all candidate-derived assertions.",
+    "No old results, frozen labels/artifacts, ROOT/CODE source files or remote state were edited."
+  ],
+  "followup": "When parent HTTP248 finishes, compare the exact runner hash and final observations/cleanup/raw sequence/durable snapshot result in a separate receipt. Do not overwrite this static pre-review."
+}

@@ -1,0 +1,11 @@
+{
+  "scope": "Current CODE and ROOT .mjs/.ts/package/workflow references excluding archived snapshots/evidence",
+  "direct_ci": [
+    ".github/workflows/ci.yml:54 v6/verify.mjs",
+    ".github/workflows/ci.yml:55 v6/summarize.mjs --check"
+  ],
+  "current_tests_call_v6_verify_preflight_or_experiment": false,
+  "v6_eval_test": "lib/material-facts-v6-eval.test.ts calls assess using synthetic cases; it does not validate a frozen artifact against current v3",
+  "v7_legacy": "Current v7 freeze.verifyLegacy intentionally preserves original v6/verify.mjs; existing archived v7 verification restores original v3 first via withFrozenCode",
+  "action": "Replace only CI v6 verify and summary commands with node experiments/material-facts-v6/verify-frozen.mjs; register the new 10-case compatibility suite in current test command; no frozen test or old verifier edits"
+}

@@ -1,0 +1,69 @@
+{
+  "schema": "round20-v16-tooling-handoff/1",
+  "scope": "author-prepared execution/archive tooling; no new inference and no v16 publication",
+  "copy_files": {
+    "experiments/material-facts-v7/historical-v15-execution.mjs": "89d7bb617f68caa099d12530876e0aa07ab6595739bc9f219dccfeda59618f10",
+    "experiments/material-facts-v7/verify-correction-v15.mjs": "57ff7dc681254457af378ee704961725fd5d9031c4d00c3b05a0e1af38956ebd",
+    "experiments/material-facts-v7/corrective-assessment-v16.mjs": "7ab2bcfd2996b659d40585d05f3a7cb63db04611a3f2310a32f1ca707129f76d",
+    "scripts/material-facts-v7-historical-v15-execution.test.mjs": "7e82a3be16b179e5ed5d82ac7592cabd3a0be6d0e8f87e13284f2ed1770a3821",
+    "scripts/material-facts-v7-correction-v15-gates-independent.test.mjs": "6c54c29bed78ff97785a186bdda91cd606788653c6ac8f308d1cc17feac36680",
+    "scripts/material-facts-v7-correction-v16-gates-independent.test.mjs": "6332072c6244443ba7aacddaf068723d16adaa9155ce08a4b7fb68fdde4b23f1"
+  },
+  "archive": {
+    "path": "experiments/material-facts-v7/correction-code-v15",
+    "snapshots": 64,
+    "manifest_sha256": "796d97f9e26c62eb8baa21dd0b53e9127d47d16067e00cc90f4dd6d43b4c20ed",
+    "previous_correction_manifest_sha256": "bc7ba849ed3394cfc6e1a74aa01f93ccbced443602165f43f4900e9d4cb5d292",
+    "copied_from_verified_root": true,
+    "all_snapshot_hashes_match": true,
+    "parent_already_has_same_archive": true
+  },
+  "evidence": {
+    "v15-archive-copy-acquisition.json": "ced8319f0e0366b0ce76979c460272014cd9a7d10b413107391afa60ca1da8ba",
+    "v15-current-gate-before-conversion.snapshot": "4dd9ed7f4f4257cb1421030e4825e3a99034f99ef61e6daa294b60013e7bc349",
+    "historical-v15-native-author.log": "9304beeae90e89adff35a7deb31c3554ae5f926cc3f028245289b9aee82d53c0",
+    "v16-syntax.json": "d987b83ce29720d919bf1648934b21bd7204f40c66677590052854e688089cbd",
+    "v16-scoped-lint.log": "272e4c2b0e16e307699713ad6b529510bfa6a765ef48eba689f6f501a403e27f"
+  },
+  "actual_checks": {
+    "native_contract_tests": {
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "exit": 0
+    },
+    "syntax_files": 6,
+    "syntax_exit": 0,
+    "scoped_lint_exit": 0,
+    "archive_hash_checks": 64,
+    "expected_new_code_count": 67
+  },
+  "immutable_bindings": {
+    "historical-execution-policy-v1.mjs": "cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea",
+    "historical-execution-v1.mjs": "0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c",
+    "historical-v14-execution.mjs": "047393b3ebc8804bf1626a4729fa557e965094c8b7b594716f899401594d891b"
+  },
+  "execution_policy": {
+    "new_exact_target": "experiments/material-facts-v7/corrective-assessment-v15.mjs --check",
+    "root_budget_ms": 900000,
+    "cleanup_reserve_per_level_ms": 2000,
+    "shared_absolute_deadline": true,
+    "current_v16_not_allowlisted": true,
+    "current_gate_two_children_outer_ms": 960000,
+    "current_gate_parent_timeout_ms": 1980000
+  },
+  "not_executed": [
+    "v16 --write",
+    "v16 --check",
+    "deep historical CLI chain",
+    "current/converted gate full execution",
+    "build/HTTP/model requests",
+    "commit/push"
+  ],
+  "integration_advice": {
+    "package": "Retain converted v15 gate; append v15-native and current v16 gate plus new ROUND20 application tests to existing runtime tests.",
+    "workflow": "Use verify-correction-v15.mjs followed by corrective-assessment-v16.mjs --check after root publishes v16.",
+    "required_files": "Root may bind new modules/tests in current readiness lists without changing any old freeze/snapshot.",
+    "formal_write": "Wait for final integrated application hashes and independent review; ROOT alone writes v16."
+  }
+}

@@ -1,0 +1,43 @@
+--- 1cc56d6bc52b67f5c53e7805a9bac0614dfaecd1/lib/material-fact-source-review.ts
++++ final-CODE/lib/material-fact-source-review.ts
+@@ -209,7 +209,7 @@
+   return null;
+ }
+ 
+-function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null, postposedUnit?: RateUnit, paymentSchedule = false): RateUnit | null {
++function sourceRateUnit(context: AnchoredSourceEvent, normalized: CandidateNormalization, subject: string | null, postposedUnit?: RateUnit, paymentSchedule = false, layoutAfter?: string): RateUnit | null {
+   const edges = monetaryEdges(context, normalized, true);
+   if (!edges) return null;
+   const detectionText = sourceRateDetectionText;
+@@ -217,7 +217,12 @@
+   const units: Record<string, RateUnit> = { 月: 'month', 日: 'day', 天: 'day', 小时: 'hour', 时: 'hour', 件: 'piece' };
+   // A model-supplied subject never exempts a postposed source denominator.
+   if (postposedUnit) return postposedUnit;
+-  const suffix = supportedMoneySuffixRateUnit(edges.after);
++  // A bare 每月 on a later row is not attached to this amount. An explicit
++  // slash still joins its denominator through layout, including adjacent blocks.
++  const layoutSuffix = detectionText(layoutAfter ?? edges.after);
++  const suffixEdge = /^\s*(?:[元圆圓]\s*)?\//u.test(layoutSuffix)
++    ? layoutSuffix : edges.after.split(/[\n\r\u2028\u2029]/u)[0];
++  const suffix = supportedMoneySuffixRateUnit(suffixEdge);
+   // Only an explicit recurring day plus payment verb exempts 每月. The
+   // shared predicate does not exempt slash units or another wage standard.
+   if (suffix && !paymentSchedule && !isPostposedMoneyPaymentSchedule(edges.after)) return suffix;
+@@ -336,7 +341,7 @@
+       // Shared finite grammars alone inspect these edges; arbitrary neighboring
+       // prose cannot attach, and stored quote/positions stay in their own block.
+       const layout = sourceMoneyLayoutEdges(context, sourceNormalized.normalization, source!, candidate.blockId);
+-      const qualifierStatus = layout && attachedMoneyQualifierStatus(moneyQualifierPrefixWithoutSubject(layout.before, raw.subject), layout.after);
++      const qualifierStatus = layout && attachedMoneyQualifierStatus(moneyQualifierPrefixWithoutSubject(layout.before, raw.subject), layout.after.replace(/時/gu, '时'));
+       const postposedRate = layout && sourcePostposedRate(layout.after);
+       if (lexical.unresolved) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '相邻文本块的词内连续性未证实，可能包含金额单位的普通词续文；保留原文并人工核对边界。'),
+@@ -374,7 +379,7 @@
+       else if (layout && (sourceHasUnsupportedRate(layout.before) || hasUnsupportedMoneySuffixRate(layout.after) || postposedRate?.unit === null)) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着不受支持的费率分母，未换算成总额或现有费率单位，请人工核对。', 'unsupported'),
+       };
+-      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject, postposedRate?.unit ?? undefined, isPostposedMoneyPaymentSchedule(layout?.after ?? '')))) sourceNormalized = {
++      else if (sourceUnitMismatch(raw, sourceRateUnit(context, sourceNormalized.normalization, raw.subject, postposedRate?.unit ?? undefined, isPostposedMoneyPaymentSchedule(layout?.after ?? ''), layout?.after))) sourceNormalized = {
+         ...sourceNormalized, amount: null, normalization: unavailableNormalization(candidate, '源文金额直接附着费率单位，与当前总额角色或已声明费率单位冲突，未生成精确金额。', 'rate_unit_mismatch'),
+       };
+       else if (!sourceMoneyHasExplicitRmbCurrency(context, sourceNormalized.normalization)) sourceNormalized = {

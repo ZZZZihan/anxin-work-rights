@@ -1,0 +1,379 @@
+{
+  "schema": "material-facts-http182-nonimplementer-review/1",
+  "status": "passed_read_only_formal_report_and_scenario_inheritance_review",
+  "reviewed_at_utc": "2026-10-18T11:34:29.742756+00:00",
+  "requested_model": "gpt-6.1-sol",
+  "requested_reasoning": "ultra",
+  "actual_backend_independently_verified": false,
+  "review_role": "Non-implementer of root-authored HTTP182 scenario/fixture changes. Reviewer implemented the separately disclosed currency conversion guard and named-rate helper, and earlier signal cleanup; no independent claim for those own implementations.",
+  "actual_execution": {
+    "read_only_python_comparison": true,
+    "http_build_fullcheck_model_executed": false,
+    "closed_reports_supplied_by_parent": true,
+    "parent_reported_after_process_exit": 0
+  },
+  "code_head_at_review": "f16c59bc08c823538df00d6fa1fd2dbc139cd5a2",
+  "runner_sha256": "a06cdb38380ef37af63657fdff2bc11e93dcceeb9aff5dabab2554b1fbdb8d70",
+  "runner_95_sha256": "d335518e950db1617a885997b3281fe815dccbc18628b1d2c6621e353378b107",
+  "round24_block_sha256": "6b342af11272e6ab59c0ba89783526de1f2ee482ee1d9c22fdb4ce8749a959a1",
+  "summary": {
+    "review": "read_only_closed_report_comparison",
+    "executed_http": false,
+    "formal_counts": {
+      "before": {
+        "PASS": 170,
+        "FAIL": 12
+      },
+      "after": {
+        "PASS": 182
+      }
+    },
+    "raw183_utf8_bytes_identical": true,
+    "candidate_finish_sequence_identical": true,
+    "old171_raw_sequence_identical": true,
+    "old170_names_order_identical": true,
+    "old169_nonrestart_observations_deep_equal": true,
+    "restart_before": {
+      "name": "worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots",
+      "status": "PASS",
+      "checkedCases": 169,
+      "storedRawAndHistoryUnchanged": true,
+      "privateServiceAuthentication": true
+    },
+    "restart_after": {
+      "name": "worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots",
+      "status": "PASS",
+      "checkedCases": 181,
+      "storedRawAndHistoryUnchanged": true,
+      "privateServiceAuthentication": true
+    },
+    "historical_exact_downgraded_cases": 5,
+    "each_service_calls": 915,
+    "each_authenticated": true,
+    "each_retired_jobs": 366,
+    "each_retired_after_persistence": true,
+    "each_cleanup": {
+      "status": "PASS",
+      "failures": []
+    },
+    "runner_remove_round24_restore_source_default_equals_95_bytes": true
+  },
+  "new_cases": [
+    {
+      "observation_index": 165,
+      "raw_index": 166,
+      "before": {
+        "name": "round24_postposed-？",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n'4000.00' !== null\n"
+        }
+      },
+      "after": {
+        "name": "round24_postposed-？",
+        "status": "PASS",
+        "amount": null,
+        "date": false,
+        "attributed": false,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": true
+      }
+    },
+    {
+      "observation_index": 166,
+      "raw_index": 167,
+      "before": {
+        "name": "round24_postposed-待核实",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n'4000.00' !== null\n"
+        }
+      },
+      "after": {
+        "name": "round24_postposed-待核实",
+        "status": "PASS",
+        "amount": null,
+        "date": false,
+        "attributed": false,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": true
+      }
+    },
+    {
+      "observation_index": 167,
+      "raw_index": 168,
+      "before": {
+        "name": "round24_postposed-待定",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n'4000.00' !== null\n"
+        }
+      },
+      "after": {
+        "name": "round24_postposed-待定",
+        "status": "PASS",
+        "amount": null,
+        "date": false,
+        "attributed": false,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": true
+      }
+    },
+    {
+      "observation_index": 168,
+      "raw_index": 169,
+      "before": {
+        "name": "round24_postposed-未知",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n'4000.00' !== null\n"
+        }
+      },
+      "after": {
+        "name": "round24_postposed-未知",
+        "status": "PASS",
+        "amount": null,
+        "date": false,
+        "attributed": false,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": true
+      }
+    },
+    {
+      "observation_index": 169,
+      "raw_index": 170,
+      "before": {
+        "name": "round24_traditional-role-應付",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "{\"fact\":{\"kind\":\"due_total\",\"qualifier\":\"unknown\",\"value\":\"四萬圓\",\"quote\":\"四萬圓\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"period\":\"2026年1月\",\"assertion\":\"narrated\",\"id\":\"f12a0d29-2a18-4520-8c3a-c0f675a50736:1:0\",\"evidenceId\":\"f12a0d29-2a18-4520-8c3a-c0f675a50736\",\"sourceSha256\":\"d3cf364acf5413da4a5a8f703384a3bfa88b8bd50a49ac73ee9399acca7a4e49\",\"page\":1,\"start\":20,\"end\":23,\"amount\":\"40000.00\",\"schemaVersion\":3,\"representation\":{\"kind\":\"money\",\"value\":\"四萬圓\",\"quote\":\"四萬圓\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"due_total\",\"completeness\":\"complete\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"},\"normalization\":{\"rawValue\":\"四萬圓\",\"status\":\"exact\",\"amount\":\"40000.00\",\"matchedText\":\"四萬圓\",\"span\":{\"start\":0,\"end\":3},\"reason\":\"唯一完整人民币金额已精确解析；原文和位置保持不变。\"},\"reviewIssues\":[{\"code\":\"source_relation_unresolved\",\"message\":\"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。\"}],\"outputFormat\":\"json\"},\"blocks\":[{\"id\":\"p1-b1\",\"page\":1,\"text\":\"。测试王甲2026年1月全部應付工資合計四萬圓。\",\"bbox\":null,\"confidence\":null}]}"
+        }
+      },
+      "after": {
+        "name": "round24_traditional-role-應付",
+        "status": "PASS",
+        "amount": "40000.00",
+        "date": false,
+        "attributed": true,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": false
+      }
+    },
+    {
+      "observation_index": 170,
+      "raw_index": 171,
+      "before": {
+        "name": "round24_traditional-role-已付",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "{\"fact\":{\"kind\":\"paid_total\",\"qualifier\":\"unknown\",\"value\":\"四萬圓\",\"quote\":\"四萬圓\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"period\":\"2026年1月\",\"assertion\":\"narrated\",\"id\":\"18cbe42e-b864-44a2-8787-0bf3ed6336af:1:0\",\"evidenceId\":\"18cbe42e-b864-44a2-8787-0bf3ed6336af\",\"sourceSha256\":\"17b0a06f642b2c76f077cb4857817f7c172097be1f4002b3c81c3be6fdd75181\",\"page\":1,\"start\":20,\"end\":23,\"amount\":\"40000.00\",\"schemaVersion\":3,\"representation\":{\"kind\":\"money\",\"value\":\"四萬圓\",\"quote\":\"四萬圓\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"paid_total\",\"completeness\":\"complete\",\"period\":\"2026年1月\",\"rateUnit\":null,\"assertion\":\"narrated\"},\"normalization\":{\"rawValue\":\"四萬圓\",\"status\":\"exact\",\"amount\":\"40000.00\",\"matchedText\":\"四萬圓\",\"span\":{\"start\":0,\"end\":3},\"reason\":\"唯一完整人民币金额已精确解析；原文和位置保持不变。\"},\"reviewIssues\":[{\"code\":\"source_relation_unresolved\",\"message\":\"源文未在同一明确事件中绑定该劳动者、完整工资期间和应付/已付总额；跨句线索、多主体、多期间或复杂表述不能仅凭文字出现就视为个人可用金额，请对照原文人工核对。\"}],\"outputFormat\":\"json\"},\"blocks\":[{\"id\":\"p1-b1\",\"page\":1,\"text\":\"。测试王甲2026年1月全部已付工資合計四萬圓。\",\"bbox\":null,\"confidence\":null}]}"
+        }
+      },
+      "after": {
+        "name": "round24_traditional-role-已付",
+        "status": "PASS",
+        "amount": "40000.00",
+        "date": false,
+        "attributed": true,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": false
+      }
+    },
+    {
+      "observation_index": 171,
+      "raw_index": 172,
+      "before": {
+        "name": "round24_explicit-conversion-美元折合人民币",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\nnull !== '4000.00'\n"
+        }
+      },
+      "after": {
+        "name": "round24_explicit-conversion-美元折合人民币",
+        "status": "PASS",
+        "amount": "4000.00",
+        "date": false,
+        "attributed": false,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": false
+      }
+    },
+    {
+      "observation_index": 172,
+      "raw_index": 173,
+      "before": {
+        "name": "round24_explicit-conversion-美元折算为人民币",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\nnull !== '4000.00'\n"
+        }
+      },
+      "after": {
+        "name": "round24_explicit-conversion-美元折算为人民币",
+        "status": "PASS",
+        "amount": "4000.00",
+        "date": false,
+        "attributed": false,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": false
+      }
+    },
+    {
+      "observation_index": 173,
+      "raw_index": 174,
+      "before": {
+        "name": "round24_recurring-payment-每月15日",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "{\"fact\":{\"kind\":\"period\",\"qualifier\":\"other_period\",\"value\":\"每月15日\",\"quote\":\"每月15日\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"period\":null,\"assertion\":\"narrated\",\"id\":\"b8895fde-8630-4421-adcf-c09387a31f7a:1:0\",\"evidenceId\":\"b8895fde-8630-4421-adcf-c09387a31f7a\",\"sourceSha256\":\"1363f42e7e2544ceb7f0797599de37513f5d4ecb5ab3c2db0b2e03fe3314bfa1\",\"page\":1,\"start\":10,\"end\":15,\"amount\":null,\"schemaVersion\":3,\"representation\":{\"kind\":\"date\",\"value\":\"每月15日\",\"quote\":\"每月15日\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"payment_date\",\"completeness\":\"not_applicable\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"},\"normalization\":{\"rawValue\":\"每月15日\",\"status\":\"not_money\",\"amount\":null,\"matchedText\":null,\"span\":null,\"reason\":\"日期保留原文精度与边界，不作为金额解析。\"},\"reviewIssues\":[{\"code\":\"source_relation_unresolved\",\"message\":\"源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。\"}],\"outputFormat\":\"json\"},\"blocks\":[{\"id\":\"p1-b1\",\"page\":1,\"text\":\"。测试王甲工资收到日每月15日。\",\"bbox\":null,\"confidence\":null}]}"
+        }
+      },
+      "after": {
+        "name": "round24_recurring-payment-每月15日",
+        "status": "PASS",
+        "amount": null,
+        "date": true,
+        "attributed": true,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": false
+      }
+    },
+    {
+      "observation_index": 174,
+      "raw_index": 175,
+      "before": {
+        "name": "round24_recurring-payment-每月三十一日",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "{\"fact\":{\"kind\":\"period\",\"qualifier\":\"other_period\",\"value\":\"每月三十一日\",\"quote\":\"每月三十一日\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"period\":null,\"assertion\":\"narrated\",\"id\":\"e8901703-4992-49be-91cc-4828b2fed636:1:0\",\"evidenceId\":\"e8901703-4992-49be-91cc-4828b2fed636\",\"sourceSha256\":\"9433a6cd2a3da58f5a2ab45dc30886a823abd8fe46e76d3875fa48e6eca3f164\",\"page\":1,\"start\":10,\"end\":16,\"amount\":null,\"schemaVersion\":3,\"representation\":{\"kind\":\"date\",\"value\":\"每月三十一日\",\"quote\":\"每月三十一日\",\"blockId\":\"p1-b1\",\"subject\":\"测试王甲\",\"scope\":\"individual\",\"meaning\":\"payment_date\",\"completeness\":\"not_applicable\",\"period\":null,\"rateUnit\":null,\"assertion\":\"narrated\"},\"normalization\":{\"rawValue\":\"每月三十一日\",\"status\":\"not_money\",\"amount\":null,\"matchedText\":null,\"span\":null,\"reason\":\"日期保留原文精度与边界，不作为金额解析。\"},\"reviewIssues\":[{\"code\":\"source_relation_unresolved\",\"message\":\"源文未在同一明确事件中支持该候选标注的主体与期间；文字在其他位置出现不足以确认归属，请对照原文核对。此提示也适用于费率、单笔付款、欠款、裁判金额及日期。\"}],\"outputFormat\":\"json\"},\"blocks\":[{\"id\":\"p1-b1\",\"page\":1,\"text\":\"。测试王甲工资收到日每月三十一日。\",\"bbox\":null,\"confidence\":null}]}"
+        }
+      },
+      "after": {
+        "name": "round24_recurring-payment-每月三十一日",
+        "status": "PASS",
+        "amount": null,
+        "date": true,
+        "attributed": true,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": false
+      }
+    },
+    {
+      "observation_index": 175,
+      "raw_index": 176,
+      "before": {
+        "name": "round24_named_rate_operand_stays_unavailable",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n'40000.00' !== null\n"
+        }
+      },
+      "after": {
+        "name": "round24_named_rate_operand_stays_unavailable",
+        "status": "PASS",
+        "amount": null,
+        "rawAndStoredHistoryUnchanged": true,
+        "historicalExactDowngraded": true
+      }
+    },
+    {
+      "observation_index": 176,
+      "raw_index": 177,
+      "before": {
+        "name": "round24_same_occurrence_traditional_wrapper_is_one_candidate",
+        "status": "FAIL",
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n2 !== 1\n"
+        }
+      },
+      "after": {
+        "name": "round24_same_occurrence_traditional_wrapper_is_one_candidate",
+        "status": "PASS",
+        "accepted": 1,
+        "rawCandidates": 2,
+        "rawAndStoredHistoryUnchanged": true
+      }
+    }
+  ],
+  "assertion_review": [
+    "Only four new attributed role/payment-date positive fixtures set spec.exactSource=true to omit the unrelated synthetic header. The sole fixture helper change preserves the default path for every old caller; removing the new block and reversing that one conditional restores the exact95 HTTP170 script byte-for-byte.",
+    "The new payment wrapper-dedup candidate uses completeness=unknown for meaning=payment. Earlier invalid date/payment and synthetic-header diagnostics are preserved and excluded from the formal old-versus-new comparison.",
+    "Four postposed uncertainty cases assert fresh null/uncertain, inject synthetic old exact4000 into disposable D1, then require GET null/uncertain while full stored state and history remain unchanged.",
+    "The named-rate case asserts fresh unsupported/null, injects synthetic old exact40000, and requires GET null while stored state/history remain unchanged. The formal old95 run fails at the earlier fresh assertion; it does not prove an old HTTP execution reached those later historical-injection assertions.",
+    "Two traditional due/paid cases require amount40000 and absence of source_relation_unresolved; two recurring payment-date cases require accepted raw dates and absence of that issue. All remain unconfirmed with calculation disabled. These are source-attribution checks, not legal/semantic due-date adjudication.",
+    "Two explicit conversion positives assert amount4000 on fresh extraction and GET. The source already states the RMB result; no exchange rate calculation or old unsupported automatic upgrade is tested.",
+    "The traditional wrapper case keeps both original candidates in exact raw JSON, accepts one same-occurrence candidate, and preserves state/history across GET. It does not deduplicate different occurrences/events.",
+    "All twelve final cases enter durableSnapshots. Restart checks181 full stored state/raw/history snapshots, including failed/empty/guard paths. It does not reassert every derived amount after restart.",
+    "Each report records915 authenticated service calls and366 consumed service jobs retired only after Worker persistence. Source assertions restrict retirement to owned jobs and compare D1 state before/after; this is fixture capacity management, not deletion or migration of evidence.",
+    "Malformed raw, empty raw, finish_reason=length, valid-empty, and other original170 scenarios retain identical inputs/order and old169 nonrestart observations. The only old observation difference is restart checkedCases169→181."
+  ],
+  "limitations": [
+    "Reports do not embed the executed runner or build hash. Parent supplied the same-final-runner and fixed95-build provenance; this review binds current script bytes, preserved prior script bytes, and identical raw/candidate/finish sequences, without claiming cryptographic proof of the executed binary.",
+    "Disposable D1/R2/socket resources were already cleaned up. The reviewer inspected closed reports and the assertions, not live storage or process cleanup directly. CleanupPASS is recorded runner evidence.",
+    "These are synthetic WorkerHTTP regressions using injected outputs and real TXT/queue paths. No new model inference, holdout/model quality score, calculation authorization workflow, expert annotation, CI outcome or production acceptance follows.",
+    "Parent reported final fullcheck exit0:1789Vitest/5046runtimePASS+1skip/material67PASS+1skip/Python9+11+16. This reviewer did not run or fully inspect that check.",
+    "Application commit f16c59b was reported by parent; no push/CI/deployment conclusion is inferred."
+  ],
+  "diagnostics_excluded": [
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round24/invalid-date-fixture-http180-before95.json",
+      "sha256": "20f15e13d492f70a5b69ea1dc40f929da27c7cf8df14d4f24da9d9ae7f994a79",
+      "observations": 180,
+      "pass": 170,
+      "fail": 10,
+      "reason": "Historical fixture/intermediate-code diagnostic, not the formal fixed95/final pair. Parent identified invalid date/payment fixture and synthetic-header attribution limitations; no defect total inferred from this report."
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round24/http180-before95.json",
+      "sha256": "291d9817caa6ecf7afc7cc4e54f0bb138871b29b819707ae17994349c0cfbfa1",
+      "observations": 180,
+      "pass": 170,
+      "fail": 10,
+      "reason": "Historical fixture/intermediate-code diagnostic, not the formal fixed95/final pair. Parent identified invalid date/payment fixture and synthetic-header attribution limitations; no defect total inferred from this report."
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round24/http182-before-last-two.json",
+      "sha256": "ce7476ade629e9d3ff8eecc8419c13e4e12d6efcd66e80c123b3b06292545725",
+      "observations": 182,
+      "pass": 176,
+      "fail": 6,
+      "reason": "Historical fixture/intermediate-code diagnostic, not the formal fixed95/final pair. Parent identified invalid date/payment fixture and synthetic-header attribution limitations; no defect total inferred from this report."
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round24/http182-before-last-two-diagnostic.json",
+      "sha256": "19a5e5a2cbebf12ce1e71bb7a4172b27ad08ea62ffc95e054344df32515c3a9c",
+      "observations": 182,
+      "pass": 176,
+      "fail": 6,
+      "reason": "Historical fixture/intermediate-code diagnostic, not the formal fixed95/final pair. Parent identified invalid date/payment fixture and synthetic-header attribution limitations; no defect total inferred from this report."
+    }
+  ],
+  "blocking_findings": [],
+  "reviewed_files_sha256": {
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round24/http182-before95-final-fixtures.json": "217e1b612c080c4c380bde25783d76645ce56d810fb51cf089177ae8fc9c4822",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round24/http182-after-final.json": "3269ada612dac282fedc80e2859e543e91800462ee57d7b6e5338c693734890f",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round23/http170-after-final.json": "d6ada677937bbbaccb4ee8bd89469729fa8da47aad4779518a346e38592a4c67",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/scripts/material-facts-v7-http-regression.mjs": "a06cdb38380ef37af63657fdff2bc11e93dcceeb9aff5dabab2554b1fbdb8d70",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round24/http182-before95-final-fixtures.log": "f7535d51ce227b8a337f3c3f4692c07e9c580c0698834b397e9e05b4697e3c08",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review/.scratch/issue42/round24/http182-after-final.log": "7c36cb782b99a45b8584c64d814e0a1e420ef4c22fa81f338bd83314845a99d2"
+  },
+  "new_evidence_sha256": {
+    "http182-raw183-sequence-index.json": "940f29c476ee4f2c96079a36595a508487a76442ad4c0403726971daeb85ffcf",
+    "http182-readonly-comparison.actual.log": "5026c4a573c8b852b43c352a52e8e64f824ef514185d12de2846d7a284775f1a",
+    "http182-static-inheritance.review.json": "a623d64ba3b9100ea140644c89ad9435f384efb6fb21452385d54f643444dc06",
+    "runner.a06cdb38.reviewed.snapshot": "a06cdb38380ef37af63657fdff2bc11e93dcceeb9aff5dabab2554b1fbdb8d70"
+  }
+}

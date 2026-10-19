@@ -1,0 +1,196 @@
+TAP version 13
+# {"evidence":"round28_implementation","path":"lib/material-money-v4.ts","sha256":"9418e8552d8af20b3b3da1b389bca74d2288e30549be1b5974df2b25e5bbaacf"}
+# {"evidence":"round28_implementation","path":"lib/material-fact-range-review.ts","sha256":"4bb5f5fa446a8bf5dec309e7faa04c18ee8f3c132893a2bacbc65c3875154723"}
+# {"evidence":"round28_implementation","path":"lib/material-fact-source-review.ts","sha256":"fd215d6ace9b9b9ce019fd28b5f9f3a4bc35b1e79162a62ca52abc0e31ee5714"}
+# {"evidence":"round28_implementation","path":"lib/material-fact-event-review.ts","sha256":"cc35b6a597231967c721ca70bc378e6b8877fc23b10a6e5e634a5bc24f15e010"}
+# {"evidence":"round28_implementation","path":"lib/material-fact-currency-review.ts","sha256":"be4f151b5e588dc6cf1c35d30948d836a380a24ab6bb6497cc860abf7b68fde5"}
+# {"evidence":"round28_implementation","path":"experiments/material-facts-v7/assess.mjs","sha256":"04d16d173e4ab491d91e0a083f07c734b10591f9814296fa30d1464a9116c0c5"}
+# Subtest: one explicit postposed RMB marker preserves the full subunit amount: 5角人民币
+ok 1 - one explicit postposed RMB marker preserves the full subunit amount: 5角人民币
+  ---
+  duration_ms: 54.995834
+  type: 'test'
+  ...
+# Subtest: one explicit postposed RMB marker preserves the full subunit amount: 5角2分RMB
+ok 2 - one explicit postposed RMB marker preserves the full subunit amount: 5角2分RMB
+  ---
+  duration_ms: 2.880667
+  type: 'test'
+  ...
+# Subtest: one explicit postposed RMB marker preserves the full subunit amount: 2分CNY
+ok 3 - one explicit postposed RMB marker preserves the full subunit amount: 2分CNY
+  ---
+  duration_ms: 3.106625
+  type: 'test'
+  ...
+# Subtest: bare subunits and malformed or conflicting currency never gain an amount
+ok 4 - bare subunits and malformed or conflicting currency never gain an amount
+  ---
+  duration_ms: 0.311459
+  type: 'test'
+  ...
+# Subtest: a subunit tail cropped from the same full literal cannot become 0.02
+ok 5 - a subunit tail cropped from the same full literal cannot become 0.02
+  ---
+  duration_ms: 1.985875
+  type: 'test'
+  ...
+# Subtest: adjacent blocks, whitespace and Cf cannot turn the tail of 5角2分RMB into 0.02
+ok 6 - adjacent blocks, whitespace and Cf cannot turn the tail of 5角2分RMB into 0.02
+  ---
+  duration_ms: 6.270416
+  type: 'test'
+  ...
+# Subtest: a sentence or another named person separates a genuine 0.02 payment
+ok 7 - a sentence or another named person separates a genuine 0.02 payment
+  ---
+  duration_ms: 5.687333
+  type: 'test'
+  ...
+# Subtest: a complete traditional percentage is rejected as amount-free while raw survives: 出勤率為百分之八十
+ok 8 - a complete traditional percentage is rejected as amount-free while raw survives: 出勤率為百分之八十
+  ---
+  duration_ms: 0.261
+  type: 'test'
+  ...
+# Subtest: a complete traditional percentage is rejected as amount-free while raw survives: 支付比例為80%
+ok 9 - a complete traditional percentage is rejected as amount-free while raw survives: 支付比例為80%
+  ---
+  duration_ms: 0.143834
+  type: 'test'
+  ...
+# Subtest: a complete traditional percentage is rejected as amount-free while raw survives: 百分比為80%
+ok 10 - a complete traditional percentage is rejected as amount-free while raw survives: 百分比為80%
+  ---
+  duration_ms: 0.185084
+  type: 'test'
+  ...
+# Subtest: an attached percentage with real currency remains a review candidate, never its base amount
+ok 11 - an attached percentage with real currency remains a review candidate, never its base amount
+  ---
+  duration_ms: 4.277584
+  type: 'test'
+  ...
+# Subtest: traditional boundary words inside the date value keep attribution: 2026年1月後
+ok 12 - traditional boundary words inside the date value keep attribution: 2026年1月後
+  ---
+  duration_ms: 4.307333
+  type: 'test'
+  ...
+# Subtest: traditional boundary words inside the date value keep attribution: 從2026年1月起
+ok 13 - traditional boundary words inside the date value keep attribution: 從2026年1月起
+  ---
+  duration_ms: 0.361333
+  type: 'test'
+  ...
+# Subtest: a complete calendar payment deadline needs no receipt verb
+ok 14 - a complete calendar payment deadline needs no receipt verb
+  ---
+  duration_ms: 1.542042
+  type: 'test'
+  ...
+# Subtest: postposed receipt on a calendar date is an already-supported baseline control
+ok 15 - postposed receipt on a calendar date is an already-supported baseline control
+  ---
+  duration_ms: 0.421458
+  type: 'test'
+  ...
+# Subtest: an employment date cannot borrow the payment-date role
+ok 16 - an employment date cannot borrow the payment-date role
+  ---
+  duration_ms: 0.342
+  type: 'test'
+  ...
+# Subtest: an anchored individual name ending in a rate-unit glyph does not create a rate: 王月
+ok 17 - an anchored individual name ending in a rate-unit glyph does not create a rate: 王月
+  ---
+  duration_ms: 3.118583
+  type: 'test'
+  ...
+# Subtest: an anchored individual name ending in a rate-unit glyph does not create a rate: 王日
+ok 18 - an anchored individual name ending in a rate-unit glyph does not create a rate: 王日
+  ---
+  duration_ms: 2.289208
+  type: 'test'
+  ...
+# Subtest: an anchored individual name ending in a rate-unit glyph does not create a rate: 王时
+ok 19 - an anchored individual name ending in a rate-unit glyph does not create a rate: 王时
+  ---
+  duration_ms: 2.181625
+  type: 'test'
+  ...
+# Subtest: an explicit monthly rate survives, and a model subject cannot swallow 每月 into a false total
+ok 20 - an explicit monthly rate survives, and a model subject cannot swallow 每月 into a false total
+  ---
+  duration_ms: 5.643708
+  type: 'test'
+  ...
+# Subtest: a conjunction glyph inside one individual name is not a coordinated group: 王和平
+ok 21 - a conjunction glyph inside one individual name is not a coordinated group: 王和平
+  ---
+  duration_ms: 3.138
+  type: 'test'
+  ...
+# Subtest: a conjunction glyph inside one individual name is not a coordinated group: 何和
+ok 22 - a conjunction glyph inside one individual name is not a coordinated group: 何和
+  ---
+  duration_ms: 1.846958
+  type: 'test'
+  ...
+# Subtest: a conjunction glyph inside one individual name is not a coordinated group: 周及
+ok 23 - a conjunction glyph inside one individual name is not a coordinated group: 周及
+  ---
+  duration_ms: 2.187666
+  type: 'test'
+  ...
+# Subtest: an actual coordinated subject still cannot be certified as one individual
+ok 24 - an actual coordinated subject still cannot be certified as one individual
+  ---
+  duration_ms: 2.16425
+  type: 'test'
+  ...
+# Subtest: ordinary payment prose cannot become an amount bound: 以下列方式支付
+ok 25 - ordinary payment prose cannot become an amount bound: 以下列方式支付
+  ---
+  duration_ms: 2.681583
+  type: 'test'
+  ...
+# Subtest: ordinary payment prose cannot become an amount bound: 以上海银行卡支付
+ok 26 - ordinary payment prose cannot become an amount bound: 以上海银行卡支付
+  ---
+  duration_ms: 2.290625
+  type: 'test'
+  ...
+# Subtest: ordinary payment prose cannot become an amount bound: 以内部分配方式支付
+ok 27 - ordinary payment prose cannot become an amount bound: 以内部分配方式支付
+  ---
+  duration_ms: 2.60675
+  type: 'test'
+  ...
+# Subtest: real bounds remain unavailable rather than becoming ordinary prose
+ok 28 - real bounds remain unavailable rather than becoming ordinary prose
+  ---
+  duration_ms: 6.437875
+  type: 'test'
+  ...
+# Subtest: six layers never score a cropped 0.02 tail as the full 0.52 literal
+ok 29 - six layers never score a cropped 0.02 tail as the full 0.52 literal
+  ---
+  duration_ms: 1.552542
+  type: 'test'
+  ...
+# Subtest: an equal amount at another event cannot lend its gold anchor in any of six layers
+ok 30 - an equal amount at another event cannot lend its gold anchor in any of six layers
+  ---
+  duration_ms: 0.845042
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 222.235834

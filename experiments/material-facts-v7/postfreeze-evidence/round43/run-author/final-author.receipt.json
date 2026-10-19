@@ -1,0 +1,245 @@
+{
+  "schema": "material-facts-v7/run-preservation-author-review/1",
+  "created_at": "2026-10-19T00:47:16.768299+00:00",
+  "request": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "baseline_commit": "b199f52154d0eab731cb7d562ca02cff53021fe8",
+  "review_comment": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#issuecomment-6257085416",
+  "role": "run.mjs author and focused fixture author; not an independent review of own implementation",
+  "delivered_files": [
+    {
+      "path": "experiments/material-facts-v7/run.mjs",
+      "sha256": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4"
+    },
+    {
+      "path": "scripts/material-facts-v7-run-preservation.test.mjs",
+      "sha256": "3e5edf16f8420ede1c31f9445c4be3fc2c6d6c4384f022455993a7d1c610a282"
+    },
+    {
+      "path": "scripts/material-facts-v7-run-lifecycle.test.mjs",
+      "sha256": "f62852ee3fc616f4b5e260327a7d1512c765c65dbd6f9f4e3cb261b07949974e"
+    },
+    {
+      "path": "scripts/material-facts-v7-monitor-independent.test.mjs",
+      "sha256": "3deaaa3a6886f17d89846f2567e966a2ecf11db085160fa587368c54e26fe2f8"
+    }
+  ],
+  "changes": [
+    "Parse and check basic event structure, result backend/id/raw_output/finish_reason, duplicate rows and planned DeepSeek request/result order before appending events.jsonl.",
+    "Preserve the offending decoded line and currently buffered decoded remainder outside the event protocol, stop the worker, and preserve failed outcome.",
+    "Hold the same lifecycle lock for diagnostic and holdout; ROOT separately provides actual full verify/assessment/summary lock integration.",
+    "Replace outcome checkpoints only by unique wx same-directory stage followed by rename; preserve old outcome and failure stage if write/rename fails.",
+    "Two legacy synthetic result producers add backend; the DeepSeek UTF8 producer adds its corresponding requesting event. All original assertions are unchanged."
+  ],
+  "actual_runs": {
+    "before-red": {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-concurrency=1",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-run-preservation.test.mjs"
+      ],
+      "exit_code": 1,
+      "seconds": 2.3715107440948486,
+      "counts": {
+        "tests": 3,
+        "pass": 0,
+        "fail": 3,
+        "skipped": 0
+      }
+    },
+    "same-final-test-b199-before": {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-concurrency=1",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-run-preservation.test.mjs"
+      ],
+      "exit_code": 1,
+      "seconds": 9.886387625010684,
+      "source": "exact b199f52154d0eab731cb7d562ca02cff53021fe8",
+      "test_sha256": "3e5edf16f8420ede1c31f9445c4be3fc2c6d6c4384f022455993a7d1c610a282",
+      "counts": {
+        "tests": 17,
+        "pass": 1,
+        "fail": 16,
+        "skipped": 0
+      }
+    },
+    "prefix-f4d-before": {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-concurrency=1",
+        "--test-name-pattern=planned request/result prefix",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-run-preservation.test.mjs"
+      ],
+      "exit_code": 1,
+      "seconds": 0.976908375043422,
+      "run_sha256": "f4d9dd52280b09e9520bb2403af8d46901b0a29a255fcffc5104e896110299a8",
+      "test_sha256": "3e5edf16f8420ede1c31f9445c4be3fc2c6d6c4384f022455993a7d1c610a282",
+      "counts": {
+        "tests": 2,
+        "pass": 0,
+        "fail": 2,
+        "skipped": 0
+      }
+    },
+    "prefix-final-node24": {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-concurrency=1",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-run-preservation.test.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 9.493380624975543,
+      "run_sha256": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4",
+      "test_sha256": "3e5edf16f8420ede1c31f9445c4be3fc2c6d6c4384f022455993a7d1c610a282",
+      "counts": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "prefix-final-node26": {
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-run-preservation.test.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 15.205575291009154,
+      "run_sha256": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4",
+      "test_sha256": "3e5edf16f8420ede1c31f9445c4be3fc2c6d6c4384f022455993a7d1c610a282",
+      "counts": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    "legacy-fixture-unadapted": {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-concurrency=1",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/scripts/material-facts-v7-run-lifecycle.test.mjs",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/scripts/material-facts-v7-monitor-independent.test.mjs"
+      ],
+      "exit_code": 1,
+      "seconds": 11.40041708946228,
+      "counts": {
+        "tests": 13,
+        "pass": 5,
+        "fail": 8,
+        "skipped": 0
+      }
+    },
+    "legacy-fixture-final": {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--test",
+        "--test-concurrency=1",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-run-lifecycle.test.mjs",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/scripts/material-facts-v7-monitor-independent.test.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 11.846788041992113,
+      "files": {
+        "experiments/material-facts-v7/run.mjs": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4",
+        "scripts/material-facts-v7-run-lifecycle.test.mjs": "f62852ee3fc616f4b5e260327a7d1512c765c65dbd6f9f4e3cb261b07949974e",
+        "scripts/material-facts-v7-monitor-independent.test.mjs": "3deaaa3a6886f17d89846f2567e966a2ecf11db085160fa587368c54e26fe2f8"
+      },
+      "counts": {
+        "tests": 13,
+        "pass": 13,
+        "fail": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "static": [
+    {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/node_modules/eslint/bin/eslint.js",
+        "experiments/material-facts-v7/run.mjs",
+        "scripts/material-facts-v7-run-preservation.test.mjs",
+        "scripts/material-facts-v7-run-lifecycle.test.mjs",
+        "scripts/material-facts-v7-monitor-independent.test.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 1.0402549580321647
+    },
+    {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--check",
+        "experiments/material-facts-v7/run.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--check",
+        "scripts/material-facts-v7-run-preservation.test.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--check",
+        "scripts/material-facts-v7-run-lifecycle.test.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node",
+        "--check",
+        "scripts/material-facts-v7-monitor-independent.test.mjs"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "dependencies_for_green": {
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/experiments/material-facts-v7/experiment-lock.mjs": "32343639d8f378206a32f4f6d60c6f9d316be4aa53bfcc6bef669aeaa7a2e655",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/experiments/material-facts-v7/verify.mjs": "d5ac82b2968a962ddd9751622de2c8b77960e318e349b27a57e3207b3ab641de",
+    "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/experiments/material-facts-v7/immutable-artifact-publication.mjs": "70ee51e28f65684b703e6031aa0f4b6be96dfaf94114d69bacfc13caadafdb48"
+  },
+  "actual_side_effects": "Real runner CLI subprocesses, real local filesystem writes, original extracted verifier function bodies, actual lifecycle lock and immutable publication helper. Injected write fault performs a real 23-byte partial write; rename fault throws EACCES. Competing finalizer is the real extracted verifyExperiment body against explicit synthetic preflight/scorer.",
+  "synthetic_boundaries": [
+    "The dataset has two owned fake cases; preflight, prompt construction and score report are explicit stubs.",
+    "Qwen/DeepSeek workers are local finite Node byte producers. No model worker/model/key/network or historical CLI ran.",
+    "DeepSeek invalid-request controls execute original basic outcome/events validators only; no claim of full HTTP transport, budget, model identity, token semantics or arbitrary malicious-worker verification."
+  ],
+  "limitations": [
+    "Quarantine preserves the offending complete decoded line and currently buffered decoded chunk; bounded stdout evidence does not promise arbitrary future worker bytes after termination.",
+    "Outcome replacement provides same-directory atomic visibility; no power-loss durability or cross-filesystem guarantee is claimed.",
+    "A failed checkpoint retains prior valid JSON plus its failure stage; later result rows may need manual reconciliation before sealing. It is not falsely reported as a completed/sealable experiment.",
+    "Holdout locking requires ROOT companion lifecycle-lock and finalizer changes; a runner-only patch is insufficient.",
+    "No original freeze, gold, saved model output, historical snapshot or correction artifact was modified by this task. This action claim is not a new full-protection hash audit."
+  ],
+  "preserved_intermediate_failures": [
+    "Initial lint exited2 because OWN node_modules was absent; trusted existing node_modules symlink restored local dependency resolution, final scoped lint passed.",
+    "First expanded 17-test run was 15P2F because its new test incorrectly expected the precreated empty results.jsonl not to exist. That fixture expectation was corrected to empty bytes; original test snapshot and logs remain.",
+    "f4d9 source with 15 green tests is intermediate; planned-prefix controls exposed two additional invalid event orders before dab72 final.",
+    "Unadapted legacy fake workers omitted backend and produced 5P8F; only basic schema fields/requesting producer lines were migrated, without weakening production checks or original assertions."
+  ]
+}

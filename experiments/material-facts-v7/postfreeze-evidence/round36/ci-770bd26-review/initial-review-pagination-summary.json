@@ -1,0 +1,50 @@
+{
+  "reviews": {
+    "pages": 1,
+    "items": 20,
+    "on_exact_head": []
+  },
+  "review-comments": {
+    "pages": 1,
+    "items": 30,
+    "on_exact_head": [
+      {
+        "id": 4305935632,
+        "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305935632",
+        "state": null,
+        "submitted_at": null,
+        "created_at": "2026-10-18T05:56:54Z",
+        "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Verify the published v5 manifest byte-for-byte**\n\nThe newly added v5 `--check` parses `manifest.json` before comparison, so re-indenting, reordering, or adding whitespace still returns `PASS` while changing the SHA-256 explicitly published in `README.md` and the round-6 review. This silently invalidates the immutable v5 identifier; compare the raw manifest bytes to the fixed published hash or archive and verify the exact bytes.\n\nAGENTS.md reference: [AGENTS.md:L9-L9](https://github.com/ZZZZihan/anxin-work-rights/blob/0abcea42de71dcc70980a24f8faa68c8894082cb/AGENTS.md#L9-L9)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+      },
+      {
+        "id": 4305982949,
+        "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4305982949",
+        "state": null,
+        "submitted_at": null,
+        "created_at": "2026-10-18T06:17:37Z",
+        "body": "已用原字节归档与当前规范字节双层修复。v5清单及35份代码保留，日常/CI通过verify-correction-v5按归档绑定的原字节摘要核对；v6及37份代码也保留。独立实际复现旧v6只改空白/键序仍PASS；当前v7 --check在语义一致后还比对重算manifest规范字节，两个同JSON改写均以明确manifest bytes changed拒绝。没有修改旧清单去迎合代码或回填已公布SHA；新v7仅复算同一原输出并绑定当前39份代码。\n\n最终整合提交：bd1cf39e66459f793b7702fa81c328cbd15034e2；完整本机1789应用测试/842运行时证据及v7只读复算通过。证据：experiments/material-facts-v7/postfreeze-evidence/round7、round8；非实现者复核：POSTRUN_ROUND8_INDEPENDENT.md。最新提交CI单独跟进，技术通过不代表人工业务验收。"
+      },
+      {
+        "id": 4306002151,
+        "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4306002151",
+        "state": null,
+        "submitted_at": null,
+        "created_at": "2026-10-18T06:25:22Z",
+        "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Raise the nested v4 verification timeout**\n\nIn the newly added CI verification chain, `verify-correction-v5.mjs` executes this archived v5 script, but this 60-second child deadline is no larger than the valid runtime of the recursively copying and recomputing v4 verifier. On a clean checkout of this commit, `node experiments/material-facts-v7/verify-correction-v5.mjs` failed here with `spawnSync ... ETIMEDOUT`, after the standalone v4 verification had passed, so the required CI/check path can fail on an unmodified tree. Increase or remove this nested deadline, or avoid recursively repeating the historical recomputations.\n\nAGENTS.md reference: [AGENTS.md:L7-L7](https://github.com/ZZZZihan/anxin-work-rights/blob/bd1cf39e66459f793b7702fa81c328cbd15034e2/AGENTS.md#L7-L7)\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->"
+      },
+      {
+        "id": 4306115195,
+        "url": "https://github.com/ZZZZihan/anxin-work-rights/pull/46#discussion_r4306115195",
+        "state": null,
+        "submitted_at": null,
+        "created_at": "2026-10-18T07:04:07Z",
+        "body": "已在aee7057处理。原冻结源码/清单/报告字节保持；用版本化只读执行政策向原历史Node子链显式传递一份15分钟绝对截止，每层给父进程预留2秒，不再让嵌套v4的旧60秒提前截断外层验证。白名单不允许run/--write或任意代码，失败照常传播，另存执行回执；未跳过任何历史断言。本机原v5链41.117秒PASS，没有把审查者ETIMEDOUT伪称本地同次复现。实际原生10ms/120ms叶子计时反例红→绿，作者14项+独立4项通过；完整历史链和最新v9写入/只读校验均通过。v8归档43文件不变，v9绑定46文件且不扩写policy-v1。 最终整合npm run check：1789 Vitest、1537运行时、材料67+1本机平台跳过、Python9+11+16通过。独立v9真实门禁5/5；精确提交远端CI已启动待核对。这些均为技术验证，不是人工业务验收。"
+      }
+    ]
+  },
+  "issue-comments": {
+    "pages": 1,
+    "items": 1,
+    "on_exact_head": []
+  }
+}

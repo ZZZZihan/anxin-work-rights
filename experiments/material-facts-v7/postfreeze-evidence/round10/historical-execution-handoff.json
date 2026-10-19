@@ -1,0 +1,110 @@
+{
+  "scope": "PR46 review4306002151 execution-budget correction; old snapshots/manifests/results are preserved",
+  "baseline": "Current wrappers copied from root bd1cf39 plus its existing worktree; exact per-file baselines in historical-wrapper-baselines.json",
+  "owned_files": {
+    "experiments/material-facts-v7/historical-execution-policy-v1.mjs": "cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea",
+    "experiments/material-facts-v7/historical-execution-v1.mjs": "0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c",
+    "scripts/material-facts-v7-historical-execution.test.mjs": "9c2039420654617e27a4dffbd65652d2bcb9ec0540cb1033e3388972e0a2ff69",
+    "experiments/material-facts-v7/verify-frozen.mjs": "8ba86824edb3234639940c6539998090b5fb27667d1f2f4463173cd5a3b2ef0e",
+    "experiments/material-facts-v7/verify-correction-v1.mjs": "2030c45af867f0597742a07dac9e2d488fa77029373f747f1009c104f0fce755",
+    "experiments/material-facts-v7/verify-correction-v2.mjs": "65d1cad6c8b68ba43615bdfd686b959eeae94cb16f8fe5af1cbb8f7835190ad9",
+    "experiments/material-facts-v7/verify-correction-v3.mjs": "9a47a38a8e8ff18fe9e84e02350ed1d9b5b1f960430ab3182a9a98a7bdb4e56f",
+    "experiments/material-facts-v7/verify-correction-v4.mjs": "c738697bc3e03bb0545db5c38fc0a95a2062563edd15d4be191ae15aacec84bc",
+    "experiments/material-facts-v7/verify-correction-v5.mjs": "6e136f06ee5e88e01d8699b02f7e37e619ac459bc590a2ccefc025d4c61fdc17",
+    "experiments/material-facts-v7/verify-correction-v6.mjs": "74ec7cbd049de7dfa5622f92d7232203e30373c4988aa52c772b4786d95c6590"
+  },
+  "api": {
+    "module": "historical-execution-v1.mjs",
+    "signature": "runHistoricalCheckSync(scriptPath,args=[],options={})",
+    "return": "Original execFileSync output value; original errors are rethrown",
+    "requested_timeout": "Recorded, not used as an independent root cap",
+    "root_budget_ms": 900000,
+    "per_level_cleanup_reserve_ms": 2000,
+    "budget_scope": "One inherited absolute deadline; local sibling calls share the process first deadline",
+    "propagation": "Absolute fileURL through child NODE_OPTIONS; no shared process.env mutation",
+    "receipt": "stderr only; stdout JSON unchanged",
+    "explicit_non_goals": [
+      "No PASS cache or skipped historical recomputations",
+      "No source transform or snapshot hash update",
+      "No expansion to run/--write/--eval/unknown subprocesses"
+    ]
+  },
+  "integration": "Parent owns current v7 wrapper/current controllers and current gate API substitutions; those changes are outside this patch",
+  "actual_original_chain": {
+    "result": "PASS",
+    "seconds": 41.117,
+    "reported_60s_timeout_reproduced_locally": false
+  },
+  "actual_updated_chain": {
+    "result": "PASS",
+    "seconds": 43.465,
+    "correction_manifest_sha256": "eb79da00daa92966f081a2eba35d7355e258a45d18411570834efc62d632e32e",
+    "protected_files": 412,
+    "protected_bytes_unchanged": true
+  },
+  "author_tests": {
+    "tests": 14,
+    "pass": 14,
+    "fail": 0,
+    "elapsed_seconds": 5.433,
+    "real_short_budget_fixture": "4500ms root; child stops before parent with ETIMEDOUT and the harness itself does not time out",
+    "initial_probe": "12PASS/1FAIL was macOS /var vs /private/var fixture canonical-path assertion; original probe is retained, not counted as production red"
+  },
+  "controlled_native_red_green": "Unchanged synthetic 120ms leaf/10ms legacy timeout: native exit1 ETIMEDOUT then versioned-policy CLI exit0. This is not a reproduction of the reported 60s original experiment failure.",
+  "policy_event_summary": {
+    "execution_policy": "material-facts-v7-historical-execution/1",
+    "event_count": 238,
+    "child_budget_count": 79,
+    "max_depth": 11,
+    "all_parent_cleanup_margins_ms": [
+      2000
+    ],
+    "legacy_requested_timeout_values_ms": [
+      60000,
+      180000
+    ],
+    "effective_timeout_ms_min": 849320,
+    "effective_timeout_ms_max": 897999,
+    "pass_cache_used": false,
+    "source_transformation_used": false
+  },
+  "evidence": [
+    {
+      "receipt": "historical-v5-original-baseline.receipt.json",
+      "sha256": "b3719693af8710348a7f66207b47314306720e0ec33d7fc99125f6177c37fc36"
+    },
+    {
+      "receipt": "historical-native-controlled-before-red.receipt.json",
+      "sha256": "0ede6d8409edb7d3974c1bc931076186f4b149a6130186d8927200f4da7c580b"
+    },
+    {
+      "receipt": "historical-native-controlled-after-green.receipt.json",
+      "sha256": "61aea277ab127762af08716d1c8d179e485ab2bfc49698de7c7061bfdc889b87"
+    },
+    {
+      "receipt": "historical-policy-author-initial-probe.receipt.json",
+      "sha256": "20e21188445d0e5bbdb68f02a111861737586ad882adce59df592bcf8940bbfa"
+    },
+    {
+      "receipt": "historical-policy-author-green.receipt.json",
+      "sha256": "9fac680655cad74a3d3459d1c16cecde5397605980736744ceecca75d04c2387"
+    },
+    {
+      "receipt": "historical-policy-scoped-eslint.receipt.json",
+      "sha256": "c52c553b2eab0725c2dfcde536e0d43a2f3166876899bcf42bccf816ac53093d"
+    },
+    {
+      "receipt": "historical-v5-policy-real-green.receipt.json",
+      "sha256": "bcff0bb4c5061f226bdce8f7a7a94e3c93cf58db88d440723ce83161e5cebf53"
+    }
+  ],
+  "review_evidence": {
+    "file": "review-4306002151.json",
+    "sha256": "0fccd72325c704daffde56e43c4dc1cb351a5a6634baf8e91545644b9a4c0deb"
+  },
+  "patch_sha256": "96e3e832aaa0f23e938e93ef4253e8974f3cb8352751b6b46b2e6943f589cd2b",
+  "limits": [
+    "No model, build, HTTP, training, deployment, commit or push.",
+    "Parent must run the integrated v7/v8 controller and relevant gates; module-only results do not replace that integration."
+  ]
+}

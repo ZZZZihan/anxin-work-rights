@@ -1,0 +1,93 @@
+{
+  "source_commit": "9b4bba2fbc85ccd2a7cd8003a2d4a1f2e0593207",
+  "files": [
+    {
+      "path": "scripts/material-facts-cancel-http-regression.mjs",
+      "sha256": "a89618bc8b72c248363c3fee1a925e3afa1b4fa6143a234f931dddb49ef5c973",
+      "bytes": 34528
+    },
+    {
+      "path": "scripts/material-facts-poll-http-regression.mjs",
+      "sha256": "a2830060c7e7399b6914045abfc597caa92a0c8e3c5b98bbda582db629a04247",
+      "bytes": 19270
+    },
+    {
+      "path": "scripts/material-facts-http-interrupt.test.mjs",
+      "sha256": "bd1410a7aee1eed46b84e2f0165ad84a6e206903c991b54fc7d32a19f71feb97",
+      "bytes": 10568
+    }
+  ],
+  "unchanged_owned_helper_sha256": "37c86a25a10bcf666ad9144971627f0b83b31a5d3d3d1e70768f09ca7ba94435",
+  "patch_sha256": "fbea081df55f92e243e7f31440ba9caba5d42d3ab18f5eadb36d2d41e48f48c5",
+  "execution": {
+    "runs": [
+      {
+        "mode": "before-red",
+        "exit_code": 1,
+        "elapsed_seconds": 5.008261749986559,
+        "test_sha256": "bd1410a7aee1eed46b84e2f0165ad84a6e206903c991b54fc7d32a19f71feb97",
+        "stdout_sha256": "5eddc6b4ecfec7ce8052a4f758dc9d5bef8d13ad4e03cc96541dbcb866f27bdc",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "mode": "after-green",
+        "exit_code": 0,
+        "elapsed_seconds": 24.490940249990672,
+        "test_sha256": "bd1410a7aee1eed46b84e2f0165ad84a6e206903c991b54fc7d32a19f71feb97",
+        "stdout_sha256": "d3053ad98f2842db479d84582ff50019bf71f03b30e358ba062f44c76218c345",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "modelInference": false,
+    "nativeSubprocess": true,
+    "fixture": "actual CLI; synthetic Wrangler/service; native socket/signal; helper37c86 unchanged"
+  },
+  "results": {
+    "original": {
+      "tests": 8,
+      "pass": 0,
+      "fail": 8,
+      "processExitSignals": [
+        "SIGINT",
+        "SIGTERM"
+      ],
+      "observedOwnedSocketsRemaining": true
+    },
+    "fixed": {
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "allNativeOwnedSocketsClosed": true,
+      "allNativeOwnedGroupsNoLiveMembers": true,
+      "allUnrelatedSocketsAlive": true,
+      "allInterruptedCLIExit": {
+        "code": 1,
+        "signal": null
+      },
+      "cleanupPASS": 4,
+      "cleanupFAILPreserved": 4
+    }
+  },
+  "prior_evidence": {
+    "initial_six_tests": "interrupt-author-before-red.stdout.log + interrupt-author-initial-after.stdout.log: 0/6 -> 6/6 interruption assertions",
+    "initial_eight_test_fixture_issue": "interrupt-author-final-before-red.stdout.log / interrupt-author-final-after-green.stdout.log preserve 0/8 and 6/8; 2 migration-failure fixtures exited before child TERM handler readiness, so those two results are not product findings. Final fixture waits for ready leaf handshake."
+  },
+  "boundaries": {
+    "nativeKernelSocketAndSignal": true,
+    "actualCLIExecuted": true,
+    "syntheticWranglerAndService": true,
+    "actualApplicationWorker": false,
+    "actualModelInference": false,
+    "actualWindows": false,
+    "oldOwnedHelperCleanupIssueNotFixed": true,
+    "fullProjectCheckRunByAuthor": false,
+    "formalV14Write": false,
+    "committedOrPushed": false
+  },
+  "staticChecks": {
+    "syntax": true,
+    "scopedLintExit": 0,
+    "ignoredFilesWarning": false
+  },
+  "platform": "macOS-27.2-arm64-arm-64bit-Mach-O"
+}

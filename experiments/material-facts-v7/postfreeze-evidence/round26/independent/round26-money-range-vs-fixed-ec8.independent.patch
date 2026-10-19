@@ -1,0 +1,112 @@
+--- fixed-ec8/lib/material-money-v4.ts
++++ reviewed/lib/material-money-v4.ts
+@@ -242,16 +242,25 @@
+  * and quote. Inspect a detection copy, retaining punctuation as evidence. */
+ export function hasPostposedMoneyUncertainty(after: string): boolean {
+   const text = after.normalize('NFKC').replace(/\p{Cf}/gu, '');
+-  return /^\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\s*[()[\]{}【】]*\s*(?:[?□_]|待核(?:实)?|待(?:定|确认|补充)|未知|不详|不明|无法确定|未(?:提供|明确|载明|记载|披露|列明|注明|约定|确定)|\.{2,}|…)/iu.test(text);
++  return /^\s*(?:[元圆圓]|人民币|人民幣|RMB|CNY)?\s*[()[\]{}【】]*\s*(?:(?:金[额額]|[数數][额額])\s*(?:为|為|是|[:=])?\s*)?(?:[?□_]|待核(?:实)?|待(?:定|确认|补充)|未知|不详|不明|无法确定|未(?:提供|明确|载明|记载|披露|列明|注明|约定|确定)|\.{2,}|…)/iu.test(text);
+ }
+ 
+ const RATE_UNITS: Record<string, RawCandidateV3['rateUnit']> = { 小时: 'hour', 月: 'month', 日: 'day', 天: 'day', 时: 'hour', 件: 'piece' };
+ 
+ function attachedSuffixRate(after: string) {
+   const detection = monetaryDetectionView(after).replace(/[^\S\r\n\u2028\u2029]/gu, '');
++  // 按时支付 is ordinary prose, and 按月15日 is a payment schedule.
++  // Only a complete unit plus this finite pricing ending (or an unambiguous
++  // bare unit at a clause boundary) creates a new denominator.
++  const byDetection = detection.replace(/[時計價]/gu, character => ({ 時: '时', 計: '计', 價: '价' })[character]!);
++  const by = byDetection.match(/^\s*(?:[元圆圓]\s*)?按\s*(?:(小时|月|日|天|件)(?:\s*(?:计算|计酬|计价|计薪|计))?|(时)\s*(?:计算|计酬|计价|计薪|计))/u);
++  const byTail = by ? byDetection.slice(by[0].length) : '';
++  const uncertain = by !== null && hasPostposedMoneyUncertainty(byTail);
++  if (by && (/^\s*(?:$|[，,。；;！!？?）)】\]])/u.test(byTail) || uncertain))
++    return { present: true, supported: by[1] ?? by[2], postposedBy: true, uncertain };
+   const suffix = detection.match(/^\s*(?:[元圆圓]\s*)?(?:\/\s*([\p{L}]+)|每\s*(小时|月|日|天|时|件|年|周|週|季度|季|次|分钟|分鐘|秒|公里|人|班))/u);
+   const text = suffix?.[1] ?? suffix?.[2];
+-  return { present: suffix !== null, supported: text?.match(/^(小时|月|日|天|时|件)/u)?.[1] };
++  return { present: suffix !== null, supported: text?.match(/^(小时|月|日|天|时|件)/u)?.[1], postposedBy: false, uncertain: false };
+ }
+ 
+ /** A single 整/正 may end a complete amount, but cannot hide its continuation.
+@@ -273,7 +282,7 @@
+   // One terminator never consumes another unit, digit, decimal or terminator.
+   if (new RegExp(`^[${NUMERALS}元圆圓角分整正]|^[.．,，]\\s*[${NUMERALS}]`, 'u').test(tail)) return true;
+   const rate = attachedSuffixRate(tail);
+-  if (rate.present && (!rate.supported || candidate.meaning !== 'rate'
++  if (rate.present && (rate.uncertain || !rate.supported || candidate.meaning !== 'rate'
+     || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== RATE_UNITS[rate.supported]))) return true;
+   // Reuse the anchored currency guard on this explicit continuation edge only;
+   // another sentence/person cannot attach through its existing finite grammar.
+@@ -307,8 +316,10 @@
+       const attachedYuan = new RegExp(`^\\s*[元圆圓](?:整|正)?(?=$|[^${NUMERALS}元圆圓角分整正])`, 'u').test(after);
+       // A single whole-amount terminator at this clause's end does not add a
+       // digit or subunit. Any following continuation keeps the truncation guard.
++      const terminalRateTail = monetaryDetectionView(arithmeticAfter).trimStart().match(/^[整正](.*)$/su)?.[1];
++      const terminalRate = terminalRateTail !== undefined ? attachedSuffixRate(terminalRateTail) : null;
+       const attachedWholeTerminator = /[元圆圓角分]$/u.test(monetaryDetectionView(candidate.value))
+-        && /^(?:整|正)$/u.test(afterBoundary);
++        && (/^(?:整|正)$/u.test(afterBoundary) || (terminalRate?.postposedBy === true && terminalRate.supported !== undefined));
+       const sourceAnchor = { blockText: local.text, valueStart: offset };
+       const attachedCurrency = sourceMoneyHasExplicitRmbCurrency(sourceAnchor, normalized);
+       const qualifierStatus = attachedQualifierStatus(arithmeticBefore, arithmeticAfter);
+@@ -325,6 +336,7 @@
+       else if (sourceMoneyHasNonCurrencySubunit({ blockText: candidate.quote, valueStart: quoteOffset }, normalized)) normalized = result(candidate.value, 'unsupported', '原文中的角或分属于普通词语，裁剪后的片段未作为分币金额。');
+       else if (sourceMoneyHasUnsupportedCurrency(sourceAnchor, normalized, candidate.subject)) normalized = result(candidate.value, 'unsupported', '原文金额直接附着外币或冲突币种，未换算。');
+       else if (hasUnsafeWholeMoneyContinuation(candidate, normalized, arithmeticAfter)) normalized = result(candidate.value, 'unsupported', '金额终止词后的数字、币种、费率或不确定续文仍须核对，未将裁剪值作为精确金额。');
++      else if (suffixRate.uncertain) normalized = result(candidate.value, 'uncertain', '当前金额的明确费率后仍附着待核或未知标记，未将裁剪值作为确定金额。');
+       else if (suffixRate.present && !supportedRate) normalized = result(candidate.value, 'unsupported', '原文金额直接附着不受支持的费率单位，保留原文且未换算为总额或现有费率单位。');
+       else if (supportedRate && (candidate.meaning !== 'rate' || (candidate.rateUnit !== 'unknown' && candidate.rateUnit !== RATE_UNITS[supportedRate]))) normalized = result(candidate.value, 'rate_unit_mismatch', '原文紧贴的费率单位与金额角色或候选费率单位冲突。');
+       else if (isMoneyRangeEndpoint(monetaryDetectionView(rangeBefore), monetaryDetectionView(rangeToken), monetaryDetectionView(rangeAfter))) normalized = result(candidate.value, 'range', '当前金额在原文中直接属于区间端点。');
+@@ -352,6 +364,10 @@
+ export function classifyMonetaryExpression(value: string): MonetaryExpressionClassification {
+   const normalization = normalizeMoneyValueV4(value);
+   const detection = monetaryDetectionView(value).replace(/\s/gu, '');
++  // A denomination alone names a currency, not an amount. Keep this bounded
++  // before the explicit-currency branch; unknown/masked suffixes cannot match.
++  if (/^(?:人民[币幣]|RMB|CNY|[元圆圓¥])$/iu.test(detection))
++    return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文仅为币种或金额单位名称，未表述金额。') };
+   // Only a complete percentage (optionally named by a finite ratio label) is
+   // definite non-money. This whole-value grammar contains no currency unit;
+   // in particular 百分比 must not be cropped into 百分 as a fen amount.
+@@ -383,8 +399,8 @@
+   const wageDescription = new RegExp(`^(?:${wageStage}\\s*)?(?:的)?(?:基本|其他|其余|全部|正常|岗位|绩效|应付|已付|实付|税前|税后|拖欠|欠付|未付)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:合计|总额|标准)?$`, 'u');
+   // This separate finite wage-label view changes no amount grammar or source
+   // text. Unknown/masked suffixes cannot match the complete empty-label rule.
+-  const wageLabel = value.trim().replace(/[資勞動報務費應標準稅後崗績離職試]/gu,
+-    character => ({ 資: '资', 勞: '劳', 動: '动', 報: '报', 務: '务', 費: '费', 應: '应', 標: '标', 準: '准', 稅: '税', 後: '后', 崗: '岗', 績: '绩', 離: '离', 職: '职', 試: '试' })[character]!);
++  const wageLabel = monetaryDetectionView(value).trim().replace(/[資勞動報務費應標準稅後崗績離職試實總額計]/gu,
++    character => ({ 資: '资', 勞: '劳', 動: '动', 報: '报', 務: '务', 費: '费', 應: '应', 標: '标', 準: '准', 稅: '税', 後: '后', 崗: '岗', 績: '绩', 離: '离', 職: '职', 試: '试', 實: '实', 總: '总', 額: '额', 計: '计' })[character]!);
+   if (wageDescription.test(wageLabel) && !MASKED.test(value)) return { kind: 'not_monetary', normalization: result(value, 'not_money', '原文为工资名称或期间描述，未表述金额。') };
+   const ordinaryWord = /^(?:元月份?|元旦|元宵(?:节)?|元年|元素|元件|元音|[圆圓](?:满|滿|形|圈|周))$/u;
+   const wageCompletion = /^(?:已|已经)?[圆圓][满滿](?:完成)?(?:工资|薪资|薪酬|劳务费|劳动报酬)(?:发放|支付|结算)(?:工作)?$/u;
+--- fixed-ec8/lib/material-fact-range-review.ts
++++ reviewed/lib/material-fact-range-review.ts
+@@ -1,6 +1,7 @@
+ // Only detection copies are folded. The source and its code-point positions
+ // remain untouched, including when layout divides an explicit range.
+-export const MONEY_BOUND_PREFIX = '(?:不得少于|不得低于|不得超过|不得高于|不超过|不少于|不低于|不高于|不多于|不大于|不小于|不满|未满|低于|高于|多达|少于|多于|大于|小于|未达|大约|约(?!定|束)|将近|接近|逾|不到|不止|超过|不足|至少|至多|上限|下限|最高|最低|最多|最少)';
++const COMPARISON_BOUND = '(?:<=|>=|[<>≤≥≦≧])';
++export const MONEY_BOUND_PREFIX = `(?:不得少于|不得低于|不得超过|不得高于|不超过|不少于|不低于|不高于|不多于|不大于|不小于|不满|未满|低于|高于|多达|少于|多于|大于|小于|未达|大约|约(?!定|束)|将近|接近|逾|不到|不止|超过|不足|至少|至多|上限|下限|最高|最低|最多|最少|${COMPARISON_BOUND})`;
+ // A following explicit duration or occurrence count belongs to its own number,
+ // e.g. 四万元不到三天付清. Do not treat that temporal bound as a money bound.
+ const FOLLOWING_DURATION_OR_COUNT = String.raw`\s*[0-9零〇一二三四五六七八九十百千万两兩壹贰叁肆伍陆柒捌玖拾佰仟,.]+\s*(?:个|個)?\s*(?:小时|小時|分钟|分鐘|星期|天|日|周|週|月|年|次)`;
+@@ -51,6 +52,9 @@
+ const ATTACHED_SIGNED = new RegExp(`(?:负数|負數|负值|負值|正数|正數|正值|[负負+＋\\-－−﹣±])${SIGNED_BRIDGE}$`, 'iu');
+ const ATTACHED_INDEFINITE = new RegExp(`(?:数|數|几|幾)${CURRENCY_BRIDGE}$`, 'iu');
+ const ATTACHED_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}(?:[/／]${SPACE}(?:小时|月|日|天|时|件)${SPACE})?${MONEY_BOUND_SUFFIX}`, 'iu');
++// A comparison's left operand is no more an exact total than its right one.
++// The same finite unit/currency wrappers may intervene; punctuation cannot.
++const ATTACHED_COMPARISON_SUFFIX = new RegExp(`^${SPACE}(?:(?:${UNIT}|${CURRENCY})${SPACE}){0,2}${COMPARISON_BOUND}`, 'iu');
+ 
+ /** A clipped value and source review share the same finite qualifier grammar.
+  * Explicit modifiers may bridge layout; subjects, numbers and sentences may not.
+@@ -58,7 +62,8 @@
+ export function attachedMoneyQualifierStatus(before: string, after: string): 'unsupported' | 'approximate' | null {
+   const prefix = view(before), suffix = view(after);
+   if (ATTACHED_SIGNED.test(prefix)) return 'unsupported';
+-  return ATTACHED_INDEFINITE.test(prefix) || ATTACHED_PREFIX.test(prefix) || ATTACHED_SUFFIX.test(suffix) ? 'approximate' : null;
++  return ATTACHED_INDEFINITE.test(prefix) || ATTACHED_PREFIX.test(prefix) || ATTACHED_SUFFIX.test(suffix)
++    || ATTACHED_COMPARISON_SUFFIX.test(suffix) ? 'approximate' : null;
+ }
+ 
+ export function hasAttachedMoneyQualifier(before: string, after: string): boolean {

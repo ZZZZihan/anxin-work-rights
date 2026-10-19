@@ -1,0 +1,56 @@
+{
+  "schema": "material-facts-v7-round29-independent-static-review/1",
+  "created_at": "2026-10-18T14:13:53.152721+00:00",
+  "status": "SCOPED_STATIC_REVIEW_PASS_DYNAMIC_CODE_CLOSURE_PENDING",
+  "author_role": "nonimplementer of these product changes; independent synthetic tests only",
+  "baseline_commit": "baa8bebb2c8c5a4132fe5128e4ef9f75b5259936",
+  "bindings": [
+    {
+      "path": "lib/material-money-v4.ts",
+      "read_from": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-money-v4.ts",
+      "reviewed_sha256": "c60083aac34914cc154ad8197ede4a62553d405ad2dd1c05ae4194bfbd371885",
+      "snapshot": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round29/closure-material-money-v4.ts.snapshot",
+      "baseline_sha256": "9418e8552d8af20b3b3da1b389bca74d2288e30549be1b5974df2b25e5bbaacf"
+    },
+    {
+      "path": "lib/material-fact-source-review.ts",
+      "read_from": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/lib/material-fact-source-review.ts",
+      "reviewed_sha256": "751b38439d541362af5ace663fb6629dd1743e701357b2fa65633610ed58ff64",
+      "snapshot": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round29/closure-material-fact-source-review.ts.snapshot",
+      "baseline_sha256": "fd215d6ace9b9b9ce019fd28b5f9f3a4bc35b1e79162a62ca52abc0e31ee5714"
+    },
+    {
+      "path": "lib/material-fact-arithmetic-review.ts",
+      "read_from": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/lib/material-fact-arithmetic-review.ts",
+      "reviewed_sha256": "10f1193d65bc24a7e0898bdf1711f1fd038f74ba3abd0c5fea7dd8dcf14db284",
+      "snapshot": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round29/closure-material-fact-arithmetic-review.ts.snapshot",
+      "baseline_sha256": "4776ca01ec6af568330fb3714c379065134fdf61fbc7aab4435a68b1419127b5"
+    },
+    {
+      "path": "lib/material-fact-range-review.ts",
+      "read_from": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/lib/material-fact-range-review.ts",
+      "reviewed_sha256": "f70673d8bb3b6886558ca14ddcb2d14f55f0cd4fa7cd8c9b4f849de938b1eacb",
+      "snapshot": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round29/closure-material-fact-range-review.ts.snapshot",
+      "baseline_sha256": "4bb5f5fa446a8bf5dec309e7faa04c18ee8f3c132893a2bacbc65c3875154723"
+    }
+  ],
+  "findings": [],
+  "observations": [
+    "New no-yuan prefix alternatives require an explicit named RMB currency; a parse copy supplies the unit only after anchoring the original token and running continuation/currency/qualifier guards. Returned match text and code-point spans still derive from original bytes.",
+    "Traditional masked/uncertain words are folded only in detection copies; immediate source-edge matching retains punctuation as an event barrier. c600 restores the existing explicit-arithmetic priority before using MASKED.source, so x/×/* operands keep unsupported rather than uncertain.",
+    "Arithmetic adds only 係→系 to its existing finite detection map. Range adds 過→过 and 將→将 to its existing detection map; numeric parsing and source positions do not use folded coordinates.",
+    "The recurring payment schedule exemption requires 每月, a bounded 1–31 day, a finite payment verb and a terminal/clause boundary. It does not exempt slash rates, ordinary monthly rates, unknown days or another owner.",
+    "Source review extends only a schedule proven by the same shared helper over original anchored layout edges. The constructed quote is a temporary detection view; it does not persist new source text, quote, period, candidate positions or attribution.",
+    "The existing terminal source-review gate still reduces only non-null stored amounts; it never upgrades a stored unavailable amount. Confirmation and calculation authorization are unchanged."
+  ],
+  "limitations": [
+    "This is a bounded synthetic and source-code review of five concrete findings, not proof of arbitrary Chinese grammar or legal semantic accuracy.",
+    "Actual CODE dual-runtime closure and the status regression test must be recorded separately after parent integration.",
+    "No HTTP, heavy/full/deep historical chain, model request, training, deployment, commit, push or human acceptance performed."
+  ],
+  "model_request": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_backend_independently_verified": false
+  }
+}

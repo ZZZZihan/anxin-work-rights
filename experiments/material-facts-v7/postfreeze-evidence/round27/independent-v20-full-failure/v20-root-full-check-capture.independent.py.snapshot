@@ -1,0 +1,70 @@
+"""Capture one authorized full ROOT integration check, without editing bound files.
+The npm check itself owns its ordinary build/test temporary files. Evidence is exclusive-create.
+"""
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import os
+import subprocess
+import time
+
+OWN = Path(__file__).resolve().parents[2]
+EVIDENCE = Path(__file__).resolve().parent
+ROOT = Path("/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards")
+BASE = ROOT / "experiments/material-facts-v7"
+PREFIX = "v20-root-full-check-independent"
+sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+read = lambda path: json.loads(path.read_bytes())
+manifest = read(BASE / "corrections-v20/manifest.json")
+assert sha(BASE / "corrections-v20/manifest.json") == "6bddae4eb7d7da1fd744a79a399620e8fa60e7c5fe79d1ef7aaf8a072b491a87"
+paths = {ROOT / path for path in manifest["code_sha256"]}
+paths.update({BASE / "freeze.json", BASE / "result-manifest.json"})
+paths.update(BASE / path for path in read(BASE / "result-manifest.json")["files"])
+for n in range(1, 21):
+    directory = BASE / ("corrections" if n == 1 else f"corrections-v{n}")
+    paths.add(directory / "manifest.json")
+    paths.update(directory / path for path in read(directory / "manifest.json")["files"])
+archive = BASE / "correction-code-v19"
+paths.add(archive / "manifest.json")
+paths.update(archive / (path + ".snapshot") for path in read(archive / "manifest.json")["files"])
+products = ["lib/material-money-v4.ts", "lib/material-fact-range-review.ts", "lib/material-fact-source-review.ts", "lib/material-fact-event-review.ts", "lib/material-fact-arithmetic-review.ts"]
+gate = ROOT / "scripts/material-facts-v7-correction-v20-gates-independent.test.mjs"
+extra = [ROOT / "package.json", gate]
+
+def inventory():
+    return {str(path.relative_to(ROOT)): sha(path) for path in sorted(paths | set(extra))}
+
+def write_json(name, value):
+    with (EVIDENCE / name).open("x") as stream:
+        json.dump(value, stream, ensure_ascii=False, indent=2)
+        stream.write("\n")
+
+before = inventory()
+write_json(PREFIX + ".protected-before.json", before)
+version_command = ["npm", "exec", "--yes", "--package=node@24", "--", "node", "-p", "JSON.stringify({version:process.version,execPath:process.execPath,platform:process.platform,arch:process.arch})"]
+version = subprocess.run(version_command, cwd=ROOT, capture_output=True)
+with (EVIDENCE / (PREFIX + ".node-version.stdout.txt")).open("xb") as stream:
+    stream.write(version.stdout)
+with (EVIDENCE / (PREFIX + ".node-version.stderr.txt")).open("xb") as stream:
+    stream.write(version.stderr)
+assert version.returncode == 0, "Node24 version preflight failed; full check not started"
+node = json.loads(version.stdout)
+assert node["version"].startswith("v24."), node
+command = ["npm", "exec", "--yes", "--package=node@24", "--", "npm", "run", "check"]
+started = datetime.datetime.now(datetime.timezone.utc).isoformat()
+tick = time.monotonic()
+stdout = EVIDENCE / (PREFIX + ".stdout.txt")
+stderr = EVIDENCE / (PREFIX + ".stderr.txt")
+write_json(PREFIX + ".started.json", {"command": command, "cwd": str(ROOT), "started_at_utc": started, "node": node, "script_sha256": sha(Path(__file__)), "bound_code_paths": len(manifest["code_sha256"]), "products": {path: before[path] for path in products}, "gate_sha256": sha(gate), "parent_authorization": "ROOT full check once after parent v20 --check exit0; no separate five-gate execution."})
+with stdout.open("xb") as out, stderr.open("xb") as err:
+    result = subprocess.run(command, cwd=ROOT, stdin=subprocess.DEVNULL, stdout=out, stderr=err)
+elapsed = time.monotonic() - tick
+finished = datetime.datetime.now(datetime.timezone.utc).isoformat()
+after = inventory()
+write_json(PREFIX + ".protected-after.json", after)
+execution = {"command": command, "cwd": str(ROOT), "started_at_utc": started, "finished_at_utc": finished, "elapsed_seconds": elapsed, "exit_code": result.returncode, "node": node, "version_preflight_command": version_command, "version_preflight_exit_code": version.returncode, "stdout": str(stdout), "stdout_sha256": sha(stdout), "stderr": str(stderr), "stderr_sha256": sha(stderr), "capture_script_sha256": sha(Path(__file__)), "protected_files": len(before), "protected_before_after_identical": before == after, "changed_protected_files": [path for path in sorted(before.keys() | after.keys()) if before.get(path) != after.get(path)], "current_code_sha256_before": {path: before[path] for path in manifest["code_sha256"]}, "current_code_sha256_after": {path: after[path] for path in manifest["code_sha256"]}, "five_products_before": {path: before[path] for path in products}, "five_products_after": {path: after[path] for path in products}, "no_new_model_requests_by_this_agent": True}
+write_json(PREFIX + ".execution.json", execution)
+print(json.dumps({key: execution[key] for key in ("exit_code", "elapsed_seconds", "protected_files", "protected_before_after_identical", "node", "stdout_sha256", "stderr_sha256")}, ensure_ascii=False, indent=2), flush=True)
+assert before == after, "Protected artifact/code bytes changed during full check"
+raise SystemExit(result.returncode)

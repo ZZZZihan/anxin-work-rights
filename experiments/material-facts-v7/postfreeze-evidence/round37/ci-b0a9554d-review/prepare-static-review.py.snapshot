@@ -1,0 +1,45 @@
+from pathlib import Path
+import subprocess,hashlib,json,datetime
+P=Path(__file__).resolve().parent
+OLD=P.parents[1]/'round36/ci-4c3a0cbf-review'
+CODE=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+HEAD='b0a9554d0b7ab1a064ce490cee181d2197c31b0c';REPO='ZZZZihan/anxin-work-rights'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def save(n,b):
+ if not isinstance(b,bytes):b=(json.dumps(b,ensure_ascii=False,indent=2)+'\n').encode()
+ with (P/n).open('xb') as f:f.write(b)
+def git(*args):
+ r=subprocess.run(['git',*args],cwd=CODE,capture_output=True,timeout=60);assert r.returncode==0,r.stderr;return r.stdout
+def api(ep,n):
+ r=subprocess.run(['gh','api',ep],capture_output=True,timeout=60);assert r.returncode==0,r.stderr;save(n,r.stdout);return json.loads(r.stdout)
+identity=json.loads((P/'static-identity-at-start.json').read_text())
+identity['remote_head_tree']=identity['head_tree'];identity['local_head_tree']=git('rev-parse',HEAD+'^{tree}').decode().strip();assert identity['remote_head_tree']==identity['local_head_tree']
+save('static-identity-with-local-tree.json',identity)
+save('head-git-ls-tree.raw',git('ls-tree','-r',HEAD))
+workflow=git('show',HEAD+':.github/workflows/ci.yml');save('workflow-exact-head.yml.snapshot',workflow)
+originals=json.loads((OLD/'local-original-results-vs-exact-head.json').read_text())['files'];rows=[]
+for x in originals:
+ raw=(CODE/x['path']).read_bytes();blob=git('show',HEAD+':'+x['path']);assert sha(raw)==sha(blob)==x['sha256'],x['path'];rows.append({'path':x['path'],'sha256':sha(raw),'git_blob_sha256':sha(blob),'bytes':len(raw)})
+save('local-original-results-vs-exact-head.json',{'head':HEAD,'count':len(rows),'files':rows})
+paths=[x['path'] for x in json.loads((OLD/'exact-commit-vs-tested-worktree.json').read_text())]
+paths+=['scripts/material-facts-v7-round37-collective-date-author.test.mjs','scripts/material-facts-v7-round37-coordinator-alias-author.test.mjs','scripts/material-facts-v7-round37-doubling-author.test.mjs']
+rows=[]
+for rel in dict.fromkeys(paths):
+ blob=git('show',HEAD+':'+rel);raw=(CODE/rel).read_bytes();assert sha(blob)==sha(raw),rel;rows.append({'path':rel,'head_sha256':sha(blob),'worktree_sha256':sha(raw),'bytes':len(raw)})
+save('exact-commit-vs-tested-worktree.json',rows)
+for n in ['parent-http428-final.json','parent-http428-before.json','parent-full-check-final.receipt.json']:
+ src=CODE/'.scratch/issue42/round37'/n.removeprefix('parent-');save(n,src.read_bytes())
+prior=json.loads((OLD/'local-historical-manifests-hashes.json').read_text()); hist=[]
+for x in prior:
+ f=CODE/x['path'];b=f.read_bytes();assert sha(b)==x['sha256'],x['path'];hist.append({'path':x['path'],'sha256':sha(b),'bytes':len(b)})
+save('local-historical-manifests-hashes.json',hist)
+q='''query($after:String){repository(owner:"ZZZZihan",name:"anxin-work-rights"){pullRequest(number:45){headRefOid reviewThreads(first:100,after:$after){pageInfo{hasNextPage endCursor}nodes{id isResolved isOutdated path line comments(first:20){nodes{id databaseId createdAt url body}}}}}}}'''
+nodes=[];cursor=None;i=1
+while True:
+ cmd=['gh','api','graphql','-f','query='+q]
+ if cursor:cmd+=['-f','after='+cursor]
+ r=subprocess.run(cmd,capture_output=True,timeout=60);assert r.returncode==0,r.stderr;save(f'review-threads-at-start-page-{i}.json',r.stdout);d=json.loads(r.stdout)['data']['repository']['pullRequest'];a=d['reviewThreads'];nodes+=a['nodes']
+ if not a['pageInfo']['hasNextPage']:break
+ cursor=a['pageInfo']['endCursor'];i+=1
+save('review-thread-state-at-start.json',{'observed_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'head':d['headRefOid'],'threads':len(nodes),'unresolved':[x for x in nodes if not x['isResolved']]})
+print(json.dumps({'originals':len(originals),'current_files':len(rows),'review_threads':len(nodes),'unresolved':len([x for x in nodes if not x['isResolved']])}))

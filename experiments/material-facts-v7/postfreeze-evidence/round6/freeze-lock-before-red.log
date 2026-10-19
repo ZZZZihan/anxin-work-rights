@@ -1,0 +1,191 @@
+✖ native diagnostic owner prevents freeze until terminal artifacts exist; original failure bytes remain (235.653625ms)
+✖ native freeze enumeration through publication excludes a concurrent diagnostic allocation (233.362916ms)
+✔ native concurrent diagnostic contenders fail closed and only the owner releases the lock (246.749958ms)
+✔ callback failure preserves its error and releases the owned lock (245.052209ms)
+✔ killed owner leaves its lock and evidence for explicit reconciliation instead of automatic stale removal (327.537958ms)
+✔ preexisting unrecognized and symlink locks are never automatically removed (217.324041ms)
+✔ changed owner token and unexpected lock files prevent cleanup without swallowing the callback failure (9.143708ms)
+✔ freeze preserves an existing freeze byte for byte and releases its own lock (109.336875ms)
+✖ current run hashes bind the shared helper while its live directory stays outside results (0.53225ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 6
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1738.411166
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-freeze-lock.test.mjs:125:1
+✖ native diagnostic owner prevents freeze until terminal artifacts exist; original failure bytes remain (235.653625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-lock.test.mjs:130:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-lock.test.mjs:142:1
+✖ native freeze enumeration through publication excludes a concurrent diagnostic allocation (233.362916ms)
+  AssertionError [ERR_ASSERTION]: A diagnostic cannot appear after freeze enumerates result files
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-lock.test.mjs:148:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-lock.test.mjs:215:1
+✖ current run hashes bind the shared helper while its live directory stays outside results (0.53225ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /RUN_HASH_FILES[\s\S]*?`\$\{EXPERIMENT\}\/experiment-lock\.mjs`/. Input:
+  
+  "import assert from 'node:assert/strict';\n" +
+    "import { execFileSync } from 'node:child_process';\n" +
+    "import { lstat, readFile, readdir, realpath, writeFile } from 'node:fs/promises';\n" +
+    "import { resolve } from 'node:path';\n" +
+    "import { fileURLToPath, pathToFileURL } from 'node:url';\n" +
+    "import { checkFileHashes, filesUnder, json, jsonl, safePath, same, sha } from '../material-facts-v6/freeze.mjs';\n" +
+    '\n' +
+    'export { checkFileHashes, filesUnder, json, jsonl, safePath, same, sha };\n' +
+    "export const ROOT = fileURLToPath(new URL('../../', import.meta.url));\n" +
+    "export const EXPERIMENT = 'experiments/material-facts-v7';\n" +
+    "export const LEGACY = 'experiments/material-facts-v6';\n" +
+    "export const BACKENDS = ['rules', 'qwen', 'deepseek'];\n" +
+    'export const COUNTS = { dev: 3, holdout: 12, dev_facts: 13, holdout_facts: 43, case_families: 15, source_documents: 7, natural_empty: 2 };\n' +
+    "export const QWEN_MEMORY = { allocator_guideline_gib: 24, wired_gib: 20, cache_mib: 512, prefill_step_size: 128, kv_bits: 4, kv_group_size: 64, quantized_kv_start: 0, critical: 'immediate_stop', warning: '10_seconds', swap_growth_gib: 4, case_timeout_seconds: 600 };\n" +
+    "export const RUN_HASH_FILES = ['lib/material-facts.ts', 'lib/material-fact-types.ts', 'lib/material-facts-v2.ts', 'lib/material-fact-types-v2.ts', 'lib/material-facts-v3.ts', 'lib/material-fact-types-v3.ts',\n" +
+    "  'lib/material-money-v4.ts', 'lib/material-fact-arithmetic-review.ts', 'lib/material-fact-extraction-v4.ts', 'lib/material-fact-source-review.ts', 'lib/material-fact-runtime-ingest.ts',\n" +
+    "  'lib/material-fact-event-review.ts', 'lib/material-fact-currency-review.ts', 'lib/material-fact-coverage-review.ts',\n" +
+    "  'scripts/fact-runtime-v2.py', 'scripts/fact_memory_runtime.py', 'scripts/fact_api_transport.py', `${EXPERIMENT}/run.mjs`, `${EXPERIMENT}/assess.mjs`, `${EXPERIMENT}/freeze.mjs`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/runtime-policy.json`];\n" +
+    "export const REQUIRED_FILES = [...RUN_HASH_FILES, 'lib/material-money-v4.test.ts', 'lib/material-money-v4.independent.test.ts', 'lib/material-money-v4.review-regression.test.ts',\n" +
+    "  'lib/material-fact-source-review.test.ts', 'lib/material-facts-v7-runtime-independent.test.ts', 'lib/material-fact-calendar-money.test.ts',\n" +
+    "  'lib/material-fact-store.ts', 'scripts/fact-jobs.mjs', 'scripts/material-facts-v7-assessment-independent.test.mjs', 'scripts/material-facts-v7-freeze-independent.test.mjs', 'scripts/material-facts-v7-run-readiness.test.mjs', 'scripts/material-facts-v7-http-regression.mjs',\n" +
+    '  `${EXPERIMENT}/PROTOCOL.md`, `${EXPERIMENT}/ANNOTATION.md`, `${EXPERIMENT}/model-identity.json`, `${EXPERIMENT}/api-models-preflight.json`, `${EXPERIMENT}/annotation-review.independent.json`,\n' +
+    '  `${EXPERIMENT}/technical-review.json`, `${EXPERIMENT}/technical-review.initial.json`, `${EXPERIMENT}/benchmark-review.independent.json`, `${EXPERIMENT}/benchmark-review.initial.json`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/SOURCE_REVIEW.md`, `${EXPERIMENT}/REVIEW.md`, `${EXPERIMENT}/DEVELOPMENT.md`,\n' +
+    '  `${LEGACY}/verify.mjs`, `${LEGACY}/freeze.mjs`, `${LEGACY}/freeze.json`, `${LEGACY}/result-manifest.json`];\n' +
+    "const canonicalUrl = value => { if (!value) return null; const url = new URL(value); url.hash = ''; url.search = ''; return url.href; };\n" +
+    '\n' +
+    'export async function isMainModule(moduleUrl) {\n' +
+    '  if (!process.argv[1]) return false;\n' +
+    '  try { return moduleUrl === pathToFileURL(await realpath(resolve(process.argv[1]))).href; }\n' +
+    "  catch (error) { if (error.code === 'ENOENT') return false; throw error; }\n" +
+    '}\n' +
+    '\n' +
+    'export function verifyLegacy(root) {\n' +
+    '  // Preserve the entire immutable v6 verifier, including its recursive v5/v4 checks.\n' +
+    "  const output = execFileSync(process.execPath, [resolve(root, LEGACY, 'verify.mjs')], { cwd: root, encoding: 'utf8', stdio: 'pipe', maxBuffer: 16 * 1024 ** 2, timeout: 60000 });\n" +
+    '  const receipt = JSON.parse(output.trim());\n' +
+    "  assert.equal(receipt.status, 'PASS', 'Complete old v6 verification failed');\n" +
+    "  return { script: `${LEGACY}/verify.mjs`, status: 'PASS', output_sha256: sha(output), result_files: receipt.result_files, result_manifest_sha256: receipt.result_manifest_sha256 };\n" +
+    '}\n' +
+    '\n' +
+    'export async function loadPolicy(root = ROOT) {\n' +
+    "  const policy = await json(resolve(root, EXPERIMENT, 'runtime-policy.json'));\n" +
+    "  assert.equal(policy.schema, 'material-facts-v7-runtime-policy/1', 'Unsupported runtime-policy schema');\n" +
+    "  assert(Number.isFinite(Date.parse(policy.checked_at)), 'Runtime policy has no dated verification');\n" +
+    "  const fixed = { model: 'deepseek-v4-pro', thinking: 'disabled', reserved_upper_usd: 2, input_usd_per_million: 1.32, output_usd_per_million: 3.96 };\n" +
+    '  for (const [key, expected] of Object.entries(fixed)) assert.equal(policy.deepseek?.[key], expected, `Verified DeepSeek policy differs from bounded worker: ${key}`);\n' +
+    "  assert(['direct', 'temporary_loopback_ssh_test_host'].includes(policy.deepseek.egress), 'Unverified egress route');\n" +
+    "  assert(/^https:\\/\\/api-docs\\.deepseek\\.com\\//u.test(policy.deepseek.pricing_source), 'Pricing requires an official source');\n" +
+    "  assert(/^\\d{4}-\\d{2}-\\d{2}$/u.test(policy.deepseek.pricing_checked), 'Missing dated pricing verification');\n" +
+    "  assert.equal(policy.deepseek.availability_receipt, 'api-models-preflight.json', 'Unknown availability receipt');\n" +
+    '  const availability = await json(resolve(root, EXPERIMENT, policy.deepseek.availability_receipt));\n' +
+    "  assert(Number.isFinite(Date.parse(availability.at)), 'Availability check has no date');\n" +
+    "  assert.equal(availability.method, 'GET'); assert.equal(availability.endpoint, 'https://api.deepseek.com/models');\n" +
+    '  assert.equal(availability.http_status, 200); assert.equal(availability.generation_requests, 0); assert.equal(availability.certificate_verification, true);\n' +
+    "  assert.equal(availability.egress, policy.deepseek.egress, 'Availability route differs from selected route');\n" +
+    "  assert(availability.models?.includes(policy.deepseek.model), 'Selected model is not in the official model listing');\n" +
+    '  return policy;\n' +
+    '}\n' +
+    '\n' +
+    'export async function validateQwenIdentity(root = ROOT) {\n' +
+    "  const current = await json(resolve(root, EXPERIMENT, 'model-identity.json'));\n" +
+    "  const legacy = await json(resolve(root, LEGACY, 'model-identity.json'));\n" +
+    "  for (const key of ['repository', 'revision', 'packages', 'source-manifest.json', 'weights-verification.json']) same(current[key], legacy[key], `Qwen verified identity differs from v6: ${key}`);\n" +
+    "  assert(Number.isFinite(Date.parse(current.verified_at)), 'Qwen requires a current dated identity check');\n" +
+    "  assert.equal(current.current_file_stat_fingerprints_verified, true, 'Current Qwen file fingerprints are not verified');\n" +
+    "  assert.equal(current.generation_requests, 0, 'Identity receipt must come from the no-generation preflight');\n" +
+    '  return current;\n' +
+    '}\n' +
+    '\n' +
+    'export function deepseekReservation(messages, policy) {\n' +
+    '  return messages.reduce((sum, row) => {\n' +
+    "    assert(Array.isArray(row.messages) && row.messages.every(message => typeof message.content === 'string'), 'Invalid request messages');\n" +
+    '    const upper = row.messages.reduce((bytes, message) => bytes + Buffer.byteLength(message.content), 0) + 1024;\n' +
+    "    assert(upper <= 85000, 'DeepSeek input exceeds worker reservation bound');\n" +
+    '    return sum + upper * policy.deepseek.input_usd_per_million / 1e6 + 4096 * policy.deepseek.output_usd_per_million / 1e6;\n' +
+    '  }, 0);\n' +
+    '}\n' +
+    '\n' +
+    '/** Conservatively reserve every planned request, including stopped/failed batches.\n' +
+    " * Call while holding the runner's directory lock when adding a new attempt.\n" +
+    ' */\n' +
+    'export async function priorDeepseekReservation(root, policy) {\n' +
+    '  let entries;\n' +
+    "  try { entries = await readdir(resolve(root, EXPERIMENT, 'results'), { withFileTypes: true }); }\n" +
+    "  catch (error) { if (error.code === 'ENOENT') return 0; throw error; }\n" +
+    '  let total = 0;\n' +
+    '  for (const entry of entries) {\n' +
+    "    if (entry.name === '.deepseek-budget.lock') continue;\n" +
+    "    assert(entry.isDirectory() && !entry.isSymbolicLink(), 'Unexpected result entry or symlink');\n" +
+    "    const directory = resolve(root, EXPERIMENT, 'results', entry.name);\n" +
+    "    const protocol = await json(resolve(directory, 'protocol.json'));\n" +
+    "    assert(BACKENDS.includes(protocol.backend), 'Existing attempt has no backend identity');\n" +
+    "    if (protocol.backend !== 'deepseek') continue;\n" +
+    "    for (const key of ['model', 'input_usd_per_million', 'output_usd_per_million']) assert.equal(protocol.deepseek?.[key], policy.deepseek[key], 'Existing attempt has incompatible cost policy');\n" +
+    "    total += deepseekReservation(await jsonl(resolve(directory, 'messages.jsonl')), policy);\n" +
+    '  }\n' +
+    "  assert(total <= policy.deepseek.reserved_upper_usd, 'Earlier v7 attempts exhausted the total reserved budget');\n" +
+    '  return total;\n' +
+    '}\n' +
+    '\n' +
+    '/** Data are inspected programmatically; no holdout candidate, quote or label is printed. */\n' +
+    "export async function validateData(root, { dataDirectory = resolve(root, EXPERIMENT, 'data') } = {}) {\n" +
+    "  const domain = await import(pathToFileURL(resolve(root, 'lib/material-facts-v3.ts')).href);\n" +
+    "  const scorer = await import(pathToFileURL(resolve(root, EXPERIMENT, 'assess.mjs')).href);\n" +
+    "  const selected = await json(resolve(dataDirectory, 'sources.selected.json'));\n" +
+    "  assert(Array.isArray(selected.sources) && selected.sources.length === 15, 'Expected fifteen selected case records');\n" +
+    "  assert.equal(new Set(selected.sources.map(row => row.id)).size, 15, 'Duplicate selected source ID');\n" +
+    "  assert.equal(new Set(selected.sources.map(row => canonicalUrl(row.url))).size, 7, 'Expected seven source-document dependencies');\n" +
+    '  const sets = {};\n' +
+    "  for (const split of ['dev', 'holdout']) {\n" +
+    '    const inputs = await jsonl(resolve(dataDirectory, `${split}.inputs.jsonl`));\n' +
+    '    const labels = await jsonl(resolve(dataDirectory, `${split}.labels.provisional.jsonl`));\n' +
+    '    assert.equal(inputs.length, COUNTS[split], `Wrong ${split} document count`);\n' +
+    '    assert.equal(new Set(inputs.map(row => row.id)).size, inputs.length, `Duplicate ${split} ID`);\n' +
+    '    same(inputs.map(row => row.id), labels.map(row => row.id), `${split} input/label IDs differ`);\n' +
+    '    let facts = 0, alternative'... 13966 more characters
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-lock.test.mjs:216:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "import assert from 'node:assert/strict';\nimport { execFileSync } from 'node:child_process';\nimport { lstat, readFile, readdir, realpath, writeFile } from 'node:fs/promises';\nimport { resolve } from 'node:path';\nimport { fileURLToPath, pathToFileURL } from 'node:url';\nimport { checkFileHashes, filesUnder, json, jsonl, safePath, same, sha } from '../material-facts-v6/freeze.mjs';\n\nexport { checkFileHashes, filesUnder, json, jsonl, safePath, same, sha };\nexport const ROOT = fileURLToPath(new URL('../../', import.meta.url));\nexport const EXPERIMENT = 'experiments/material-facts-v7';\nexport const LEGACY = 'experiments/material-facts-v6';\nexport const BACKENDS = ['rules', 'qwen', 'deepseek'];\nexport const COUNTS = { dev: 3, holdout: 12, dev_facts: 13, holdout_facts: 43, case_families: 15, source_documents: 7, natural_empty: 2 };\nexport const QWEN_MEMORY = { allocator_guideline_gib: 24, wired_gib: 20, cache_mib: 512, prefill_step_size: 128, kv_bits: 4, kv_group_size: 64, quantized_kv_start: 0, critical: 'immediate_stop', warning: '10_seconds', swap_growth_gib: 4, case_timeout_seconds: 600 };\nexport const RUN_HASH_FILES = ['lib/material-facts.ts', 'lib/material-fact-types.ts', 'lib/material-facts-v2.ts', 'lib/material-fact-types-v2.ts', 'lib/material-facts-v3.ts', 'lib/material-fact-types-v3.ts',\n  'lib/material-money-v4.ts', 'lib/material-fact-arithmetic-review.ts', 'lib/material-fact-extraction-v4.ts', 'lib/material-fact-source-review.ts', 'lib/material-fact-runtime-ingest.ts',\n  'lib/material-fact-event-review.ts', 'lib/material-fact-currency-review.ts', 'lib/material-fact-coverage-review.ts',\n  'scripts/fact-runtime-v2.py', 'scripts/fact_memory_runtime.py', 'scripts/fact_api_transport.py', `${EXPERIMENT}/run.mjs`, `${EXPERIMENT}/assess.mjs`, `${EXPERIMENT}/freeze.mjs`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/runtime-policy.json`];\nexport const REQUIRED_FILES = [...RUN_HASH_FILES, 'lib/material-money-v4.test.ts', 'lib/material-money-v4.independent.test.ts', 'lib/material-money-v4.review-regression.test.ts',\n  'lib/material-fact-source-review.test.ts', 'lib/material-facts-v7-runtime-independent.test.ts', 'lib/material-fact-calendar-money.test.ts',\n  'lib/material-fact-store.ts', 'scripts/fact-jobs.mjs', 'scripts/material-facts-v7-assessment-independent.test.mjs', 'scripts/material-facts-v7-freeze-independent.test.mjs', 'scripts/material-facts-v7-run-readiness.test.mjs', 'scripts/material-facts-v7-http-regression.mjs',\n  `${EXPERIMENT}/PROTOCOL.md`, `${EXPERIMENT}/ANNOTATION.md`, `${EXPERIMENT}/model-identity.json`, `${EXPERIMENT}/api-models-preflight.json`, `${EXPERIMENT}/annotation-review.independent.json`,\n  `${EXPERIMENT}/technical-review.json`, `${EXPERIMENT}/technical-review.initial.json`, `${EXPERIMENT}/benchmark-review.independent.json`, `${EXPERIMENT}/benchmark-review.initial.json`, `${EXPERIMENT}/verify.mjs`, `${EXPERIMENT}/summarize.mjs`, `${EXPERIMENT}/SOURCE_REVIEW.md`, `${EXPERIMENT}/REVIEW.md`, `${EXPERIMENT}/DEVELOPMENT.md`,\n  `${LEGACY}/verify.mjs`, `${LEGACY}/freeze.mjs`, `${LEGACY}/freeze.json`, `${LEGACY}/result-manifest.json`];\nconst canonicalUrl = value => { if (!value) return null; const url = new URL(value); url.hash = ''; url.search = ''; return url.href; };\n\nexport async function isMainModule(moduleUrl) {\n  if (!process.argv[1]) return false;\n  try { return moduleUrl === pathToFileURL(await realpath(resolve(process.argv[1]))).href; }\n  catch (error) { if (error.code === 'ENOENT') return false; throw error; }\n}\n\nexport function verifyLegacy(root) {\n  // Preserve the entire immutable v6 verifier, including its recursive v5/v4 checks.\n  const output = execFileSync(process.execPath, [resolve(root, LEGACY, 'verify.mjs')], { cwd: root, encoding: 'utf8', stdio: 'pipe', maxBuffer: 16 * 1024 ** 2, timeout: 60000 });\n  const receipt = JSON.parse(output.trim());\n  assert.equal(receipt.status, 'PASS', 'Complete old v6 verification failed');\n  return { script: `${LEGACY}/verify.mjs`, status: 'PASS', output_sha256: sha(output), result_files: receipt.result_files, result_manifest_sha256: receipt.result_manifest_sha256 };\n}\n\nexport async function loadPolicy(root = ROOT) {\n  const policy = await json(resolve(root, EXPERIMENT, 'runtime-policy.json'));\n  assert.equal(policy.schema, 'material-facts-v7-runtime-policy/1', 'Unsupported runtime-policy schema');\n  assert(Number.isFinite(Date.parse(policy.checked_at)), 'Runtime policy has no dated verification');\n  const fixed = { model: 'deepseek-v4-pro', thinking: 'disabled', reserved_upper_usd: 2, input_usd_per_million: 1.32, output_usd_per_million: 3.96 };\n  for (const [key, expected] of Object.entries(fixed)) assert.equal(policy.deepseek?.[key], expected, `Verified DeepSeek policy differs from bounded worker: ${key}`);\n  assert(['direct', 'temporary_loopback_ssh_test_host'].includes(policy.deepseek.egress), 'Unverified egress route');\n  assert(/^https:\\/\\/api-docs\\.deepseek\\.com\\//u.test(policy.deepseek.pricing_source), 'Pricing requires an official source');\n  assert(/^\\d{4}-\\d{2}-\\d{2}$/u.test(policy.deepseek.pricing_checked), 'Missing dated pricing verification');\n  assert.equal(policy.deepseek.availability_receipt, 'api-models-preflight.json', 'Unknown availability receipt');\n  const availability = await json(resolve(root, EXPERIMENT, policy.deepseek.availability_receipt));\n  assert(Number.isFinite(Date.parse(availability.at)), 'Availability check has no date');\n  assert.equal(availability.method, 'GET'); assert.equal(availability.endpoint, 'https://api.deepseek.com/models');\n  assert.equal(availability.http_status, 200); assert.equal(availability.generation_requests, 0); assert.equal(availability.certificate_verification, true);\n  assert.equal(availability.egress, policy.deepseek.egress, 'Availability route differs from selected route');\n  assert(availability.models?.includes(policy.deepseek.model), 'Selected model is not in the official model listing');\n  return policy;\n}\n\nexport async function validateQwenIdentity(root = ROOT) {\n  const current = await json(resolve(root, EXPERIMENT, 'model-identity.json'));\n  const legacy = await json(resolve(root, LEGACY, 'model-identity.json'));\n  for (const key of ['repository', 'revision', 'packages', 'source-manifest.json', 'weights-verification.json']) same(current[key], legacy[key], `Qwen verified identity differs from v6: ${key}`);\n  assert(Number.isFinite(Date.parse(current.verified_at)), 'Qwen requires a current dated identity check');\n  assert.equal(current.current_file_stat_fingerprints_verified, true, 'Current Qwen file fingerprints are not verified');\n  assert.equal(current.generation_requests, 0, 'Identity receipt must come from the no-generation preflight');\n  return current;\n}\n\nexport function deepseekReservation(messages, policy) {\n  return messages.reduce((sum, row) => {\n    assert(Array.isArray(row.messages) && row.messages.every(message => typeof message.content === 'string'), 'Invalid request messages');\n    const upper = row.messages.reduce((bytes, message) => bytes + Buffer.byteLength(message.content), 0) + 1024;\n    assert(upper <= 85000, 'DeepSeek input exceeds worker reservation bound');\n    return sum + upper * policy.deepseek.input_usd_per_million / 1e6 + 4096 * policy.deepseek.output_usd_per_million / 1e6;\n  }, 0);\n}\n\n/** Conservatively reserve every planned request, including stopped/failed batches.\n * Call while holding the runner's directory lock when adding a new attempt.\n */\nexport async function priorDeepseekReservation(root, policy) {\n  let entries;\n  try { entries = await readdir(resolve(root, EXPERIMENT, 'results'), { withFileTypes: true }); }\n  catch (error) { if (error.code === 'ENOENT') return 0; throw error; }\n  let total = 0;\n  for (const entry of entries) {\n    if (entry.name === '.deepseek-budget.lock') continue;\n    assert(entry.isDirectory() && !entry.isSymbolicLink(), 'Unexpected result entry or symlink');\n    const directory = resolve(root, EXPERIMENT, 'results', entry.name);\n    const protocol = await json(resolve(directory, 'protocol.json'));\n    assert(BACKENDS.includes(protocol.backend), 'Existing attempt has no backend identity');\n    if (protocol.backend !== 'deepseek') continue;\n    for (const key of ['model', 'input_usd_per_million', 'output_usd_per_million']) assert.equal(protocol.deepseek?.[key], policy.deepseek[key], 'Existing attempt has incompatible cost policy');\n    total += deepseekReservation(await jsonl(resolve(directory, 'messages.jsonl')), policy);\n  }\n  assert(total <= policy.deepseek.reserved_upper_usd, 'Earlier v7 attempts exhausted the total reserved budget');\n  return total;\n}\n\n/** Data are inspected programmatically; no holdout candidate, quote or label is printed. */\nexport async function validateData(root, { dataDirectory = resolve(root, EXPERIMENT, 'data') } = {}) {\n  const domain = await import(pathToFileURL(resolve(root, 'lib/material-facts-v3.ts')).href);\n  const scorer = await import(pathToFileURL(resolve(root, EXPERIMENT, 'assess.mjs')).href);\n  const selected = await json(resolve(dataDirectory, 'sources.selected.json'));\n  assert(Array.isArray(selected.sources) && selected.sources.length === 15, 'Expected fifteen selected case records');\n  assert.equal(new Set(selected.sources.map(row => row.id)).size, 15, 'Duplicate selected source ID');\n  assert.equal(new Set(selected.sources.map(row => canonicalUrl(row.url))).size, 7, 'Expected seven source-document dependencies');\n  const sets = {};\n  for (const split of ['dev', 'holdout']) {\n    const inputs = await jsonl(resolve(dataDirectory, `${split}.inputs.jsonl`));\n    const labels = await jsonl(resolve(dataDirectory, `${split}.labels.provisional.jsonl`));\n    assert.equal(inputs.length, COUNTS[split], `Wrong ${split} document count`);\n    assert.equal(new Set(inputs.map(row => row.id)).size, inputs.length, `Duplicate ${split} ID`);\n    same(inputs.map(row => row.id), labels.map(row => row.id), `${split} input/label IDs differ`);\n    let facts = 0, alternative"... 13966 more characters,
+    expected: /RUN_HASH_FILES[\s\S]*?`\$\{EXPERIMENT\}\/experiment-lock\.mjs`/,
+    operator: 'match',
+    diff: 'simple'
+  }

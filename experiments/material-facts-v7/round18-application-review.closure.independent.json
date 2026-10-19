@@ -1,0 +1,135 @@
+{
+  "schema": "material-facts-v7-round18-application-review-closure/1",
+  "created_utc": "2026-10-18T09:35:13.789381+00:00",
+  "status": "PASS_WITHIN_REVIEWED_APPLICATION_SCOPE",
+  "blocking_findings_in_reviewed_scope": [],
+  "extends": {
+    "path": "experiments/material-facts-v7/round18-money-application-review.independent.json",
+    "sha256": "6be5e532f41ecf207b83f2efb16a7ef217b4f3d0fdd8125a3e393ae8bb964623"
+  },
+  "requested_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "baseline_commit": "9b4bba2fbc85ccd2a7cd8003a2d4a1f2e0593207",
+  "reviewer_implemented_any_product_changes": false,
+  "source_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "3c3132601b90243045d5d3b05b6aa4c7c3f537a01c4ec3d56b709e28f1e43418",
+    "lib/material-fact-currency-review.ts": "6015980876561d92d7e6198b0d58cc2355aa7916c72b2066a25b84db4d0e4bf9",
+    "lib/material-fact-source-review.ts": "d6c26eec1dff24082127015792fa7c34fd7adb769e8e62f3976b47fd1ecba6a1",
+    "lib/material-fact-runtime-ingest.ts": "93b6b213871eb3fd8d98fd3f3eb1bd735190746438b96bbf69e9c745971296ea",
+    "experiments/material-facts-v7/assess.mjs": "d4f0c98828d091f9f99681a5c404091f76fd1f4e4103aae0a056e5d493ce9e9d",
+    "scripts/owned-http-process-group.mjs": "460130907f28e027bcc15368aac87bf82c7e9b7dfa7c22eefe021895cddd007a",
+    "scripts/material-facts-cancel-http-regression.mjs": "a89618bc8b72c248363c3fee1a925e3afa1b4fa6143a234f931dddb49ef5c973",
+    "scripts/material-facts-poll-http-regression.mjs": "a2830060c7e7399b6914045abfc597caa92a0c8e3c5b98bbda582db629a04247"
+  },
+  "findings": [
+    "4306457794 traditional foreign-wage currency bridge",
+    "4306457800 traditional rate labels",
+    "4306457804 Chinese yuan with Arabic subunits",
+    "4306457806 cancel/poll interruption lifecycle",
+    "4306457807 unsupported suffix-rate denominator"
+  ],
+  "independent_executions": {
+    "business": {
+      "script": "scripts/material-facts-v7-round18-money-independent.test.mjs",
+      "sha256": "8a9bd050a11d18a4040c86693359ca40d0d17a636412345905324300fb312b64",
+      "exact_baseline": {
+        "pass": 29,
+        "fail": 32
+      },
+      "final_code": {
+        "pass": 61,
+        "fail": 0,
+        "duration_ms": 282.841209
+      }
+    },
+    "signal": {
+      "script": "scripts/material-facts-http-round18-independent.test.mjs",
+      "sha256": "051f91b7072f223d39945aa5ca8fed7f5cf893c7f68d05c8e69fb7ea96409089",
+      "exact_baseline_same_final_script": {
+        "pass": 0,
+        "fail": 4,
+        "duration_ms": 1694.542
+      },
+      "final_code": {
+        "pass": 4,
+        "fail": 0,
+        "duration_ms": 21712.947084
+      },
+      "method": "Actual runner interrupt, wait/bounded and stopWorker bodies are extracted unchanged; only the pending-operation harness and native socket launcher are synthetic. The full HTTP runner is not invoked.",
+      "kernel": "darwin",
+      "checks": [
+        "SIGINT and SIGTERM on each runner",
+        "second identical signal during cleanup remains idempotent",
+        "redirected TERM-ignoring grandchild listening socket closes",
+        "released socket can be rebound",
+        "unrelated detached socket remains live",
+        "finally records an aborted operation and no cleanup failures",
+        "runner exits code 1 rather than default signal exit"
+      ]
+    },
+    "author_group_tests_independently_executed": {
+      "path": "scripts/material-facts-http-group-inspection.test.mjs",
+      "pass": 2,
+      "fail": 0
+    },
+    "direct_contract_migration_probe": {
+      "pass": true,
+      "cases": [
+        "四元五角伍分 = 4.55",
+        "一千万元伍分 = 10000000.05",
+        "伍仟元五角 = 5000.50"
+      ],
+      "each_cropped_yuan_amount": null,
+      "invalid_zero_bridge_repeated_fen_and_Arabic_scaled_controls": "remain unavailable"
+    },
+    "scoped_eslint": [
+      {
+        "file": "material-facts-v7-round18-money-independent.test.mjs",
+        "exit": 0
+      },
+      {
+        "file": "material-facts-http-round18-independent.test.mjs",
+        "exit": 0
+      }
+    ]
+  },
+  "evidence_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+  "evidence": {
+    "postfreeze-evidence/round18/baseline-9b4bba2.receipt.json": "617f3e48553de949cde25b9aea6a1f6a484916251b64a9df1489ae8bb8ac65d0",
+    "postfreeze-evidence/round18/9b4bba2-money-before-red.txt": "5b45e136118b5aeb700baa3d4e7a7df5e032abcfaf39fcf93a6c2e2fad81308c",
+    "postfreeze-evidence/round18/traditional-integration-first.txt": "f6faa129f0d21280e3de1743776fbfd8f596b2135ddc53c313a981aaefb6a59b",
+    "postfreeze-evidence/round18/code-money-integrated-first-green.txt": "13b6ab976d47cbf386013aaaeeb8a0462558080ab483e18400a82dd1f536d571",
+    "postfreeze-evidence/round18/9b4bba2-interrupt-before-red.txt": "03f6b61cb7d5073b47c4b6ba3a1938b476e01d0a9354dbf81f85e883637e4461",
+    "postfreeze-evidence/round18/9b4bba2-interrupt-final-script-before-red.txt": "3ee9f0bb033e7f41d31a7d729279fc6f390788763c9f87bbf771562c163d1675",
+    "postfreeze-evidence/round18/data-interrupt-with-code-helper-first-green.txt": "9432ff7157ec49b69b60d00494c04ec808aa2f650686fe6625deec36a8539e38",
+    "postfreeze-evidence/round18/code-interrupt-integrated-final-green.txt": "9b561ec9b9f06e085b168ddf59d40accba179b311814462454798c2edddc8752",
+    "postfreeze-evidence/round18/group-inspection-independent-execution.txt": "4cb9d67706220c2510c3da6baace833a97869c6db55801795378b7d8e84b6400",
+    "postfreeze-evidence/round18/mixed-contract-migration-probe.mjs": "1545769d6bbd2deb4576f2f8d78c3559b0e20d61173eee1f442eeee0324bdfbc",
+    "postfreeze-evidence/round18/mixed-contract-migration.independent.json": "49a76191a27671903ddaf0fd0e38d9e4cff5c25a15f8b8fdc3834909379ba78c",
+    "postfreeze-evidence/round18/independent-final-scoped-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "nonimplementer_source_review": [
+    "Mixed-yuan parser changes are limited to explicit canonical integer yuan plus single-digit jiao/fen. Strict integer parsing and precision limits remain; BigInt cents avoid float rounding.",
+    "Currency bridge gains finite traditional forms and folds only horizontal whitespace on anchored comparison copies, preserving line/clause boundaries.",
+    "Rate detection folds a finite character map on both source edges and subject; original strings and quote CP ranges remain untouched.",
+    "Unsupported slash rates are resolved from the original normalized-token suffix plus complete quote, allowing full-value and cropped-value paths to agree. Source review invokes the same guard on the bound original event.",
+    "Shared process-group cleanup removes a redundant signal-zero probe; bounded nonempty validated ps inspection still distinguishes live members from Z/X. Actual signal EPERM remains a failure.",
+    "Cancel/poll install persistent idempotent handlers before owned process creation. Interrupts abort pending waits and fetches, release held replies and TERM only registered owned children; finally awaits group stop.",
+    "A separate interruption record preserves a pre-existing migration/operation failure. Cleanup failures stay recorded and prevent temporary-state deletion. Signal handlers remain installed through report publication."
+  ],
+  "contract_change_assessment": "The three old unsupported assertions moved to exact are explicit mixed-digit currency grammar newly supported by this repair, not failures removed to make tests green. The direct probe also checks that clipping their yuan part remains null and invalid precision stays null.",
+  "boundaries": [
+    "65 newly designed independent tests passed locally (61 business + 4 source-extracted native lifecycle). The 2 shared-helper tests were authored by the main agent and independently executed here, not independently designed.",
+    "The 4 native lifecycle tests are POSIX/macOS evidence; no native Windows or fresh Linux run is claimed.",
+    "No actual application HTTP/Worker, complete repository check or remote CI was run by this reviewer. Parent/author reports remain separate evidence.",
+    "The authors actual CLI fixture suite was read for coverage/limits but not executed by this reviewer; it is not counted in the 65.",
+    "Accepted or exact does not authorize calculation; raw/history/representation and source CP remain intact, confirmations/calculation stay empty.",
+    "Finite lexical guards are not a complete Chinese semantic or legal analysis.",
+    "No model request, training, service build, deployment, commit, push, merge, frozen-result mutation or old-receipt rewrite."
+  ],
+  "pending_experiment_scope": "Formal v14 publication and its archive/current-code integrity gates are outside this application closure and were not run."
+}

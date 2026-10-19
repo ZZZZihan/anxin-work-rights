@@ -1,0 +1,151 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// Finite tests for the three post-35bdbde findings. Synthetic runtime/source
+// functions are allowed; no scorer, historical CLI, HTTP, build or model runs.
+const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const load = path => import(pathToFileURL(resolve(ROOT, path)));
+const { normalizeMoneyValueV4: money, classifyMonetaryExpression: classify } = await load('lib/material-money-v4.ts');
+const { ingestRuntimeCandidates: fresh } = await load('lib/material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates: legacy, validateCandidateOutput } = await load('lib/material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('lib/material-fact-source-review.ts');
+const { hasSupportedCandidateAttribution: attributed } = await load('lib/material-fact-event-review.ts');
+const cp = text => Array.from(text).length;
+const sourceFor = texts => ({ id: 'round32-independent', name: 'synthetic.txt', sha256: '3'.repeat(64), analysisRevision: 32, ready: true,
+  blocks: (Array.isArray(texts) ? texts : [texts]).map((text, index) => ({ id: 'b' + (index + 1), page: 1, text, bbox: null, confidence: null })) });
+const entry = (value, quote = value, extra = {}) => ({ kind: 'money', value, quote, blockId: 'b1', subject: '王甲', scope: 'individual',
+  meaning: 'other_money', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated', ...extra });
+const rawFor = rows => JSON.stringify({ schemaVersion: 3, candidates: rows });
+function stateFor(source, rows, old = false) {
+  const raw = rawFor(rows), sourceBefore = structuredClone(source), structural = validateCandidateOutput(raw, source);
+  assert.equal(structural.rejected.length, 0, 'Every fixture must pass the frozen structural schema before runtime semantics.');
+  const state = (old ? legacy : fresh)(emptyFactState(32), source, { raw }, 'independent', 'synthetic', '2026-10-18T23:00:00.000Z', null);
+  assert.deepEqual(source, sourceBefore); assert.equal(state.materials[0].raw, raw);
+  assert.deepEqual(state.confirmations, { due: null, paid: null }); assert.equal(state.calculation, null);
+  return state;
+}
+function factFor(source, item, state) {
+  assert.equal(state.materials[0].candidates.length, 1, 'One review candidate does not imply one usable amount.');
+  const fact = state.materials[0].candidates[0], text = source.blocks.find(block => block.id === item.blockId).text;
+  const at = text.indexOf(item.quote); assert(at >= 0); assert.equal(text.indexOf(item.quote, at + 1), -1);
+  assert.deepEqual(fact.representation, item); assert.equal(fact.start, cp(text.slice(0, at))); assert.equal(fact.end, fact.start + cp(item.quote));
+  return fact;
+}
+function stored(source, item, amount, status) {
+  const state = stateFor(source, [item], true), fact = factFor(source, item, state);
+  fact.amount = amount;
+  fact.normalization = { rawValue: item.value, status, amount, matchedText: item.value,
+    span: { start: 0, end: cp(item.value) }, reason: 'Synthetic stored state, never confirmed.' };
+  const before = structuredClone(state), reviewed = reviewFactsAgainstSources(state, [source]);
+  assert.deepEqual(state, before); assert.equal(reviewed.materials[0].raw, rawFor([item]));
+  return factFor(source, item, reviewed);
+}
+function moneyRows(source, amount, value = '4000元') {
+  const block = source.blocks.find(item => item.text.includes(value)); assert(block);
+  const rows = [];
+  for (const quote of [value, block.text]) {
+    const item = entry(value, quote, { blockId: block.id });
+    const observed = { fresh: factFor(source, item, stateFor(source, [item])),
+      storedExact: stored(source, item, '4000.00', 'exact'), storedUnavailable: stored(source, item, null, 'unsupported') };
+    console.log(JSON.stringify({ evidence: 'round32_money', source, item, observed }));
+    rows.push(observed);
+  }
+  for (const observed of rows) {
+    assert.equal(observed.fresh.amount, amount); assert.equal(observed.storedExact.amount, amount);
+    assert.equal(observed.storedUnavailable.amount, null, 'An old null must not be upgraded on read.');
+  }
+}
+function dateItem(value, text, extra = {}) {
+  return entry(value, text, { kind: 'date', meaning: 'payment_date', ...extra });
+}
+function dateSupport(item, text) {
+  const before = structuredClone(item), normalized = { rawValue: item.value, status: 'exact', amount: null,
+    matchedText: item.value, span: { start: 0, end: cp(item.value) }, reason: 'Date-attribution fixture only.' };
+  const result = attributed(item, text, normalized); assert.deepEqual(item, before);
+  console.log(JSON.stringify({ evidence: 'round32_date_attribution', item, text, result })); return result;
+}
+for (const path of ['lib/material-money-v4.ts', 'lib/material-fact-range-review.ts', 'lib/material-fact-event-review.ts',
+  'lib/material-fact-source-review.ts', 'lib/material-fact-runtime-ingest.ts'])
+  console.log(JSON.stringify({ evidence: 'round32_implementation', path, sha256: createHash('sha256').update(await readFile(resolve(ROOT, path))).digest('hex') }));
+
+for (const bound of ['约有', '大约有', '将近有']) test('有-linked estimate cannot expose an exact whole or cropped amount: ' + bound, () => {
+  const result = money(bound + '4000元');
+  console.log(JSON.stringify({ evidence: 'round32_whole_money', result }));
+  moneyRows(sourceFor('😀王甲工资' + bound + '4000元。'), null);
+  assert.equal(result.rawValue, bound + '4000元'); assert.equal(result.amount, null); assert.equal(result.status, 'approximate');
+});
+test('an explicit 有-linked estimate keeps its qualification across a neighboring source block', () => {
+  moneyRows(sourceFor(['😀王甲工资大约有', '4000元。']), null);
+});
+test('an already supported traditional/fullwidth detection copy retains its exact raw literal', () => {
+  const value = '約\u200b有４０００元', result = money(value);
+  assert.equal(result.rawValue, value); assert.equal(result.amount, null); assert.equal(result.status, 'approximate');
+});
+test('a plain exact payment and a different owner estimate remain separate', () => {
+  assert.equal(money('4000元').amount, '4000.00');
+  moneyRows(sourceFor('😀王甲收到4000元。李乙工资约有5000元。'), '4000.00');
+});
+test('有 without an attached bound and a qualified duration do not create a money estimate', () => {
+  assert.equal(money('有4000元').amount, '4000.00');
+  moneyRows(sourceFor('😀王甲收到4000元。李乙大约有三个月未出勤。'), '4000.00');
+});
+
+for (const text of ['😀王甲工资每月15日发放', '😀王甲每月15日支付工资']) test('the explicit same-worker wage schedule has a payment-date role: ' + text, () => {
+  const value = '每月15日', full = dateItem(value, text);
+  const direct = dateSupport(full, text), source = sourceFor(text), observations = [];
+  for (const quote of [value, text]) {
+    const item = { ...full, quote }, state = stateFor(source, [item]), fact = factFor(source, item, state);
+    const historical = factFor(source, item, reviewFactsAgainstSources(stateFor(source, [item], true), [source]));
+    observations.push({ fact, historical });
+    console.log(JSON.stringify({ evidence: 'round32_date_source', source, item, fact, historical }));
+  }
+  assert.equal(direct, true);
+  for (const { fact, historical } of observations) {
+    assert(!fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    assert(!historical.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'));
+    assert.equal(fact.amount, null); assert.equal(historical.amount, null);
+  }
+});
+test('a complete recurring alias remains bounded to the located wage owner', () => {
+  const text = '😀王甲的工資每月九號發放';
+  assert.equal(dateSupport(dateItem('每月九號', text), text), true);
+});
+test('the schedule cannot absorb another beneficiary, negation or the wrong date role', () => {
+  for (const text of ['王甲每月15日支付李乙工资', '王甲工资每月15日不发放', '王甲工资每月15日发放给李乙'])
+    assert.equal(dateSupport(dateItem('每月15日', text), text), false);
+  const text = '王甲工资每月15日发放';
+  assert.equal(dateSupport(dateItem('每月15日', text, { subject: '李乙' }), text), false);
+  assert.equal(dateSupport(dateItem('每月15日', text, { meaning: 'wage_period' }), text), false);
+  assert.equal(dateSupport(dateItem('每月32日', '王甲工资每月32日发放'), '王甲工资每月32日发放'), false);
+});
+test('the existing receipt and full-calendar payment layouts remain controls', () => {
+  for (const [value, text] of [['每月15日', '王甲收到工资每月15日'], ['2026年1月15日', '王甲工资2026年1月15日实际收到']])
+    assert.equal(dateSupport(dateItem(value, text), text), true);
+});
+
+for (const value of ['五角星', '三角洲', '八角亭', '五角大楼']) test('a complete ordinary angle noun is rejected as a new money candidate: ' + value, () => {
+  const classification = classify(value);
+  const source = sourceFor('😀王甲画了' + value + '。'), item = entry(value), state = stateFor(source, [item]);
+  const old = stateFor(source, [item], true), fact = factFor(source, item, old); fact.amount = null;
+  const reviewed = reviewFactsAgainstSources(old, [source]);
+  console.log(JSON.stringify({ evidence: 'round32_angle_noun', value, classification, state, reviewed }));
+  assert.equal(classification.kind, 'not_monetary');
+  assert.equal(state.materials[0].candidates.length, 0); assert.equal(state.materials[0].rejected.length, 1);
+  assert.match(state.materials[0].rejected[0].reason, /没有金额表达/u);
+  assert.equal(reviewed.materials[0].candidates.length, 1, 'Do not silently reparse or erase a stored extraction.');
+  assert.equal(factFor(source, item, reviewed).amount, null); assert.equal(reviewed.materials[0].raw, rawFor([item]));
+});
+test('genuine bare subunit money remains reviewable rather than being rejected as an ordinary angle noun', () => {
+  const value = '五角钱'; assert.notEqual(classify(value).kind, 'not_monetary');
+  const source = sourceFor('😀王甲收到' + value + '。'), item = entry(value);
+  const fact = factFor(source, item, stateFor(source, [item])); assert.equal(fact.amount, null);
+});
+test('explicit RMB subunits in a separate payment are not contaminated by an ordinary angle noun', () => {
+  const value = '人民币五角'; assert.equal(money(value).amount, '0.50');
+  const source = sourceFor('😀王甲收到人民币五角。李乙画五角星。'), item = entry(value);
+  assert.equal(factFor(source, item, stateFor(source, [item])).amount, '0.50');
+});

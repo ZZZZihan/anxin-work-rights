@@ -1,0 +1,48 @@
+{
+  "schema": "round26-source-event-cross-review/1",
+  "scope": "Non-implementer static review of DATA source/event; own money/range synthetic integration is implementer self-check, not an independent material evaluation.",
+  "files": {
+    "money": {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-money-v4.ts",
+      "sha256": "0aabfb8d0b3a4490ce26c04e075b1ab953f030838dbb0c6df3a1b765a2744dc8"
+    },
+    "range": {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/lib/material-fact-range-review.ts",
+      "sha256": "e75c194a042091dea0d3d240a9961fece16773b72d75fdfe3f0d252723748e0f"
+    },
+    "source": {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/lib/material-fact-source-review.ts",
+      "sha256": "087c975872c0e44eb07172cebebddc763232b7494b880e57ae45b33461936d8a"
+    },
+    "event": {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/lib/material-fact-event-review.ts",
+      "sha256": "c5f9317c4c0df198e79f57cac9264e1dee6e639a462bf3ec84f84e88256d0a9f"
+    },
+    "author_test": {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-round26-money-author.test.mjs",
+      "sha256": "58325b7d95985e52010b321ecf354fb3005cc9334fe7dfb84fc3a83220a92390"
+    }
+  },
+  "base_commit": "ec8dc649f3857771003eeafe0d87df1645635ded",
+  "blocking_findings": [],
+  "static_findings": [
+    "Source new postposed rate requires explicit 按 and a supported bounded unit/calculation tail. It does not let model subject exempt the denominator.",
+    "Source layout rate-tail uncertainty reuses the money helper before sourceUnitMismatch; historical review remains downgrade-only and retains raw/state.",
+    "Event change accepts the finite new suffix only for meaning=rate, leaving complete-total and generic source/subject/period checks in place.",
+    "New right-boundary excludes 按时支付, 按月15日, 计数 and arbitrary prose. NFKC/Cf/traditional aliases only affect detection copies."
+  ],
+  "actual_test": {
+    "command": "node --test scripts/material-facts-v7-round26-money-author.test.mjs with fixed ec8 lib + money/range own + DATA final source/event overlays",
+    "runtime": "Node v26.11.0",
+    "tests": 321,
+    "passed": 321,
+    "failed": 0,
+    "exit_code": 0,
+    "log": "combined-data-final-author321.actual.log"
+  },
+  "limits": [
+    "No HTTP, build, full project check, CI, model or deep-chain test run by this agent.",
+    "Own321 tests exercise parsing/source/raw/CP/history but do not assert that every natural-language rate can be attributed without review issues.",
+    "Final parent integration/fullcheck/HTTP/CI and peer independent dual-runtime execution are separate evidence, not claimed here."
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "schema": "material-facts-v7-round12-application-independent-review/1",
+  "created_at": "2026-10-18T07:29:58.802506+00:00",
+  "status": "passed_with_documented_limits",
+  "scope": "Nonimplementer source and synthetic technical review of the five round12 findings plus directly related subunit/traditional-yuan regressions; excludes v10 historical assessment, real-model reruns, deployment and human business/legal acceptance.",
+  "baseline_commit": "7f3a79bf8b01a5982e9039b1b83e4c428d7197a5",
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "128319f7bc7415c4e46aa1e70ab4135437a6f74d97f3275db3aa1b1793176f45",
+    "lib/material-fact-currency-review.ts": "83291d8fd26b76b05f455ac7094dc6e8622f246c48182cd0f0f1680715cf1ff4",
+    "lib/material-fact-source-review.ts": "d7fd4f6508a1158721b27c3cc3b4e7014cf35ade48b2695e0b47ec748cf97210",
+    "lib/material-fact-arithmetic-review.ts": "09e91a8462dfffb1bd2e0ea2f3ec3fb7dea57cca1f4fdd18260ef8c53ace1ba1",
+    "lib/material-fact-runtime-ingest.ts": "a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f",
+    "experiments/material-facts-v7/assess.mjs": "d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"
+  },
+  "independent_test": {
+    "path": "scripts/material-facts-v7-round12-money-independent.test.mjs",
+    "sha256": "746d4e92d4577e65653e5bc8f805d673b54b7cca770aabc9c33979dc47f7cef7",
+    "baseline": {
+      "tests": 68,
+      "pass": 25,
+      "fail": 43,
+      "exit_code": 1,
+      "log": "final68-before-red.txt",
+      "log_sha256": "e6d2e3b74b3a55ef6bea178bc0ac8e142a5187b26ab724a2bba20e15174bc89d"
+    },
+    "new_alias_parser_followup": {
+      "parser_sha256": "215414bd3bb54a5b3b5ce281c55f60ebc6abd0db9009cb6363e4903da0d8159f",
+      "tests": 5,
+      "pass": 1,
+      "fail": 4,
+      "exit_code": 1,
+      "log": "followup-overlay-before-red.txt",
+      "log_sha256": "87affcc09ab7119bef7a910719d436799242403171d80f6788271e24646f34fc"
+    },
+    "integrated": {
+      "tests": 68,
+      "pass": 68,
+      "fail": 0,
+      "exit_code": 0,
+      "log": "final68-code-integrated-green.txt",
+      "log_sha256": "ae682aab63b912ca63f2ee3ab06b36ca12a772c88d9b77f9226ca4a8642b85c9"
+    },
+    "evidence_root": "postfreeze-evidence/round12/independent/",
+    "own_evidence_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/postfreeze-evidence/round12/"
+  },
+  "verified_boundaries": [
+    "Modified symbolic factors, source-cropped operands and full formulas cannot become exact usable money or borrow the full formula event in any of the six score layers.",
+    "Complete amount-free wage-standard descriptions are rejected while raw remains; unknown/masked amounts are retained for review.",
+    "Minute and ordinary-word subunit fragments, fractional 分之一, and traditional approx 約/餘 cannot become precise cents; genuine 5分工资 and 5分之后 remain valid.",
+    "Explicit dates/durations after 至/到 are not monetary range endpoints; true ranges and incomplete bare second numbers remain unavailable.",
+    "Supported 圓/人民幣 literals preserve original raw/quote/codepoint evidence; source-cropped subunits/rates/foreign currency remain guarded and old historical unsupported states never auto-upgrade."
+  ],
+  "source_review": "Reviewed the actual four implementation diffs from 7f3a79b; reviewer did not implement these changes. No unresolved blocking finding within the stated finite grammar scope.",
+  "blocking_findings": [],
+  "root_integration_evidence": {
+    "provenance": "Root executed these checks; reviewer read the saved receipt and HTTP report, did not launch services or repeat the full build/check.",
+    "receipt": {
+      "path": "postfreeze-evidence/round12/application-final-validation.json",
+      "sha256": "37750e29e07d8ce47f6ce2b6e69d832e7ce287ab5a18d668846df5cb6dd92576"
+    },
+    "independent_test_root_rerun": {
+      "pass": 68,
+      "fail": 0,
+      "path": "postfreeze-evidence/round12/independent-final68-root-run.txt",
+      "sha256": "8777dc8e055417feddf35158f52aa96be393a1a8e34372f25ca4c903525c13f1"
+    },
+    "full_check": {
+      "exit_code": 0,
+      "vitest": 1789,
+      "runtime_in_original_full_check": 1601,
+      "additional_later_probe_pass": 107
+    },
+    "http": {
+      "baseline_pass": 52,
+      "baseline_fail": 12,
+      "current_pass": 64,
+      "current_fail": 0,
+      "persisted_raw_history_snapshots_unchanged_after_restart": 63,
+      "cleanup": "PASS",
+      "report": "postfreeze-evidence/round12/http-64-after-green.json",
+      "report_sha256": "fd8457b302add64f3e0fecdebe3259830bf06df5327ad58835a5188d2aa4d58c",
+      "limit": "Initial reads assert derived values; restart loop asserts persisted snapshots, not a second complete derived-value acceptance pass."
+    }
+  },
+  "limits": [
+    "Finite lexical/symbolic grammar, not arbitrary natural-language correctness or legal expertise.",
+    "Yuan-only crop 1000元 adjacent to 5分钟 remains conservatively null; source evidence is not rewritten to restore availability.",
+    "Raw/accepted/scored facts are not calculation authorization; scope and human confirmation gates remain.",
+    "Early independent fixture errors were corrected transparently and retained; only the final identical 68-case script supplies the principal red/green comparison.",
+    "All old frozen outputs/snapshots/receipts remain unchanged; v10 review is pending separately."
+  ],
+  "reviewer_actions": {
+    "model_requests": 0,
+    "worker_services_started": 0,
+    "builds": 0,
+    "implementation_edits": 0,
+    "git_writes": 0
+  },
+  "requested_reviewer_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_configuration_independently_verified": false
+  }
+}

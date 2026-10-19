@@ -1,0 +1,32 @@
+--- a/scripts/material-facts-http-interrupt.test.mjs
++++ b/scripts/material-facts-http-interrupt.test.mjs
+@@ -32,10 +32,12 @@
+   // EPERM is not used as proof of success: every fixture socket is checked below.
+ }
+ 
+-const leaf = `import{createServer}from'node:net';import{writeFile}from'node:fs/promises';
++const leaf = `import{createServer}from'node:net';import{writeFile,rename}from'node:fs/promises';
++async function publish(path,value){const temporary=path+'.'+process.pid+'.tmp';await writeFile(temporary,value);await rename(temporary,path);}
+ if(process.argv[3]==='ignore')process.on('SIGTERM',()=>{});
+-const server=createServer(s=>s.end());server.listen(0,'127.0.0.1',async()=>{await writeFile(process.argv[2],JSON.stringify({pid:process.pid,port:server.address().port}));});`;
+-const wrangler = `import{createServer}from'node:http';import{spawn}from'node:child_process';import{mkdir,readFile,writeFile}from'node:fs/promises';import{join}from'node:path';import{DatabaseSync}from'node:sqlite';
++const server=createServer(s=>s.end());server.listen(0,'127.0.0.1',async()=>{await publish(process.argv[2],JSON.stringify({pid:process.pid,port:server.address().port}));});`;
++const wrangler = `import{createServer}from'node:http';import{spawn}from'node:child_process';import{mkdir,readFile,writeFile,rename}from'node:fs/promises';import{join}from'node:path';import{DatabaseSync}from'node:sqlite';
++let markerSequence=0;async function publish(path,value){const temporary=path+'.'+process.pid+'.'+(++markerSequence)+'.tmp';await writeFile(temporary,value);await rename(temporary,path);}
+ const args=process.argv.slice(2),mode=process.env.ANXIN_INTERRUPT_FIXTURE_MODE,dir=process.env.ANXIN_INTERRUPT_FIXTURE_DIR;
+ const migration=args[0]==='d1';
+ if(migration&&!['migration','migration-failure'].includes(mode)){
+@@ -46,11 +48,11 @@
+  const port=migration?0:Number(args[args.indexOf('--port')+1]);
+  const server=createServer(async(req,res)=>{
+   if(req.url==='/api/bootstrap'&&mode==='pending'){res.writeHead(401);res.end('{}');return;}
+-  await writeFile(join(dir,'request.json'),JSON.stringify({path:req.url}));
++  await publish(join(dir,'request.json'),JSON.stringify({path:req.url}));
+   // Deliberately never complete startup or the first business HTTP request.
+  });
+  server.listen(port,'127.0.0.1',async()=>{
+-  await writeFile(join(dir,'owned.json'),JSON.stringify({stage,pid:process.pid,port:server.address().port}));
++  await publish(join(dir,'owned.json'),JSON.stringify({stage,pid:process.pid,port:server.address().port}));
+   if(mode==='migration-failure'){
+    // Establish that the redirected child installed its TERM handler before the
+    // launcher fails; otherwise shutdown could correctly kill it before the test.

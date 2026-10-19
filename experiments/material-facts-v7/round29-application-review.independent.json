@@ -1,0 +1,199 @@
+{
+  "schema": "material-facts-v7-round29-application-independent-review/1",
+  "created_at": "2026-10-18T14:21:21.779685+00:00",
+  "status": "SCOPED_APPLICATION_TECHNICAL_REVIEW_PASS",
+  "baseline_commit": "baa8bebb2c8c5a4132fe5128e4ef9f75b5259936",
+  "application_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "reviewer_role": "Non-implementer of all four ROUND29 product changes; independent synthetic tests, original-baseline reproduction and technical diff review only.",
+  "requested_configuration": {
+    "model": "gpt-6.1-sol",
+    "reasoning": "ultra",
+    "actual_backend_independently_verified": false
+  },
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "c60083aac34914cc154ad8197ede4a62553d405ad2dd1c05ae4194bfbd371885",
+    "lib/material-fact-arithmetic-review.ts": "10f1193d65bc24a7e0898bdf1711f1fd038f74ba3abd0c5fea7dd8dcf14db284",
+    "lib/material-fact-range-review.ts": "f70673d8bb3b6886558ca14ddcb2d14f55f0cd4fa7cd8c9b4f849de938b1eacb",
+    "lib/material-fact-source-review.ts": "e2d6e9a1697ea7a7e286510b87f64d7346974f4d8c3e0f72348da68f50c0ada7"
+  },
+  "associated_unchanged_sha256": {
+    "lib/material-fact-event-review.ts": "cc35b6a597231967c721ca70bc378e6b8877fc23b10a6e5e634a5bc24f15e010",
+    "lib/material-fact-currency-review.ts": "be4f151b5e588dc6cf1c35d30948d836a380a24ab6bb6497cc860abf7b68fde5",
+    "lib/material-fact-runtime-ingest.ts": "cbf7c724c30568ed1c5640410d6027baaed47503a4a09b7e39ed4e2ff0bd2bbc",
+    "experiments/material-facts-v7/assess.mjs": "04d16d173e4ab491d91e0a083f07c734b10591f9814296fa30d1464a9116c0c5"
+  },
+  "scripts_sha256": {
+    "scripts/material-facts-v7-round29-independent.test.mjs": "1996e6480d375ec4919bff1a0d388421d691dfb243d294e3d86a19f5ee6be634",
+    "scripts/material-facts-v7-round29-schedule-layout-independent.test.mjs": "6ccef2954d3f4f2c19d09b8782e397a4a06d283f0a6e1edbafe24178fe538ee4",
+    "scripts/material-facts-v7-round29-arithmetic-status-independent.test.mjs": "495b6d4e84ea29c1a744b53cf5dedb62075436ddf85f21a0a627677c5db90fa4"
+  },
+  "review_scope": [
+    {
+      "finding": "4307298301",
+      "behavior": "Explicit prefix RMB/CNY/人民幣 without yuan suffix parses at its original full token; named foreign controls remain unavailable."
+    },
+    {
+      "finding": "4307298303",
+      "behavior": "Complete 每月1–31日 plus finite payment verb is a calendar payment instruction, including bounded line/block continuation; true monthly rate and invalid/unknown/other-owner day remain guarded."
+    },
+    {
+      "finding": "4307298309",
+      "behavior": "Traditional 係數 adjacent to explicit arithmetic is unavailable in both operand directions and across source blocks."
+    },
+    {
+      "finding": "4307298312",
+      "behavior": "Traditional 超過/不超過/不得超過 remains a bound for whole-value and cropped source paths."
+    },
+    {
+      "finding": "4307298316",
+      "behavior": "Traditional 不詳/無法確定/待確認/未載明/暫定 survives full/cropped quote, source layout and historical exact read review."
+    },
+    {
+      "cross": "Arithmetic-versus-unknown normalization status",
+      "behavior": "Explicit ×2/＊２/x2/newline×2/×newline2 keeps unsupported/null; an incomplete local operator is classified by proven full anchored layout, with no monetary upgrade."
+    }
+  ],
+  "independent_dynamic_evidence": {
+    "fixed_baseline_core23": {
+      "node24": "6P17F exit1",
+      "node26": "6P17F exit1",
+      "evidence": "postfreeze-evidence/round29/baseline-valid-counts.json"
+    },
+    "fixed_baseline_layout3": {
+      "node24": "1P2F exit1",
+      "node26": "1P2F exit1"
+    },
+    "fixed_baseline_status1": {
+      "node24": "1P0F exit0",
+      "note": "The status test was executed separately on Node24.19 only at baseline; do not claim baseline27 dual-runtime combined execution."
+    },
+    "baseline_counting": "Base23+layout3 gives26 synthetic tests=7P19F on both runtimes. Adding separately executed baseline status1 gives arithmetic aggregate27=8P19F; no combined27 baseline process is claimed.",
+    "intermediate_13adc": {
+      "core_and_layout26": "26P0F exit0 on Node24.19 andNode26.11",
+      "status1": "0P1F exit1 on Node24.19; first assertion failure stops that test, so not all five expressions are claimed as separately observed failures.",
+      "amount_safety": "Amounts remained null; the regression concerned unsupported becoming uncertain. Evidence names final-code-* predate discovery and are explicitly marked intermediate by intermediate-code-stage-note.json."
+    },
+    "final_actual_code27": [
+      {
+        "source_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+        "scripts": {
+          "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round29-independent.test.mjs": "1996e6480d375ec4919bff1a0d388421d691dfb243d294e3d86a19f5ee6be634",
+          "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round29-schedule-layout-independent.test.mjs": "6ccef2954d3f4f2c19d09b8782e397a4a06d283f0a6e1edbafe24178fe538ee4",
+          "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round29-arithmetic-status-independent.test.mjs": "495b6d4e84ea29c1a744b53cf5dedb62075436ddf85f21a0a627677c5db90fa4"
+        },
+        "node": "/Users/xuzihan/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "node_version": "v24.19.0",
+        "started_at": "2026-10-18T14:18:28.305565+00:00",
+        "elapsed_seconds": 0.34638533304678276,
+        "exit_code": 0,
+        "counts": {
+          "tests": 27,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "stdout_sha256": "c8b8094b1d8231e25808afe28cb94744aa84c779ae5b442d4e26ec741991c63d",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "source_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+        "scripts": {
+          "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round29-independent.test.mjs": "1996e6480d375ec4919bff1a0d388421d691dfb243d294e3d86a19f5ee6be634",
+          "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round29-schedule-layout-independent.test.mjs": "6ccef2954d3f4f2c19d09b8782e397a4a06d283f0a6e1edbafe24178fe538ee4",
+          "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/scripts/material-facts-v7-round29-arithmetic-status-independent.test.mjs": "495b6d4e84ea29c1a744b53cf5dedb62075436ddf85f21a0a627677c5db90fa4"
+        },
+        "node": "/opt/homebrew/bin/node",
+        "node_version": "v26.11.0",
+        "started_at": "2026-10-18T14:18:28.652965+00:00",
+        "elapsed_seconds": 0.5930414999602363,
+        "exit_code": 0,
+        "counts": {
+          "tests": 27,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "stdout_sha256": "7eea340b0180bf2d7c8703f4d4c3b7d63c28f5f2eb7e6b5a7ffcc61ed18db1a6",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "counting": "27 synthetic test cases executed once per runtime; not54 independent materials and not model accuracy. The single status test loops five operator layouts and two quote choices.",
+    "all_path_diagnostic": {
+      "stage": "final_code_closure",
+      "source_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+      "script_sha256": "84ba04d516a8565315aa6a4df968dc5ad266d101f42420e3c3da3d7d459a993c",
+      "node_version": "v24.19.0",
+      "exit_code": 0,
+      "elapsed_seconds": 0.2642548329895362,
+      "case_value_pairs": 28,
+      "amount_fields": 168,
+      "harness_errors": [],
+      "mismatches": [],
+      "stdout_sha256": "c8d901dccf0bac0c393753f7b90f7e64d7761863243c36a96a202b1a2ca7d5dd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "note": "Diagnostic fields are not independent document/test counts. Formal frozen 27 test suite is separate."
+    },
+    "baseline_diagnostic": "28 case/value pairs ×2 quote choices ×3 fresh/storedExact/storedUnavailable paths=168 amount fields; baseline108 mismatched fields and0 harness errors, final0 mismatch. These fields are not counted as separate tests/documents.",
+    "asserted_guards": [
+      "Original raw JSON and literal representation unchanged.",
+      "Original Unicode code-point positions and exact quote bounds retained.",
+      "Fresh candidates and forced historical-exact read display use complete source defenses.",
+      "Stored unsupported/null does not become an amount.",
+      "Two equal-amount events cannot borrow six-layer raw/accepted basic/relational/strict credit.",
+      "No due/paid confirmation, calculation state or calculation authorization is created.",
+      "Actual supported monthly rate, independent completed payment, simplified known bound and different-clause marker/coefficient serve as controls."
+    ]
+  },
+  "static_review": {
+    "blocking_findings": [],
+    "evidence": "postfreeze-evidence/round29/closure-final-static-review.independent.json",
+    "key_boundary": "Only uncertain classification changes to unsupported when an exact raw literal anchor plus full-layout shared arithmetic grammar proves the attached operation; amount=null remains null and raw/representation/CP are untouched.",
+    "lint": {
+      "created_at": "2026-10-18T14:21:21.779375+00:00",
+      "command": "./node_modules/.bin/eslint scripts/material-facts-v7-round29-independent.test.mjs scripts/material-facts-v7-round29-schedule-layout-independent.test.mjs scripts/material-facts-v7-round29-arithmetic-status-independent.test.mjs",
+      "cwd": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+      "actual_exit_code": 0,
+      "errors": 0,
+      "warnings": 6,
+      "warning_details": [
+        "arithmetic-status:12 money unused",
+        "arithmetic-status:16 assessCase unused",
+        "arithmetic-status:44 moneyObservations unused",
+        "arithmetic-status:54 checkMoney unused",
+        "schedule-layout:12 money unused",
+        "schedule-layout:16 assessCase unused"
+      ],
+      "note": "Actual scoped lint was observed through tool output; six unused-template helper/import warnings were not silently described as empty output. Frozen regression scripts were not changed to alter their byte contract."
+    }
+  },
+  "preservation": {
+    "final_dependencies": 8,
+    "final_locked_scripts": 3,
+    "all_unchanged_before_after": true,
+    "evidence": "postfreeze-evidence/round29/closure-code-protected.json",
+    "baseline80": "Exact80-file baseline acquisition/protection retained; no baseline product was edited.",
+    "product_edited_by_reviewer": false,
+    "frozen_artifacts_or_labels_edited": false,
+    "model_calls": 0,
+    "http_calls": 0,
+    "historical_chain_calls": 0,
+    "commit_push_merge_deploy": false
+  },
+  "fixture_and_evidence_corrections": [
+    "Initial draft incorrectly required primitive bare4000 to be null despite its existing helper contract. Corrected one control; initial logs/snapshot retained and excluded from valid red proof. Explicit foreign/source currency defenses remain tested.",
+    "The valid23 logs used spec reporter while initial metadata parser only recognized TAP counters; supplemental count file parses the first test section before failure-detail repetition.",
+    "101.test.mjs +2.probe.mjs =103 runtime entries. Earlier101 was correct for its suffix filter and does not imply missing author files.",
+    "Earlier closure-static-review snapshot bound c600 plus751b before cross-line status closure; final review binds e2d6 explicitly and does not overwrite the earlier evidence."
+  ],
+  "limits": [
+    "This is a scoped non-implementer technical review of five concrete findings and their direct schedule/status intersections. It does not assert all future PR reviews are resolved.",
+    "No full check, HTTP, CI, formal v22 artifact or deep historical-chain gate was executed by this reviewer in ROUND29. Parent integration evidence is separate.",
+    "The previous v21 full check was stopped by the parent for newly confirmed application blockers; its partial run is neither a product failure nor a pass. No old checkpoint receipt is rewritten.",
+    "Finite calendar, glyph and source-layout rules are not a general Chinese parser, legal fact validation or human acceptance.",
+    "Accepted candidate, exact derived amount, source-supported fact and calculation authorization are distinct. Historical unsupported amounts require re-extraction rather than automatic upgrade."
+  ]
+}

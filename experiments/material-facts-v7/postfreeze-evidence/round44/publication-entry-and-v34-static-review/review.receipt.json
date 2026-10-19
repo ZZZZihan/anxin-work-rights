@@ -1,0 +1,184 @@
+{
+  "schema": "issue42-r44-publication-entry-v34-static-review/1",
+  "created_at": "2026-10-19T03:28:28.673272+00:00",
+  "result": "NO_ADDITIONAL_CONFIRMED_FORMAL_FINAL_WRITE_GAP; V34_PREPARED_STATIC_REVIEW_PASS",
+  "root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards",
+  "baseline_head": "60ac605ab28a1b2e4f9a179d841c632b91343136",
+  "role": {
+    "agent": "DATA",
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning": "ultra",
+    "backend_independently_verified": false,
+    "implemented_run_r43": true,
+    "implemented_v34_tools": false,
+    "meaning": "read-only source/call-site and byte-arithmetic review; not independent review of own run implementation, label review, behavioral CLI validation or business acceptance"
+  },
+  "scope": {
+    "top_level_mjs_at_baseline": 100,
+    "corrective_controllers_at_baseline": 33,
+    "all_controllers_use_publishArtifacts": true,
+    "other_stream_or_copy_formal_writers_found": false,
+    "tests_cli_model_history_executed": false,
+    "shared_writes": false,
+    "root_evidence_history_full_revalidated": false
+  },
+  "baseline_file_sha256": {
+    "experiments/material-facts-v7/run.mjs": "dab72ad070b7730efc736dba4f57add375cc0779a33d358a5ee3bb8fa209c7a4",
+    "experiments/material-facts-v7/freeze.mjs": "d22db14dd6a2ff03fcefade032b2f6dcae9ae28d2d0a1d604392789e258a90c7",
+    "experiments/material-facts-v7/assess.mjs": "0a8da9456a23dc57b5eda4278e022b9ceb63e140d20c25ffefe238f5bf33a9d6",
+    "experiments/material-facts-v7/summarize.mjs": "77f9a2ccd2fb348fe5aadc86dae8f98f10551d8860b99a178fe2c289e6942dcb",
+    "experiments/material-facts-v7/verify.mjs": "d5ac82b2968a962ddd9751622de2c8b77960e318e349b27a57e3207b3ab641de",
+    "experiments/material-facts-v7/immutable-artifact-publication.mjs": "70ee51e28f65684b703e6031aa0f4b6be96dfaf94114d69bacfc13caadafdb48",
+    "experiments/material-facts-v7/publish-artifacts.mjs": "fed30876cd481d0c76bf50c5fbf02a1e78a198a751b66f98c692dbccac347204"
+  },
+  "publication_map": [
+    {
+      "entry": "summarize.mjs CLI",
+      "formal_target": "comparison.json",
+      "lines": "60ac:70-81, especially77",
+      "baseline_status": "CONFIRMED_UNSTAGED_FINAL_WX_PATH",
+      "callability": "no-option CLI; summary lifecycle lock covers read and publication",
+      "protection": "wx prevents replacement but a partial write can occupy final name",
+      "current_observation": {
+        "sha256": "7c0aa6ab92f1b84f4af73a487941fcd93fc65cba08529610e68370cc1ef80562",
+        "helper_connected": true,
+        "behavior_not_executed": true
+      }
+    },
+    {
+      "entry": "assess.mjs CLI",
+      "formal_target": "CLI output report.json",
+      "lines": "201-210, especially207",
+      "baseline_status": "STAGED_LINK_PUBLISHER",
+      "protection": "withAssessmentLock read+publish; publishImmutableFile same-directory stage/write/sync/close/link; cleanup warning distinct"
+    },
+    {
+      "entry": "verify.mjs full --write-manifest",
+      "formal_target": "result-manifest.json",
+      "lines": "214-220,263-272",
+      "baseline_status": "STAGED_LINK_PUBLISHER",
+      "protection": "full verify lifecycle lock; publisher; preflight remains unlocked and cannot publish manifest"
+    },
+    {
+      "entry": "freeze.mjs createFreeze",
+      "formal_target": "freeze.json",
+      "lines": "228-234,267-305",
+      "baseline_status": "OWN_STAGED_LINK_PUBLISHER",
+      "protection": "freeze lock; same-directory exclusive stage/write/sync/close/link; failed stage+diagnostic preserved; successful link not relabelled by unlink failure"
+    },
+    {
+      "entry": "corrective-assessment.mjs and v2-v33",
+      "formal_target": "corrections[-vN] directory; 3 reports+comparison+manifest",
+      "lines": "controller1:49-65; controller33:40-60; publish-artifacts:15-47",
+      "baseline_status": "STAGED_DIRECTORY_RENAME",
+      "protection": "serialize all values first; same-directory stage; exclusive per-file writes; absent target checks; complete nonempty directory rename; failed stage retained"
+    },
+    {
+      "entry": "run.mjs",
+      "formal_target": null,
+      "lines": "89-110,114-145,202-238,261-310",
+      "baseline_status": "MUTABLE_ATTEMPT_CHECKPOINT_AND_JOURNALS",
+      "protection": "unique attempt mkdir + whole diagnostic/holdout lock; outcome intentionally updated via sibling stage/rename; journals append while attempt active; final manifest owned by verify"
+    },
+    {
+      "entry": "verify-frozen/verify-correction wrappers; historical adapters; experiment-lock",
+      "formal_target": null,
+      "lines": "verify-frozen:38-55; verify-correction-v32:33-47; historical-v32:47-76; experiment-lock:15-49",
+      "baseline_status": "OWNED_TEMP_RESTORE_POLICY_RECEIPTS_AND_LOCK_METADATA",
+      "protection": "source restoration writes only owned temporary trees; execution JSONL temporary diagnostic; lock owner metadata not a frozen result"
+    }
+  ],
+  "limits": [
+    "Only summarize baseline naked final wx is confirmed here; no second same-class formal path found in the enumerated current entrypoints.",
+    "Directory rename publication protects complete nonempty prior artifact directories; this review does not claim power-loss durability or arbitrary empty-destination race guarantees.",
+    "Existing failed attempts, diagnostic stages/receipts and archived source writers are not reclassified as immutable formal output bugs.",
+    "The summary worktree changed during the separate source audit as expected integration; exact60ac finding and current7c0a helper connection are reported separately.",
+    "No current v34 result manifest existed or was required for this preparation audit; gates were read, not run."
+  ],
+  "v34_prepared": {
+    "observed_file_sha256": {
+      "experiments/material-facts-v7/historical-v33-execution.mjs": "bbfac7d1fca70db965f9926e31598668f7a4c573fbe715d69309f96326c0f99b",
+      "experiments/material-facts-v7/verify-correction-v33.mjs": "9615ced00c047147d217f95d3ceeaa13a364b3c17b19acd5293fa36f817f9c29",
+      "experiments/material-facts-v7/corrective-assessment-v34.mjs": "48e1b55a3b1dc67d0584fca45e05f5088ba15222c59e08587d5e72370eaa15bc",
+      "scripts/material-facts-v7-historical-v33-execution.test.mjs": "9444d81a4d3624bcdf947a83558b3406a57733019f88fdaf02b3d00af9f6b27b",
+      "scripts/material-facts-v7-correction-v33-gates-author.test.mjs": "a64e4f88c0e0905515adf950ac1dd92f7a370a404c707cc8a031fa48aa393de1",
+      "scripts/material-facts-v7-correction-v34-gates-author.test.mjs": "96cd20febf3d2b3dfffdc42c41a8600192e013714b7857eb202f21948c568153",
+      "package.json": "0cf442a99a1987a7fcf0e7d25cc18def4c5e7ac2833cfe5fd6077c6dba1c0489",
+      ".github/workflows/ci.yml": "f0628b8c7c51de0b60e5365b6c2a3c93576ddce600c4374ca5fadf4b221a53dc",
+      "experiments/material-facts-v7/correction-code-v33/manifest.json": "72b472b0c900425cb132f5440959170aa160fc5e4ea0b0bed3ae540cd4514cc6",
+      "experiments/material-facts-v7/corrections-v33/manifest.json": "00a764d4f810af7e0a13fe1ae186807fd7503673a6cc19f7d0d15c6f28c6d6cf"
+    },
+    "archive_count": 119,
+    "archive_file_count_including_manifest": 120,
+    "archive_files_exact": true,
+    "archive119_each_matches_v33_manifest": true,
+    "current_code_union_count": 122,
+    "policy_budget_ms": 900000,
+    "cleanup_reserve_per_layer_ms": 2000,
+    "old_policy_adapter_bridges_unchanged_count": 26,
+    "old_policy_adapter_bridges_sha256": {
+      "experiments/material-facts-v7/historical-execution-policy-v1.mjs": "cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea",
+      "experiments/material-facts-v7/historical-execution-v1.mjs": "0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c",
+      "experiments/material-facts-v7/historical-v9-execution.mjs": "d02aa0b5881a9699d71478ed8e2a78f9b7f17dfda7c806cda58c788e1c3df10e",
+      "experiments/material-facts-v7/historical-v10-execution.mjs": "da4de9e01711e56b6e89bf77c4f4c2e4f9466c1ffd162cb1aa389188e81f5ba8",
+      "experiments/material-facts-v7/historical-v11-execution.mjs": "0614be4ca90219c93409fca9bcbc7be3caaf2f52705460b2f0ce2916384deb4d",
+      "experiments/material-facts-v7/historical-v12-execution.mjs": "60b05d4a90a96bb85ca59334b3788f83427de6a9269b638d4fe43a567e6a7296",
+      "experiments/material-facts-v7/historical-v13-execution.mjs": "5985244ed68f145b82da5121224a78a98247f76b0d0f333b817c912ea5426d7e",
+      "experiments/material-facts-v7/historical-v14-execution.mjs": "047393b3ebc8804bf1626a4729fa557e965094c8b7b594716f899401594d891b",
+      "experiments/material-facts-v7/historical-v15-execution.mjs": "89d7bb617f68caa099d12530876e0aa07ab6595739bc9f219dccfeda59618f10",
+      "experiments/material-facts-v7/historical-v16-execution.mjs": "1ca2f597c71319bc71706e9b4082eeae384745da62ced84ba4e15e0a9d81e17c",
+      "experiments/material-facts-v7/historical-v17-execution.mjs": "3387bb340948a120053c54312768cfa59fa04a60dd89cfba505693405f40e744",
+      "experiments/material-facts-v7/historical-v18-execution.mjs": "f918ac0870769f475ddb3a7a6d47cbf8cb263500c2bd9a549a4686381bd91e0a",
+      "experiments/material-facts-v7/historical-v19-execution.mjs": "63dd2e9c04f0dcc18516dbd0fecbc44abc234e42cc6f2d1b069367d885127333",
+      "experiments/material-facts-v7/historical-v20-execution.mjs": "a961dbbde9e4a37b492e5da8c3fa4bac7f3823029a452425ad5b504294b2a426",
+      "experiments/material-facts-v7/historical-v21-execution.mjs": "8b1cc5dfc3607d952a0bd777f7fb923a3e80ba9b8f0a66430b5bae81d6b11481",
+      "experiments/material-facts-v7/historical-v22-execution.mjs": "4528de198235f5f90b233e2ae4df738eb18fc75dc461f30ea40565f8934fdb46",
+      "experiments/material-facts-v7/historical-v23-execution.mjs": "38e1c99c2f6f7d102f4efb1e3b1ebedd9f3459a7bdf54e70f9c319b7e98d85f4",
+      "experiments/material-facts-v7/historical-v24-execution.mjs": "b4e7d8970080e830afc94d4bddeb36cb1d12b1d150353e8ca41335d0c709f424",
+      "experiments/material-facts-v7/historical-v25-execution.mjs": "652d12eccb27d6b290fe36f0a0ddcc540a88ea3a1caa7fccbcf00a54a2e23ec4",
+      "experiments/material-facts-v7/historical-v26-execution.mjs": "94ce18f159bc193bde736caa4189846aff4b84a665705c68d4c4b76d69cce434",
+      "experiments/material-facts-v7/historical-v27-execution.mjs": "08e30e0c3d3271da2ca3ae714f866df24293ec3e162e8dfc40dfc2d131fffbdc",
+      "experiments/material-facts-v7/historical-v28-execution.mjs": "8d25d053af5c4a9223713994e7aa3c885c31280f734c02c1544d878573361ce4",
+      "experiments/material-facts-v7/historical-v29-execution.mjs": "02bff4d20e547f306060abbd5fd87610ff04b1d86822825e306db848a047a52d",
+      "experiments/material-facts-v7/historical-v30-execution.mjs": "d9fea87a036cd27bd8026870df15a36d38f1439f407cf112a7b2e0c462d6e8eb",
+      "experiments/material-facts-v7/historical-v31-execution.mjs": "697640efe5cbc287e679606186df9d0d46545aef501821af4bac757414702fc6",
+      "experiments/material-facts-v7/historical-v32-execution.mjs": "588fdf793ef2cdd8ca77f6b254625b83471ea05b3b5620ca21e29f6a8b227e8d"
+    },
+    "bridge32_to33_pure_version_template": true,
+    "wrapper32_to33_pure_version_template": true,
+    "gates_static": {
+      "v33_schema": "/33",
+      "v34_schema": "/34",
+      "previous_v33_sha256": "00a764d4f810af7e0a13fe1ae186807fd7503673a6cc19f7d0d15c6f28c6d6cf",
+      "counts": [
+        119,
+        122
+      ],
+      "future_v34_and_write_refused_in_static_tests": true,
+      "actual_cli_negative_assertions_present": true,
+      "gates_executed": false
+    },
+    "package": {
+      "mjs_count": 259,
+      "duplicate_mjs": false,
+      "missing_mjs": false,
+      "two_python_prefixes_retained": true,
+      "added_tokens": [
+        "scripts/material-facts-v7-historical-v33-execution.test.mjs",
+        "scripts/material-facts-v7-correction-v34-gates-author.test.mjs",
+        "scripts/material-facts-v7-summary-publication.test.mjs",
+        "scripts/material-facts-v7-round44-summary-publication-independent.test.mjs"
+      ],
+      "removed_tokens": []
+    },
+    "ci": {
+      "removed_current": "node experiments/material-facts-v7/corrective-assessment-v33.mjs --check",
+      "added": [
+        "node experiments/material-facts-v7/verify-correction-v33.mjs",
+        "node experiments/material-facts-v7/corrective-assessment-v34.mjs --check"
+      ],
+      "all_other_historical_commands_retained": true
+    },
+    "summary_author_and_independent_cli_test_registration": "not claimed; money/independent integration in progress"
+  }
+}

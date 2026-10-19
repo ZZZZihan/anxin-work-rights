@@ -1,0 +1,76 @@
+{
+  "round": 17,
+  "status": "author_scoped_checks_passed",
+  "baseline_commit": "eb867361742bff21f9d724fb4b212afbe6123c6d",
+  "owned_files_sha256": {
+    "lib/material-money-v4.ts": "638ce714a35886481731c6c1bfd58e8887597b6d15940c3c3ed0ef7b7fecee8f",
+    "lib/material-fact-runtime-ingest.ts": "93b6b213871eb3fd8d98fd3f3eb1bd735190746438b96bbf69e9c745971296ea",
+    "scripts/material-facts-v7-round17-money-author.test.mjs": "29c5f472ae47aed86e6c74acc022fb0c644c02d1b1cdbadcc3dd912b70eb0748"
+  },
+  "root_dependencies_sha256": {
+    "lib/material-fact-currency-review.ts": "9e96fd7a53b30da0b7858f09e5bc9f7c7f99b19ec4f45d6aec056bdcbd139804",
+    "lib/material-fact-source-review.ts": "461379bfaa9d3238f8d6f849ce8c3d52a19221cb68da84a0d230b4d8abce0c16",
+    "experiments/material-facts-v7/assess.mjs": "d4f0c98828d091f9f99681a5c404091f76fd1f4e4103aae0a056e5d493ce9e9d"
+  },
+  "changes": [
+    "full literal and complete quote anchored currency-unit guard calls; no token/value/raw replacement",
+    "amount-free complete wage grammar adds stage 本期 and only modifiers 拖欠/欠付/未付; masks, unknown, range and approximate literals remain reviewable",
+    "same unique occurrence nested money de-dup prefix accepts 人民[币幣] instead of 人民币; no event/attribute comparison changes"
+  ],
+  "checks": {
+    "author.initial-eb-before-red.txt": {
+      "tests": 125,
+      "pass": 34,
+      "fail": 91,
+      "detail": "Exploratory test revision: forced history used constant3.00 rather than each cropped token amount, so some history checks passed for the wrong reason; not used as final red count.",
+      "sha256": "c0ab4466289d5ee50b569fe26cdc680a39082734a01d3b98e039293da333e7a6"
+    },
+    "author.corrected-history-eb-before-red.txt": {
+      "tests": 125,
+      "pass": 19,
+      "fail": 106,
+      "detail": "History amount corrected before product modification; score access would still use row.matches on paths that reached it.",
+      "sha256": "225fb1049e83af1ea4a3255ff2038dd43040a831061c4d7c008bdb2ae3ac5fcb"
+    },
+    "author.first-integrated-after.txt": {
+      "tests": 125,
+      "pass": 113,
+      "fail": 12,
+      "detail": "12 test harness errors: assessCase spreads six scores at top level, not row.matches. Product behavior checks otherwise passed; harness corrected in final test.",
+      "sha256": "0dfa504a188c1dc2ba1ae68dc3713882f1d1505c9055dc8ad12cae0660c69284"
+    },
+    "author.fixed-eb-before-red.txt": {
+      "tests": 125,
+      "pass": 19,
+      "fail": 106,
+      "detail": "Final author test on exact eb baseline products/dependencies; behavioral failures, no harness TypeError.",
+      "sha256": "9291a2734e0ab8667cdb43e708e3268b4cf8bef91bce8241128444a501d868c3"
+    },
+    "author.corrected-score-after.txt": {
+      "tests": 125,
+      "pass": 125,
+      "fail": 0,
+      "detail": "Final two owned products + root currency/source/scorer integration overlay over exact eb base.",
+      "sha256": "56f29c8c681caf20c0296b70a0f39545bf6da279931939950e56d9e02481e736"
+    },
+    "existing-money-runtime-vitest.txt": {
+      "tests": 532,
+      "pass": 532,
+      "fail": 0,
+      "detail": "485 money +47 existing runtime tests on exact eb libraries with final money/ingest and root currency/source overlay.",
+      "sha256": "824630301c2cb7df0005578e82cf0af8c9567b18b2efd3d91ef2ee70762af938"
+    },
+    "scoped-lint.txt": {
+      "exit": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "scope_and_limits": [
+    "Currency compound-word helper/source wiring and scorer traditional-prefix alignment were implemented by root, not this author. Their exact dependency hashes are recorded.",
+    "Tests use synthetic sources/envelopes/history only; no holdout/model/raw experiment output was read.",
+    "The final 125 includes Unicode code-point source location/raw representation, historical downgrade/no rewrite, finite real-currency counterexamples, all six score layers for noamount and wrapper event cases.",
+    "The 532 regression pass is a scoped integration fixture; root still performs final project check, HTTP and peer independent acceptance.",
+    "Known exploratory harness mistakes and their actual logs are retained and not recast as product defects.",
+    "Only the two authorized production files and new author test/evidence changed. No root/CODE/frozen result edits, model, training, deployment, commit or push."
+  ]
+}

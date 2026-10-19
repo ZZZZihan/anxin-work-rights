@@ -1,0 +1,62 @@
+{
+  "scope": "ROUND31 only event module + new author test; no other product files modified",
+  "baseline_commit": "496fb2740593c9c1d4ba95578686310c2caf2798",
+  "baseline_sha256": "cc35b6a597231967c721ca70bc378e6b8877fc23b10a6e5e634a5bc24f15e010",
+  "final_product": {
+    "path": "lib/material-fact-event-review.ts",
+    "sha256": "4ec96de5642643333ec1dff5b9c2c6bb53f3295c27dcf82c9042547c42d2b2f4"
+  },
+  "author_test": {
+    "path": "scripts/material-facts-v7-round31-event-author.test.mjs",
+    "sha256": "40bf6e64009f1399934dcc1a6ac3214ed49325526cba2596389a7e28974ae9b5"
+  },
+  "changes": [
+    "Recurring payment-date end marker 日→[日号號], retaining existing valid1–31 numeric/Chinese grammar, complete raw.value anchoring and payment_date restriction.",
+    "Date-only detection aliases add 際→际 and 係→系, after original owner/value locations; no broader money-role or calendar-date grammar change."
+  ],
+  "results": [
+    {
+      "path": "author-fixed496-before-red.log",
+      "sha256": "6d0e449a5cfaccd9564c994d2e0d7350e7b59a2a60acc9cb90246c1598479a29",
+      "tests": 44,
+      "pass": 33,
+      "fail": 11,
+      "skipped": 0
+    },
+    {
+      "path": "author-final-patched-green.log",
+      "sha256": "7de8dc2b7785553a8ce715025691adebd990243a47a8424cf8f1e5714b5dafdd",
+      "tests": 44,
+      "pass": 44,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "scoped_eslint": {
+    "path": "scoped-eslint.log",
+    "sha256": "82b634d32e0fa128f7009cc517dd3777106436a853c1fed2806014b08658f825",
+    "exit_code": 0
+  },
+  "red_interpretation": "11 baseline failures: six valid recurring号/號 cases and five traditional实际/关系 cue cases. Existing日 and simplified counterparts, malformed/qualified dates, cropped/mismatched role, negation/other subject/different event/group guards and two complete money event controls already pass. Failing tests stop on their first assertion.",
+  "green_scope": "44 pure-module tests, some loop over full/short raw.quote; source/RawCandidate/normalization/quote/CP position fixtures deep-equal after calls. No claim of persistence/runtime integration.",
+  "raw_and_positions": "The tested module returns only attribution booleans. Tests retain raw JSON/subject/value/quote/source, compare input objects before/after, and validate original Unicode codepoint spans including emoji. It does not fabricate a year for recurring dates.",
+  "execution": {
+    "node": "v26.11.0",
+    "module_import": "Only lib/material-fact-event-review.ts exports; its dependency is import type only.",
+    "no_runtime_or_scorer": true,
+    "no_historical_cli_or_http": true,
+    "no_build_or_fullcheck": true,
+    "no_model_training_deployment": true,
+    "no_commit_push": true
+  },
+  "model_configuration": "Requested gpt-6.1-sol ultra; actual backend cannot be independently verified.",
+  "limits": [
+    "Author self-check and scoped static check only; parent integration and independent review recorded separately.",
+    "Not a full Chinese date parser, legal/business human acceptance, or a re-evaluation of model outputs.",
+    "All frozen outputs/labels/archives/old results left unchanged."
+  ],
+  "patch": {
+    "path": "round31-event.patch",
+    "sha256": "ee8a8377e920c27184338268b95b5a2aad0bc1ee458e0bdbe4a7f5e5bca2c3e3"
+  }
+}

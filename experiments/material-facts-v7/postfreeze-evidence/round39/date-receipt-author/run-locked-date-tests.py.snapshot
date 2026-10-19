@@ -1,0 +1,16 @@
+from pathlib import Path
+import subprocess,os,json,hashlib,re,datetime,time
+own=Path(__file__).resolve().parents[3];out=Path(__file__).resolve().parent
+script=own/'scripts/material-facts-v7-round39-date-receipt-author.test.mjs';baseline=own/'.scratch/issue42/round39/baseline-66581'
+node24='/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node';node26='/opt/homebrew/bin/node'
+rows=[]
+for label,node,event,expected in [('fixed-66581-red-node24',node24,baseline/'lib/material-fact-event-review.ts',1),('date-final-green-node24',node24,own/'lib/material-fact-event-review.ts',0),('date-final-green-node26',node26,own/'lib/material-fact-event-review.ts',0)]:
+ env=os.environ.copy();env['MATERIAL_FACT_TEST_ROOT']=str(baseline);env['MATERIAL_FACT_EVENT_FILE']=str(event)
+ cmd=[node,'--experimental-strip-types','--experimental-specifier-resolution=node','--test',str(script)]
+ started=datetime.datetime.now(datetime.timezone.utc).isoformat();t=time.monotonic();r=subprocess.run(cmd,cwd=own,env=env,capture_output=True)
+ (out/(label+'.stdout.log')).write_bytes(r.stdout);(out/(label+'.stderr.log')).write_bytes(r.stderr)
+ text=r.stdout.decode();counts={k:int(re.search(r'(?:ℹ|#) '+k+r' (\d+)',text).group(1)) for k in ['tests','pass','fail','skipped']}
+ row={'label':label,'started':started,'duration_seconds':time.monotonic()-t,'exit':r.returncode,'command':cmd,'dependency_root':str(baseline),'event_sha256':hashlib.sha256(event.read_bytes()).hexdigest(),'test_sha256':hashlib.sha256(script.read_bytes()).hexdigest(),'counts':counts}
+ rows.append(row);print(json.dumps(row))
+ if r.returncode!=expected:raise RuntimeError('Unexpected actual exit; raw logs retained')
+(out/'locked-date-test-runs.json').write_text(json.dumps(rows,ensure_ascii=False,indent=2)+'\n')

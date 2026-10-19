@@ -1,0 +1,45 @@
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/material-fact-source-review.test.ts > post-freeze runtime source binding, separate from model evaluation > does not join numeric or rate token edges across a source newline
+AssertionError: expected null to be '80000.00' // Object.is equality
+
+- Expected: 
+"80000.00"
+
++ Received: 
+null
+
+ ❯ lib/material-fact-source-review.test.ts:163:37
+    161|       const material = source(`王甲2024年7月${text}。`);
+    162|       const reviewed = reviewFactsAgainstSources(stateFor(material, en…
+    163|       expect(item(reviewed).amount).toBe('80000.00');
+       |                                     ^
+    164|       expect(item(reviewed).reviewIssues.map(issue => issue.code)).toE…
+    165|       expect(buildFactView(reviewed, [material]).fields.due.values).to…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/material-money-v4.test.ts > candidate source qualifier and role boundaries > keeps context binding in 王甲工资四万元/月以上
+AssertionError: expected { rawValue: '四万元', …(5) } to match object { rawValue: '四万元', …(1) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "rawValue": "四万元",
+-   "status": "rate_unit_mismatch",
++   "status": "unsupported",
+  }
+
+ ❯ lib/material-money-v4.test.ts:225:38
+    223|   ])('keeps context binding in %s', (quote, value, status) => {
+    224|     const normalized = normalizeCandidateValueV4(money({ value, quote …
+    225|     expect(normalized.normalization).toMatchObject({ rawValue: value, …
+       |                                      ^
+    226|     expect(normalized.amount).toBe(status === 'exact' ? '40000.00' : n…
+    227|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+

@@ -1,0 +1,91 @@
+{
+  "scenario": "swap-probe-fails",
+  "source_run_sha256": "55611f9dbae3eb2ee9c1c93c913f8bd20ac4a130f9da44a953feecb01760fc34",
+  "source_verify_sha256": "c9f5b7eb1ebe882d2aec76477616271aa31e00639ad3935ad829253d2dedae38",
+  "source_check_outcome_sha256": "93bea3f4dff3a17f9cc454725c6964d6c10abfe78768e12beeb5527cece29aef",
+  "source_verify_experiment_sha256": "44f0acea607bd55e8c39d18ea121f92cfd6a68561a90926631379835911b854c",
+  "result": {
+    "code": 1,
+    "signal": null,
+    "killed": false,
+    "stdout": "",
+    "stderr": ""
+  },
+  "outcome": {
+    "completed": false,
+    "attempts": [
+      {
+        "ids": [
+          "synthetic-1"
+        ],
+        "completed": false,
+        "stop_reason": "initial_memory_state",
+        "worker_started": false,
+        "stdout_state": "not_started",
+        "incomplete_stdout": false
+      }
+    ]
+  },
+  "calls": [
+    {
+      "type": "python",
+      "args": [
+        "-c",
+        "import sys; assert sys.version_info >= (3, 10); print(\"anxin-v7-python-ready\")"
+      ]
+    },
+    {
+      "type": "sysctl",
+      "key": "vm.swapusage"
+    },
+    {
+      "type": "sysctl",
+      "key": "kern.memorystatus_vm_pressure_level"
+    },
+    {
+      "type": "python",
+      "args": [
+        "-c",
+        "import sys; assert sys.version_info >= (3, 10); print(\"anxin-v7-python-ready\")"
+      ]
+    }
+  ],
+  "worker_started": false,
+  "results_bytes": 0,
+  "verification": {
+    "ok": true,
+    "receipt": {
+      "status": "PASS",
+      "preflight": false,
+      "planned_per_backend": 12,
+      "runs": [
+        {
+          "name": "holdout-qwen-1",
+          "backend": "qwen",
+          "split": "holdout",
+          "planned": 12,
+          "returned": 0,
+          "completed": 0,
+          "protocol_valid": 0
+        }
+      ],
+      "budget": {
+        "synthetic_no_deepseek": true
+      },
+      "result_files": 6,
+      "result_manifest_sha256": "0f1ea976121c263bcafd8b30ac7db87d7870739c3e16db699df7594742a470e9",
+      "inference": false,
+      "training": false
+    }
+  },
+  "manifest_published": true,
+  "retry": {
+    "code": 1,
+    "signal": null,
+    "killed": false,
+    "stdout": "",
+    "stderr": "node:internal/fs/promises:1571\n  return await PromisePrototypeThen(\n         ^\n\nError: EEXIST: file already exists, mkdir '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/.scratch/qwen-prespawn-a8d0/fixed-fixtures/qwen-prespawn-swap-probe-fails-yk7zfQ/experiments/material-facts-v7/results/holdout-qwen-1'\n    at async mkdir (node:internal/fs/promises:1571:10)\n    at async runAttempt (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/.scratch/qwen-prespawn-a8d0/fixed-fixtures/qwen-prespawn-swap-probe-fails-yk7zfQ/experiments/material-facts-v7/run.mjs:115:3)\n    at async file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/.scratch/qwen-prespawn-a8d0/fixed-fixtures/qwen-prespawn-swap-probe-fails-yk7zfQ/experiments/material-facts-v7/run.mjs:282:6 {\n  errno: -17,\n  code: 'EEXIST',\n  syscall: 'mkdir',\n  path: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/.scratch/qwen-prespawn-a8d0/fixed-fixtures/qwen-prespawn-swap-probe-fails-yk7zfQ/experiments/material-facts-v7/results/holdout-qwen-1'\n}\n\nNode.js v24.22.0\n"
+  },
+  "outcome_unchanged_after_retry": true,
+  "fixture_scope": "Actual runner and exact outcome/manifest verification bodies; synthetic dataset/hash preflight, prompt and scorer stubs; no actual legacy CLI, model or network."
+}

@@ -1,0 +1,86 @@
+"""Finalize append-only light review from already captured stdlib audit evidence."""
+import datetime,hashlib,json,pathlib
+own=pathlib.Path(__file__).resolve().parents[3]
+root=pathlib.Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+here=pathlib.Path(__file__).resolve().parent
+E='experiments/material-facts-v7'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+load=lambda p:json.loads(p.read_bytes())
+def out(p,x):
+    with p.open('x') as f:json.dump(x,f,ensure_ascii=False,indent=2);f.write('\n')
+a=load(here/'v24-light-audit.stdout.json');run=load(here/'v24-light-audit.execution.json')
+assert a['status']=='PASS' and run['exit_code']==0 and run['protected_unchanged']
+main_evidence={}
+for name in ['v24-write.receipt.json','v24-check.receipt.json','v24-post-check-verification.json']:
+    rel='.scratch/issue42/round32/'+name;p=root/rel
+    data=load(p)
+    if 'exitCode' in data:assert data['exitCode']==0
+    for log,h in data.get('logs',{}).items():assert sha((root/log).read_bytes())==h
+    main_evidence[rel]={'sha256':sha(p.read_bytes()),'contents':data,'attribution':'Parent-executed; receipt and referenced raw-log hashes read independently, not rerun.'}
+model_totals={k:v['metrics_recounted_from_saved_match_partitions'] for k,v in a['models'].items()}
+product_paths=['lib/material-money-v4.ts','lib/material-fact-currency-review.ts','lib/material-fact-event-review.ts','lib/material-fact-range-review.ts']
+product_sha={p:a['current_code_sha256'][p] for p in product_paths}
+for p,h in product_sha.items():assert sha((root/p).read_bytes())==h
+linked_app=own/E/'round32-application-review.final.independent.json'
+assert sha(linked_app.read_bytes())=='84773b7cdcc03b37693ef38c80818b6d0814e10e21b478b6f44278a723e99671'
+record={
+ 'schema':'material-facts-v7-round32-v24-light-independent-review/1',
+ 'status':'LIGHT_ARTIFACT_PASS',
+ 'created_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+ 'root':str(root),'current_manifest_sha256':a['v24_manifest_sha256'],
+ 'scope':'Read/hash and independent saved-partition arithmetic only; no scorer or historical verification entry point imported or executed.',
+ 'model_configuration':{'requested_model':'gpt-6.1-sol','requested_reasoning_effort':'ultra','actual_backend_independently_verified':False},
+ 'execution':run,
+ 'verification':{'current_code_paths':91,'archived_v23_code_paths':88,'archive_manifest_sha256':a['archive_manifest_sha256'],'original_result_files':60,'frozen_material_and_failure_paths':len(a['frozen_material_and_failure_paths_verified']),'source_documents':12,'gold_reference_facts_per_layer':43,'gold_event_anchor_spans_bounds_checked':a['gold_anchor_spans_validated'],'saved_case_layer_partitions':216,'model_layer_aggregates':18,'partition_properties':['Expected and candidate indices each used at most once in pairs.','Paired expected indices plus missing form an exact partition of each case reference.','Paired candidate indices plus extra form an exact partition of each raw or accepted case candidate list.','Saved pair event IDs agree with provisional expected-event IDs and saved candidate alignment.','TP/FP/FN independently counted from pairs/extras/missing; precision/recall/F1 independently computed.'],'all_historical_manifest_sha256':a['historical_sha256'],'all_frozen_material_and_failure_sha256':a['frozen_material_and_failure_paths_verified'],'current_code_sha256':a['current_code_sha256'],'product_sha256':product_sha},
+ 'metrics_recounted_from_saved_partitions':model_totals,
+ 'report_comparison_v23':{k:{'byte_identical':v['v23_v24_report_byte_identical'],'sha256':v['report_sha256'],'full_json_changes':v['full_report_changes_from_v23'],'partition_changes':v['partition_changes_from_v23'],'defense_changes':v['defense_changes_from_v23']} for k,v in a['models'].items()},
+ 'raw_and_acceptance':{k:{q:v[q] for q in ['raw','accepted','rejected']} for k,v in a['models'].items()},
+ 'money':{'accepted_money_total':46,'normalizations':a['current_money_normalization_totals'],'amount_nonnull':21,'source_relation_unresolved':46,'exact_money_without_review_issue':0,'calculation_authorized_true_in_saved_report':0,'per_model':{k:{'original':v['original_defense'],'v23':v['v23_defense'],'v24':v['v24_defense'],'changes_from_original':v['defense_changes_from_original']} for k,v in a['models'].items()},'interpretation':'amount is a derived field. Accepted and exact do not establish verified entitlement, payment or calculation authorization. calculation_authorized=false is a saved-report policy constant, not UI/backend authorization-path proof.'},
+ 'parent_execution_evidence':main_evidence,
+ 'independent_application_review_reference':{'path':str(linked_app),'sha256':sha(linked_app.read_bytes()),'scope':'Separate final ROUND32 product diff and 20 synthetic containers on each Node24/26; this LIGHT audit does not rerun those.'},
+ 'tooling_static_review':{'path':'postfreeze-evidence/round32/v24-light/v24-tooling-preparation.independent.json','result':'No new blocking migration defect found in the three modules and two test sources. Narrow prior-version read-only bridge, preserved absolute deadline, validated old-byte restoration and atomic new directory publication remain in place. Source review only; native7 and actual5gates not independently executed here.'},
+ 'preparation_correction':{'path':'postfreeze-evidence/round32/v24-light/v24-prepared-to-final-correction.independent.json','note':'Static review caught a version-key migration collision before any execution. Original prepared script retained; final restores v22 fixed digest and separately adds v23. No failed execution hidden.'},
+ 'not_executed_by_this_review':['historical CLI or current assessment CLI','actual five gates','scorer or source-semantic rematching','full project check','HTTP or build','new model inference or training','production deployment or UI/human business acceptance'],
+ 'limits':['12 source documents and 43 non-expert provisional reference facts are a small, source-concentrated evaluation. Independence of the reviewer does not make the sample or labels representative or legally adjudicated.','This is post-freeze reassessment of the same first-run raw outputs; it is not a new independent model experiment or a pre-registered improvement result.','Saved match partitions and event-ID bindings were verified, not independently regenerated through semantic adjudication.','Both natural empty cases remain part of the 12 documents. No natural full coverage of explicit zero, real OCR, all contested roles or repeated equal real payments is established.','No manual legal/business acceptance, full user confirmation workflow or production safety claim follows from these checks.','Current v24 full integration and exact PR46 head CI are separate main-agent evidence; this receipt does not mark either passed. The old v23 full check does not substitute for v24.'],
+ 'blocking_findings_within_light_scope':[]
+}
+out(own/E/'round32-v24-light-review.independent.json',record)
+rows=[]
+for name,v in a['models'].items():
+ for mode in ['basic','relational','strict']:
+  raw=v['metrics_recounted_from_saved_match_partitions']['raw_'+mode];acc=v['metrics_recounted_from_saved_match_partitions']['accepted_'+mode]
+  rows.append(f"| {name} | {mode} | {raw['tp']}/{raw['fp']}/{raw['fn']} | {acc['tp']}/{acc['fp']}/{acc['fn']} |")
+text="""v24 实际轻量产物独立核对通过，状态为 **LIGHT_ARTIFACT_PASS**。正式 manifest 为 `86560d13902cba7458cae1d5c1b9175c01442c404a4d47bd17305950206e795e`。本次只读 ROOT 已发布文件，没有运行评分器、历史 CLI、实际五门禁、完整检查、HTTP、构建或模型。请求使用 GPT-6.1 Sol / ultra；实际后端配置未独立核验。
+
+独立 Python 检查退出0，用时0.064秒，stderr为空；398份保护文件前后哈希相同。当前91项代码逐文件与 manifest 相同；v23的88项归档逐文件与旧代码 manifest 相同，归档 manifest 为 `ee708f860f36e7daefa543ebbb4cb4f6eff223097848bad0b82aebecd0ec383b`。固定原 freeze、原60个结果文件、v1至v23结果 manifest 及其列举的产物、35份冻结材料与原始失败证据均按原摘要核对，没有覆盖历史。原始材料、暂定参考和三路 raw 输出没有变化。
+
+12份材料每层固定43条非专家暂定参考，共3路×12份×6层=216个分区。本次独立检查每层配对索引的一一性、pairs与missing/extra的互斥完整分区、保存的event ID与暂定参考及保存的alignment对应关系，再从列表重数TP/FP/FN并重算precision/recall/F1，共18组汇总与已保存报告一致。检查了41个参考事件锚点的码点界限。这里核验的是已保存配对的约束和算术，**没有重新裁决源文语义、重跑评分器或把暂定标签当法律结论**。
+
+| 路径 | 层级 | raw TP/FP/FN | accepted TP/FP/FN |
+| --- | --- | --- | --- |
+"""+'\n'.join(rows)+"""
+
+三份逐案报告与v23均逐字节相同，完整JSON差异、六层分区差异和金额防护差异均为空。raw/accepted/rejected分别为rules 2/2/0、Qwen 63/51/12、DeepSeek 51/51/0。规则、Qwen、DeepSeek报告摘要依次为 `0553db2f6eb0801c6311021f16ce67268a165cd8198afe66fa4821ee737dbaf7`、`c9c010d4bd857745f52385bc13b4e4d36aa6b715a508f6b1df8f0b5d7e564f38`、`1c782cd8ff265bfb9308562f917bb7ce3f153f949a883078d3b2aabaed0523e3`。没有新推理或新增自然样本。
+
+46条accepted金额候选仍为21 exact、23 approximate、2 unsupported；21条amount非空，46条全部保留`source_relation_unresolved`，没有无review issue的精确金额。与原首跑相比，仅Qwen `mf7-bjkfq-2025-2222` raw C[1] 的“八百零四元六角”在源文终止字“整”保护修复后恢复804.60，并去掉一个`source_amount_context_mismatch`；这是此前v18已有的修正，本次相对v23没有新增变化，仍带关系警告。accepted、exact、非空amount分别是不同字段；报告中的`calculation_authorized=false`是保存的政策常量，不能作为UI或真实后端授权流程已验收的证据。
+
+新三个工具、native合同脚本和当前门禁脚本只作静态复核：只读v23桥、绝对截止继承、88份旧字节恢复、91项当前绑定和原子新目录发布未发现本轮新增阻塞。主侧实际write/check的收据及引用原日志摘要已只读核对：write退出0/181.910秒，check退出0/183.688秒，主侧379份保护字节未变。两项执行由主Agent完成，本复核没有重复执行。独立准备脚本在任何运行前发现一个版本迁移键冲突，另存final修复，prepared及说明保留，没有删改失败或放松固定摘要。
+
+产品改动的独立Node24/26各20项及范围审查，见[ROUND32应用独立回执](ROUND32_APPLICATION_REVIEW_FINAL_INDEPENDENT.md)；本报告不重复执行、不冒称本人完成主侧HTTP或远端CI。当前v24完整整合和最终PR46精确提交CI由主侧另行记录，本回执不将其标为通过；旧v23完整检查不能替代新版本。
+
+这些是小样本、来源集中的后验复评和技术证据。原始失败、后续修复、主侧执行与本次非实现者轻核分别保留；没有人工法律/业务验收，没有完整真实用户确认流程验收，也没有生产部署结论。不能由本次重数推断模型总体能力、真实金额可直接采用或训练已就绪。
+
+详细JSON：[round32-v24-light-review.independent.json](round32-v24-light-review.independent.json)。执行证据、398份前后保护摘要、逐模型计数和全部差异保存在`postfreeze-evidence/round32/v24-light/`；复制清单单独列举每个OWN源路径、ROOT目标、大小和SHA256。
+"""
+with (own/E/'ROUND32_V24_LIGHT_INDEPENDENT.md').open('x') as f:f.write(text)
+files=[p for p in here.rglob('*') if p.is_file()]
+files.extend([own/E/'round32-v24-light-review.independent.json',own/E/'ROUND32_V24_LIGHT_INDEPENDENT.md'])
+entries=[]
+for p in sorted(files):
+ rel=p.relative_to(own).as_posix()
+ target=E+'/'+rel if rel.startswith('postfreeze-evidence/') else rel
+ entries.append({'source':str(p),'target_relative':target,'size':p.stat().st_size,'sha256':sha(p.read_bytes())})
+assert len({x['target_relative'] for x in entries})==len(entries)
+idx={'schema':'round32-v24-light-independent-copy-index/1','source_root':str(own),'target_root':str(root),'entries':entries,'count':len(entries),'self_not_in_entries':True}
+out(here/'v24-light-independent-copy-index.json',idx)
+print(json.dumps({'files':len(entries),'report':str(own/E/'ROUND32_V24_LIGHT_INDEPENDENT.md'),'json':str(own/E/'round32-v24-light-review.independent.json'),'index':str(here/'v24-light-independent-copy-index.json'),'sha256':{str(p.relative_to(own)):sha(p.read_bytes()) for p in [own/E/'ROUND32_V24_LIGHT_INDEPENDENT.md',own/E/'round32-v24-light-review.independent.json',here/'v24-light-independent-copy-index.json']}},ensure_ascii=False,indent=2))

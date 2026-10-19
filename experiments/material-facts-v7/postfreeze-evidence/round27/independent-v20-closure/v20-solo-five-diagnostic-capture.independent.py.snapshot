@@ -1,0 +1,21 @@
+from pathlib import Path
+import subprocess,datetime,time,json,hashlib,sys
+D=Path(__file__).resolve().parent
+ROOT=Path("/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards")
+NODE="/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node"
+base=json.loads((D/"v20-root-full-check-independent.protected-after.json").read_bytes())
+sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+def inv():return {p:sha(ROOT/p) for p in base}
+def write(n,x):
+ with (D/n).open("x") as f:json.dump(x,f,ensure_ascii=False,indent=2);f.write("\n")
+before=inv();assert before==base
+write("v20-solo-five-diagnostic.protected-before.json",before)
+cmd=[NODE,"--test",str(ROOT/"scripts/material-facts-v7-correction-v20-gates-independent.test.mjs")]
+start=datetime.datetime.now(datetime.timezone.utc).isoformat();tick=time.monotonic()
+write("v20-solo-five-diagnostic.started.json",{"started_at_utc":start,"command":cmd,"cwd":str(ROOT),"purpose":"Parent-authorized isolated diagnostic after the immutable failed complete run. This never replaces the complete-run failure.","parent_authorized":True})
+with (D/"v20-solo-five-diagnostic.stdout.txt").open("xb") as out,(D/"v20-solo-five-diagnostic.stderr.txt").open("xb") as err:
+ result=subprocess.run(cmd,cwd=ROOT,stdout=out,stderr=err)
+after=inv();write("v20-solo-five-diagnostic.protected-after.json",after)
+execution={"command":cmd,"cwd":str(ROOT),"started_at_utc":start,"finished_at_utc":datetime.datetime.now(datetime.timezone.utc).isoformat(),"elapsed_seconds":time.monotonic()-tick,"exit_code":result.returncode,"stdout_sha256":sha(D/"v20-solo-five-diagnostic.stdout.txt"),"stderr_sha256":sha(D/"v20-solo-five-diagnostic.stderr.txt"),"protected_paths":len(before),"protected_before_after_identical":before==after,"changed_protected_files":[p for p in base if before[p]!=after[p]],"original_complete_check_exit_code":1,"original_complete_check_failure_retained":True,"new_model_requests":0,"source_gate_sha256":sha(ROOT/"scripts/material-facts-v7-correction-v20-gates-independent.test.mjs")}
+write("v20-solo-five-diagnostic.execution.json",execution)
+print(json.dumps(execution,ensure_ascii=False,indent=2));sys.exit(result.returncode)

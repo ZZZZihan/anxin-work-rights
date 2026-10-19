@@ -1,0 +1,41 @@
+// Independent, bounded restoration negatives. Never invokes a historical CLI.
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createHash } from 'node:crypto';
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const prepared = process.argv[2];
+const E = 'experiments/material-facts-v7';
+const { withCorrectionV29Code } = await import(pathToFileURL(resolve(prepared, E, 'verify-correction-v29.mjs')));
+const original = await readFile(resolve(prepared, E, 'corrections-v29/manifest.json'));
+const sha = b => createHash('sha256').update(b).digest('hex');
+for (const change of ['manifest-whitespace', 'snapshot-byte', 'missing-snapshot', 'extra-mapping-key', 'archive-binding']) {
+  test(`restoration refuses ${change} before callback without touching its input`, async () => {
+    const fixture = await mkdtemp(join(tmpdir(), 'v30-independent-restoration-negative-'));
+    try {
+      const base = resolve(fixture, E);
+      await mkdir(resolve(base, 'corrections-v29'), { recursive: true });
+      await cp(resolve(prepared, E, 'correction-code-v29'), resolve(base, 'correction-code-v29'), { recursive: true });
+      const currentManifest = change === 'manifest-whitespace' ? Buffer.concat([original, Buffer.from('\n')]) : original;
+      await writeFile(resolve(base, 'corrections-v29/manifest.json'), currentManifest);
+      const snapshot = resolve(base, 'correction-code-v29/lib/material-money-v4.ts.snapshot');
+      if (change === 'snapshot-byte') await writeFile(snapshot, Buffer.concat([await readFile(snapshot), Buffer.from('\n')]));
+      if (change === 'missing-snapshot') await rm(snapshot);
+      if (change === 'extra-mapping-key' || change === 'archive-binding') {
+        const manifestPath = resolve(base, 'correction-code-v29/manifest.json');
+        const archive = JSON.parse(await readFile(manifestPath));
+        if (change === 'extra-mapping-key') archive.files['lib/unbound-extra.ts'] = '0'.repeat(64);
+        else archive.correction_manifest_sha256 = '0'.repeat(64);
+        await writeFile(manifestPath, JSON.stringify(archive, null, 2) + '\n');
+      }
+      const before = sha(await readFile(resolve(base, 'correction-code-v29/manifest.json')));
+      let entered = false;
+      await assert.rejects(withCorrectionV29Code(async () => { entered = true; }, fixture));
+      assert.equal(entered, false);
+      assert.equal(sha(await readFile(resolve(base, 'correction-code-v29/manifest.json'))), before);
+      assert.deepEqual(await readFile(resolve(base, 'corrections-v29/manifest.json')), currentManifest);
+    } finally { await rm(fixture, { recursive: true, force: true }); }
+  });
+}

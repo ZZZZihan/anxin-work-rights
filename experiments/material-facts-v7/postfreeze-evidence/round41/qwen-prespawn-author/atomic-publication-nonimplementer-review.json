@@ -1,0 +1,33 @@
+{
+  "schema": "material-facts-v7-atomic-publication-nonimplementer-review/1",
+  "created_at": "2026-10-18T22:16:05.375304+00:00",
+  "scope": "Static review only; did not execute MONEY eight tests.",
+  "files": [
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/verify.mjs",
+      "sha256": "f583c5010fd8f1d8cae22c83ecf661bfd7cd81247ae36f7e399bfa6a63b23f6f",
+      "bytes": 24483
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/immutable-artifact-publication.mjs",
+      "sha256": "2dad271198a54cdebb47b43a4d8dde720a6bfccb4dfda8139fb2581916f2f084",
+      "bytes": 1372
+    },
+    {
+      "path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/scripts/material-facts-v7-result-manifest-publication.test.mjs",
+      "sha256": "cd412c1a341fe049d4f8e55d41b5936e7f4777e4a817a935b3b13183384145de",
+      "bytes": 10229
+    }
+  ],
+  "conclusion": "No blocking issue in the scoped static review.",
+  "observations": [
+    "Stage uses unique same-directory wx open; complete write, file sync and close precede atomic no-replace hard link.",
+    "Write/sync/close/link failures cannot create the final name; stage remains for diagnosis. Concurrent or existing target remains protected.",
+    "After successful link, stage-unlink failure returns published=true with cleanup_error_code; it cannot undo the published final file.",
+    "Readonly verifier branch still compares existing JSON; scorer, result enumeration and manifest bytes are unchanged by the caller patch."
+  ],
+  "limitations": [
+    "Static source review, not independent execution of fault injection.",
+    "No claim of power-loss durability, directory fsync, arbitrary filesystems or unsupported hard-link guarantees."
+  ]
+}

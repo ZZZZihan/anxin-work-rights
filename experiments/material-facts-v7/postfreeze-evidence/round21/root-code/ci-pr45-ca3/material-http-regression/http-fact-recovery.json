@@ -1,0 +1,335 @@
+{
+  "status": "PASS",
+  "mode": "fact-network-recovery",
+  "boundary": "production Worker HTTP + disposable persistent D1/R2 + real rules service + controlled authenticated loopback fault proxy",
+  "actualModelInference": false,
+  "syntheticInputs": true,
+  "recordedAt": "2026-10-18T10:43:28.043Z",
+  "observations": [
+    {
+      "name": "definitive_real_service_capacity_rejection_is_terminal_and_explicit_retry_recovers",
+      "status": "PASS",
+      "admissionStatus": 429,
+      "extractionHttpStatus": 200,
+      "rejectedJobId": "d506a98d-c09a-4fde-b85e-24b84dcde240",
+      "remoteLookupStatus": 404,
+      "storedJob": {
+        "id": "d506a98d-c09a-4fde-b85e-24b84dcde240",
+        "evidenceId": "e858945e-61ba-4913-b59c-1a73897b28e7",
+        "generation": 6,
+        "status": "failed",
+        "error": "本机识别服务正在处理其他材料，请稍后重试。",
+        "startedAt": "2026-10-18T10:43:26.914Z",
+        "submissionPending": false
+      },
+      "nonexistentJobPolls": 0,
+      "explicitRetryStatus": 202,
+      "finalMaterialCount": 1,
+      "servicePostCount": 2
+    },
+    {
+      "name": "recover_accepted_POST_503_after_accept",
+      "status": "PASS",
+      "startHttpStatus": 202,
+      "startJob": {
+        "id": "824c8a6d-2a70-4906-8e25-a5f09f4cdaa7",
+        "evidenceId": "fa1860a1-1b34-446e-927b-b495fecfd3e0",
+        "generation": 6,
+        "status": "running",
+        "error": "提交回执暂未收到，正在核对已提交任务；请勿重复提取。",
+        "startedAt": "2026-10-18T10:43:27.126Z",
+        "submissionPending": false,
+        "pollFailureSince": "2026-10-18T10:43:27.129Z"
+      },
+      "acceptedJobId": "824c8a6d-2a70-4906-8e25-a5f09f4cdaa7",
+      "requestedJobId": "824c8a6d-2a70-4906-8e25-a5f09f4cdaa7",
+      "finalHttpStatus": 200,
+      "finalJob": null,
+      "materialCount": 1,
+      "extractionAuditCount": 1,
+      "servicePostCount": 1
+    },
+    {
+      "name": "recover_accepted_POST_drop_after_accept",
+      "status": "PASS",
+      "startHttpStatus": 202,
+      "startJob": {
+        "id": "895ce6de-9ea2-4482-8183-33b59c6c9121",
+        "evidenceId": "a7329c4b-3d83-4103-9c1f-a07be2fb45d8",
+        "generation": 6,
+        "status": "running",
+        "error": "提交回执暂未收到，正在核对已提交任务；请勿重复提取。",
+        "startedAt": "2026-10-18T10:43:27.247Z",
+        "submissionPending": false,
+        "pollFailureSince": "2026-10-18T10:43:27.250Z"
+      },
+      "acceptedJobId": "895ce6de-9ea2-4482-8183-33b59c6c9121",
+      "requestedJobId": "895ce6de-9ea2-4482-8183-33b59c6c9121",
+      "finalHttpStatus": 200,
+      "finalJob": null,
+      "materialCount": 1,
+      "extractionAuditCount": 1,
+      "servicePostCount": 1
+    },
+    {
+      "name": "transient_GET_503_once_does_not_cancel_healthy_job",
+      "status": "PASS",
+      "firstHttpStatus": 200,
+      "persistedJobAfterError": {
+        "id": "5bd91311-35c2-451c-bc59-78278f7ab2d8",
+        "evidenceId": "9330e9af-307d-46c3-8c1a-68f0283814c7",
+        "generation": 6,
+        "status": "running",
+        "error": "候选任务状态暂时无法读取，正在重试；请勿重复提取。",
+        "startedAt": "2026-10-18T10:43:27.366Z",
+        "submissionPending": false,
+        "pollFailureSince": "2026-10-18T10:43:27.384Z"
+      },
+      "serviceStatusAfterError": 200,
+      "serviceDeletesBeforeRecovery": 0,
+      "finalJob": null,
+      "materialCount": 1,
+      "extractionAuditCount": 1
+    },
+    {
+      "name": "transient_GET_invalid_json_once_does_not_cancel_healthy_job",
+      "status": "PASS",
+      "firstHttpStatus": 200,
+      "persistedJobAfterError": {
+        "id": "40118539-b417-437e-acd7-647f3795f65a",
+        "evidenceId": "485b009a-b2d1-495f-b1cb-982faef51a78",
+        "generation": 6,
+        "status": "running",
+        "error": "候选任务状态暂时无法读取，正在重试；请勿重复提取。",
+        "startedAt": "2026-10-18T10:43:27.502Z",
+        "submissionPending": false,
+        "pollFailureSince": "2026-10-18T10:43:27.520Z"
+      },
+      "serviceStatusAfterError": 200,
+      "serviceDeletesBeforeRecovery": 0,
+      "finalJob": null,
+      "materialCount": 1,
+      "extractionAuditCount": 1
+    },
+    {
+      "name": "DELETE_unknown_UUID_prevents_delayed_POST_resurrection",
+      "status": "PASS",
+      "deleteStatus": 200,
+      "delayedPostStatus": 410,
+      "lookupStatus": 404
+    },
+    {
+      "name": "same_UUID_is_idempotent_but_cannot_be_rebound_to_another_source",
+      "status": "PASS",
+      "firstStatus": 202,
+      "retryStatus": 202,
+      "reboundStatus": 409,
+      "firstJobId": "866d6e74-5ce0-4ca9-a10b-22062680067a",
+      "retryJobId": "866d6e74-5ce0-4ca9-a10b-22062680067a",
+      "lookupStatus": 200
+    },
+    {
+      "name": "source_change_while_POST_is_in_flight_cannot_restore_old_job",
+      "status": "PASS",
+      "claimedJobId": "bf15a1a8-b6c6-43d0-859e-6e1bc1721303",
+      "newGeneration": 8,
+      "latePostHttpStatus": 409,
+      "currentGeneration": 8,
+      "currentJob": null,
+      "currentMaterials": 0,
+      "extractionAuditCount": 0,
+      "oldRemoteStatus": 404
+    },
+    {
+      "name": "old_ready_GET_cannot_restore_results_after_source_change",
+      "status": "PASS",
+      "lateReadHttpStatus": 409,
+      "newGeneration": 8,
+      "currentJob": null,
+      "materialCount": 0,
+      "extractionAuditCount": 0
+    },
+    {
+      "name": "owner_and_unauthenticated_boundaries_remain_enforced",
+      "status": "PASS",
+      "foreignStatus": 404,
+      "anonymousStatus": 401
+    }
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "failures": []
+  },
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": "d506a98d-c09a-4fde-b85e-24b84dcde240",
+      "upstreamStatus": 429
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/d506a98d-c09a-4fde-b85e-24b84dcde240",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": "bd69ad71-3146-44b4-95f1-c2c997e312be",
+      "upstreamStatus": 202,
+      "acceptedJobId": "bd69ad71-3146-44b4-95f1-c2c997e312be"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/bd69ad71-3146-44b4-95f1-c2c997e312be",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/bd69ad71-3146-44b4-95f1-c2c997e312be",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": "824c8a6d-2a70-4906-8e25-a5f09f4cdaa7",
+      "upstreamStatus": 202,
+      "acceptedJobId": "824c8a6d-2a70-4906-8e25-a5f09f4cdaa7",
+      "fault": "503_after_accept"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/824c8a6d-2a70-4906-8e25-a5f09f4cdaa7",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/824c8a6d-2a70-4906-8e25-a5f09f4cdaa7",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": "895ce6de-9ea2-4482-8183-33b59c6c9121",
+      "upstreamStatus": 202,
+      "acceptedJobId": "895ce6de-9ea2-4482-8183-33b59c6c9121",
+      "fault": "drop_after_accept"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/895ce6de-9ea2-4482-8183-33b59c6c9121",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/895ce6de-9ea2-4482-8183-33b59c6c9121",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": "5bd91311-35c2-451c-bc59-78278f7ab2d8",
+      "upstreamStatus": 202,
+      "acceptedJobId": "5bd91311-35c2-451c-bc59-78278f7ab2d8"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/5bd91311-35c2-451c-bc59-78278f7ab2d8",
+      "authenticated": true,
+      "upstreamStatus": 200,
+      "fault": "503_once"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/5bd91311-35c2-451c-bc59-78278f7ab2d8",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/5bd91311-35c2-451c-bc59-78278f7ab2d8",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": "40118539-b417-437e-acd7-647f3795f65a",
+      "upstreamStatus": 202,
+      "acceptedJobId": "40118539-b417-437e-acd7-647f3795f65a"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/40118539-b417-437e-acd7-647f3795f65a",
+      "authenticated": true,
+      "upstreamStatus": 200,
+      "fault": "invalid_json_once"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/40118539-b417-437e-acd7-647f3795f65a",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/40118539-b417-437e-acd7-647f3795f65a",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": "bf15a1a8-b6c6-43d0-859e-6e1bc1721303",
+      "upstreamStatus": 410
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/bf15a1a8-b6c6-43d0-859e-6e1bc1721303",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/bf15a1a8-b6c6-43d0-859e-6e1bc1721303",
+      "authenticated": true,
+      "upstreamStatus": 200
+    },
+    {
+      "method": "POST",
+      "path": "/fact-jobs",
+      "authenticated": true,
+      "requestedJobId": "db92129b-63ea-46d6-bc5b-7aec3ff63bfb",
+      "upstreamStatus": 202,
+      "acceptedJobId": "db92129b-63ea-46d6-bc5b-7aec3ff63bfb"
+    },
+    {
+      "method": "GET",
+      "path": "/fact-jobs/db92129b-63ea-46d6-bc5b-7aec3ff63bfb",
+      "authenticated": true,
+      "upstreamStatus": 200,
+      "fault": "hold_ready"
+    },
+    {
+      "method": "DELETE",
+      "path": "/fact-jobs/db92129b-63ea-46d6-bc5b-7aec3ff63bfb",
+      "authenticated": true,
+      "upstreamStatus": 200
+    }
+  ],
+  "limitation": "Service caller-ID idempotency and cancellation tombstones are process-local and bounded by their configured TTL/capacity; this runner does not claim persistence across service restart or actual model inference."
+}

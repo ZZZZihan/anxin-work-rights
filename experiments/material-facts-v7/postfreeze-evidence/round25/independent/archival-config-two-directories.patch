@@ -1,0 +1,27 @@
+diff --git a/eslint.config.mjs b/eslint.config.mjs
+index 294770d..48d33b6 100644
+--- a/eslint.config.mjs
++++ b/eslint.config.mjs
+@@ -13,5 +13,8 @@ export default defineConfig([
+     'js/**',
+     'styles/**',
+     'screenshot.py',
++    // Partial historical source snapshots are hash-checked evidence, not app modules.
++    'experiments/material-facts-v7/postfreeze-evidence/round21/source-author/nonimplementer-review-snapshots/**',
++    'experiments/material-facts-v7/postfreeze-evidence/round22/source-author/assess-http160-nonimplementer-snapshots/**',
+   ]),
+ ]);
+diff --git a/tsconfig.json b/tsconfig.json
+index c0a8d07..5431290 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -26,5 +26,8 @@
+     ".next/dev/types/**/*.ts",
+     "**/*.mts"
+   ],
+-  "exclude": ["node_modules", "js", "styles", "screenshot.py"]
++  "exclude": ["node_modules", "js", "styles", "screenshot.py",
++    "experiments/material-facts-v7/postfreeze-evidence/round21/source-author/nonimplementer-review-snapshots/**",
++    "experiments/material-facts-v7/postfreeze-evidence/round22/source-author/assess-http160-nonimplementer-snapshots/**"
++  ]
+ }

@@ -1,0 +1,83 @@
+{
+  "schema": "anxin-v21-tooling-nonimplementer-prepared-review/1",
+  "status": "prepared_scope_review_no_blocker",
+  "v21_artifact_published_at_review": false,
+  "reviewer_implemented_these_tools": false,
+  "ROOT_read_only": true,
+  "source_sha256": {
+    "experiments/material-facts-v7/correction-code-v20/manifest.json": "70b973c16072ea04766ffbbfe6aab440dc51f1b94285c40801f39d06128750d5",
+    "experiments/material-facts-v7/corrections-v20/manifest.json": "6bddae4eb7d7da1fd744a79a399620e8fa60e7c5fe79d1ef7aaf8a072b491a87",
+    "experiments/material-facts-v7/verify-correction-v20.mjs": "26b48aa7b20272613400c88e6393b95cd6b058cfed2e13978d04eda39e419873",
+    "experiments/material-facts-v7/historical-v20-execution.mjs": "a961dbbde9e4a37b492e5da8c3fa4bac7f3823029a452425ad5b504294b2a426",
+    "experiments/material-facts-v7/corrective-assessment-v21.mjs": "9100b5406838ddf17e58911e885cb8dc039902dda26e09862312875dca1ee53d",
+    "experiments/material-facts-v7/historical-execution-policy-v1.mjs": "cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea",
+    "experiments/material-facts-v7/historical-execution-v1.mjs": "0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c",
+    "experiments/material-facts-v7/historical-v19-execution.mjs": "63dd2e9c04f0dcc18516dbd0fecbc44abc234e42cc6f2d1b069367d885127333",
+    "experiments/material-facts-v7/corrective-assessment-v20.mjs": "bf02780cd7dbf2163b8fe18980fcb264928281f3041bd4706f4f8d84c28a94eb",
+    "scripts/material-facts-v7-historical-v20-execution.test.mjs": "ad4d44d9da991659ab6589514f4886d75a4064176185fc84263a14e24bf83c0f",
+    "scripts/material-facts-v7-correction-v20-gates-independent.test.mjs": "9a67b96eec6cbb232ba05db521e0b37b97e746b6374e2f2c888a12619a03a04e",
+    "scripts/material-facts-v7-correction-v21-gates-independent.test.mjs": "7a718dfffdd479d3f39923f22bc33d585261e3128304e3088d76b71798e715bf",
+    "package.json": "e2b87ffa77ddcb96f280e38b5f8457e984575e997a0e845ae59936398e46221e",
+    ".github/workflows/ci.yml": "360da0dba0eaa96a295675c4f18f2174b875b466d05c610b379f6ec29be15351"
+  },
+  "archive": {
+    "v20_correction_manifest_sha256": "6bddae4eb7d7da1fd744a79a399620e8fa60e7c5fe79d1ef7aaf8a072b491a87",
+    "snapshots": 79,
+    "all_snapshot_hashes_equal_archived_code_bindings": true
+  },
+  "dependency_union": {
+    "previous": 79,
+    "base_compute_paths": 28,
+    "base_subset_previous": true,
+    "additions": [
+      "experiments/material-facts-v7/corrective-assessment-v21.mjs",
+      "experiments/material-facts-v7/historical-v20-execution.mjs",
+      "experiments/material-facts-v7/verify-correction-v20.mjs"
+    ],
+    "projected_current_union": 82
+  },
+  "static_findings": [
+    "v20 bridge differs from v19 only in version labels. Fixed immutable v1 policy cf6a0437..., original adapter 07964527..., and v19 bridge63dd2e9c... hashes match. The v1 whitelist is unchanged.",
+    "Only exact corrective-assessment-v20.mjs --check enters the new bridge; current v21, write, extra arguments and other paths remain outside new and old allowlists.",
+    "Inherited state validates against v1; child retains started_ms/root_deadline_ms and subtracts 2s cleanup reserve from parent deadline, preserving 15min absolute root budget. Native errors/output/status and owned receipt cleanup survive.",
+    "withCorrectionV20Code validates linked manifest bytes, exact79paths and all snapshot hashes before owned temp allocation, restores those bytes only in temp, awaits callback and deletes temp on throw.",
+    "computeCorrectionV21 awaits archived v20 check including previous chain, then calls computeCorrection once. That existing function reads same original holdout results and unchanged labels/first reports. No runner/model inference path added.",
+    "Existing staged absent-final publisher preserves old correction directories; current check compares canonical manifest bytes, each artifact hash and recomputation. Union retains79paths plus3tools=82.",
+    "Archived-v20 and current-v21 gates statically require actual CLI status1 and specific errors for JSON-equivalent manifest whitespace and comment-only code drift; timeouts are not accepted. These deep CLI branches were NOT executed here.",
+    "package test-concurrency=2 includes native-v20 and archived-v20/current-v21 gates. CI keeps frozen/old archive checks and points final current check to v21. Entry definitions do not prove CI or future publication passed."
+  ],
+  "actual_checks": [
+    {
+      "role": "nonimplementer_execution_of_existing_synthetic_author_fixtures",
+      "log": "native7.actual.log",
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "exit_code": 0,
+      "command": "node --test scripts/material-facts-v7-historical-v20-execution.test.mjs"
+    },
+    {
+      "role": "nonimplementer_owned_temp_probe",
+      "log": "restore79-callbackthrow-file.actual.log",
+      "exit_code": 0,
+      "restored": 79,
+      "original_callback_error_identity_retained": true,
+      "owned_temp_removed": true,
+      "protected_ROOT_hashes_before_after_equal": true,
+      "history_CLI_executed": false
+    },
+    {
+      "role": "initial_probe_invocation_failure_retained",
+      "log": "restore79-callbackthrow.actual.log",
+      "exit_code": 1,
+      "reason": "stdin node - import hit realpathSync(argv[1]) on nonexistent '-' before callback. Reran actual owned .mjs probe file successfully; no product change or archived CLI execution."
+    }
+  ],
+  "limits": [
+    "Only native synthetic7 and restore79 callback-throw probe executed. No deep historical CLI, current v21 compute/write/check, fullcheck, HTTP, models, training or deployment.",
+    "v21 artifacts absent at review time; prepared review is not publication/report/gate/CI/business acceptance.",
+    "Nonimplementer tooling review is distinct from my money author tests."
+  ],
+  "runtime": "Node v26.11.0",
+  "requested_configuration": "GPT-6.1 Sol ultra; actual backend not independently verified"
+}

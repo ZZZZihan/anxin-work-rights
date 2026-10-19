@@ -1,0 +1,191 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// Independent synthetic contracts only. No frozen case, model or HTTP service.
+const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const load = path => import(pathToFileURL(resolve(ROOT, path)));
+const { normalizeMoneyValueV4: money, normalizeCandidateValueV4: normalize, classifyMonetaryExpression: classify, canonicalMonetaryExpression: canonical } = await load('lib/material-money-v4.ts');
+const { ingestRuntimeCandidates: fresh } = await load('lib/material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates: legacy, buildFactView } = await load('lib/material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('lib/material-fact-source-review.ts');
+const { assessCase } = await load('experiments/material-facts-v7/assess.mjs');
+const cp = text => Array.from(text).length;
+const sourceFor = text => ({ id: 'round13-independent', name: 'synthetic-mixed-subunits.txt', sha256: 'd'.repeat(64),
+  analysisRevision: 13, ready: true, blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }] });
+const entry = (value, quote = value, changes = {}) => ({ kind: 'money', value, quote, blockId: 'b1', subject: '王甲',
+  scope: 'individual', meaning: 'due_total', completeness: 'complete', period: null, rateUnit: null, assertion: 'narrated', ...changes });
+const output = candidates => JSON.stringify({ schemaVersion: 3, candidates });
+function ingest(source, candidates, old = false) {
+  const raw = output(candidates), state = (old ? legacy : fresh)(emptyFactState(13), source, { raw }, 'round13-independent', 'synthetic', '2026-10-18T08:00:00.000Z', null);
+  assert.equal(state.materials[0].raw, raw);
+  assert.deepEqual(JSON.parse(state.materials[0].raw).candidates, candidates);
+  assert.deepEqual(state.confirmations, { due: null, paid: null });
+  assert.equal(state.calculation, null);
+  assert.equal(buildFactView(state, [source]).canCalculate, false);
+  return state;
+}
+function stored(source, candidate, state, amount) {
+  assert.equal(state.materials[0].candidates.length, 1, 'Accepted-count is distinct from amount availability.');
+  const fact = state.materials[0].candidates[0];
+  assert.equal(fact.amount, amount);
+  assert.deepEqual(fact.representation, candidate);
+  const text = source.blocks[0].text, at = text.indexOf(candidate.quote);
+  assert(at >= 0);
+  assert.equal(fact.start, cp(text.slice(0, at)));
+  assert.equal(fact.end, cp(text.slice(0, at)) + cp(candidate.quote));
+  return fact;
+}
+function exactSource(value, amount, changes = {}) {
+  const text = '😀𠮷王甲工资为' + value + '，随后离开。', source = sourceFor(text);
+  for (const quote of [value, text]) {
+    const candidate = entry(value, quote, changes);
+    assert.equal(normalize(candidate).amount, amount);
+    stored(source, candidate, ingest(source, [candidate]), amount);
+    const old = ingest(source, [candidate], true), fact = old.materials[0].candidates[0];
+    fact.amount = null;
+    fact.normalization = { rawValue: value, status: 'unsupported', amount: null, matchedText: null, span: null, reason: 'Synthetic pre-fix unsupported history.' };
+    const before = structuredClone(old);
+    stored(source, candidate, reviewFactsAgainstSources(old, [source]), null);
+    assert.deepEqual(old, before, 'New spelling support must not auto-upgrade historical data.');
+  }
+}
+function unsafeCrop(expression, value) {
+  const text = '😀𠮷王甲工资为' + expression + '。', source = sourceFor(text);
+  for (const quote of [value, text]) {
+    const candidate = entry(value, quote);
+    if (quote === text) assert.equal(normalize(candidate).amount, null);
+    stored(source, candidate, ingest(source, [candidate]), null);
+    const old = ingest(source, [candidate], true), fact = old.materials[0].candidates[0];
+    fact.amount = '5.00';
+    fact.normalization = { rawValue: value, status: 'exact', amount: '5.00', matchedText: value, span: { start: 0, end: cp(value) }, reason: 'Synthetic unsafe history.' };
+    const before = structuredClone(old);
+    stored(source, candidate, reviewFactsAgainstSources(old, [source]), null);
+    assert.deepEqual(old, before);
+  }
+}
+function assess(source, expected, eventAnchors, candidates, expectedCounts) {
+  const input = { id: 'round13-score', source }, events = eventAnchors.map((anchor, i) => ({ id: 'e' + i, anchors: [anchor] }));
+  const label = { id: input.id, schemaVersion: 3, label_status: 'provisional_non_expert', expected, events,
+    expected_event_ids: expected.map((_, i) => 'e' + i), acceptable_alternatives: [] };
+  const result = { id: input.id, finish_reason: 'stop', raw_output: output(candidates) };
+  const before = structuredClone({ input, label, result }), row = assessCase(input, label, result);
+  for (const scope of ['raw', 'accepted']) for (const mode of ['basic', 'relational', 'strict']) {
+    const layer = row[scope + '_' + mode];
+    assert.deepEqual([layer.tp, layer.fp, layer.fn], expectedCounts[scope], scope + '_' + mode);
+  }
+  assert.deepEqual({ input, label, result }, before);
+  assert(row.production_defense.every(item => item.calculation_authorized === false));
+  return row;
+}
+const anchor = (text, value, from = 0) => {
+  const at = text.indexOf(value, from); assert(at >= 0);
+  return { blockId: 'b1', start: cp(text.slice(0, at)), end: cp(text.slice(0, at + value.length)) };
+};
+for (const path of ['lib/material-money-v4.ts', 'lib/material-fact-currency-review.ts', 'lib/material-fact-source-review.ts',
+  'lib/material-fact-runtime-ingest.ts', 'experiments/material-facts-v7/assess.mjs'])
+  console.log(JSON.stringify({ evidence: 'implementation_hash', path, sha256: createHash('sha256').update(await readFile(resolve(ROOT, path))).digest('hex') }));
+
+for (const [value, amount] of [['5元五角', '5.50'], ['5元零五分', '5.05'], ['5元伍角贰分', '5.52'],
+  ['5元五角2分', '5.52'], ['5元5角伍分', '5.55'], ['0元零伍分', '0.05'], ['5元〇角两分', '5.02'],
+  ['人民币1,234元伍角〇分', '1234.50'], ['人民幣5圓五角贰分', '5.52'], ['5元五角整', '5.50']])
+  test('finite mixed single-digit subunits normalize exactly without rewriting evidence: ' + value, () => {
+    const normalized = money(value);
+    assert.equal(normalized.status, 'exact'); assert.equal(normalized.amount, amount);
+    assert.equal(normalized.rawValue, value); assert.equal(normalized.matchedText, value);
+    assert.deepEqual(normalized.span, { start: 0, end: cp(value) });
+    assert.equal(canonical(value), 'exact:' + amount);
+    exactSource(value, amount);
+  });
+for (const value of ['5元十五角', '5元五角十二分', '5.5元五角', '4万元五角', '5元五角零伍分', '5元零零分', '５元五角', '5元五角２分'])
+  test('unsupported mixed precision or ordering stays accepted but unavailable: ' + value, () => {
+    assert.equal(money(value).amount, null);
+    const candidate = entry(value), source = sourceFor('😀王甲工资' + value + '。');
+    stored(source, candidate, ingest(source, [candidate]), null);
+  });
+for (const value of ['5分钟', '5分鐘', '5分米', '5角度'])
+  test('a complete noncurrency unit phrase is rejected, rather than merely null-valued: ' + value, () => {
+    assert.equal(classify(value).kind, 'not_monetary');
+    const candidate = entry(value), source = sourceFor('😀王甲记载' + value + '。');
+    const state = ingest(source, [candidate]);
+    assert.equal(state.materials[0].candidates.length, 0);
+    assert.equal(state.materials[0].rejected.length, 1);
+    const old = ingest(source, [candidate], true), before = structuredClone(old), reviewed = reviewFactsAgainstSources(old, [source]);
+    assert.equal(reviewed.materials[0].candidates.length, 1, 'Review history does not erase old candidates.');
+    assert.equal(reviewed.materials[0].candidates[0].amount, null);
+    assert.equal(reviewed.materials[0].raw, output([candidate]));
+    assert.deepEqual(old, before);
+  });
+for (const value of ['5分', '五角', '5分钱'])
+  test('a genuine isolated subunit currency expression is retained for review: ' + value, () => {
+    assert.notEqual(classify(value).kind, 'not_monetary');
+    const candidate = entry(value), source = sourceFor('😀王甲工资' + value + '。');
+    stored(source, candidate, ingest(source, [candidate]), money(value).amount);
+  });
+for (const value of ['十万分红', '三万分红', '三万分摊', '五万分配'])
+  test('ambiguous financial wording is retained rather than declared a definite noncurrency count: ' + value, () => {
+    assert.notEqual(classify(value).kind, 'not_monetary');
+    const candidate = entry(value), source = sourceFor('😀王甲材料记载' + value + '。');
+    stored(source, candidate, ingest(source, [candidate]), null);
+  });
+for (const value of ['工资金额不详', '工资若干分', '工资××分'])
+  test('unknown subunit wording is not discarded as a definite count: ' + value, () => {
+    assert.notEqual(classify(value).kind, 'not_monetary');
+    const candidate = entry(value), source = sourceFor('😀王甲' + value + '。');
+    stored(source, candidate, ingest(source, [candidate]), null);
+  });
+for (const [text, value, amount] of [['😀王甲收到5元五分工资。', '5元五分', '5.05'],
+  ['😀王甲收到5元五分之后离开。', '5元五分', '5.05'], ['😀王甲收到5元5分工资。', '5元5分', '5.05']])
+  test('currency subunits before 工资 or 之后 remain monetary: ' + text, () => {
+    const candidate = entry(value), source = sourceFor(text);
+    assert.notEqual(classify(value).kind, 'not_monetary');
+    stored(source, candidate, ingest(source, [candidate]), amount);
+  });
+for (const [expression, value] of [['5元五角', '5元'], ['5元五角贰分', '5元五角'],
+  ['5元五分钟后离开', '5元五分'], ['5元伍角度示意图', '5元伍角'], ['5元五分之一', '5元五分']])
+  test('source-cropped subunits or ordinary-word fragments cannot become precise: ' + expression + ' -> ' + value, () => unsafeCrop(expression, value));
+test('a wrong previously stored base amount is downgraded, not recalculated to a newly supported mixed value', () => {
+  const value = '5元五角', candidate = entry(value), source = sourceFor('😀王甲工资' + value + '。'), old = ingest(source, [candidate], true);
+  old.materials[0].candidates[0].amount = '5.00';
+  old.materials[0].candidates[0].normalization = { ...money('5元'), rawValue: value };
+  const before = structuredClone(old);
+  stored(source, candidate, reviewFactsAgainstSources(old, [source]), null);
+  assert.deepEqual(old, before);
+});
+test('foreign denomination remains unavailable even with newly supported mixed subunits', () => {
+  const value = '港币5元五角', candidate = entry(value), source = sourceFor('😀王甲工资' + value + '。');
+  assert.equal(money(value).amount, null); stored(source, candidate, ingest(source, [candidate]), null);
+});
+test('a stated monthly rate keeps its meaning; a cropped total claim cannot borrow that rate', () => {
+  const text = '😀王甲工资标准5元五角/月。', source = sourceFor(text), value = '5元五角';
+  const rate = entry(value, value, { meaning: 'rate', completeness: 'not_applicable', rateUnit: 'month' });
+  stored(source, rate, ingest(source, [rate]), '5.50');
+  const total = entry(value); stored(source, total, ingest(source, [total]), null);
+});
+test('two source occurrences with the same mixed value remain two accepted events and two six-layer matches', () => {
+  const q1 = '王甲第一笔工资5元五角。', q2 = '王甲第二笔工资5元五角。', text = '😀' + q1 + q2;
+  const source = sourceFor(text), candidates = [entry('5元五角', q1), entry('5元五角', q2)], state = ingest(source, candidates);
+  assert.equal(state.materials[0].candidates.length, 2);
+  assert.deepEqual(state.materials[0].candidates.map(fact => fact.amount), ['5.50', '5.50']);
+  const first = text.indexOf('5元五角'), second = text.indexOf('5元五角', first + 1);
+  const anchors = [anchor(text, '5元五角'), anchor(text, '5元五角', second)];
+  assess(source, candidates, anchors, candidates, { raw: [2, 0, 0], accepted: [2, 0, 0] });
+  assess(source, candidates, anchors, [candidates[0]], { raw: [1, 0, 1], accepted: [1, 0, 1] });
+});
+test('an ambiguous short quote is preserved but cannot guess either equal-value event', () => {
+  const text = '😀王甲第一笔工资5元五角。王甲第二笔工资5元五角。', source = sourceFor(text);
+  const expected = [entry('5元五角', '王甲第一笔工资5元五角。'), entry('5元五角', '王甲第二笔工资5元五角。')];
+  const candidates = [entry('5元五角'), entry('5元五角')], state = ingest(source, candidates);
+  assert.equal(state.materials[0].candidates.length, 2);
+  const at = text.indexOf('5元五角');
+  assess(source, expected, [anchor(text, '5元五角'), anchor(text, '5元五角', at + 1)], candidates,
+    { raw: [0, 2, 2], accepted: [0, 2, 2] });
+});
+test('noncurrency unit extraction remains a raw FP while all accepted score layers reject it', () => {
+  const source = sourceFor('😀王甲工作5分鐘。');
+  const row = assess(source, [], [], [entry('5分鐘')], { raw: [0, 1, 0], accepted: [0, 0, 0] });
+  assert.equal(row.raw_count, 1); assert.equal(row.accepted_count, 0); assert.equal(row.rejected.length, 1);
+});

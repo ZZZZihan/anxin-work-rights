@@ -1,0 +1,74 @@
+TAP version 13
+# Subtest: complete manifest bytes are published once without changing existing bytes
+ok 1 - complete manifest bytes are published once without changing existing bytes
+  ---
+  duration_ms: 88.445417
+  type: 'test'
+  ...
+# Subtest: native partial write leaves no final name, retains the failed stage and permits a clean retry
+ok 2 - native partial write leaves no final name, retains the failed stage and permits a clean retry
+  ---
+  duration_ms: 103.4595
+  type: 'test'
+  ...
+# Subtest: publication links a complete synced stage while the destination is still absent
+ok 3 - publication links a complete synced stage while the destination is still absent
+  ---
+  duration_ms: 45.371834
+  type: 'test'
+  ...
+# Subtest: sync failure preserves the complete stage and does not reserve the final name
+ok 4 - sync failure preserves the complete stage and does not reserve the final name
+  ---
+  duration_ms: 81.424958
+  type: 'test'
+  ...
+# Subtest: a close failure does not mask the primary write failure
+ok 5 - a close failure does not mask the primary write failure
+  ---
+  duration_ms: 39.090459
+  type: 'test'
+  ...
+# Subtest: cleanup failure reports published state without rolling back the complete artifact
+ok 6 - cleanup failure reports published state without rolling back the complete artifact
+  ---
+  duration_ms: 81.400416
+  type: 'test'
+  ...
+# Subtest: concurrent publishers have exactly one complete winner and preserve the losing stage
+not ok 7 - concurrent publishers have exactly one complete winner and preserve the losing stage
+  ---
+  duration_ms: 52.173583
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards/scripts/material-facts-v7-result-manifest-publication.test.mjs:140:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-guards/scripts/material-facts-v7-result-manifest-publication.test.mjs:149:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: an existing symlink is never followed or replaced
+ok 8 - an existing symlink is never followed or replaced
+  ---
+  duration_ms: 40.833667
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 7
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 578.208083

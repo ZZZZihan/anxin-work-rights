@@ -1,0 +1,13 @@
+--- prepared-draft/material-facts-v7-correction-v26-gates-independent.test.mjs
++++ prepared-final/material-facts-v7-correction-v26-gates-independent.test.mjs
+@@ -35,8 +35,8 @@
+   const manifestBytes = await bytesAt('corrections-v26/manifest.json'), manifest = JSON.parse(manifestBytes);
+ 
+   await t.test('the current v26 manifest binds 97 exact dependencies in the v7 experiment family', async () => {
+-    assert.equal(manifest.schema, 'material-facts-v7-postfreeze-correction-manifest/25');
+-    assert.equal(JSON.parse(await bytesAt('corrections-v26/comparison.json')).schema, 'material-facts-v7-postfreeze-correction/25');
++    assert.equal(manifest.schema, 'material-facts-v7-postfreeze-correction-manifest/26');
++    assert.equal(JSON.parse(await bytesAt('corrections-v26/comparison.json')).schema, 'material-facts-v7-postfreeze-correction/26');
+     assert.deepEqual(manifestBytes, Buffer.from(JSON.stringify(manifest, null, 2) + '\n'));
+     assert.equal(manifest.previous_correction_manifest_sha256, V25);
+     assert.equal(manifest.first_result_manifest_sha256, ORIGINAL);

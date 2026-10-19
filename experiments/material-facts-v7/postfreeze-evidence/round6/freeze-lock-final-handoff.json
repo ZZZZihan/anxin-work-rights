@@ -1,0 +1,46 @@
+{
+  "kind": "isolated_freeze_lock_handoff",
+  "recorded_at": "2026-10-18T05:38:55.255958+00:00",
+  "baseline": {
+    "root_commit": "3e14bd781a230b3fc937fd6e46a62b8b87232bab",
+    "path": "experiments/material-facts-v7/freeze.mjs",
+    "sha256": "bce118b0e1411e5ba0e64d3e0846d34c8c1c554ad6abde7257ceda97582ddec5"
+  },
+  "files": {
+    "experiments/material-facts-v7/freeze.mjs": "ff9b6696af12f2b4235fbe9695a3bdaf354c72706c36a96fb995e8b928b269ad",
+    "experiments/material-facts-v7/experiment-lock.mjs": "eccebd49c4c2d8391878322c982992a1ea297cc1a81489c869d9b2b83a98b94f",
+    "scripts/material-facts-v7-freeze-lock.test.mjs": "6a79694e1f0e83476300f8f18ceb150ca739b285dda2794c7cabb451dff0bc82"
+  },
+  "patch_sha256": "f1d82cbfda14481ee2b0c6533b6639daff83e9b0744d8acdd81b03a95aa49d62",
+  "api": "withExperimentLock(root, operation, callback)",
+  "lock_directory": "experiments/material-facts-v7/.experiment.lock",
+  "operation_scope": {
+    "freeze": "entire absence check through result enumeration and exclusive freeze publication",
+    "diagnostic": "entire attempt lifecycle through all terminal artifact saves; integration owned by money"
+  },
+  "checks": {
+    "before": {
+      "pass": 6,
+      "fail": 3,
+      "receipt": "freeze-lock-before-red.receipt.json"
+    },
+    "final": {
+      "pass": 9,
+      "fail": 0,
+      "receipt": "freeze-lock-final-green.receipt.json"
+    },
+    "scoped_eslint": {
+      "exitCode": 0,
+      "receipt": "freeze-lock-scoped-eslint.receipt.json"
+    }
+  },
+  "recovery": "No automatic stale deletion. Reconcile owner identity, owner/worker liveness and preserved attempt artifacts before explicit manual recovery. SIGKILL leaves lock fail-closed.",
+  "limits": [
+    "native child-process and filesystem races on synthetic fixture dependencies",
+    "production createFreeze critical-section body retained unchanged except lock wrapper",
+    "not full dataset or model acceptance",
+    "no model/build/HTTP by this author",
+    "no original freeze/result/correction objects changed",
+    "no commit or push"
+  ]
+}

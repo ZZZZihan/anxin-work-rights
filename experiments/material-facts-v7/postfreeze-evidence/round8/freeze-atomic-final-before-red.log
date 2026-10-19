@@ -1,0 +1,203 @@
+✖ freeze publishes complete synced bytes by exclusive link, then removes its successful temporary file (120.5755ms)
+✖ failed partial never creates freeze.json and retains its temporary bytes and failure receipt (116.043166ms)
+✖ failed sync never creates freeze.json and retains its temporary bytes and failure receipt (117.161125ms)
+✖ failed close never creates freeze.json and retains its temporary bytes and failure receipt (114.56675ms)
+✖ failed publish never creates freeze.json and retains its temporary bytes and failure receipt (116.784083ms)
+✔ preexisting freeze is preserved byte for byte without allocating publication artifacts (113.833125ms)
+✖ a destination appearing immediately before publication is never overwritten (115.945833ms)
+✖ the shared lock covers an invisible partial write through native publication (125.435291ms)
+✖ a killed partial writer leaves no pseudo-freeze and preserves its temporary bytes and owner lock (126.07375ms)
+✖ failure-record errors do not replace the original partial-write failure (115.158084ms)
+✖ post-publication cleanup failure retains valid immutable freeze plus an explicit published failure receipt (117.267333ms)
+✖ an already published freeze stays committed when both cleanup and its receipt write fail; warnings retain both failures (119.631208ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 1
+ℹ fail 11
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1531.813625
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:138:1
+✖ freeze publishes complete synced bytes by exclusive link, then removes its successful temporary file (120.5755ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  -   'open-temp',
+      'write-complete',
+  -   'sync-temp',
+  -   'close-temp',
+  -   'publish-link'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:141:41)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'write-complete' ],
+    expected: [ 'open-temp', 'write-complete', 'sync-temp', 'close-temp', 'publish-link' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:146:61
+✖ failed partial never creates freeze.json and retains its temporary bytes and failure receipt (116.043166ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:148:83)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:146:61
+✖ failed sync never creates freeze.json and retains its temporary bytes and failure receipt (117.161125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:148:53)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:146:61
+✖ failed close never creates freeze.json and retains its temporary bytes and failure receipt (114.56675ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:148:53)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:146:61
+✖ failed publish never creates freeze.json and retains its temporary bytes and failure receipt (116.784083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:148:53)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:164:1
+✖ a destination appearing immediately before publication is never overwritten (115.945833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:165:77)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:170:1
+✖ the shared lock covers an invisible partial write through native publication (125.435291ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:172:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:179:1
+✖ a killed partial writer leaves no pseudo-freeze and preserves its temporary bytes and owner lock (126.07375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:181:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:191:1
+✖ failure-record errors do not replace the original partial-write failure (115.158084ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:193:40)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:198:1
+✖ post-publication cleanup failure retains valid immutable freeze plus an explicit published failure receipt (117.267333ms)
+  SyntaxError [Error]: Unexpected end of JSON input
+      at JSON.parse (<anonymous>)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:200:21)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at scripts/material-facts-v7-freeze-atomic-publication.test.mjs:208:1
+✖ an already published freeze stays committed when both cleanup and its receipt write fail; warnings retain both failures (119.631208ms)
+  SyntaxError [Error]: Unexpected end of JSON input
+      at JSON.parse (<anonymous>)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/scripts/material-facts-v7-freeze-atomic-publication.test.mjs:210:24)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

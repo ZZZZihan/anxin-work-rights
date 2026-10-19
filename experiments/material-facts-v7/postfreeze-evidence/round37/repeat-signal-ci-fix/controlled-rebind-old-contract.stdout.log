@@ -1,0 +1,36 @@
+TAP version 13
+# Subtest: actual v7 CLI drains migration after SIGINT repeated during cleanup
+not ok 1 - actual v7 CLI drains migration after SIGINT repeated during cleanup
+  ---
+  duration_ms: 5376.481417
+  type: 'test'
+  location: '/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data/experiments/material-facts-v7/postfreeze-evidence/round37/repeat-signal-ci-fix/controlled-rebind-old-contract.test.mjs:68:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    The detached launcher socket must be released before CLI exit.
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-data/experiments/material-facts-v7/postfreeze-evidence/round37/repeat-signal-ci-fix/controlled-rebind-old-contract.test.mjs:144:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# {"node":"v24.22.0","runner":"v7","mode":"migration","firstSignal":"SIGINT"}
+# {"controlledRebind":true,"replacementPid":12607,"oldLauncherPid":12610,"oldPort":52842,"originalGroupAtRebind":[["12611","12610","S"]]}
+# {"mode":"migration","exit":{"code":1,"signal":null},"sockets":{"launcher":true,"descendant":false,"unrelated":true}}
+# {"cleanupBeforeAssertion":{"status":"PASS","failures":[]},"originalGroupAtExit":[],"replacementListening":true}
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5425.334625

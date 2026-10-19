@@ -1,0 +1,42 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { assessCase, resolveCandidateEvent } from '../experiments/material-facts-v7/assess.mjs';
+const cp = text => Array.from(text).length;
+const modes = ['raw_basic','raw_relational','raw_strict','accepted_basic','accepted_relational','accepted_strict'];
+const candidate = (value, quote, subject='王甲') => ({kind:'date',value,quote,blockId:'b1',subject,scope:'individual',meaning:'employment_period',completeness:'not_applicable',period:null,rateUnit:null,assertion:'narrated'});
+function fixture(text, specs) {
+ const input={id:'ind-r37',source:{id:'ind-r37-source',name:'synthetic',sha256:'d'.repeat(64),analysisRevision:1,ready:true,blocks:[{id:'b1',page:1,text,bbox:null,confidence:null}]}};
+ const expected=specs.map(s=>s.candidate);
+ const events=specs.map((s,i)=>{const at=s.at??text.indexOf(s.anchor);return {id:'event-'+i,anchors:[{blockId:'b1',start:cp(text.slice(0,at)),end:cp(text.slice(0,at+s.anchor.length))}]};});
+ return {input,label:{id:input.id,schemaVersion:3,label_status:'provisional_non_expert',expected,events,expected_event_ids:events.map(e=>e.id),acceptable_alternatives:[]}};
+}
+function counts(f,c,expected) {
+ const before=structuredClone({f,c});const result=assessCase(f.input,f.label,{finish_reason:'stop',raw_output:JSON.stringify({schemaVersion:3,candidates:c})});
+ for(const m of modes) assert.deepEqual([result[m].tp,result[m].fp,result[m].fn],expected,m);
+ assert.deepEqual({f,c},before);return result;
+}
+test('boundary alignment cannot transfer a repeated equal date to a different real event',()=>{
+ const value='截止至2026年1月为止', first='😀王甲'+value+'任职。', second='李乙'+value+'任职。',text=first+second;
+ const gold=candidate(value,first), actual=candidate(value,second,'李乙');
+ const f=fixture(text,[{candidate:gold,anchor:'2026年1月'}]);
+ f.label.events.push({id:'other',anchors:[{blockId:'b1',start:cp(first+'李乙截止至'),end:cp(first+'李乙截止至2026年1月')}]});
+ assert.equal(resolveCandidateEvent(actual,f.input,f.label).event,'other');counts(f,[actual],[0,1,1]);
+});
+test('traditional boundary folding never normalizes literal date equality',()=>{
+ const value='從2026年1月之後',text='😀王甲'+value+'任职。',gold=candidate('2026年1月',text),actual=candidate(value,text);
+ const f=fixture(text,[{candidate:gold,anchor:'2026年1月'}]);assert.equal(resolveCandidateEvent(actual,f.input,f.label).event,'event-0');counts(f,[actual],[0,1,1]);
+});
+test('each complete date value still requires a unique source position',()=>{
+ const value='截止到2026年1月为止',text='😀王甲'+value+'任职。李乙'+value+'任职。';
+ const f=fixture(text,[{candidate:candidate(value,'😀王甲'+value+'任职。'),anchor:'2026年1月'}]);
+ const other=text.lastIndexOf('2026年1月');f.label.events.push({id:'other',anchors:[{blockId:'b1',start:cp(text.slice(0,other)),end:cp(text.slice(0,other+'2026年1月'.length))}]});
+ assert.equal(resolveCandidateEvent(candidate(value,value),f.input,f.label).status,'ambiguous_event');counts(f,[candidate(value,value)],[0,1,1]);
+});
+test('unsupported date narrative and money never inherit the new date wrappers',()=>{
+ for(const value of ['截止另一人2026年1月为止','截止至2026年1月以后支付']){
+  const text='😀王甲'+value+'任职。',gold=candidate('2026年1月',text),actual=candidate(value,text),f=fixture(text,[{candidate:gold,anchor:'2026年1月'}]);
+  assert.equal(resolveCandidateEvent(actual,f.input,f.label).status,'unregistered_position');counts(f,[actual],[0,1,1]);
+ }
+ const text='😀王甲截止4000元为止。', actual={...candidate('截止4000元为止',text),kind:'money',meaning:'due_total',completeness:'complete'},gold={...actual,value:'4000元'};
+ const f=fixture(text,[{candidate:gold,anchor:'4000元'}]);assert.equal(resolveCandidateEvent(actual,f.input,f.label).status,'unregistered_position');counts(f,[actual],[0,1,1]);
+});

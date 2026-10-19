@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""Own evidence capture; no current/archived assessment CLI is executed."""
+from pathlib import Path
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+import datetime
+
+OWN = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review')
+PREP = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/.scratch/round40-v30-prepared')
+AUTHOR = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/experiments/material-facts-v7/postfreeze-evidence/round40/v30-prepared')
+OUT = OWN / 'postfreeze-evidence/round40/v30-tooling-independent'
+SCRATCH = OWN / '.scratch/issue42/round40/v30-tooling-independent'
+NODE = '/Users/xuzihan/.npm/_npx/387698761821791d/node_modules/node/bin/node'
+sha = lambda b: hashlib.sha256(b).hexdigest()
+def run(name, argv, environment=None):
+    start = time.monotonic()
+    started = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    result = subprocess.run(argv, cwd=OWN, env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=50)
+    (OUT / (name + '.stdout.log')).write_bytes(result.stdout)
+    (OUT / (name + '.stderr.log')).write_bytes(result.stderr)
+    receipt = {'argv': argv, 'cwd': str(OWN), 'started_utc': started,
+               'duration_seconds': time.monotonic() - start, 'exit_code': result.returncode,
+               'stdout_sha256': sha(result.stdout), 'stderr_sha256': sha(result.stderr)}
+    (OUT / (name + '.execution.json')).write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + '\n')
+    print(name, result.returncode, round(receipt['duration_seconds'], 3))
+    if result.returncode: sys.exit(result.returncode)
+    return result
+
+version = run('node24-version', [NODE, '--version']).stdout.decode().strip()
+env = dict(os.environ, V7_REVIEW_ROOT=str(PREP), TMPDIR=str(SCRATCH / 'tmp'))
+env.pop('ANXIN_HISTORICAL_EXECUTION_STATE_V1', None)
+env.pop('NODE_OPTIONS', None)
+run('static-before', [sys.executable, str(OUT / 'v30-light-audit.py')])
+index = json.loads((AUTHOR / 'copy-index.json').read_bytes())
+for entry in index['allowed_files']:
+    if entry['kind'] == 'tool_or_test':
+        dest = OUT / 'reviewed-sources' / (entry['destination'] + '.snapshot')
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(entry['source'], dest)
+shutil.copyfile(AUTHOR / 'restore-callback-check.mjs', SCRATCH / 'restore-callback-check.mjs')
+shutil.copyfile(AUTHOR / 'restore-callback-check.mjs', OUT / 'restore-callback-check.mjs.snapshot')
+shutil.copyfile(SCRATCH / 'restore-negative.mjs', OUT / 'restore-negative.mjs.snapshot')
+run('native7-node24', [NODE, '--test', str(PREP / 'scripts/material-facts-v7-historical-v29-execution.test.mjs')], env)
+run('restore106-node24', [NODE, str(SCRATCH / 'restore-callback-check.mjs'), str(PREP)], env)
+run('restore-negative5-node24', [NODE, str(SCRATCH / 'restore-negative.mjs'), str(PREP)], env)
+files = [item for item in index['allowed_files'] if item['kind'] == 'tool_or_test']
+syntax = []
+for item in files:
+    start = time.monotonic()
+    result = subprocess.run([NODE, '--check', item['source']], cwd=OWN, env=env, capture_output=True, timeout=10)
+    syntax.append({'path': item['source'], 'sha256': item['sha256'], 'exit_code': result.returncode,
+                   'duration_seconds': time.monotonic()-start, 'stdout': result.stdout.decode(), 'stderr': result.stderr.decode()})
+    assert result.returncode == 0, item['source']
+(OUT / 'syntax-six.json').write_text(json.dumps(syntax, ensure_ascii=False, indent=2) + '\n')
+run('static-after', [sys.executable, str(OUT / 'v30-light-audit.py')])
+before = json.loads((OUT / 'static-before.stdout.log').read_bytes())
+after = json.loads((OUT / 'static-after.stdout.log').read_bytes())
+assert before == after
+assert not list((SCRATCH / 'tmp').iterdir()), 'Owned native or restoration temp was not cleaned up'
+(OUT / 'execution-summary.json').write_text(json.dumps({'status':'PASS', 'node':version,
+    'native_contract':{'passed':7,'failed':0}, 'restore106_callback_throw':True,
+    'restoration_negative_cases':5, 'syntax_files':6,
+    'protected_root_paths':len(before['protected_root_sha256']),
+    'review_input_paths':len(before['review_inputs_sha256']),
+    'protected_before_after_unchanged':True, 'owned_temp_removed':True,
+    'historical_cli_executed':False,'scorer_executed':False,'model_requests':0}, ensure_ascii=False, indent=2)+'\n')
+print('ALL_PASS')

@@ -1,0 +1,129 @@
+{
+  "schema": "material-facts-v7-round6-money-evidence/1",
+  "created_for": "PR46 lifecycle fixes and cross review of shared freeze locking and first-run manifest byte binding",
+  "implementation_owner": "/root/v7_money",
+  "model_requested": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "ultra",
+    "actual_runtime_configuration_claim": "No additional model configuration verification performed by this receipt."
+  },
+  "code": {
+    "baseline_run_sha256": "fb79d6d1772a1180e5a9ce563fd5ee87f2a0a96c3d322dc1db8caf3c18101f1d",
+    "run.mjs": "53196e59f91d4862c1acc4ca8e7e8cd788e0e0ea4586f9e0bbff9063c8e2afc2",
+    "scripts/material-facts-v7-run-lifecycle.test.mjs": "9f0aa5abec879082f93d3871528be32f065193a4d4a48179bf139ba6122705eb",
+    "experiment-lock.mjs": "eccebd49c4c2d8391878322c982992a1ea297cc1a81489c869d9b2b83a98b94f",
+    "freeze.mjs_cross_reviewed": "ff9b6696af12f2b4235fbe9695a3bdaf354c72706c36a96fb995e8b928b269ad",
+    "verify-frozen.mjs_cross_reviewed": "aae2e203ce8f1423277e43fac83605f703562b68bcce6ae80fe05d9fea1235fa"
+  },
+  "checks": {
+    "author_native_final": {
+      "tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "result": "PASS"
+    },
+    "author_minimal_red_final_fixture": {
+      "selected_tests": 3,
+      "passed": 0,
+      "failed": 3,
+      "result": "EXPECTED_BASELINE_FAILURE"
+    },
+    "eslint": {
+      "files": [
+        "experiments/material-facts-v7/run.mjs",
+        "scripts/material-facts-v7-run-lifecycle.test.mjs"
+      ],
+      "result": "PASS",
+      "tool_chunk_id": "d205f7",
+      "note": "The existing exec returned exit_code 0; successful eslint was followed by code/log hash output. ESLint emitted no text. No new eslint run was performed to create this receipt."
+    },
+    "non_implementer_manifest_review": {
+      "tests": 6,
+      "passed": 6,
+      "result": "PASS",
+      "role": "money agent did not implement verify-frozen change; independently ran peer author fixture and inspected code"
+    },
+    "non_implementer_lock_review": {
+      "tests": 9,
+      "passed": 9,
+      "result": "PASS",
+      "role": "money agent did not implement freeze/helper; independently ran data peer author fixture and inspected code; money agent owns run integration"
+    }
+  },
+  "boundaries": [
+    "Lifecycle tests use temporary trees, a finite synthetic local executable, synthetic credentials and only registered dev inputs. They do not call the real model worker, an API, or a model.",
+    "The fixture stubs verifyPreflight to isolate runner lifecycle. It is not an end-to-end formal holdout acceptance or an authorization to consume the historical attempt path.",
+    "The original real holdout freeze, results, reports and correction archives were not rewritten. Temporary path names holdout-deepseek-1 are synthetic fixture paths only.",
+    "The original three failure cases were first observed as 3 failures / 4 adjacent passes, and later repeated with the final test fixture selecting those same three failures.",
+    "The missing experiment-lock dependency in an intermediate fixture was an actual setup failure. It is retained separately and not counted as a product regression or a passing test.",
+    "stdout and stderr have independent 20,000,000 raw-byte admission bounds. The tests measure pending unpersisted bytes for small chunked events under a delayed disk write, not universal heap usage for every workload.",
+    "A genuine disk I/O operation that never settles and malicious unrelated processes mutating the workspace are outside these synthetic liveness checks. Stale lock reconciliation stays manual and fail-closed.",
+    "Cross-review stdout files were reconstructed verbatim from already-returned tool output chunks. They were not originally redirected to filesystem logs, and no new tests were run for this evidence assembly.",
+    "Cross-review tests run peer-authored fixtures. They are non-implementer reruns and static review, not independently authored additional tests, real API execution, production deployment, or user acceptance.",
+    "No git commit/push/merge, training, new model generation, or deployment occurred in this task."
+  ],
+  "files": [
+    {
+      "file": "lifecycle-before-red.initial.txt",
+      "sha256": "4cb673a62547f7b1ba1dcc38a8438bd97dd28285ba4a9c0210475bd8e24b89f3",
+      "source_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/.scratch/material-facts-v7/lifecycle/before-red.txt",
+      "provenance": "byte_exact_copy_of_existing_process_log",
+      "scope": "Native baseline run of the initial 7 author tests: 3 failing bug reproductions and 4 passing adjacent controls."
+    },
+    {
+      "file": "lifecycle-fixture-import-failure.txt",
+      "sha256": "cedfc2618d627c9df79fe9321e1763fc215c9737739d1a3bfef0503d356cfb70",
+      "source_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/.scratch/material-facts-v7/lifecycle/after-green.txt",
+      "provenance": "byte_exact_copy_of_existing_process_log",
+      "scope": "Intermediate fixture setup failure: run now imported experiment-lock.mjs but fixture had not yet copied it; all 7 failed on missing dependency, not the lifecycle behavior. Retained without alteration."
+    },
+    {
+      "file": "lifecycle-after-green.7.txt",
+      "sha256": "bc9d0fe2cdbfe4b844795a7e3dc6a6f90f36a6ca3ebf24a3b6c095285ce6c84a",
+      "source_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/.scratch/material-facts-v7/lifecycle/after-green-final.txt",
+      "provenance": "byte_exact_copy_of_existing_process_log",
+      "scope": "After adding the missing fixture dependency, 7 native author tests passed."
+    },
+    {
+      "file": "lifecycle-after-green.8.txt",
+      "sha256": "b67a0a7907a708943149c045e694f7f28377e088ce56c74f98cdfea3a51177d9",
+      "source_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/.scratch/material-facts-v7/lifecycle/complete-green.txt",
+      "provenance": "byte_exact_copy_of_existing_process_log",
+      "scope": "8 native author tests passed, adding a SIGTERM-ignoring finite stderr producer killed by SIGKILL and checked ESRCH."
+    },
+    {
+      "file": "lifecycle-after-green.10.txt",
+      "sha256": "e40f96420aa3aa69de55d898100ab84ae179b55c47be519dee24e217bbe578ff",
+      "source_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/.scratch/material-facts-v7/lifecycle/complete-with-lock-green.txt",
+      "provenance": "byte_exact_copy_of_existing_process_log",
+      "scope": "Final 10 native author tests passed, adding actual diagnostic runner/shared-lock integration. No further implementation changes from the 7-pass run."
+    },
+    {
+      "file": "lifecycle-before-red.final-fixture.txt",
+      "sha256": "30de8ec0d730b74823dfdd4e045217e96619bb96850e5dde7abcc87355e35a0d",
+      "source_path": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-money/.scratch/material-facts-v7/lifecycle/final-fixture-before-red.txt",
+      "provenance": "byte_exact_copy_of_existing_process_log",
+      "scope": "The final author test file was rerun against an isolated copy of the original runner, selecting the three original lifecycle failures: 0 passed, 3 failed. Nonselected tests were not executed."
+    },
+    {
+      "file": "manifest-cross-review.tool-stdout.txt",
+      "sha256": "f3fcd6e56b4791ae25f5e9d8a0077ad72eac5a84ebf2b50d8f35bbfec3ba699e",
+      "provenance": "verbatim_stdout_joined_from_existing_exec_tool_response_chunks_not_a_new_run",
+      "tool_chunk_ids": [
+        "d2c40a",
+        "c89e43"
+      ],
+      "command": "V7_REVIEW_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards V7_VERIFY_FROZEN_MODULE=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review/experiments/material-facts-v7/verify-frozen.mjs node --test scripts/material-facts-v7-first-manifest-independent.test.mjs"
+    },
+    {
+      "file": "lock-cross-review.tool-stdout.txt",
+      "sha256": "6a769414154d20784e409e7cc14ab5c44d48f32f0461ee2b8c955d2edb0f7cbd",
+      "provenance": "verbatim_stdout_joined_from_existing_exec_tool_response_chunks_not_a_new_run",
+      "tool_chunk_ids": [
+        "591cf1",
+        "dace64"
+      ],
+      "command": "MATERIAL_FACTS_V7_ENGINEERING_ROOT=/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-data node --test scripts/material-facts-v7-freeze-lock.test.mjs"
+    }
+  ]
+}

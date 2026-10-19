@@ -1,0 +1,122 @@
+from pathlib import Path
+import datetime
+import hashlib
+import json
+
+ROOT = Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+OUT = Path(__file__).resolve().parent
+E = 'experiments/material-facts-v7'
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def read(name):
+    return json.loads((OUT / name).read_text())
+
+static = read('static-copy-boundary-audit.json')
+bounded = read('bounded-copy-test.receipt.json')
+failure = read('failure-publication-node24.receipt.json')
+native = read('native-v30-node24.receipt.json')
+assert all(item['exit_code'] == 0 for item in [bounded, failure, native])
+assert failure['before'] == failure['after']
+assert native['before'] == native['after']
+assert len(static['wrappers']) == 31
+assert static['archive30_count'] == 109
+protected = static['original_and_historical_unchanged_files']
+assert len(protected) == 2165
+for row in protected:
+    assert sha(ROOT / row['path']) == row['sha256'], row['path']
+for row in static['wrappers']:
+    assert sha(ROOT / row['path']) == row['sha256'], row['path']
+for path, digest in {**failure['after'], **native['after']}.items():
+    assert sha(ROOT / path) == digest, path
+
+archive = json.loads((ROOT / E / 'corrections-v30/manifest.json').read_text())
+new_paths = [f'{E}/verify-correction-v30.mjs', f'{E}/corrective-assessment-v31.mjs',
+             f'{E}/historical-v30-execution.mjs', f'{E}/immutable-artifact-publication.mjs']
+union = set(archive['code_sha256']) | set(new_paths)
+assert len(union) == 113
+receipt = {
+    'schema': 'issue42-round41-independent-light-review/1',
+    'observed_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    'status': 'SCOPED_TECHNICAL_REVIEW_PASS',
+    'freeze_blocker_found': False,
+    'request_configuration': {'model': 'gpt-6.1-sol', 'reasoning_effort': 'ultra',
+                              'actual_service_backend_independently_verified': False},
+    'source_root_read_only': str(ROOT),
+    'source_hashes': {**failure['after'], **native['after']},
+    'execution': {
+        'independent_new_test_cases': 4,
+        'author_test_cases_executed_by_reviewer': 21,
+        'total_test_cases': 25, 'passed': 25, 'failed': 0, 'skipped': 0,
+        'runtime': {'node': 'v24.22.0', 'platform': 'darwin', 'arch': 'arm64'},
+        'bounded_restore': bounded, 'failure_publication': failure, 'native_policy': native,
+    },
+    'integrity': {
+        'current_copy_entry_points': 31,
+        'old_current_wrapper_deltas': 'Only the exact resolved postfreeze-evidence copy exclusion; all other old current wrapper bytes match exact a8d0b704.',
+        'archived_v30_dependencies': 109, 'expected_current_v31_union': len(union),
+        'archive_manifest_sha256': static['archive30_manifest_sha256'],
+        'original_and_historical_files_rehashed_after_tests': len(protected),
+        'original_and_historical_files_unchanged': True,
+        'old_execution_policy_and_bridges_unchanged': static['old_execution_policy_and_bridges_unchanged'],
+        'excluded_diagnostics_is_archived_execution_dependency': static['excluded_diagnostic_subtree_in_v30_code_dependencies'],
+        'tested_source_hashes_unchanged_after_all_light_checks': True,
+    },
+    'static_conclusions': [
+        'Direct current wrapper entry points and restoration before nested archived recursion omit only the exact diagnostic subtree; data, results, archived code, review-evidence and similarly named directories remain.',
+        'The v31 controller really invokes the archived v30 check before one current assessment; no historical hash-only shortcut was added.',
+        'The exact read-only v30 adapter retains the existing shared 900000 ms absolute root budget and 2000 ms cleanup reserve; unrelated execution retains its own timeout.',
+        'Qwen pre-spawn stops cannot claim worker exit, stdout draining, result/event production or whole-run completion. Earlier genuine completed material remains independently preserved.',
+        'Same-directory staged publication fsyncs complete bytes then uses exclusive link publication. Concurrent or existing destinations are not replaced; failed stages remain diagnostic evidence.',
+        'The publication helper is included in the current freeze dependency list and the expected v31 code union.',
+        'The current v31 gate still requires real CLI exit status 1 for both refusals; a timeout cannot satisfy the assertion. This reviewer did not execute those heavyweight CLI tests.',
+    ],
+    'preparation_error_preserved': 'native-launch-preparation-failure.json: incorrect author-gate filename prevented inventory before any subprocess/test allocation; corrected actual path then 7/7 native tests passed.',
+    'limits': [
+        'No actual historical CLI, scorer, assessment compute, model request, training, HTTP, build or complete npm check was executed by this review.',
+        'Native policy tests use real Node subprocesses with bounded synthetic fixtures, not real archived scoring runs.',
+        'Atomic name publication does not claim power-loss durability of the containing directory or recovery of arbitrary filesystem failures.',
+        'This is a scoped source/light-runtime review of an uncommitted candidate, not a published v31 artifact acceptance, remote CI pass, deployment or human business acceptance.',
+    ],
+}
+target = OUT / 'round41-execution-review.independent.json'
+with target.open('x') as f:
+    f.write(json.dumps(receipt, ensure_ascii=False, indent=2) + '\n')
+
+text = '''# ROUND41 执行与不可变发布独立轻审
+
+本次限定范围的技术复核通过，未发现冻结前阻塞。检查对象是 ROOT 的候选代码；这份结论不代表 v31 结果已发布、远端 CI 已通过、部署或人工业务验收。
+
+本人在 Node 24.22.0 / macOS arm64 实际执行 25 项轻量检查，全部通过、无跳过。其中 4 项为本次独立编写的检查，21 项为本人实际执行的作者测试（Qwen 未启动路径 14 项，原生历史策略契约 7 项），不把执行作者测试称为独立设计。
+
+独立恢复检查构造仅含必要输入的临时树，调用真实 v30 恢复入口，核对 109 个旧依赖，进一步进入未修改的旧 v29 恢复函数。诊断目录不再进入临时树，但数据、冻结结果、代码档案、review-evidence 及相似目录保留。错误回调保持原 Error 并清理临时目录；篡改归档在回调之前拒绝。31 个当前复制入口只增加对唯一绝对诊断路径的排除。再次核对 2,165 个原始与历史保护文件，字节仍与精确 a8d0b704 检查点一致。
+
+独立失败路径检查覆盖“前一批真实成功、后一批尚未启动”的组合。未启动记录不能伪称完整完成、其他后端、进程退出或产生结果和事件；既有成功记录保持原样。作者的真实 runner 入口另以合成预检、prompt 和 scorer 替身执行，不调用模型。
+
+独立发布检查在真实文件系统并发写入两个 128 KiB 内容，只产生一个完整胜者，另一方明确 EEXIST 并保留诊断 stage。已存在文件与目标 symlink 不被覆盖，也不修改 symlink 指向的文件。该机制保证完整文件的独占名称发布，不声称目录断电持久性。
+
+新控制器仍先实际执行恢复后的 v30 检查，再计算一次当前复评；没有用“哈希相同”替代历史执行。新桥仅接收 v30 的只读 --check，并继承原 900 秒绝对总期限及每层 2 秒清理余量。7 项原生合成检查验证同一总期限、双 URL preload、不相关子进程独立超时、失败状态和 stdout/stderr 透传以及 receipt 清理。当前 v31 门禁的两个负例依然要求真实 CLI 状态 1，不能以超时通过；本次没有执行这两个长链负例。
+
+v30 的 109 个绑定精确归档，新 v31 预期并集为 113，新增发布 helper 已纳入当前 freeze 与版本绑定。测试前后源文件哈希一致。
+
+保留一次准备路径错误：最初将作者 gate 文件名误写为 independent，清单读取即失败，尚未启动测试；更正为实际 author 路径后 native 7/7 通过。原记录为 native-launch-preparation-failure.json，不能算产品失败。
+
+请求配置为 GPT-6.1 Sol / ultra，实际服务后端未独立核验。本次不运行历史 CLI、评分器、完整 npm 检查、模型、训练、HTTP 或构建；原始结果和共享源码均未修改。详细命令、源 SHA、日志 SHA 与限制见同目录 JSON，复制白名单见 copy-index.json。
+'''
+with (OUT / 'ROUND41_EXECUTION_LIGHT_INDEPENDENT.md').open('x') as f:
+    f.write(text)
+
+entries = []
+for path in sorted(OUT.rglob('*')):
+    if path.is_file() and path.name != 'copy-index.json':
+        entries.append({'path': str(path.relative_to(OUT)), 'absolute_path': str(path),
+                        'size': path.stat().st_size, 'sha256': sha(path)})
+index = {'schema': 'issue42-independent-copy-whitelist/1', 'root': str(OUT),
+         'files': entries, 'file_count': len(entries), 'shared_source_edits': 0}
+with (OUT / 'copy-index.json').open('x') as f:
+    f.write(json.dumps(index, ensure_ascii=False, indent=2) + '\n')
+print(json.dumps({'status': receipt['status'], 'tests': 25, 'protected': len(protected),
+                  'receipt': str(target), 'receipt_sha256': sha(target),
+                  'index': str(OUT / 'copy-index.json'), 'index_sha256': sha(OUT / 'copy-index.json'),
+                  'files': len(entries)}, ensure_ascii=False))

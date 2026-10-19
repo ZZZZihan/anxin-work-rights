@@ -1,0 +1,52 @@
+{
+  "owned_files": {
+    "experiments/material-facts-v7/verify-correction-v8.mjs": "d3294b204efa688dc7a5c325e742381f646c850209786a7e15b4742245ddbbb6",
+    "experiments/material-facts-v7/corrective-assessment-v9.mjs": "7d1a6b2b6cbaa465ad148b952ac5a9634885aacdcb71b88294c25357bff21f35",
+    "scripts/material-facts-v7-correction-v8-gates-independent.test.mjs": "8a0c8d3a8b5db9fd84dbdc7ad3c24ccf8748bd87b9cdaf03802f58f5ea96de2c",
+    "scripts/material-facts-v7-correction-v9-gates-independent.test.mjs": "1d7eec24b63e64df130101c7f112d9d9694b5edccbfa149a6d3fcca21cd63a8a"
+  },
+  "previous_v8_manifest_sha256": "8fa3100c348a94af0471e93a5a2dab8d405df2dd4debc603b3fe3dbe89fac06b",
+  "v8_archive_code_count": 43,
+  "v9_proposed_code_count": 46,
+  "policy_files_unchanged": {
+    "historical-execution-v1.mjs": "0796452771e29dcf6ae5cfd653cb96a851a713f07de9f2b6e2754feb50586a8c",
+    "historical-execution-policy-v1.mjs": "cf6a04377e518064037cb3374591eb7747972f7259aa92ffa0f8440eefde7dea"
+  },
+  "strategy": "Restore archived v8 in-process with withCorrectionV8Code, then execute only the already-allowed archived corrective-assessment-v8 --check under policy v1. No whitelist/source/deadline changes. v9 itself uses native CLI execution with finite 960000ms outer bound per negative case.",
+  "native_v9_gate_test_parent_timeout_ms": 1980000,
+  "author_lightweight_checks": {
+    "passed": 6,
+    "failed": 0,
+    "includes": [
+      "43 exact historical code restores despite live drift",
+      "normal cleanup",
+      "callback failure cleanup preserves error",
+      "missing snapshot refusal",
+      "changed snapshot refusal",
+      "extra path refusal",
+      "JSON-equivalent historical manifest byte refusal"
+    ]
+  },
+  "syntax_eslint": {
+    "exit_code": 0,
+    "log_empty": true
+  },
+  "not_executed_here": [
+    "v9 --write",
+    "v9 --check",
+    "actual v8/v9 CLI gates",
+    "model inference",
+    "HTTP",
+    "build"
+  ],
+  "no_root_or_immutable_artifact_write": true,
+  "patch_note": "The parent copied all four implementation files into ROOT before the later no-index diff was generated, making v8-v9-version-chain.patch empty. It is not patch evidence. Use the delivered file hashes and raw check logs. The renamed v8-gate-after-parent-copy snapshot captures the integrated replacement, not its original prior contents.",
+  "root_integration_note": "Parent owns the final ROOT v9 change_reason including additional parallel named-factor and Arabic yuan/jiao/fen fixes; no further implementation writes by this author after handoff. This metadata binds the delivered pre-parent-rewording controller.",
+  "evidence_files": {
+    "v8-wrapper-lightweight-probe.mjs": "6592e833f2ede9d9dcff32d4844757d0b14632a868d01f6c0a6ff28209b08fea",
+    "v8-wrapper-lightweight.log": "8fa4c92f6f9ccc9d803cae0ab7d451e4d8a778fbe7bce09402720654de367e6e",
+    "v8-wrapper-lightweight.receipt.json": "27e071f2385f098c94dcde89dd4e2b105d3519011973b1e3ea8b088c088d4394",
+    "v8-v9-syntax-eslint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "v8-v9-syntax-eslint.receipt.json": "69b6256c97fd60c9c451d1728aa53f2fc0e90a5e506e9e909767ac4ed6646761"
+  }
+}

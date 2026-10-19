@@ -1,0 +1,53 @@
+// R39 nonimplementer controls: direct runtime/source scope eligibility, no HTTP/scorer/model.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const ROOT = resolve(process.env.V7_REVIEW_ROOT || new URL('../', import.meta.url).pathname);
+const load = file => import(pathToFileURL(resolve(ROOT, 'lib', file)).href);
+const { ingestRuntimeCandidates: fresh } = await load('material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates: legacy, buildFactView, validateCandidateOutput } = await load('material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('material-fact-source-review.ts');
+const cp = text => Array.from(text).length;
+const AT = '2026-10-19T04:00:00.000Z';
+function check(subject, individual, meaning = 'due_total') {
+  const role = meaning === 'due_total' ? '全部应付工资合计' : '全部已付工资合计';
+  const text = `😀${subject}2026年1月${role}4000元。`;
+  const source = { id: 'r39-independent-owner', name: 'synthetic.txt', sha256: '6'.repeat(64), ready: true,
+    analysisRevision: 39, blocks: [{ id: 'b1', page: 1, text, bbox: null, confidence: null }] };
+  for (const quote of ['4000元', text]) {
+    const entry = { kind: 'money', value: '4000元', quote, blockId: 'b1', subject, scope: 'individual',
+      meaning, completeness: 'complete', period: '2026年1月', rateUnit: null, assertion: 'narrated' };
+    const raw = JSON.stringify({ schemaVersion: 3, candidates: [entry] });
+    assert.equal(validateCandidateOutput(raw, source).rejected.length, 0);
+    const stored = legacy(emptyFactState(39), source, { raw }, 'independent', 'synthetic', AT);
+    Object.assign(stored.materials[0].candidates[0], { amount: '4000.00', normalization: {
+      rawValue: '4000元', status: 'exact', amount: '4000.00', matchedText: '4000元', span: { start: 0, end: 5 }, reason: 'Stored synthetic observation' } });
+    const before = structuredClone({ stored, source });
+    for (const [mode, state] of [['fresh', fresh(emptyFactState(39), source, { raw }, 'independent', 'synthetic', AT)],
+      ['historical', reviewFactsAgainstSources(stored, [source])]]) {
+      const fact = state.materials[0].candidates[0];
+      assert.equal(state.materials[0].raw, raw); assert.deepEqual(fact.representation, entry);
+      assert.equal(fact.amount, '4000.00', 'Literal precision is not personal-total authorization.');
+      assert.equal(fact.reviewIssues.some(issue => issue.code === 'source_relation_unresolved'), !individual);
+      const start = cp(text.slice(0, text.indexOf(quote))); assert.equal(fact.start, start); assert.equal(fact.end, start + cp(quote));
+      state.scope = { worker: subject, employer: '甲公司', start: '2026-01-01', end: '2026-01-31' };
+      state.scopeReview = { note: 'Synthetic pre-existing scope, not amount confirmation', actor: 'fixture', at: AT };
+      const view = buildFactView(state, [source]);
+      assert.equal(view.canCalculate, false); assert.equal(state.calculation, null); assert.deepEqual(state.confirmations, { due: null, paid: null });
+      assert.deepEqual(view.fields[meaning === 'due_total' ? 'due' : 'paid'].values, individual ? ['4000.00'] : []);
+      console.log(JSON.stringify({ evidence: 'r39_nonimplementer_plural', subject, mode, quote, issues: fact.reviewIssues,
+        amount: fact.amount, start: fact.start, end: fact.end, due: view.fields.due.values, paid: view.fields.paid.values }));
+    }
+    assert.deepEqual({ stored, source }, before);
+    stored.materials[0].candidates[0].amount = null;
+    Object.assign(stored.materials[0].candidates[0].normalization, { status: 'unsupported', amount: null, span: null, matchedText: null });
+    const reviewedNull = reviewFactsAgainstSources(stored, [source]);
+    assert.equal(reviewedNull.materials[0].candidates[0].amount, null, 'Read-time review does not upgrade a stored unavailable amount.');
+  }
+}
+for (const subject of ['陳氏夫婦', '李氏祖孫', '王氏兄 弟'])
+  test('explicit plural variant is not one beneficiary: ' + subject, () => check(subject, false));
+for (const subject of ['王兄明', '李姐华', '王甲'])
+  test('nonplural individual control retains its suggestion gate: ' + subject, () => check(subject, true));
+test('paid field uses the same plural guard', () => check('陳氏夫婦', false, 'paid_total'));

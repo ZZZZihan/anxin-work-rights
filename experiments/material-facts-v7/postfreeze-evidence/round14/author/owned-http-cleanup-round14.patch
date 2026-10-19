@@ -1,0 +1,452 @@
+--- a/scripts/owned-http-process-group.mjs
++++ b/scripts/owned-http-process-group.mjs
+@@ -0,0 +1,97 @@
++import assert from 'node:assert/strict';
++import { execFile, spawn } from 'node:child_process';
++
++// Only children created here may be signalled. Register close before returning
++// the child: a launcher can exit before its caller installs readiness handlers.
++const owned = new WeakMap();
++const pause = ms => new Promise(done => setTimeout(done, ms));
++
++export function spawnOwnedChild(command, args, options = {}) {
++  const child = spawn(command, args, { stdio: 'ignore', ...options, detached: process.platform !== 'win32' });
++  const state = { closed: false };
++  child.once('close', () => { state.closed = true; });
++  child.once('error', () => {}); // The caller still handles startup errors.
++  owned.set(child, state);
++  return child;
++}
++
++export function signalOwnedChild(child, signal) {
++  if (!child) return;
++  assert(owned.has(child), 'Only runner-owned detached children may be signalled.');
++  if (!child.pid) return;
++  try {
++    if (process.platform === 'win32') child.kill(signal);
++    else process.kill(-child.pid, signal);
++  } catch (error) { if (error.code !== 'ESRCH') throw error; }
++}
++
++function processTable(timeoutMs) {
++  return new Promise((resolve, reject) => {
++    let completed = false, hardTimer;
++    const finish = (error, stdout) => {
++      if (completed) return;
++      completed = true; clearTimeout(hardTimer);
++      if (error) reject(error); else resolve(stdout);
++    };
++    // No arguments, environment, or command lines are collected. execFile's
++    // callback waits for close; SIGKILL bounds a stuck query, including pipes.
++    const child = execFile('/bin/ps', ['-axo', 'pid=,pgid=,stat='], {
++      encoding: 'utf8', timeout: timeoutMs, killSignal: 'SIGKILL', maxBuffer: 1024 * 1024,
++    }, finish);
++    hardTimer = setTimeout(() => {
++      child.kill('SIGKILL');
++      finish(new Error('Owned process-group inspection did not close within its deadline.'));
++    }, timeoutMs + 500);
++  });
++}
++
++export async function ownedGroupAlive(child, timeoutMs = 1000) {
++  assert(owned.has(child), 'Only runner-owned process groups may be inspected.');
++  if (!child.pid) return false;
++  if (process.platform === 'win32') return child.exitCode === null && child.signalCode === null;
++  try { process.kill(-child.pid, 0); }
++  catch (error) { if (error.code === 'ESRCH') return false; throw error; }
++  const table = await processTable(Math.max(1, Math.min(1000, timeoutMs)));
++  assert(table.trim(), 'Empty process table cannot establish owned-group cleanup.');
++  let alive = false;
++  for (const line of table.trim().split('\n')) {
++    const fields = /^\s*(\d+)\s+(\d+)\s+(\S+)\s*$/u.exec(line);
++    assert(fields && Number.isSafeInteger(Number(fields[1])) && Number(fields[1]) > 0 && Number.isSafeInteger(Number(fields[2])), 'Cannot parse owned process-group inspection.');
++    // kill(-pgid, 0) succeeds for unreaped zombies under Linux PID 1. They hold
++    // no listening sockets and cannot be killed again; their owner must reap.
++    if (Number(fields[2]) === child.pid && !/^[ZX]/iu.test(fields[3])) alive = true;
++  }
++  return alive;
++}
++
++export async function stopChild(child, name, { graceMs = 5000, killMs = 5000 } = {}) {
++  if (!child) return;
++  const state = owned.get(child);
++  assert(state, 'Only runner-owned children may be stopped.');
++  assert(Number.isFinite(graceMs) && graceMs > 0 && Number.isFinite(killMs) && killMs > 0, 'Cleanup deadlines must be finite positive durations.');
++  const stoppedBy = async deadline => {
++    while (Date.now() < deadline) {
++      // Keep the query's own bounded budget. Passing the last 1ms of the TERM
++      // grace period to ps would turn a healthy query into a cleanup failure.
++      // A phase can exceed its polling deadline by at most this one query.
++      if (state.closed && !await ownedGroupAlive(child)) return true;
++      await pause(Math.max(1, Math.min(20, deadline - Date.now())));
++    }
++    return false;
++  };
++  try {
++    if (state.closed && !await ownedGroupAlive(child)) return;
++    signalOwnedChild(child, 'SIGTERM');
++    if (await stoppedBy(Date.now() + graceMs)) return;
++    // close alone cannot establish completion: a descendant may redirect stdio
++    // and ignore TERM after the launcher has already exited.
++    signalOwnedChild(child, 'SIGKILL');
++    if (!await stoppedBy(Date.now() + killMs)) throw new Error(`${name} did not close or retained a live process-group member after SIGKILL.`);
++  } catch (error) {
++    // An inspection failure is never proof of cleanup. Still kill our group,
++    // retain the original error, and let the runner preserve its private state.
++    try { signalOwnedChild(child, 'SIGKILL'); }
++    catch (killError) { throw new AggregateError([error, killError], `${name} cleanup and forced termination both failed.`); }
++    throw error;
++  }
++}
+--- a/scripts/material-facts-v7-http-regression.mjs
++++ b/scripts/material-facts-v7-http-regression.mjs
+@@ -6,7 +6,7 @@
+ import assert from 'node:assert/strict';
+ import { createServer } from 'node:http';
+ import { createHash, randomBytes, randomUUID } from 'node:crypto';
+-import { spawn } from 'node:child_process';
++import { spawnOwnedChild, signalOwnedChild, stopChild } from './owned-http-process-group.mjs';
+ import { mkdtemp, mkdir, open, readFile, writeFile, readdir, rm } from 'node:fs/promises';
+ import { join, resolve, dirname } from 'node:path';
+ import { tmpdir } from 'node:os';
+@@ -168,55 +168,6 @@
+   try { const detail = await operation(); observations.push({ name, status: 'PASS', ...detail }); }
+   catch (error) { observations.push({ name, status: 'FAIL', failure: errorRecord(error) }); }
+ }
+-// BEGIN OWNED HTTP CHILD LIFECYCLE
+-const ownedChildren = new WeakMap();
+-function spawnOwnedChild(command, args, options) {
+-  const child = spawn(command, args, { ...options, detached: process.platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'] });
+-  const state = { closed: false };
+-  state.closedPromise = new Promise(resolve => child.once('close', () => { state.closed = true; resolve(); }));
+-  ownedChildren.set(child, state);
+-  // Drain rather than capture Wrangler output: descendants can inherit these
+-  // pipes, so close also waits for them, without logging private bindings.
+-  child.stdout?.resume(); child.stderr?.resume();
+-  child.once('error', () => {}); // Callers retain their own startup error check.
+-  return child;
+-}
+-function signalOwnedChild(child, signal) {
+-  if (!child) return;
+-  assert(ownedChildren.has(child), 'Only runner-owned detached children may be signalled.');
+-  if (!child.pid) return;
+-  try {
+-    if (process.platform === 'win32') child.kill(signal);
+-    else process.kill(-child.pid, signal);
+-  } catch (error) { if (error.code !== 'ESRCH') throw error; }
+-}
+-function ownedGroupAlive(child) {
+-  if (!child.pid) return false;
+-  if (process.platform === 'win32') return child.exitCode === null && child.signalCode === null;
+-  try { process.kill(-child.pid, 0); return true; }
+-  catch (error) { if (error.code === 'ESRCH') return false; throw error; }
+-}
+-async function stopChild(child, name) {
+-  if (!child) return;
+-  const state = ownedChildren.get(child);
+-  assert(state, 'Only runner-owned children may be stopped.');
+-  if (state.closed && !ownedGroupAlive(child)) return;
+-  // Parent exit is not tree completion: Wrangler may leave workerd alive.
+-  signalOwnedChild(child, 'SIGTERM');
+-  try { await bounded(state.closedPromise, 5000, `${name} did not close after SIGTERM.`); }
+-  catch { signalOwnedChild(child, 'SIGKILL'); await bounded(state.closedPromise, 5000, `${name} did not close after SIGKILL.`); }
+-  // A descendant may have redirected its pipes. Terminate any remaining owned
+-  // group before another Worker starts or the disposable state is removed.
+-  if (ownedGroupAlive(child)) {
+-    signalOwnedChild(child, 'SIGKILL');
+-    const deadline = Date.now() + 5000;
+-    while (ownedGroupAlive(child)) {
+-      if (Date.now() >= deadline) throw new Error(`${name} process group did not stop.`);
+-      await wait(20);
+-    }
+-  }
+-}
+-// END OWNED HTTP CHILD LIFECYCLE
+ async function startWorker() {
+   shutdown.signal.throwIfAborted(); const probe = createServer(); base = await listen(probe);
+   const port = new URL(base).port; await new Promise(resolve => probe.close(resolve)); loopback(base);
+@@ -287,8 +238,13 @@
+   config.vars = { ...config.vars, ANXIN_MATERIAL_SERVICE_URL: proxyUrl, ANXIN_MATERIAL_SERVICE_TOKEN: token };
+   configPath = join(temp, 'wrangler.json'); await writeFile(configPath, JSON.stringify(config), { mode: 0o600 });
+   migrationChild = spawnOwnedChild(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], { cwd: root, env: workerEnv });
++  let migrationFailure;
+   try { await bounded(new Promise((resolve, reject) => { migrationChild.once('error', reject); migrationChild.once('exit', code => code === 0 ? resolve() : reject(new Error(`Isolated D1 migrations exited ${code}.`))); }), 60_000, 'Isolated migrations timed out.'); }
+-  finally { await stopChild(migrationChild, 'Migration'); migrationChild = undefined; }
++  catch (error) { migrationFailure = error; throw error; }
++  finally {
++    try { await stopChild(migrationChild, 'Migration'); migrationChild = undefined; }
++    catch (error) { cleanupFailures.push({ operation: 'stop_migration', ...errorRecord(error) }); if (!migrationFailure) throw error; }
++  }
+   for (const path of (await readdir(join(temp, 'state'), { recursive: true })).filter(path => path.endsWith('.sqlite'))) {
+     const candidate = new DatabaseSync(join(temp, 'state', path));
+     if (candidate.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='cases'").get()) { db = candidate; break; }
+@@ -668,7 +624,9 @@
+   });
+   await scenario('worker_restart_preserves_all_success_failure_empty_raw_and_audit_snapshots', async () => {
+     assert(durableSnapshots.length >= 10, 'Restart must cover the successful, guard, failed and empty cases.');
+-    await stopChild(worker, 'Worker'); worker = undefined; await startWorker();
++    try { await stopChild(worker, 'Worker'); }
++    catch (error) { cleanupFailures.push({ operation: 'stop_worker', ...errorRecord(error) }); throw error; }
++    worker = undefined; await startWorker();
+     for (const snapshot of durableSnapshots) {
+       const response = await request(snapshot.item.path); assert.equal(response.status, 200); unconfirmed(response.body);
+       assert.deepEqual(stored(snapshot.item.caseId), snapshot.state, `${snapshot.name} persisted state must not be migrated or rewritten by reread.`);
+@@ -686,7 +644,13 @@
+   await cleanup('close_database', () => db?.close());
+   await cleanup('close_proxy', async () => { if (proxy) { proxy.closeAllConnections(); await bounded(new Promise(resolve => proxy.close(resolve)), 5000, 'Synthetic result proxy did not close.'); } });
+   await cleanup('close_material_service', async () => { await service?.close(); });
+-  await cleanup('remove_temporary_resources', async () => { if (temp) await rm(temp, { recursive: true, force: true }); });
++  await cleanup('remove_temporary_resources', async () => {
++    if (temp && cleanupFailures.some(item => ['stop_worker', 'stop_migration'].includes(item.operation))) {
++      cleanupFailures.push({ operation: 'retain_temporary_resources', name: 'CleanupIncomplete', message: 'Private temporary resources retained because owned process cleanup failed.', path: temp });
++      return;
++    }
++    if (temp) await rm(temp, { recursive: true, force: true });
++  });
+   process.removeListener('SIGINT', interrupt); process.removeListener('SIGTERM', interrupt);
+   if (observations.some(item => item.status !== 'PASS')) failure ??= { phase: 'acceptance', message: 'One or more synthetic HTTP scenarios failed; original observations and raw outputs are retained.' };
+   if (cleanupFailures.length) failure ??= { phase: 'cleanup', message: 'Temporary regression resources did not fully clean up.' };
+--- a/scripts/material-facts-cancel-http-regression.mjs
++++ b/scripts/material-facts-cancel-http-regression.mjs
+@@ -5,7 +5,7 @@
+ import assert from 'node:assert/strict';
+ import { createServer } from 'node:http';
+ import { randomBytes, randomUUID } from 'node:crypto';
+-import { spawn } from 'node:child_process';
++import { spawnOwnedChild, stopChild } from './owned-http-process-group.mjs';
+ import { mkdtemp, mkdir, readFile, writeFile, readdir, rm } from 'node:fs/promises';
+ import { join, resolve, dirname } from 'node:path';
+ import { tmpdir } from 'node:os';
+@@ -26,8 +26,7 @@
+ const workerRuns = [];
+ const workerEnv = { ...process.env, WRANGLER_SEND_METRICS: 'false', WRANGLER_WRITE_LOGS: 'false' };
+ const wrangler = resolve(root, 'node_modules/wrangler/bin/wrangler.js');
+-let temp, worker, workerError, service, proxy, db, configPath, base;
+-let workerClosed;
++let temp, worker, workerError, migrationChild, service, proxy, db, configPath, base;
+ let failure, phase = 'setup', mode = 'normal';
+ let holdGetJob, pollEntered, releaseHeldPoll, pendingPoll;
+ 
+@@ -141,20 +140,19 @@
+ }
+ 
+ async function applyMigrations() {
+-  const child = spawn(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], {
++  const child = migrationChild = spawnOwnedChild(process.execPath, [wrangler, 'd1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', join(temp, 'state')], {
+     cwd: root, stdio: 'ignore', env: workerEnv,
+   });
++  let migrationFailure;
+   try {
+     await bounded(new Promise((resolve, reject) => {
+       child.once('error', reject);
+       child.once('exit', code => code === 0 ? resolve() : reject(new Error(`Isolated D1 migration failed (${code}).`)));
+     }), 60_000, 'Isolated D1 migrations timed out.');
+-  } finally {
+-    if (child.exitCode === null && child.signalCode === null) {
+-      const exited = new Promise(resolve => child.once('exit', resolve));
+-      child.kill('SIGKILL');
+-      await bounded(exited, 5000, 'Isolated migration process did not stop.');
+-    }
++  } catch (error) { migrationFailure = error; throw error; }
++  finally {
++    try { await stopChild(child, 'Isolated migration'); migrationChild = undefined; }
++    catch (error) { cleanupFailures.push({ operation: 'stop_migration', ...errorRecord(error) }); if (!migrationFailure) throw error; }
+   }
+ }
+ 
+@@ -168,7 +166,7 @@
+   workerRuns.push(run);
+   // Wrangler's supported port 0 lets the OS allocate an inspector socket
+   // atomically. A restart must not share the default inspector's port probe.
+-  worker = spawn(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', String(port), '--inspector-port', '0'], {
++  worker = spawnOwnedChild(process.execPath, [wrangler, 'dev', '--local', '--config', configPath, '--persist-to', join(temp, 'state'), '--ip', '127.0.0.1', '--port', String(port), '--inspector-port', '0'], {
+     cwd: root, stdio: ['ignore', 'pipe', 'pipe'], env: workerEnv, detached: process.platform !== 'win32',
+   });
+   const child = worker;
+@@ -177,7 +175,7 @@
+   child.stdout.on('data', chunk => appendLog(run.stdout, chunk));
+   child.stderr.on('data', chunk => appendLog(run.stderr, chunk));
+   child.once('exit', (code, signal) => { run.exitCode = code; run.signal = signal; });
+-  workerClosed = new Promise(resolve => child.once('close', () => { run.closedAt = new Date().toISOString(); resolve(); }));
++  child.once('close', () => { run.closedAt = new Date().toISOString(); });
+   worker.once('error', error => { workerError = error; });
+   base = free;
+   for (let attempt = 0; attempt < 90; attempt++) {
+@@ -195,26 +193,8 @@
+ 
+ async function stopWorker() {
+   if (!worker) return;
+-  const child = worker;
+-  const signalOwnedProcesses = signal => {
+-    if (!child.pid) return;
+-    try {
+-      // Only this runner's detached process group is signalled. Wrangler's
+-      // launcher, CLI and workerd descendants must all release local sockets.
+-      if (process.platform === 'win32') child.kill(signal);
+-      else process.kill(-child.pid, signal);
+-    } catch (error) { if (error.code !== 'ESRCH') throw error; }
+-  };
+-  signalOwnedProcesses('SIGTERM');
+-  // close also waits for the inherited stdout/stderr pipes. exit alone can
+-  // precede descendant termination, causing the next startup to race teardown.
+-  try { await bounded(workerClosed, 5000, 'Isolated Worker did not close after SIGTERM.'); }
+-  catch {
+-    signalOwnedProcesses('SIGKILL');
+-    await bounded(workerClosed, 5000, 'Isolated Worker did not close after SIGKILL.');
+-  }
++  await stopChild(worker, 'Isolated Worker');
+   worker = undefined;
+-  workerClosed = undefined;
+ }
+ 
+ async function cleanup(name, operation) {
+@@ -299,7 +279,8 @@
+   observe('real_15s_http_timeout_erases_fact_text_but_retains_job_id', { milliseconds: duration, jobRetained: true, factRowRemoved: true });
+ 
+   phase = 'retry_after_worker_restart';
+-  await stopWorker();
++  try { await stopWorker(); }
++  catch (error) { cleanupFailures.push({ operation: 'stop_worker', ...errorRecord(error) }); throw error; }
+   await startWorker();
+   assert.deepEqual(caseQueue(timeoutCase).map(item => item.job_id), [oldJob]);
+   mode = 'normal';
+@@ -556,6 +537,7 @@
+ finally {
+   releaseHeldPoll?.();
+   await cleanup('stop_worker', stopWorker);
++  await cleanup('stop_migration', async () => { await stopChild(migrationChild, 'Isolated migration'); migrationChild = undefined; });
+   await cleanup('settle_pending_poll', async () => { if (pendingPoll) await pendingPoll; });
+   await cleanup('close_database', () => db?.close());
+   await cleanup('close_proxy', async () => {
+@@ -564,7 +546,13 @@
+     await bounded(new Promise(resolve => proxy.close(resolve)), 5000, 'Loopback fault proxy did not stop.');
+   });
+   await cleanup('close_material_service', async () => { await service?.close(); });
+-  await cleanup('remove_temporary_resources', async () => { if (temp) await rm(temp, { recursive: true, force: true }); });
++  await cleanup('remove_temporary_resources', async () => {
++    if (temp && cleanupFailures.some(item => ['stop_worker', 'stop_migration'].includes(item.operation))) {
++      cleanupFailures.push({ operation: 'retain_temporary_resources', name: 'CleanupIncomplete', message: 'Private temporary resources retained because owned process cleanup failed.', path: temp });
++      return;
++    }
++    if (temp) await rm(temp, { recursive: true, force: true });
++  });
+   if (cleanupFailures.length) failure ??= { phase: 'cleanup', message: 'Temporary regression resources did not fully clean up.' };
+   await writeFile(output, JSON.stringify({
+     status: failure ? 'FAIL' : 'PASS', mode: 'fact-cancellation',
+--- a/scripts/material-facts-v7-http-process-tree.test.mjs
++++ b/scripts/material-facts-v7-http-process-tree.test.mjs
+@@ -11,16 +11,24 @@
+ const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+ const SCRIPT = resolve(process.env.V7_HTTP_REGRESSION_MODULE ?? resolve(ROOT, 'scripts/material-facts-v7-http-regression.mjs'));
+ const code = await readFile(SCRIPT, 'utf8');
++const sharedLifecycle = code.includes("from './owned-http-process-group.mjs'");
++const sharedUrl = pathToFileURL(resolve(ROOT, 'scripts/owned-http-process-group.mjs')).href;
+ const begin = code.indexOf('// BEGIN OWNED HTTP CHILD LIFECYCLE');
+ const end = code.indexOf('// END OWNED HTTP CHILD LIFECYCLE');
+ let implementation;
+-if (begin >= 0 && end > begin) implementation = code.slice(begin, end);
++if (sharedLifecycle) implementation = `import {spawnOwnedChild,stopChild} from ${JSON.stringify(sharedUrl)};`;
++else if (begin >= 0 && end > begin) implementation = code.slice(begin, end);
+ else {
+   const start = code.indexOf('async function stopChild('), stop = code.indexOf('\nasync function startWorker(', start);
+   assert(start >= 0 && stop > start, 'Locate original production shutdown for the real red baseline.');
+   implementation = code.slice(start, stop) + '\nconst spawnOwnedChild=(command,args,options={})=>spawn(command,args,{...options,stdio:"ignore"});\n';
+ }
+ const wait = ms => new Promise(done => setTimeout(done, ms));
++async function liveGroupMembers(pgid) {
++  const { execFileSync } = await import('node:child_process');
++  return execFileSync('/bin/ps', ['-axo', 'pid=,pgid=,stat='], { encoding: 'utf8', timeout: 2000 }).trim().split('\n')
++    .map(line => line.trim().split(/\s+/u)).filter(([, group, state]) => Number(group) === pgid && !/^[ZX]/iu.test(state));
++}
+ async function until(action) {
+   for (let i = 0; i < 250; i++) { if (await action()) return; await wait(20); }
+   assert.fail('Synthetic process did not reach the requested barrier.');
+@@ -68,7 +76,7 @@
+   const f = await fixture(t, mode);
+   if (mode === 'launcher-exits') await until(() => f.child.exitCode !== null);
+   await f.api.stopChild(f.child, 'Synthetic Worker');
+-  assert.throws(() => process.kill(-f.child.pid, 0), {code:'ESRCH'}, 'The owned POSIX group has no remaining live or unreaped process.');
++  assert.deepEqual(await liveGroupMembers(f.child.pid), [], 'The owned POSIX group has no remaining non-zombie member.');
+   assert.equal(await portAlive(f.info.port), false, 'A workerd-like descendant must not retain its socket after stopChild returns.');
+   const port = f.info.port;
+   const server = createServer();
+@@ -86,7 +94,7 @@
+   await until(async () => { try { await readFile(record); return true; } catch { return false; } });
+   const info = JSON.parse(await readFile(record));
+   await f.api.stopChild(f.child, 'Synthetic Worker');
+-  assert.throws(() => process.kill(-f.child.pid, 0), {code:'ESRCH'}, 'The owned POSIX group has no remaining live or unreaped process.');
++  assert.deepEqual(await liveGroupMembers(f.child.pid), [], 'The owned POSIX group has no remaining non-zombie member.');
+   assert.equal(await portAlive(f.info.port), false);
+   assert.equal(await portAlive(info.port), true, 'Stopping the test Worker must preserve an unrelated process/socket.');
+ });
+--- a/scripts/material-facts-http-owned-cleanup.test.mjs
++++ b/scripts/material-facts-http-owned-cleanup.test.mjs
+@@ -0,0 +1,68 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { spawn, execFileSync } from 'node:child_process';
++import { connect, createServer } from 'node:net';
++import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
++import { tmpdir } from 'node:os';
++import { dirname, resolve } from 'node:path';
++import { fileURLToPath, pathToFileURL } from 'node:url';
++
++const ROOT = resolve(process.env.V7_REVIEW_ROOT ?? resolve(dirname(fileURLToPath(import.meta.url)), '..'));
++const SCRIPT = resolve(process.env.OWNED_CLEANUP_CANCEL_SCRIPT ?? resolve(ROOT, 'scripts/material-facts-cancel-http-regression.mjs'));
++const source = await readFile(SCRIPT, 'utf8');
++const begin = source.indexOf('async function stopWorker()'), end = source.indexOf('\nasync function cleanup(', begin);
++assert(begin >= 0 && end > begin);
++const shared = source.includes("from './owned-http-process-group.mjs'");
++const pause = ms => new Promise(done => setTimeout(done, ms));
++const socketAlive = port => new Promise(done => {
++  const socket = connect({ host: '127.0.0.1', port });
++  socket.once('connect', () => { socket.destroy(); done(true); });
++  socket.once('error', () => { socket.destroy(); done(false); });
++});
++async function until(check) {
++  for (let attempt = 0; attempt < 250; attempt++) { if (await check()) return; await pause(20); }
++  assert.fail('Real child-process fixture did not reach its barrier.');
++}
++function liveMembers(pgid) {
++  return execFileSync('/bin/ps', ['-axo', 'pid=,pgid=,stat='], { encoding: 'utf8', timeout: 2000 }).trim().split('\n')
++    .map(line => line.trim().split(/\s+/u)).filter(([, group, state]) => Number(group) === pgid && !/^[ZX]/iu.test(state));
++}
++
++for (const mode of ['redirected-ignore-term', 'launcher-exits']) test(`actual cancel stopWorker closes redirected descendant: ${mode}`, { skip: process.platform === 'win32', timeout: 25000 }, async t => {
++  const temp = await mkdtemp(resolve(tmpdir(), 'anxin-cancel-owned-tree-'));
++  let child, sibling;
++  t.after(async () => {
++    for (const owned of [child, sibling]) if (owned?.pid) {
++      try { process.kill(-owned.pid, 'SIGKILL'); } catch (error) { if (error.code !== 'ESRCH') throw error; }
++    }
++    await rm(temp, { recursive: true, force: true });
++  });
++  await writeFile(resolve(temp, 'leaf.mjs'), `import {createServer} from 'node:net';import{writeFile}from'node:fs/promises';
++process.on('SIGTERM',()=>{});const server=createServer(s=>s.end());server.listen(0,'127.0.0.1',async()=>{await writeFile(process.argv[2],JSON.stringify({pid:process.pid,port:server.address().port}));});\n`);
++  await writeFile(resolve(temp, 'launcher.mjs'), `import{spawn}from'node:child_process';import{readFile}from'node:fs/promises';
++spawn(process.execPath,[${JSON.stringify(resolve(temp, 'leaf.mjs'))},process.argv[2]],{stdio:'ignore'});
++if(process.argv[3]==='launcher-exits'){while(true){try{await readFile(process.argv[2]);break;}catch{await new Promise(r=>setTimeout(r,10));}}process.exit(0);}\n`);
++  const helper = pathToFileURL(resolve(ROOT, 'scripts/owned-http-process-group.mjs')).href;
++  await writeFile(resolve(temp, 'actual-stop.mjs'), `import{spawn}from'node:child_process';
++${shared ? `import{spawnOwnedChild,stopChild}from${JSON.stringify(helper)};` : ''}
++let worker,workerClosed;const bounded=async(p,ms,message)=>{let timer;try{return await Promise.race([p,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),ms);})]);}finally{clearTimeout(timer);}};
++${source.slice(begin, end)}
++export function start(args){worker=${shared ? 'spawnOwnedChild' : 'spawn'}(process.execPath,args,{detached:true,stdio:['ignore','pipe','pipe']});worker.stdout.resume();worker.stderr.resume();workerClosed=new Promise(r=>worker.once('close',r));return worker;}
++export{stopWorker};\n`);
++  const api = await import(pathToFileURL(resolve(temp, 'actual-stop.mjs')));
++  const record = resolve(temp, 'leaf.json'), otherRecord = resolve(temp, 'other.json');
++  child = api.start([resolve(temp, 'launcher.mjs'), record, mode]);
++  sibling = spawn(process.execPath, [resolve(temp, 'leaf.mjs'), otherRecord], { detached: true, stdio: 'ignore' });
++  await until(async () => { try { await readFile(record); await readFile(otherRecord); return true; } catch { return false; } });
++  const info = JSON.parse(await readFile(record)), other = JSON.parse(await readFile(otherRecord));
++  assert.equal(await socketAlive(info.port), true);
++  if (mode === 'launcher-exits') await until(() => child.exitCode !== null);
++  await api.stopWorker();
++  assert.equal(await socketAlive(info.port), false, 'stopWorker must not return while its redirected descendant owns a socket.');
++  assert.deepEqual(liveMembers(child.pid), [], 'No non-zombie member may remain in the owned group.');
++  assert.equal(await socketAlive(other.port), true, 'An unrelated detached group must remain running.');
++  const rebound = createServer();
++  try { await new Promise((done, reject) => { rebound.once('error', reject); rebound.listen(info.port, '127.0.0.1', done); }); }
++  finally { await new Promise(done => rebound.close(done)); }
++  await api.stopWorker();
++});

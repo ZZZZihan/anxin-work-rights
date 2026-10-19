@@ -1,0 +1,34 @@
+from pathlib import Path
+import json,hashlib,datetime,shutil
+own=Path(__file__).resolve().parents[3];e=Path(__file__).resolve().parent
+sha=lambda f:hashlib.sha256(f.read_bytes()).hexdigest()
+acquisition=json.loads((e/'baseline-acquisition.json').read_text());baseline=Path(acquisition['private_baseline_root'])
+for row in acquisition['files']:assert sha(baseline/row['path'])==row['sha256']
+event=own/'lib/material-fact-event-review.ts';test=own/'scripts/material-facts-v7-round39-date-receipt-author.test.mjs'
+shutil.copyfile(event,e/'event-date-only-final.snapshot');shutil.copyfile(test,e/'locked-author-test.snapshot')
+runs=json.loads((e/'locked-date-test-runs.json').read_text());checks=json.loads((e/'scoped-checks.receipt.json').read_text())
+assert runs[0]['counts']=={'tests':28,'pass':18,'fail':10,'skipped':0}
+assert all(r['exit']==0 and r['counts']['pass']==28 and r['counts']['fail']==0 for r in runs[1:])
+assert all(r['exit']==0 for r in checks)
+receipt={'schema':'round39-date-receipt-author-handoff/1','at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'state':'DATE_SCOPE_AUTHOR_PASS_PENDING_NONIMPLEMENTER_AND_INTEGRATION','baseline':'66581e78f695cf4ed70e9b1bde2f1456814f8b05','review_comment_id':4308319331,'event_path':str(event),'event_date_only_sha256':sha(event),'author_test_path':str(test),'test_sha256':sha(test),'patch_sha256':sha(e/'date-receipt-exact-66581.patch'),'changes':['Date-only detection aliases 帳/賬→账, after raw owner/value positions are found.','Existing point wage receipt full-envelope branch accepts 到账/入账 alongside 收到/领取.','Receipt gate uses the added verbs only for kind=date; money receipt/roles remain unchanged.'],'separate_ownership':'No collectiveSubject/groupLabel changes. Parent must apply the precise date hunks to its DATA collective patch, not overwrite the combined file with this date-only snapshot.','actual_tests':runs,'scoped_checks':checks,'baseline_all_78_git_blob_files_rehashed_unchanged':True,'coverage':['Direct full/min quote preserves input normalization and raw evidence; fresh/stored read source review preserves raw bytes, CP, original representation, null date amount and no confirmations/calculation.','Negation, different owner/beneficiary, wrong role/scope, cropped date boundary, another event, another page and another block owner remain unresolved.','Old unavailable monetary amounts are not upgraded by this date-only patch; this suite asserts date amounts always null and due/paid suggestions empty, not new monetary normalization behavior.'],'not_performed':['Full npm check','HTTP/build','Scorer','Historical experiment CLI','Model inference','GitHub write/deploy/commit/push'],'reporting_driver_note':'Initial raw red logs retained; the first scoped-check helper raised UnicodeDecodeError while printing a byte slice after 151 tests had passed. Final helper decodes complete UTF-8 output and captures actual exit0; no product assertion was changed.','requested_model':'GPT-6.1 Sol ultra','actual_backend':'not independently verifiable'}
+(e/'date-receipt-author-handoff.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n')
+(e/'DATE_RECEIPT_AUTHOR_HANDOFF.md').write_text(f'''R39 日期到账／入账的作者补丁已完成，本范围作者测试通过，等待非实现者与父侧整合验收。固定基线为 66581e78f695cf4ed70e9b1bde2f1456814f8b05，归档的 78 个 lib 文件来自精确 Git blob，复核后均未变。
+
+日期专用 event 文件 SHA `{sha(event)}`；作者测试 `{test.name}` SHA `{sha(test)}`。同一份 28 项测试在固定基线实际退出 1、18P10F；日期补丁在 Node24.22.0、Node26.11.0 均实际退出 0、28P0F。旧三套纯事件模块测试 151/151 通过，限定 ESLint 退出 0、空输出。
+
+补丁仅四行：日期检测副本折叠 帳／賬；完整单点日期收款封套加入 到账／入账；共享 receipt 门禁仅日期分支识别新词。原姓名位置、整个左右封套、工资词、日期角色与 individual 限制保持。未修改 DATA 负责的 collectiveSubject/groupLabel，也未扩展 money receipt 或工资金额角色。父侧应应用 date-receipt-exact-66581.patch 的准确 hunk，不能整文件覆盖 DATA 的群体修复。
+
+新鲜候选和历史读复核覆盖完整／最小 quote、raw、原始 representation 与 CP 偏移；amount 始终 null、due/paid 建议为空、无人工确认和计算。否定、其他人、错误角色、日期边界被裁剪、跨事件、跨页与另一块主体均保持关系核对。支持 payment_date 只说明原文可归属的日期叙述，不是银行到账真实性、人审或可计算授权证明。
+
+没有执行 fullcheck、HTTP、build、评分器、冻结历史 CLI、模型或远端写操作。最初轻量驱动曾在截取 UTF-8 输出时抛解码错，原脚本与日志保留；实际 151 项本身通过，最终驱动修正后完整记录退出 0。所有旧断言未迁就本补丁调整。请求 GPT-6.1 Sol / ultra，实际 backend 不可独立核验。
+''')
+files=[]
+for f in sorted(e.rglob('*')):
+ if not f.is_file() or f.name=='copy-index.date-receipt-author.json':continue
+ dest=Path('experiments/material-facts-v7/postfreeze-evidence/round39/date-receipt-author')/f.relative_to(e)
+ if f.suffix in {'.py','.ts','.mjs','.js'}:dest=Path(str(dest)+'.snapshot')
+ files.append({'source':str(f),'destination':str(dest),'bytes':f.stat().st_size,'sha256':sha(f)})
+files.append({'source':str(test),'destination':'scripts/'+test.name,'bytes':test.stat().st_size,'sha256':sha(test)})
+(e/'copy-index.date-receipt-author.json').write_text(json.dumps({'self_excluded':True,'scope':'Evidence plus locked author test; product delivered only as date-specific patch/snapshot, not whole-file integration','files':files},ensure_ascii=False,indent=2)+'\n')
+for name in ['date-receipt-author-handoff.json','DATE_RECEIPT_AUTHOR_HANDOFF.md','copy-index.date-receipt-author.json']:print(name,sha(e/name))
+print('files',len(files))

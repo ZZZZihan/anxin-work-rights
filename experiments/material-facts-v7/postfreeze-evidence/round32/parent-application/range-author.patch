@@ -1,0 +1,13 @@
+diff --git a/lib/material-fact-range-review.ts b/lib/material-fact-range-review.ts
+index d0ab8d5..3a2256d 100644
+--- a/lib/material-fact-range-review.ts
++++ b/lib/material-fact-range-review.ts
+@@ -46,7 +46,7 @@ const RANGE = new RegExp(`(?:介于|介於)${SPACE}${PAIR}(?:${SPACE}${END})?|${
+ // punctuation, person or unlisted narrative can bridge a qualifier to money.
+ const CURRENCY_BRIDGE_PART = `(?:\\s|${CURRENCY}|[:：=()（）])`;
+ const CURRENCY_BRIDGE = `${CURRENCY_BRIDGE_PART}*`;
+-const QUALIFIER_BRIDGE = `(?:\\s|${CURRENCY}|[:：=()（）]|为|為|应付|應付|工资|工資|薪酬|薪资|薪資|金额|金額|款项|款項|计|計|共|合计|合計|税前|稅前|税后|稅後)*`;
++const QUALIFIER_BRIDGE = `(?:\\s|${CURRENCY}|[:：=()（）]|有|为|為|应付|應付|工资|工資|薪酬|薪资|薪資|金额|金額|款项|款項|计|計|共|合计|合計|税前|稅前|税后|稅後)*`;
+ const ATTACHED_PREFIX = new RegExp(`(?:${MONEY_BOUND_PREFIX}|(?<!最)近)${QUALIFIER_BRIDGE}$`, 'iu');
+ const SIGNED_BRIDGE = `(?:${CURRENCY_BRIDGE_PART}|的|为|為|是|金额|金額|数值|數值|工资|工資|薪资|薪資|薪酬|计|計|共|合计|合計)*`;
+ const ATTACHED_SIGNED = new RegExp(`(?:负数|負數|负值|負值|正数|正數|正值|[负負+＋\\-－−﹣±])${SIGNED_BRIDGE}$`, 'iu');

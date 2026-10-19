@@ -1,0 +1,409 @@
+"""Audit saved JSON partitions/arithmetic and immutable bytes, without production imports.
+
+This is not semantic rematching, inference, a historical CLI, or a business acceptance.
+Every output is exclusively created under a separate, caller-owned directory.
+"""
+import argparse
+import collections
+import datetime
+import hashlib
+import json
+import math
+from pathlib import Path
+import re
+import time
+
+HERE = Path(__file__).resolve().parent
+LAYERS = [f"{scope}_{mode}" for scope in ("raw", "accepted")
+          for mode in ("basic", "relational", "strict")]
+BACKENDS = ("rules", "qwen", "deepseek")
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def differences(a, b, path=""):
+    if type(a) is not type(b):
+        return [{"path": path, "before": a, "after": b}]
+    if isinstance(a, dict):
+        return [row for key in sorted(set(a) | set(b))
+                for row in differences(a.get(key), b.get(key), path + "/" + str(key))]
+    if isinstance(a, list):
+        if len(a) != len(b):
+            return [{"path": path, "before": a, "after": b}]
+        return [row for index, pair in enumerate(zip(a, b))
+                for row in differences(*pair, path + "/" + str(index))]
+    return [] if a == b else [{"path": path, "before": a, "after": b}]
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", required=True)
+    parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--parent-protected-json", required=True)
+    args = parser.parse_args()
+    root, output = Path(args.root).resolve(), Path(args.output_dir).resolve()
+    assert not output.is_relative_to(root), "Never write into reviewed ROOT"
+    output.mkdir(parents=True, exist_ok=False)
+    base = root / "experiments/material-facts-v7"
+    trusted = json.loads((HERE / "trusted-digests.json").read_bytes())
+    started = time.monotonic()
+    observed, inventories = {}, {}
+
+    def read_bytes(path, expected=None):
+        path = path.resolve()
+        assert path.is_relative_to(root), path
+        data = path.read_bytes()
+        actual = sha(data)
+        if expected is not None:
+            assert actual == expected, (str(path), expected, actual)
+        relative = str(path.relative_to(root))
+        if relative in observed:
+            assert observed[relative] == actual, ("Changed during read", relative)
+        observed[relative] = actual
+        return data
+
+    def read(path, expected=None):
+        return json.loads(read_bytes(path, expected))
+
+    def jsonl(path):
+        return [json.loads(line) for line in read_bytes(path).decode().splitlines() if line.strip()]
+
+    def save(name, data):
+        with (output / name).open("x") as handle:
+            json.dump(data, handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+
+    def inventory(directory, name):
+        files = sorted(str(p.relative_to(root)) for p in directory.rglob("*") if p.is_file())
+        inventories[name] = {"directory": str(directory.relative_to(root)), "files": files}
+        return files
+
+    try:
+        parent_path = Path(args.parent_protected_json)
+        if not parent_path.is_absolute():
+            parent_path = root / parent_path
+        parent = read(parent_path, trusted["parent_protection"]["sha256"])
+        assert isinstance(parent, dict) and len(parent) == 2122
+        for relative, expected in parent.items():
+            assert not Path(relative).is_absolute() and ".." not in Path(relative).parts
+            assert re.fullmatch(r"[0-9a-f]{64}", expected)
+            read_bytes(root / relative, expected)
+        for relative, expected in trusted["manifest_sha256"].items():
+            read_bytes(base / relative, expected)
+        freeze = read(base / "freeze.json")
+        original = read(base / "result-manifest.json")
+        assert len(freeze["files"]) == 124 and len(original["files"]) == 60
+        assert original["freeze_sha256"] == trusted["manifest_sha256"]["freeze.json"]
+
+        # Exact disk membership is checked as well as every manifest binding.
+        original_archives = {}
+        for name, count in (("frozen-code", 32), ("frozen-code-v2", 36)):
+            directory = base / name
+            archive = read(directory / "manifest.json")
+            assert archive["freeze_sha256"] == trusted["manifest_sha256"]["freeze.json"]
+            assert len(archive["files"]) == count
+            assert set(archive["files"]) <= set(freeze["files"])
+            expected_paths = {str((directory / (p + archive["storage_suffix"])).relative_to(root))
+                              for p in archive["files"]} | {str((directory / "manifest.json").relative_to(root))}
+            assert set(inventory(directory, name)) == expected_paths
+            for relative, expected in archive["files"].items():
+                assert expected == freeze["files"][relative]
+                read_bytes(directory / (relative + archive["storage_suffix"]), expected)
+            original_archives[name] = archive
+        resolved_freeze = {}
+        for relative, expected in freeze["files"].items():
+            path = (base / "frozen-code-v2" / (relative + ".snapshot")
+                    if relative in original_archives["frozen-code-v2"]["files"] else root / relative)
+            read_bytes(path, expected)
+            resolved_freeze[relative] = str(path.relative_to(root))
+        for relative, expected in original["files"].items():
+            read_bytes(base / relative, expected)
+        results_disk = set(inventory(base / "results", "original-results"))
+        assert results_disk == {str((base / p).relative_to(root)) for p in original["files"] if p.startswith("results/")}
+        assert len(results_disk) == 59 and set(original["files"]) - {
+            str(Path(p).relative_to(base)) for p in (root / r for r in results_disk)} == {"comparison.json"}
+        for name in ("data", "review-evidence"):
+            files = inventory(base / name, name)
+            assert set(files) == {p for p in freeze["files"] if p.startswith(f"experiments/material-facts-v7/{name}/")}
+            for relative in files:
+                read_bytes(root / relative, freeze["files"][relative])
+
+        # Enumerate every prior correction and code archive, rather than a narrow input list.
+        assert {p.name for p in base.iterdir() if p.is_dir() and re.fullmatch(r"corrections(?:-v\d+)?", p.name)} == {
+            "corrections", *(f"corrections-v{v}" for v in range(2, 31))}
+        assert {p.name for p in base.iterdir() if p.is_dir() and re.fullmatch(r"correction-code(?:-v\d+)?", p.name)} == {
+            f"correction-code-v{v}" for v in range(1, 30)}
+        historical = []
+        previous_sha = None
+        prior_manifests = {}
+        for version in range(1, 31):
+            name = "corrections" if version == 1 else f"corrections-v{version}"
+            directory = base / name
+            manifest = read(directory / "manifest.json")
+            manifest_sha = observed[str((directory / "manifest.json").relative_to(root))]
+            assert manifest["schema"] == f"material-facts-v7-postfreeze-correction-manifest/{version}"
+            assert manifest["freeze_sha256"] == trusted["manifest_sha256"]["freeze.json"]
+            assert manifest["first_result_manifest_sha256"] == trusted["manifest_sha256"]["result-manifest.json"]
+            assert manifest["inference"] is False and manifest["training"] is False
+            if previous_sha is not None:
+                assert manifest["previous_correction_manifest_sha256"] == previous_sha
+            expected_paths = {str((directory / p).relative_to(root)) for p in manifest["files"]} | {
+                str((directory / "manifest.json").relative_to(root))}
+            assert set(inventory(directory, name)) == expected_paths
+            for relative, expected in manifest["files"].items():
+                read_bytes(directory / relative, expected)
+            historical.append({"version": version, "manifest_sha256": manifest_sha,
+                               "saved_files": len(expected_paths), "code_bindings": len(manifest["code_sha256"])})
+            prior_manifests[version] = manifest
+            previous_sha = manifest_sha
+            if version == 30:
+                continue
+            archive_directory = base / f"correction-code-v{version}"
+            archive = read(archive_directory / "manifest.json")
+            assert archive["schema"] == f"material-facts-v7-correction-code/{version}"
+            assert archive["correction_manifest_sha256"] == manifest_sha
+            assert archive["files"] == manifest["code_sha256"]
+            expected_paths = {str((archive_directory / (p + archive["storage_suffix"])).relative_to(root))
+                              for p in archive["files"]} | {str((archive_directory / "manifest.json").relative_to(root))}
+            assert set(inventory(archive_directory, f"correction-code-v{version}")) == expected_paths
+            for relative, expected in archive["files"].items():
+                read_bytes(archive_directory / (relative + archive["storage_suffix"]), expected)
+        manifest, prior = prior_manifests[30], prior_manifests[29]
+        assert previous_sha == trusted["expected_current_manifest_sha256"]
+        read_bytes(base / "correction-code-v29/manifest.json", trusted["expected_archive_v29_manifest_sha256"])
+        assert len(manifest["code_sha256"]) == 109 and len(prior["code_sha256"]) == 106
+        assert set(prior["code_sha256"]) <= set(manifest["code_sha256"])
+        assert set(manifest["code_sha256"]) - set(prior["code_sha256"]) == {
+            "experiments/material-facts-v7/historical-v29-execution.mjs",
+            "experiments/material-facts-v7/verify-correction-v29.mjs",
+            "experiments/material-facts-v7/corrective-assessment-v30.mjs"}
+        for relative, expected in manifest["code_sha256"].items():
+            read_bytes(root / relative, expected)
+
+        # Freshly locate checkpoint evidence; capture complete corresponding evidence directories.
+        # Top-level checkpoint notes do not cause an indiscriminate scan of all E.
+        checkpoint_named = sorted(p for p in base.rglob("*") if p.is_file() and "checkpoint" in p.name.lower())
+        checkpoint_directories = sorted({p.parent for p in checkpoint_named if p.parent != base})
+        checkpoint_files = {str(p.relative_to(root)) for p in checkpoint_named}
+        for directory in checkpoint_directories:
+            checkpoint_files.update(inventory(directory, "checkpoint:" + str(directory.relative_to(base))))
+        for relative in sorted(checkpoint_files):
+            read_bytes(root / relative)
+        # Prior checkpoint protection lists use absolute source worktree paths; resolve their
+        # E-relative counterparts under reviewed ROOT and compare all bound bytes there.
+        checkpoint_bound = {}
+        checkpoint_bound_resolutions = []
+        for path in checkpoint_named:
+            if path.suffix != ".json":
+                continue
+            data = read(path)
+            if not isinstance(data, dict) or not isinstance(data.get("files"), list):
+                continue
+            for row in data["files"]:
+                if not isinstance(row, dict) or not isinstance(row.get("source"), str) or not re.fullmatch(r"[0-9a-f]{64}", row.get("sha256", "")):
+                    continue
+                if "/experiments/material-facts-v7/" in row["source"]:
+                    relative = "experiments/material-facts-v7/" + row["source"].split("/experiments/material-facts-v7/", 1)[1]
+                else:
+                    marker = "/postfreeze-evidence/"
+                    assert marker in row["source"], row["source"]
+                    relative = "experiments/material-facts-v7/postfreeze-evidence/" + row["source"].split(marker, 1)[1]
+                # Root copies executable evidence with a .snapshot suffix to avoid build discovery.
+                # A renamed copy is accepted only after matching the old exact byte hash.
+                if not (root / relative).is_file():
+                    relative += ".snapshot"
+                read_bytes(root / relative, row["sha256"])
+                checkpoint_bound[relative] = row["sha256"]
+                checkpoint_bound_resolutions.append({"source": row["source"], "root_path": relative, "sha256": row["sha256"]})
+
+        for key, relative in (("input_sha256", "data/holdout.inputs.jsonl"),
+                              ("labels_sha256", "data/holdout.labels.provisional.jsonl")):
+            read_bytes(base / relative, manifest[key])
+            assert manifest[key] == prior[key]
+        labels = {r["id"]: r for r in jsonl(base / "data/holdout.labels.provisional.jsonl")}
+        inputs = {r["id"]: r for r in jsonl(base / "data/holdout.inputs.jsonl")}
+        assert len(labels) == len(inputs) == 12 and set(labels) == set(inputs)
+        assert sum(len(r["expected"]) for r in labels.values()) == 43
+        anchors = 0
+        for case_id, label in labels.items():
+            assert label["label_status"] == "provisional_non_expert"
+            blocks = {b["id"]: b["text"] for b in inputs[case_id]["source"]["blocks"]}
+            events = {e["id"]: e for e in label["events"]}
+            assert len(events) == len(label["events"])
+            assert len(label["expected_event_ids"]) == len(label["expected"])
+            assert set(label["expected_event_ids"]) <= set(events)
+            for event in events.values():
+                assert event["anchors"]
+                for anchor in event["anchors"]:
+                    text = blocks[anchor["blockId"]]
+                    assert 0 <= anchor["start"] < anchor["end"] <= len(text)
+                    assert text[anchor["start"]:anchor["end"]]
+                    anchors += 1
+        assert anchors == 41
+        dev_inputs = jsonl(base / "data/dev.inputs.jsonl")
+        dev_labels = jsonl(base / "data/dev.labels.provisional.jsonl")
+        assert len(dev_inputs) == len(dev_labels) == 3
+        assert sum(len(r["expected"]) for r in dev_labels) == 13
+        families = [r["family_id"] for r in list(inputs.values()) + dev_inputs]
+        assert len(set(families)) == 15
+        publication_splits = collections.defaultdict(set)
+        for split, rows in (("dev", dev_inputs), ("holdout", list(inputs.values()))):
+            for row in rows:
+                # source_id identifies the case excerpt; origin.url identifies its publication.
+                publication_splits[row["origin"]["url"]].add(split)
+        assert len(publication_splits) == 7
+        assert sum(len(splits) == 2 for splits in publication_splits.values()) == 2
+
+        directory = base / "corrections-v30"
+        comparison = read(directory / "comparison.json")
+        prior_comparison = read(base / "corrections-v29/comparison.json")
+        assert comparison["schema"] == "material-facts-v7-postfreeze-correction/30"
+        assert comparison["inference"] is False and comparison["new_holdout_run"] is False
+        assert comparison["labels"] == "unchanged_provisional_non_expert"
+        assert comparison["planned_per_backend"] == 12 and comparison["expected_facts"] == 43
+        summary, totals, money_totals = {}, collections.Counter(), collections.Counter()
+        partitions = 0
+        for backend in BACKENDS:
+            prior_report = read(base / f"corrections-v29/report-{backend}.json")
+            report = read(directory / f"report-{backend}.json")
+            first = read(base / f"results/holdout-{backend}-1/report.json")
+            for key, relative in (("raw_sha256", "results.jsonl"), ("first_report_sha256", "report.json")):
+                assert manifest["evidence"][backend][key] == prior["evidence"][backend][key]
+                read_bytes(base / f"results/holdout-{backend}-1/{relative}", manifest["evidence"][backend][key])
+            saved = jsonl(base / f"results/holdout-{backend}-1/results.jsonl")
+            assert len(saved) == 12 and {r["id"] for r in saved} == set(labels)
+            assert all(r["finish_reason"] == "stop" for r in saved)
+            raw = {}
+            for row in saved:
+                text = row["raw_output"].strip()
+                if text.startswith("```"):
+                    lines = text.splitlines()
+                    assert lines[0].strip() in ("```", "```json") and lines[-1].strip() == "```"
+                    text = "\n".join(lines[1:-1])
+                parsed = json.loads(text)
+                assert parsed["schemaVersion"] == 3 and isinstance(parsed["candidates"], list)
+                raw[row["id"]] = parsed["candidates"]
+            assert report["planned_documents"] == report["returned"] == report["completed"] == 12
+            assert report["expected_facts"] == 43
+            assert len(report["cases"]) == 12 and {r["id"] for r in report["cases"]} == set(labels)
+            recounted = {layer: collections.Counter(tp=0, fp=0, fn=0) for layer in LAYERS}
+            defense = collections.Counter()
+            for case in report["cases"]:
+                raw_candidates = raw[case["id"]]
+                assert case["raw_count"] == len(raw_candidates)
+                rejected = [r["index"] for r in case["rejected"]]
+                assert len(set(rejected)) == len(rejected)
+                assert all(0 <= index < len(raw_candidates) for index in rejected)
+                accepted_indices = [i for i in range(len(raw_candidates)) if i not in rejected]
+                assert len(accepted_indices) == case["accepted_count"] == len(case["production_defense"])
+                for layer in LAYERS:
+                    row = case[layer]
+                    expected_indices = [p["expected"] for p in row["pairs"]]
+                    actual_indices = [p["actual"] for p in row["pairs"]]
+                    assert sorted(expected_indices + row["missing"]) == list(range(len(labels[case["id"]]["expected"])))
+                    scope = layer.split("_")[0]
+                    count = case["raw_count"] if scope == "raw" else case["accepted_count"]
+                    assert sorted(actual_indices + row["extra"]) == list(range(count))
+                    assert len(set(expected_indices)) == len(expected_indices)
+                    assert len(set(actual_indices)) == len(actual_indices)
+                    assert len(case["event_alignment"][scope]) == count
+                    for pair in row["pairs"]:
+                        event = labels[case["id"]]["expected_event_ids"][pair["expected"]]
+                        assert pair["event"] == event == case["event_alignment"][scope][pair["actual"]]["event"]
+                    counts = dict(tp=len(row["pairs"]), fp=len(row["extra"]), fn=len(row["missing"]))
+                    assert all(row[key] == value for key, value in counts.items())
+                    recounted[layer].update(counts)
+                    partitions += 1
+                for index, row in enumerate(case["production_defense"]):
+                    assert row["index"] == index
+                    assert row["kind"] == raw_candidates[accepted_indices[index]]["kind"]
+                    assert row["calculation_authorized"] is False
+                    if row["kind"] != "money":
+                        continue
+                    defense["accepted_money"] += 1
+                    defense["normalization:" + row["normalization"]] += 1
+                    defense["amount_nonnull"] += row["amount"] is not None
+                    defense["amount_null"] += row["amount"] is None
+                    defense["source_relation_unresolved"] += "source_relation_unresolved" in row["issues"]
+                    defense["exact_without_issue"] += row["exact_money_without_review_issue"]
+                totals.update(raw=case["raw_count"], accepted=case["accepted_count"], rejected=len(rejected))
+            for layer, counts in recounted.items():
+                tp, fp, fn = (counts[k] for k in ("tp", "fp", "fn"))
+                assert tp + fn == 43
+                counts["precision"] = tp / (tp + fp) if tp + fp else None
+                counts["recall"] = tp / (tp + fn) if tp + fn else None
+                counts["f1"] = 2 * tp / (2 * tp + fp + fn) if 2 * tp + fp + fn else None
+                for key, value in counts.items():
+                    for actual in (report["metrics"][layer][key], comparison["models"][backend]["corrected_metrics"][layer][key]):
+                        assert actual is None if value is None else math.isclose(actual, value, rel_tol=1e-12, abs_tol=1e-12)
+            for key, field in (("raw", "raw_candidates"), ("accepted", "accepted_candidates"), ("rejected", "rejected_candidates")):
+                count = sum(c["raw_count"] if key == "raw" else c["accepted_count"] if key == "accepted" else len(c["rejected"]) for c in report["cases"])
+                assert report[field] == comparison["models"][backend][field] == count
+            money_totals.update(defense)
+            full_diff = differences(prior_report, report)
+            summary[backend] = {"raw": report["raw_candidates"], "accepted": report["accepted_candidates"], "rejected": report["rejected_candidates"],
+                "metrics_recounted": recounted, "metrics_equal_v29": report["metrics"] == prior_report["metrics"],
+                "report_bytes_equal_v29": not full_diff and read_bytes(directory / f"report-{backend}.json") == read_bytes(base / f"corrections-v29/report-{backend}.json"),
+                "report_field_changes_from_v29": full_diff, "defense_counts": defense,
+                "first_report_metrics": first["metrics"]}
+        assert partitions == 216 and totals == {"raw": 116, "accepted": 104, "rejected": 12}
+        assert money_totals["accepted_money"] == 46
+        assert money_totals["source_relation_unresolved"] == 46 and money_totals["exact_without_issue"] == 0
+        # Re-enumerate directories to detect membership changes as well as changed read bytes.
+        for entry in inventories.values():
+            actual = sorted(str(p.relative_to(root)) for p in (root / entry["directory"]).rglob("*") if p.is_file())
+            assert actual == entry["files"], ("Directory changed", entry["directory"])
+        assert [str(p.relative_to(root)) for p in checkpoint_named] == sorted(
+            str(p.relative_to(root)) for p in base.rglob("*") if p.is_file() and "checkpoint" in p.name.lower())
+        after = {relative: sha((root / relative).read_bytes()) for relative in observed}
+        assert observed == after, "Concurrent byte change during audit"
+        save("protected.before.json", observed)
+        save("protected.after.json", after)
+        save("fresh-inventories.json", inventories)
+        save("original-freeze-resolution.json", resolved_freeze)
+        save("historical-manifest-chain.json", historical)
+        save("checkpoint-protection.json", {"named_files": [str(p.relative_to(root)) for p in checkpoint_named],
+             "captured_files": sorted(checkpoint_files), "prior_bound_hashes_checked": checkpoint_bound,
+             "source_to_root_resolutions": checkpoint_bound_resolutions})
+        save("v29-v30.report-diffs.json", {backend: summary[backend]["report_field_changes_from_v29"] for backend in BACKENDS})
+        save("v29-v30.comparison-diff.json", differences(prior_comparison, comparison))
+        result = {"schema": "round40-v30-light-independent/1", "status": "PASS", "audited_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "manifest_sha256": previous_sha, "root": str(root), "elapsed_seconds": time.monotonic() - started,
+            "counts": {"holdout": 12, "gold": 43, "gold_anchor_spans": anchors, "dev": 3, "dev_gold": 13,
+                "case_families": 15, "official_source_pages": 7, "cross_split_source_pages": 2,
+                "saved_match_partitions": partitions, "aggregate_metrics": 18, **totals,
+                "current_code": 109, "archive_v29_code": 106, "original_results": 60, "original_freeze_paths": 124,
+                "original_code_snapshots_legacy": 32, "original_code_snapshots_full": 36,
+                "historical_correction_directories": 30, "prior_code_archives": 29,
+                "data_files": len(inventories["data"]["files"]), "review_evidence_files": len(inventories["review-evidence"]["files"]),
+                "parent_prewrite_protected_paths": len(parent), "checkpoint_named_files": len(checkpoint_named),
+                "checkpoint_captured_files": len(checkpoint_files), "checkpoint_prior_bound_paths": len(checkpoint_bound),
+                "protected_read_paths": len(observed)},
+            "parent_protection": {"path": str(parent_path.resolve()), **trusted["parent_protection"]},
+            "money_counts": money_totals, "models": summary,
+            "comparison_models_changes_from_v29": differences(prior_comparison["models"], comparison["models"]),
+            "protected_unchanged": True,
+            "role": "Data and selected runtime helper author; independent saved-JSON partition/arithmetic and byte-binding audit, not independent source-semantic rematching.",
+            "limits": [
+                "No model, production import, scorer CLI, historical CLI, HTTP, build, full check, legal opinion, or human business acceptance.",
+                "Saved pairs are checked for disjointness, all denominators, and declared event consistency; no new semantic match is computed.",
+                "Original124 bindings resolve via36 original snapshots plus88 unchanged live paths; both old32 and complete36 archives are preserved.",
+                "All v1-v29 archives and v1-v30 saved correction files are freshly enumerated and byte-verified against their manifests; parent2122 is an additional comparison, not the whole scope.",
+                "Checkpoint evidence is freshly enumerated and hashed before/after; embedded prior checkpoint protection hashes are checked where provided. Files without older independent bindings prove audit-time stability only.",
+                "12 rules outputs plus24 model responses are the same first holdout pass; posthoc code re-evaluation is not a new model run or model improvement.",
+                "15 case families are disjoint; seven official publication pages include two shared across dev/holdout. Labels remain provisional_non_expert.",
+                "calculation_authorized=false is a saved report diagnostic and does not replace actual production confirmation checks."],
+            "model_request": "gpt-6.1-sol / ultra; actual backend not independently verifiable"}
+        save("audit.receipt.json", result)
+        print(json.dumps({"status": "PASS", "counts": result["counts"], "money_counts": money_totals,
+                          "report_diff_counts": {k: len(v["report_field_changes_from_v29"]) for k, v in summary.items()}}, ensure_ascii=False, indent=2))
+    except Exception as error:
+        save("audit.failure.json", {"status": "FAIL", "type": type(error).__name__, "message": str(error),
+             "elapsed_seconds": time.monotonic() - started, "read_paths_so_far": observed})
+        raise
+
+
+if __name__ == "__main__":
+    main()

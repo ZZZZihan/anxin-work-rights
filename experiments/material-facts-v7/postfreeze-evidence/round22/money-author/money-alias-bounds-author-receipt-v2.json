@@ -1,0 +1,101 @@
+{
+  "kind": "append_only_author_receipt_v2",
+  "supersedes_final_file_hashes_only": {
+    "previous_receipt": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-author-receipt.json",
+    "previous_sha256": "5f3733c6ac6567e414c4b36e7702163751bf1d2c3706f5d0f07c39bbbb63f611",
+    "original_logs_and_receipt_retained": true
+  },
+  "baseline_commit": "ca3e6bcc154484e0169b85af8a7fc4ed3f8b6a97",
+  "files": {
+    "lib/material-money-v4.ts": "52c27591d57551dd874d61f6c2b1da7195c1be9df7da1e342dd2ace8da76710b",
+    "scripts/material-fact-traditional-qualifier-comparison.test.mjs": "def6cc61a26237a8ee924b614e6ee57daa65c8c5e7a84687c6807fd34dddb62e"
+  },
+  "patch": {
+    "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-ca3-to-final-v2.patch",
+    "sha256": "7bbb66c201ce8a45e10331cfb5f9cbb9c640c436943702b1f3a0cc0addd285b3"
+  },
+  "final_addition": "Only canonical wage-tail regex changed from 8908a396 version: use the current assessor finite classes 工[资資]|[劳勞][务務][费費]|[劳勞][动動][报報]酬. No arbitrary suffix stripping.",
+  "cross_fixture_assess_snapshot": {
+    "path": ".scratch/issue42/round21-money-alias-bounds/current-traditional-wrapper-assess.snapshot.mjs",
+    "sha256": "04d16d173e4ab491d91e0a083f07c734b10591f9814296fa30d1464a9116c0c5",
+    "origin": "Read-only copy of current CODE assess.mjs; only copied into owned fixture, not modified"
+  },
+  "actual_checks": {
+    "primary_fixed_ca3_138": {
+      "pass": 71,
+      "fail": 67,
+      "exit": 1
+    },
+    "primary_fixed_final_before_tail_138": {
+      "pass": 138,
+      "fail": 0,
+      "exit": 0
+    },
+    "finite_tail_cross_before_150": {
+      "money_sha256": "8908a396f03d6c70ab334b2a43d3171c5f3790175143b1fde1823efbb9fb7276",
+      "pass": 147,
+      "fail": 3,
+      "exit": 1,
+      "only_failures": [
+        "工資",
+        "勞務費",
+        "勞動報酬"
+      ]
+    },
+    "finite_tail_cross_final_150": {
+      "pass": 150,
+      "fail": 0,
+      "exit": 0,
+      "includes": "6 finite traditional/simplified wage tails with actual six-metric assessor; 6 invalid/repeated narrative tails stay null canonical; original138 retained"
+    },
+    "final_existing_vitest": {
+      "pass": 550,
+      "fail": 0,
+      "exit": 0
+    },
+    "final_syntax": {
+      "files": 2,
+      "exit": 0
+    },
+    "final_lint": {
+      "exit": 0,
+      "warning": "React version auto-detection warning in dependency-free owned worktree"
+    },
+    "related_native_before_tail_fix": {
+      "pass": 955,
+      "fail": 2,
+      "reason": "Old round20 negative assertions for 兩萬圓/一億圓, explicitly superseded by requested support. Author retained the unchanged old failure log; parent reports replacing both with original exact helper positives."
+    }
+  },
+  "assertion_boundaries": [
+    "Current validateLabel has literal fallback, so no observed gold-validation stop. Four baseline and four fixed checks actually pass.",
+    "Numeric spellings share a key only under the same qualifier word and prefix/suffix position; opposite bounds and exact amounts stay separate.",
+    "All six metric matches in the synthetic boundary and wage-tail comparisons still expose null amount/calculation_authorized=false.",
+    "Alias folding stays in detection/parse copies. Token/value/quote/raw and original Unicode CP spans are preserved.",
+    "No root/code product files, shared range/source/currency/assessor, old results, archives or v17 tooling changed by this task.",
+    "No author HTTP/build/full-check/model/training/deploy/commit/push. Independent and parent checks are separate."
+  ],
+  "logs": {
+    "money-alias-bounds-traditional-wrapper-before-red.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-traditional-wrapper-before-red.log",
+      "sha256": "6ea5cf164cda31daeca220ec3e7306ff4a9770d723d13da7b3dc872bd62ff7d5"
+    },
+    "money-alias-bounds-traditional-wrapper-after-green.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-traditional-wrapper-after-green.log",
+      "sha256": "b1de82b2f4480bae1e0d9f61059775eead41212bb1e32644d6c3295b201c7512"
+    },
+    "money-alias-bounds-existing-vitest-v2-green.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-existing-vitest-v2-green.log",
+      "sha256": "01bdf3544ae5f634b1ed3b642d07f837241fa54b8ac0828f5a7516bc95713744"
+    },
+    "money-alias-bounds-scoped-lint-v2.log": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-scoped-lint-v2.log",
+      "sha256": "272e4c2b0e16e307699713ad6b529510bfa6a765ef48eba689f6f501a403e27f"
+    },
+    "money-alias-bounds-syntax-v2.json": {
+      "path": "experiments/material-facts-v7/postfreeze-evidence/round21/money-alias-bounds-syntax-v2.json",
+      "sha256": "f9c37606ae14bf8b991dcf991f7c1405db46d772b8c1302c212e2f6cd89c694c"
+    }
+  },
+  "node_version": "v26.11.0"
+}

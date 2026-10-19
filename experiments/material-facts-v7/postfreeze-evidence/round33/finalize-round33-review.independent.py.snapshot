@@ -1,0 +1,91 @@
+from pathlib import Path
+import json,hashlib,re,subprocess,difflib
+OWN=Path(__file__).resolve().parents[2]
+CODE=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review')
+ROOT=Path('/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-guards')
+E=Path(__file__).resolve().parent
+REPORT=OWN/'experiments/material-facts-v7'
+sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+products={
+'lib/material-money-v4.ts':'f25da64312b388662654b174311b3ad569bede44a19c4ec2da227ad0d6af167e',
+'lib/material-fact-source-review.ts':'9575c97dc65c81e74ef08a5998b56191030f8e52a0110308bad461cc4077b856',
+'lib/material-facts-v3.ts':'77283a7b0677a43a9c3ff62bf78f353dfbfc6f359c63c1388ea81a7f2ccac779',
+'scripts/owned-http-process-group.mjs':'b7ab005245c0adfaa7894f447b29ece55d370e50310eae02dd7a615dcf6d4ade'}
+assert all(sha(CODE/k)==v for k,v in products.items())
+base='8ac64640429017f2183b3ae0cde8f02a10cedfa4'
+for rel in products:
+ old=subprocess.check_output(['git','show',base+':'+rel],cwd=CODE)
+ new=(CODE/rel).read_bytes()
+ snapshot=E/'reviewed-final'/(rel+'.snapshot');snapshot.parent.mkdir(parents=True,exist_ok=True)
+ with snapshot.open('xb') as f:f.write(new)
+ patch=E/'reviewed-final'/(rel+'.diff');patch.parent.mkdir(parents=True,exist_ok=True)
+ with patch.open('x') as f:f.write(''.join(difflib.unified_diff(old.decode().splitlines(True),new.decode().splitlines(True),fromfile=base+'/'+rel,tofile='reviewed-final/'+rel)))
+runfiles=['fixed8ac-node24-before','fixed8ac-node24-identity-before','candidate-b7ab-node24-identity-after',
+ 'final-code-node24-product14','final-code-node26-product14','final-code-node24-identity7','final-code-node26-identity7']
+runs=[]
+for name in runfiles:
+ receipt=json.loads((E/(name+'.receipt.json')).read_text())
+ text=(E/(name+'.stdout.tap')).read_text()
+ counts={k:int(re.search(r'(?:ℹ |# )'+k+r' (\d+)',text).group(1)) for k in ['tests','pass','fail']}
+ assert receipt['protected_unchanged']
+ runs.append({'name':name,**counts,'exit_code':receipt['exit_code'],
+  'runtime':receipt.get('runtime',receipt.get('node_version')),'receipt_relative':'postfreeze-evidence/round33/'+name+'.receipt.json'})
+assert [(r['tests'],r['pass'],r['fail'],r['exit_code']) for r in runs]==[(14,5,9,1),(7,2,5,1),(7,7,0,0),(14,14,0,0),(14,14,0,0),(7,7,0,0),(7,7,0,0)]
+limits=[
+ 'The 14 product tests use synthetic legal-schema sources and actual parser/runtime/source functions; they are not expert business acceptance, a new model experiment, or HTTP/UI verification.',
+ 'The 7 cleanup tests directly import the actual ESM helper but replace native process APIs. No child is created and no OS signal is sent. They prove controlled call decisions, not actual kernel PGID reuse.',
+ 'The nonce check and POSIX group signal are not atomic. This mitigates accidental numeric reuse; it does not establish adversarial same-UID process identity or eliminate the inspection-to-signal race.',
+ 'An exited descendant that sanitizes the inherited nonce, an unreadable environment or failed inspection remains unverified and causes cleanup to fail closed; no fallback stale-PGID signal is authorized.',
+ 'Cross-page lexical fragments are no longer joined, while relation/context review warnings remain separate. A numeric amount in a candidate is not a calculation authorization.',
+ 'The lexical continuation rule is finite and heuristic: explicit source headings/names, page boundaries, tiny OCR suffixes or nearby row geometry; unknown continuity is null/uncertain, not proof that a compound word exists.',
+ 'Old stored null/unsupported monetary candidates are not upgraded by these repairs. Forced old exact amounts are downgraded when source guards contradict them.',
+ 'This independent review did not run a scorer, historical CLI, fullcheck, build, HTTP, deployment or model. Parent-owned integration, CI and human acceptance remain separate evidence classes.',
+ 'Requested model configuration GPT-6.1 Sol / ultra is recorded; actual backend configuration was not independently verified.'
+]
+review={'schema':'material-facts-round33-independent-application-review/1','status':'SCOPED_TECHNICAL_PASS',
+ 'scope':['postposed RMB is not a person count','duplicate attached named currency labels','lexical source-block continuity','owned process-group reuse guard'],
+ 'baseline_commit':base,'reviewed_worktree':str(CODE),'reviewed_product_sha256':products,
+ 'scripts':{str(OWN/'scripts/material-facts-v7-round33-independent.test.mjs'):sha(OWN/'scripts/material-facts-v7-round33-independent.test.mjs'),
+ str(OWN/'scripts/material-facts-http-round33-identity-independent.test.mjs'):sha(OWN/'scripts/material-facts-http-round33-identity-independent.test.mjs')},
+ 'runs':runs,'unique_independent_cases':21,'dual_runtime_final_executions':42,'all_observed_protected_hashes_unchanged':True,
+ 'static_review':[
+ {'file':'lib/material-money-v4.ts','finding':'Shared attached-label count runs for a complete literal, clipped quote edges and full source continuation before whole-amount ending rules; only finite named RMB labels attach.'},
+ {'file':'lib/material-facts-v3.ts','finding':'Only the group-count person unit is constrained with a 民[币幣] negative lookahead; explicit real multi-worker count control remains flagged.'},
+ {'file':'lib/material-fact-source-review.ts','finding':'Only lexical yuan/jiao/fen compound view changes. It uses current block plus immediate next block, page/name/heading boundaries and finite continuity evidence; arithmetic/range/truncation layout views remain separate.'},
+ {'file':'scripts/owned-http-process-group.mjs','finding':'A validated completed cleanup is terminal. Every signal after observed exit/close requires current member identity; absent/invalid identity cannot fall back to numeric group signalling. Caller-supplied marker cannot override the generated ownership marker.'}],
+ 'confirmed_new_blocking_findings_in_this_scope':[],
+ 'candidate_vs_amount':'Structural acceptance and raw retention remain distinct from numeric usability. Unsafe values may stay represented with amount null; restored numeric values may still carry relation warnings. No confirmation or calculation was created.',
+ 'limitations':limits,
+ 'integration_status_at_receipt':'Parent-owned ROUND33 fullcheck/HTTP/CI not claimed by this review; immutable v24 review remains separate and unchanged.'}
+js=REPORT/'round33-application-review.independent.json';md=REPORT/'ROUND33_APPLICATION_INDEPENDENT.md'
+with js.open('x') as f:f.write(json.dumps(review,ensure_ascii=False,indent=2)+'\n')
+lines=['# ROUND33 独立应用范围复核','',
+ '本轮四项限定范围的技术复核通过；未发现需要阻塞这组精确字节的新问题。此结论只覆盖下述源码与轻量回归，不代表整份 PR 的人工业务验收，也不代替主侧整合、真实 HTTP 或 CI。',
+ '',f'固定旧基线：`{base}`。实际复测目标为 CODE 工作树，四个文件 SHA 逐项绑定如下。','']
+for rel,digest in products.items():lines.append(f'- `{rel}`：`{digest}`。')
+lines+=['','## 实际执行证据','',
+ '- 锁定的 14 项金额/源文回归：固定 8ac 在 Node 24.22.0 实际 5 通过、9 失败，退出 1。最终 CODE 在 Node 24.22.0 和 Node 26.11.0 各 14 通过、0 失败，均退出 0。',
+ '- 锁定的 7 项进程身份受控回归：固定 8ac 在 Node 24.22.0 实际 2 通过、5 失败，退出 1。最终 helper 在两个 Node 运行时各 7 通过、0 失败，均退出 0。最终共 21 个独立用例、42 次跨运行时执行，不将重复执行当成 42 份材料。',
+ '- 每次捕获脚本核对源码与测试前后 SHA；本次观察的保护文件均未变化。旧失败输出、精确旧源码快照和最终输出全部保留。','',
+ '金额测试实际调用 parser、新 ingest、旧状态读取和 source review。`4000人民币`/`4000人民幣`不再被误当成 4000 人，真实多人控制仍被提示。重复的人民币/CNY 标签在完整值、裁剪值和历史强制精确值中均不能提供精确金额。源文页间的“元|旦”“分|钟某”不再硬拼成普通词；同页明确另一人的行也不拼。真正同页 OCR“人民币五角|星”“人民币2分|钟”仍为 null。',
+ '',
+ '金额恢复仅指派生数值不再因错误拼词丢失；关系复核警告另行保留。结构上 accepted、候选保留、amount 非 null、可用事实和计算授权是不同层次。测试断言原回答、候选 representation、原引文及码点区间保持不变，旧 null 不自动升级，confirmations/calculation 未创建。','',
+ '进程测试直接导入未经改写的真实 ESM helper，在 API 边界替换 spawn/ps/kill。所有进程及信号均为受控模拟，未创建系统进程、未向真实进程组发信号。它验证已完成清理不会再次触碰复用的数字 PGID、exit/close 后的无归属组不得接收信号、再次升级前需复核，以及继承标记的孤立进程仍能走清理路径。它不是实际内核进程号复用实验。','',
+ '## 源码审阅及边界','',
+ '重复币种修复复用一处有限标签计数；scope 修复只在人数单位后排除“民币/民幣”。源文新函数仅管理元/角/分普通词的相邻块连续性，未改变范围、算式或数字裁剪守护所使用的布局。页变化和原文字面姓名/标题可断开；独立一字片段或可信近同行几何仍需原有限复合词判据。连续性不足时保守 null/uncertain，不声称已证明组成普通词。','',
+ '进程 helper 在已核实清理完成后记终态。观测 exit/close 后，每次 TERM/KILL 前均需从当前非僵尸组成员确认继承的随机归属标记；查询失败或环境不可读时保守失败，不退回数字 PGID 盲杀。私有环境不会进入错误输出。检查与 POSIX kill 并非原子操作，仍有时间间隙；nonce 也不是对抗同 UID 恶意进程的身份认证。清除继承标记的后代可能无法自动清理，这是明确的 fail-closed 可用性边界。','',
+ '本独立环节未执行评分器、历史 CLI、完整检查、HTTP、构建、部署或模型推理。跨页场景为合成 source 模块证据，不能声称现有 TXT HTTP 材料已覆盖多页布局。Windows 仍是启动前拒绝支持，未声称原生 Windows 整树清理。','',
+ '请求使用 GPT-6.1 Sol / ultra；实际后端配置无法独立核验。v24 原产物及其历史 LIGHT 收据均未修改。原始失败和精确复制清单见本轮 append-only evidence index。','']
+with md.open('x') as f:f.write('\n'.join(lines))
+entries=[]
+for p in [md,js,OWN/'scripts/material-facts-v7-round33-independent.test.mjs',OWN/'scripts/material-facts-http-round33-identity-independent.test.mjs',*sorted(E.rglob('*'))]:
+ if not p.is_file() or p.name=='round33-independent-copy-index.json':continue
+ rel=p.relative_to(OWN)
+ target=str(rel) if rel.parts[0] in ['scripts','experiments'] else 'experiments/material-facts-v7/'+str(rel)
+ entries.append({'source':str(p),'target_relative':target,'size':p.stat().st_size,'sha256':sha(p)})
+assert len({e['target_relative'] for e in entries})==len(entries)
+index={'schema':'round33-independent-copy-index/1','source_root':str(OWN),'target_root':str(ROOT),'count':len(entries),'entries':entries}
+idx=E/'round33-independent-copy-index.json'
+with idx.open('x') as f:f.write(json.dumps(index,ensure_ascii=False,indent=2)+'\n')
+for entry in entries:assert sha(Path(entry['source']))==entry['sha256']
+print(json.dumps({'report':{'path':str(md),'sha256':sha(md)},'receipt':{'path':str(js),'sha256':sha(js)},'index':{'path':str(idx),'sha256':sha(idx),'entries':len(entries)}},ensure_ascii=False,indent=2))

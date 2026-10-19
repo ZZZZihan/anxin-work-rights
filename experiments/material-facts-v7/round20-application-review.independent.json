@@ -1,0 +1,128 @@
+{
+  "schema": "material-facts-v7-application-independent-review/1",
+  "round": 20,
+  "created_at": "2026-10-18T10:15:38.273675+00:00",
+  "status": "PASS_FOR_FIVE_FINITE_ROUND20_FINDINGS",
+  "baseline_commit": "37e304de5a1beae2a3f82e91d40dfc1983ac3324",
+  "reviewed_worktree": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-code-review",
+  "reviewed_sha256": {
+    "lib/material-money-v4.ts": "3316417d402d64c8f792ba0ad55080c05d232e02bbaacd3b484fa528efe93517",
+    "lib/material-fact-arithmetic-review.ts": "0224d2b758428591dfa19a87e851541393c25f49123a5f1b1631b191791f5521",
+    "lib/material-fact-range-review.ts": "68910b8b75ea2cdb5f9f109fb27982314750442b7aa42b895d767e6594575fbf",
+    "lib/material-fact-currency-review.ts": "98fc8cde7094e3b0e7250e79f2f29e28820c9e6d8b706c63dd66618a3328d517",
+    "lib/material-fact-source-review.ts": "b4aa1f248a6a12b3565002f88ca3631a440c94d2bc210e476acf73a9b5a4c874",
+    "lib/material-fact-runtime-ingest.ts": "93b6b213871eb3fd8d98fd3f3eb1bd735190746438b96bbf69e9c745971296ea",
+    "experiments/material-facts-v7/assess.mjs": "d4f0c98828d091f9f99681a5c404091f76fd1f4e4103aae0a056e5d493ce9e9d"
+  },
+  "implementation_independence": {
+    "reviewer_implemented_product": false,
+    "reviewer_wrote_independent_tests": true,
+    "reviewer_changed_frozen_artifacts": false,
+    "model_calls": 0,
+    "services_or_http_started": false,
+    "build_run": false,
+    "commits_or_pushes": false
+  },
+  "finding_ids": [
+    "4306560396",
+    "4306560398",
+    "4306560400",
+    "4306560402",
+    "4306560405"
+  ],
+  "actual_independent_checks": [
+    {
+      "test": "scripts/material-facts-v7-round20-money-independent.test.mjs",
+      "sha256": "2c883af3e97ef118c49a80a3cd8b3ef91a35de594e422904eb550f3b5e7c65d4",
+      "baseline": {
+        "pass": 14,
+        "fail": 30
+      },
+      "final": {
+        "pass": 44,
+        "fail": 0
+      }
+    },
+    {
+      "test": "scripts/material-facts-v7-round20-subject-independent.test.mjs",
+      "sha256": "38154af693dcb43c35690d37dd341da8aed018aae9721a614815276d46e11892",
+      "baseline": {
+        "pass": 6,
+        "fail": 2
+      },
+      "final": {
+        "pass": 8,
+        "fail": 0
+      }
+    },
+    {
+      "check": "Two script files executed together against the final CODE bytes",
+      "tests": 52,
+      "pass": 52,
+      "fail": 0,
+      "exit_code": 0,
+      "duration_ms": 264.317959,
+      "code_unchanged_during_run": true,
+      "log": "postfreeze-evidence/round20/code-final-52-green.txt",
+      "log_sha256": "8c8ff23e472dc8442622bdbbc3e7346b93ecf1e0778f4e22f16fb7d71ec14694"
+    },
+    {
+      "check": "Direct bare 2/3 source-boundary probe",
+      "script": "postfreeze-evidence/round20/bare-yuan-direct-probe.mjs",
+      "baseline_exit_code": 1,
+      "final_exit_code": 0,
+      "assertions": 4,
+      "note": "2元论/3元催化器 cannot yield exact amounts; genuine 2元工资/3元工资 still do."
+    },
+    {
+      "check": "Scoped stdin ESLint using the CODE configuration",
+      "scripts": 2,
+      "exit_code": 0,
+      "logs": [
+        "postfreeze-evidence/round20/independent-final-script-stdin-eslint.txt",
+        "postfreeze-evidence/round20/subject-independent-stdin-eslint.txt"
+      ]
+    }
+  ],
+  "static_review": {
+    "status": "NO_NEW_BLOCKER_FOUND_IN_REVIEWED_DIFF",
+    "postposed_bounds": "The existing shared finite qualifier grammar now includes 不到/不止/开外 and selected traditional aliases. Source and quote guards inspect attached edges across layout; punctuation and other people do not attach.",
+    "named_arithmetic": "A bounded 2–16 Han-character name ending in 系数/系數/比例 is admitted only on explicit arithmetic/multiplier/fraction paths; single-character operator exclusions retain 加班/加薪/减免/减薪/除外/除了 prose.",
+    "traditional_numeral": "萬 is recognized by token detection and folded only on the strict parsing copy; original rawValue, matched text and code-point spans remain original. This does not add general 兩/億 precise parsing.",
+    "ordinary_yuan": "Shared finite lexical predicates guard 二/2元论(論) and 三/3元催化器/剂/劑, including clipped bare numbers and neighboring-block continuation, while genuine yuan wage amounts are controls.",
+    "subject_exception": "Only the currency guard receives candidate.subject. Exemption requires a single common surname plus complete currency literal/code, a unique preceding complete same-clause original span, and finite surrounding boundaries. Parentheses replace the span so a separate foreign marker remains attached. Currency-only or prose-containing model subjects are not trusted.",
+    "history": "Source review only lowers availability when an existing amount was non-null; historical null/unsupported is not upgraded by new numeral or subject handling."
+  },
+  "coverage_limits": [
+    "Synthetic finite contracts and source review are distinct from legal or real-case correctness. No legal expert endorsement is claimed.",
+    "A candidate accepted into review is distinct from an exact amount being available; an exact derived amount is distinct from calculation authorization. Every tested runtime state remains unconfirmed and non-calculable.",
+    "The surname/currency shape is a conservative lexical exception, not identity authentication. Complex, unmatched or ambiguous subjects may remain unavailable.",
+    "This is not a general Chinese word segmenter or unrestricted symbolic expression parser; unlisted word families and semantics remain outside the five finding contracts.",
+    "All six scoring layers are checked on a two-event traditional/simplified equal-amount synthetic case. The scorer, ingest occurrence dedup and frozen benchmark outputs were not changed or re-evaluated in this product-only review.",
+    "The reviewer did not execute HTTP, full npm check, remote CI, a model request, deployment or human acceptance. Those evidence classes must be recorded separately by the integrator.",
+    "Requested reviewer configuration is GPT-6.1 Sol ultra; actual backend/runtime configuration is not independently verifiable from this agent."
+  ],
+  "blocking_findings": [],
+  "evidence_root": "/Users/xuzihan/Documents/Projects/国创/anxin-facts-v7-review",
+  "evidence_sha256": {
+    "postfreeze-evidence/round20/author-overlay-acquisition.independent.json": "58ad8e6b2381f80fb5fae51d32947d312c4c65d882a3fd9facd65667a261b502",
+    "postfreeze-evidence/round20/author-overlay-bare-yuan-green.txt": "e4b7220f5c1df6943523e3416734f0667c181beae3fc61c691db83439d6a5bbc",
+    "postfreeze-evidence/round20/bare-yuan-direct-probe.execution.json": "39a2960a931d55f7abc276f588343c091e08115db56906f65e0a93d66af00d7e",
+    "postfreeze-evidence/round20/bare-yuan-direct-probe.mjs": "9719d4e70a5ad0944227566a9d595b4f50bf79bdaaf02bcdb6ae763cffa8a40b",
+    "postfreeze-evidence/round20/baseline-acquisition.independent.json": "16f7da9a8681194694a7cd33e0bd197d4f2e8d73db4e24455a2d3b345328469a",
+    "postfreeze-evidence/round20/code-final-52-green.execution.json": "8ad7ea9b4899147e4a3a0d3befcf8064e23d42b1c2c16d42ccd3440be413227e",
+    "postfreeze-evidence/round20/code-final-52-green.txt": "8c8ff23e472dc8442622bdbbc3e7346b93ecf1e0778f4e22f16fb7d71ec14694",
+    "postfreeze-evidence/round20/code-final-bare-yuan-green.txt": "e4b7220f5c1df6943523e3416734f0667c181beae3fc61c691db83439d6a5bbc",
+    "postfreeze-evidence/round20/final-author-overlay-first-execution.execution.json": "e57cc3be90e8f8bdde095e56c3cf36464abe4a35063389eec5cf07b1151e1935",
+    "postfreeze-evidence/round20/final-author-overlay-first-execution.txt": "956134281df91f66986184879fbfdac93b9484ac32b7e1fbc649dc5b664ba463",
+    "postfreeze-evidence/round20/fixed37e-bare-yuan-before-red.txt": "4329ae14443c8679c330e17cef13a0544c8d99b2de84a4660eed98f6212056ee",
+    "postfreeze-evidence/round20/fixed37e-before-red.execution.json": "6f3563cb8dc46744020859b29eb7b8cbde6731c148720d01beb34edbccd9c890",
+    "postfreeze-evidence/round20/fixed37e-before-red.txt": "62961e1c8efd24df502963647826f349c5d05a6b3dfab2808f7e705a2a6a2fca",
+    "postfreeze-evidence/round20/fixed37e-final-script-before-red.txt": "fcc150a597fbe24c94bea46d13a7e206995d19bb2ebf3b7c421397c48409c950",
+    "postfreeze-evidence/round20/fixed37e-subject-before-red.execution.json": "ead41a8305cef19170db51c874558ea1b5efc8b9f51ef98a6f1f8351c5b4b117",
+    "postfreeze-evidence/round20/fixed37e-subject-before-red.txt": "8c4e2077b4e4c2ff03e9ebcd6c23d93e730c04e051a9801d0e13aa171985efb9",
+    "postfreeze-evidence/round20/independent-final-script-stdin-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postfreeze-evidence/round20/independent-script-stdin-eslint.txt": "9108116e9dd79e8cd3d72098ac5016205382a6fddd5d6a13ea68a10d2d0091a8",
+    "postfreeze-evidence/round20/subject-independent-stdin-eslint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

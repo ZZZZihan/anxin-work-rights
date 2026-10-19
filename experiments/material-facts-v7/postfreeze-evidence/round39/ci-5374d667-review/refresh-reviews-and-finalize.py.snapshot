@@ -1,0 +1,113 @@
+"""Append-only finalization of downloaded exact-head CI evidence; GH reads only."""
+from pathlib import Path
+import datetime
+import hashlib
+import json
+import subprocess
+
+P = Path(__file__).resolve().parent
+sha = lambda data: hashlib.sha256(data).hexdigest()
+load = lambda name: json.loads((P / name).read_text())
+
+
+def save(name, data):
+    with (P / name).open('xb') as stream:
+        stream.write(data if isinstance(data, bytes) else (json.dumps(data, ensure_ascii=False, indent=2) + '\n').encode())
+
+
+query = '''query($after:String){repository(owner:"ZZZZihan",name:"anxin-work-rights"){pullRequest(number:45){headRefOid reviewThreads(first:100,after:$after){pageInfo{hasNextPage endCursor} nodes{id isResolved isOutdated path line resolvedBy{login} comments(first:20){nodes{id databaseId createdAt url body}}}}}}}'''
+nodes, cursor, page_number = [], None, 1
+while True:
+    args = ['gh', 'api', 'graphql', '-f', 'query=' + query]
+    if cursor:
+        args += ['-f', 'after=' + cursor]
+    result = subprocess.run(args, capture_output=True, timeout=60)
+    save(f'review-threads-post-parent-resolution-page-{page_number}.json', result.stdout)
+    assert result.returncode == 0, result.stderr.decode()
+    pull = json.loads(result.stdout)['data']['repository']['pullRequest']
+    page = pull['reviewThreads']
+    nodes.extend(page['nodes'])
+    if not page['pageInfo']['hasNextPage']:
+        break
+    cursor = page['pageInfo']['endCursor']
+    page_number += 1
+observed = datetime.datetime.now(datetime.timezone.utc).isoformat()
+state = {'observed_at': observed, 'head_at_read': pull['headRefOid'], 'threads': len(nodes),
+         'unresolved': [node for node in nodes if not node['isResolved']]}
+save('review-thread-state-post-parent-resolution.json', state)
+new_ids = {4308393728, 4308393734, 4308393738, 4308393742, 4308393745}
+new = []
+for node in nodes:
+    for comment in node['comments']['nodes']:
+        if comment['databaseId'] in new_ids:
+            new.append({'thread': node['id'], 'resolved': node['isResolved'], 'outdated': node['isOutdated'],
+                        'path': node['path'], 'line': node['line'], **comment})
+assert len(new) == 5
+save('five-new-reviews.complete-bodies.json', {'at': observed, 'head': pull['headRefOid'], 'comments': new,
+                                             'classification': 'Review findings only; not independently reproduced by this CI audit.'})
+old_ids = {4308319324, 4308319327, 4308319331, 4308319336}
+old = [{'thread': node['id'], 'resolved': node['isResolved'], 'outdated': node['isOutdated'],
+        'comment_ids': [comment['databaseId'] for comment in node['comments']['nodes']]} for node in nodes
+       if any(comment['databaseId'] in old_ids for comment in node['comments']['nodes'])]
+assert len(old) == 4
+audit, additional = load('artifact-and-log-audit.json'), load('additional-evidence-audit.json')
+receipt = {'schema': 'round39-exact-ci-review/1', 'at': observed,
+           'status': 'CI_PASS_APPLICATION_BLOCKED_NEW_REVIEW',
+           'head': audit['head'], 'run': audit['run'], 'run_url': f"https://github.com/ZZZZihan/anxin-work-rights/actions/runs/{audit['run']}",
+           'conclusion': 'success', 'identity': load('static-identity-at-start.json'),
+           'steps_all_success': audit['step_count'], 'node_version': audit['node_version'],
+           'vitest': audit['vitest'], 'runtime': audit['runtime'], 'materials': audit['materials'],
+           'python_tests': additional['python_fullcheck_counts'],
+           'eslint': {'errors': 0, 'warnings': 22}, 'reports': audit['reports'], 'v7': audit['v7'],
+           'artifacts': load('downloaded-artifacts-manifest.json'),
+           'artifact_digest_verified_against_original_zip_api_and_upload_log': True,
+           'v6_original_checks_ran_in_owned_historical_tree': audit['v6_original_verifier_and_summary_ran_in_owned_temporary_tree'],
+           'historical_manifest_log_digest_matches_local': audit['historical_result_manifest_log_digests_equal_local'],
+           'original_result_files_unchanged': additional['original_result_files_rehashed_unchanged'],
+           'prior_failure_files_unchanged': additional['prior_failure_files_rehashed_unchanged'],
+           'current_source_harness_files_equal_exact_head_and_unchanged': additional['current_source_and_harness_files_rehashed_unchanged'],
+           'historical_manifests_unchanged': len(load('local-historical-manifests-hashes.json')),
+           'ocr_engines': additional['ocr_engine_records'],
+           'github_deployments': {'exact_head': audit['github_deployments_exact_head'], 'checkout_merge': audit['github_deployments_checkout_merge'], 'scope': 'Only exact queried SHAs; no global deployment assertion.'},
+           'reviews_first_terminal': {'threads': audit['review_threads'], 'unresolved': audit['unresolved_review_threads']},
+           'reviews_refreshed': {'head': state['head_at_read'], 'threads': state['threads'], 'unresolved': len(state['unresolved']),
+                                 'original_four_r39': old, 'new_review_ids': sorted(new_ids)},
+           'evidence_boundaries': ['CI executed remote; this reviewer downloaded and audited originals, without rerunning project checks.',
+                                   'Local fullcheck/HTTP are parent executions, independently read here; not claimed as reviewer executions.',
+                                   'OCR uses Tesseract/Poppler plus rules, model null; no new model inference or human business acceptance.',
+                                   'Restart verifies persisted raw/history snapshots; it does not repeat all first-pass amount assertions.',
+                                   'A calculation_authorized false policy constant is not evidence of real UI authorization.',
+                                   'New five reviews remain a separate application blocker even though exact-head CI passed.'],
+           'requested_configuration': 'GPT-6.1 Sol / ultra; actual backend not independently verifiable'}
+save('ci-5374d667-review.independent.json', receipt)
+md = f'''# R39 精确提交 CI 只读复核
+
+精确提交 `{audit['head']}` 的 [CI {audit['run']}]({receipt['run_url']}) 实际终态为 **SUCCESS**。结论为 **CI_PASS_APPLICATION_BLOCKED_NEW_REVIEW**：此次 CI 通过，后续五条审查另列待修，不据此声称整个应用已完成人工验收。
+
+原始 ZIP、逐步骤日志和 API 已归档。27 个步骤全部成功；Node {audit['node_version']}；Vitest 1789/46；runtime **9492/9492，0 skip、0 cancel**（82.113 秒）；materials **68/68，0 skip**；Python 9/11/16；ESLint 0 error、22 warning。原先端口替换/连接重置的三个夹具断言及九项重复信号 CLI 用例在本次日志中实际通过。
+
+实际 checkout 是合并提交 `{audit['checkout_merge']}`，包含精确应用 head；head、checkout 和本地被测树的 tree 均为 `{audit['head_and_checkout_tree']}`。89 个当前源码/夹具路径逐字一致。
+
+HTTP v7 **464 PASS / 465 原输出 / 463 重启快照**，cleanup PASS。465 项只剥顶层 `evidenceId/jobId` 后与主侧原输出一致，raw UTF-8、candidates、finish_reason 逐项相等；464 项 observations 也相等。cancel14、poll4、recovery10、facts10、production8、OCR17、基础21和合成30均 PASS。OCR 引擎记录为 Tesseract/Poppler 与规则，model 为 null。
+
+两个原 artifact ZIP 的 SHA256 同时匹配 API digest 和上传日志；11 个成员按白名单保存。原始模型结果等147文件、旧失败107文件、11个历史manifest复核未改。v6 历史原 verify/summary 在专有临时树实际执行，不能当作当前产品验证。精确 head 与 checkout merge 的 deployment API 均为0条，仅表示这两次查询的范围。
+
+第一次终态读取为143线程/9未解决。刷新后为 **{state['threads']}线程/{len(state['unresolved'])}未解决**。原四条R39状态另存；五条新评论完整正文存 `five-new-reviews.complete-bodies.json`，本次只读转述，未扩大复现或修复范围。原先未解决快照完整保留，不覆盖为后来的状态。
+
+本审阅没有运行本地 fullcheck、HTTP、scorer、历史CLI、模型，也没有重跑CI、部署、发评论或解决线程。主侧本地检查和HTTP均明确归属主侧；CI与合成材料检查不等于真实案例、法律判断、实际银行到账或人工业务验收。`calculation_authorized=false` 是固定政策字段，不代表已实测真实UI授权。
+
+请求配置沿用 GPT-6.1 Sol / ultra，实际 backend 无独立核验渠道。复制索引仅包含本目录证据，旧失败记录保留。
+'''
+save('CI_5374D667_REVIEW_INDEPENDENT.md', md.encode())
+files = []
+for path in sorted(P.rglob('*')):
+    if not path.is_file() or path.name == 'copy-index.ci-5374d667.json':
+        continue
+    rel = path.relative_to(P)
+    destination = str(rel) + ('.snapshot' if path.suffix in {'.py', '.mjs', '.ts', '.js'} else '')
+    data = path.read_bytes()
+    files.append({'source': str(path), 'relative': str(rel), 'destination': destination, 'bytes': len(data), 'sha256': sha(data)})
+save('copy-index.ci-5374d667.json', {'schema': 'ci-evidence-whitelist/1', 'source_root': str(P), 'count': len(files), 'files': files})
+for name in ['ci-5374d667-review.independent.json', 'CI_5374D667_REVIEW_INDEPENDENT.md', 'copy-index.ci-5374d667.json']:
+    print(name, sha((P / name).read_bytes()))
+print(json.dumps({'files': len(files), 'threads': state['threads'], 'unresolved': len(state['unresolved']), 'old_r39_resolved': [row['resolved'] for row in old]}))

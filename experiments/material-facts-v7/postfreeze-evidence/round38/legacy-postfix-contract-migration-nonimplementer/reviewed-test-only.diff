@@ -1,0 +1,46 @@
+diff --git a/scripts/material-fact-qualified-money-bounds.test.mjs b/scripts/material-fact-qualified-money-bounds.test.mjs
+index 017942e..50c5bb0 100644
+--- a/scripts/material-fact-qualified-money-bounds.test.mjs
++++ b/scripts/material-fact-qualified-money-bounds.test.mjs
+@@ -135,17 +135,17 @@ for (const marker of ['人民币', '人民幣', 'RMB', 'CNY', 'rmb', 'cny', '¥'
+   for (const expression of ['不满' + marker + '四万元', marker + '不满四万元', '四万元' + marker + '以内'])
+     test('a finite RMB wrapper cannot hide the attached bound: ' + expression, () => {
+       assert.equal(money(expression).amount, null);
+-      unavailable(expression, '四万元', 'approximate');
++      unavailable(expression, '四万元', expression.startsWith('四万元') && /[¥￥]/u.test(marker) ? 'unsupported' : 'approximate');
+     });
+-  test('a suffix RMB marker and bound cannot be clipped from a bare numeric value: ' + marker, () => unavailable('40000' + marker + '以内', '40000', 'approximate'));
++  test('a suffix RMB marker and bound cannot be clipped from a bare numeric value: ' + marker, () => unavailable('40000' + marker + '以内', '40000', /[¥￥]/u.test(marker) ? 'unsupported' : 'approximate'));
+   for (const expression of [marker + '3万元左右至约' + marker + '4万元', '30000元' + marker + '左右至约40000元' + marker]) {
+     const values = expression.startsWith('30000') ? ['30000元', '40000元'] : ['3万元', '4万元'];
+     for (const value of values)
+-      test('both range endpoints retain the finite RMB wrapper and bound: ' + expression + ' -> ' + value, () => unavailable(expression, value, 'range'));
++      test('both range endpoints retain the finite RMB wrapper and bound: ' + expression + ' -> ' + value, () => unavailable(expression, value, expression.startsWith('30000') && /[¥￥]/u.test(marker) ? 'unsupported' : 'range'));
+   }
+ }
+ for (const marker of ['元', '圆', '圓', '元人民币', '元人民幣', '元RMB', '圓CNY', '圆¥'])
+-  test('a unit with at most two RMB wrappers and bound cannot be clipped from a bare numeric value: ' + marker, () => unavailable('40000' + marker + '以内', '40000', 'approximate'));
++  test('a unit with at most two RMB wrappers and bound cannot be clipped from a bare numeric value: ' + marker, () => unavailable('40000' + marker + '以内', '40000', /[¥￥]/u.test(marker) ? 'unsupported' : 'approximate'));
+ for (const expression of ['低於工資四万元', '高於稅後四万元', '多達應付四万元', '不滿薪資四万元', '低於金額四万元', '未滿款項四万元'])
+   test('traditional forms of the existing finite wage bridge cannot conceal a bound: ' + expression, () => {
+     assert.equal(money(expression).amount, null); unavailable(expression, '四万元', 'approximate');
+diff --git a/scripts/material-fact-whole-money-terminator.test.mjs b/scripts/material-fact-whole-money-terminator.test.mjs
+index 7798223..c2a7ccc 100644
+--- a/scripts/material-fact-whole-money-terminator.test.mjs
++++ b/scripts/material-fact-whole-money-terminator.test.mjs
+@@ -144,12 +144,12 @@ test('finite ending × two RMB suffixes rejects without recursively parsing wrap
+         assert.equal(continuationUnsafe(role, n, after), true, JSON.stringify(after));
+       }
+ });
+-test('finite ending × zero/one RMB suffix preserves sentence boundaries and supported rates', () => {
++test('finite ending preserves named RMB boundaries and rates but rejects postfix symbols', () => {
+   const n = parse('4000元');
+   for (const terminal of ['整', '正']) for (const currency of ['', '人民币', '人民幣', 'RMB', 'CNY', '￥']) {
+     for (const tail of ['', '。王乙工资5000元', '，王乙工资5000元', '.', '．'])
+-      assert.equal(continuationUnsafe({ meaning: 'arrears', rateUnit: null }, n, terminal + currency + tail), false, JSON.stringify({ terminal, currency, tail }));
++      assert.equal(continuationUnsafe({ meaning: 'arrears', rateUnit: null }, n, terminal + currency + tail), currency === '￥', JSON.stringify({ terminal, currency, tail }));
+     for (const [unit, rateUnit] of [['月', 'month'], ['日', 'day'], ['小时', 'hour'], ['件', 'piece']])
+-      assert.equal(continuationUnsafe({ meaning: 'rate', rateUnit }, n, terminal + currency + '/' + unit), false, JSON.stringify({ terminal, currency, unit }));
++      assert.equal(continuationUnsafe({ meaning: 'rate', rateUnit }, n, terminal + currency + '/' + unit), currency === '￥', JSON.stringify({ terminal, currency, unit }));
+   }
+ });

@@ -1,0 +1,715 @@
+{"evidence":"round17_implementation_hash","path":"lib/material-money-v4.ts","sha256":"b12b3d2c75b704f1f29ad8124edf0d0b99212d5c591e15a51e3fa5e91b7666c0"}
+{"evidence":"round17_implementation_hash","path":"lib/material-fact-currency-review.ts","sha256":"9031c5977ff9b7814b8cb33394a7a0916efa2173c94306af53c2f1cf7ae828e6"}
+{"evidence":"round17_implementation_hash","path":"lib/material-fact-source-review.ts","sha256":"a737f6e9aa0285787601f8983d4d835ce40b4dfa54dc9b53f5f2676b83721cce"}
+{"evidence":"round17_implementation_hash","path":"lib/material-fact-runtime-ingest.ts","sha256":"a8822cddc6edcff1dce3d0fe726544f987d78b4a4eb4bcdc4798718dbdd8949f"}
+{"evidence":"round17_implementation_hash","path":"experiments/material-facts-v7/assess.mjs","sha256":"d5d3d1e207acf2e9420006a384b5c4f82d8a2946133cc6b4c4732c56735edbc1"}
+✖ foreign 折合 attribution survives cropped value/quote and historical display: 王甲的工资以港币折合四万元。 (32.82175ms)
+✖ foreign 折合 attribution survives cropped value/quote and historical display: 王甲的工资以港幣折合四万元。 (1.922875ms)
+✔ foreign 折合 attribution survives cropped value/quote and historical display: 王甲工资四万元以港币折合。 (1.051625ms)
+✖ foreign 折合 attribution survives cropped value/quote and historical display: 王甲工资四万元折合港幣。 (1.318417ms)
+✔ explicit RMB result and other events keep their own amount: 王甲工资折合人民币四万元。 (0.925292ms)
+✔ explicit RMB result and other events keep their own amount: 李乙工资以港币折合三万元。王甲工资四万元。 (3.629583ms)
+✔ explicit RMB result and other events keep their own amount: 王甲工资四万元。李乙工资以港币折合三万元。 (0.798375ms)
+✖ whole ordinary compound has no precise currency amount: 三元组 (0.579ms)
+✖ a cropped unit in an ordinary compound remains unavailable in source/history: 三元组 (0.797083ms)
+✖ whole ordinary compound has no precise currency amount: 五圆桌 (0.121417ms)
+✖ a cropped unit in an ordinary compound remains unavailable in source/history: 五圆桌 (0.842666ms)
+✖ whole ordinary compound has no precise currency amount: 十元宝 (0.0855ms)
+✖ a cropped unit in an ordinary compound remains unavailable in source/history: 十元宝 (0.668709ms)
+✖ whole ordinary compound has no precise currency amount: 三圆柱 (0.0865ms)
+✖ a cropped unit in an ordinary compound remains unavailable in source/history: 三圆柱 (1.124459ms)
+✖ ordinary compound continuation across source blocks cannot become a currency: ["😀王甲记录三元","组。"] (0.900833ms)
+✖ ordinary compound continuation across source blocks cannot become a currency: ["😀王甲记录五圆","桌。"] (1.150834ms)
+✔ a real amount followed by 组装费 or a terminator remains exact: 王甲工资5元组装费。 (1.800875ms)
+✔ a real amount followed by 组装费 or a terminator remains exact: 王甲工资五元。 (0.678292ms)
+✔ a real amount followed by 组装费 or a terminator remains exact: 王甲工资五圆整。 (0.665667ms)
+✖ definite amount-free wage label rejects the candidate but preserves raw: 拖欠工资 (2.027875ms)
+✖ definite amount-free wage label rejects the candidate but preserves raw: 欠付工资 (0.193041ms)
+✖ definite amount-free wage label rejects the candidate but preserves raw: 未付工资 (0.184666ms)
+✖ definite amount-free wage label rejects the candidate but preserves raw: 本期应付工资 (0.156542ms)
+✔ an unknown or explicit amount is not rejected merely for wage/financial wording: 拖欠工资不详 (0.263375ms)
+✔ an unknown or explicit amount is not rejected merely for wage/financial wording: 欠付工资若干 (0.128042ms)
+✔ an unknown or explicit amount is not rejected merely for wage/financial wording: 未付工资四万元 (0.534ms)
+✔ an unknown or explicit amount is not rejected merely for wage/financial wording: 三万分红 (0.209042ms)
+✖ numeral-ending subject cannot hide a monthly rate behind a false total: 王一 (0.734ms)
+✔ correct monthly rate attributes retain the exact rate: 王一 (2.194375ms)
+✔ a calendar month after the complete subject remains an exact wage total: 王一 (1.534ms)
+✖ numeral-ending subject cannot hide a monthly rate behind a false total: 李三 (0.833875ms)
+✔ correct monthly rate attributes retain the exact rate: 李三 (0.957041ms)
+✔ a calendar month after the complete subject remains an exact wage total: 李三 (0.809334ms)
+✖ numeral-ending subject cannot hide a monthly rate behind a false total: 赵十 (0.853292ms)
+✔ correct monthly rate attributes retain the exact rate: 赵十 (0.925292ms)
+✔ a calendar month after the complete subject remains an exact wage total: 赵十 (0.7055ms)
+✖ traditional RMB wrappers at one unique event deduplicate in either order, with raw FP preserved: false (0.482917ms)
+✖ traditional RMB wrappers at one unique event deduplicate in either order, with raw FP preserved: true (0.384459ms)
+✖ the same traditional RMB amount in two distinct events remains two accepted facts (2.884166ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 17
+ℹ fail 23
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 240.271583
+
+✖ failing tests:
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:62:3
+✖ foreign 折合 attribution survives cropped value/quote and historical display: 王甲的工资以港币折合四万元。 (32.82175ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '40000.00',
+  +   fresh_short: '40000.00',
+  +   history_full: '40000.00',
+  +   history_short: '40000.00',
+  +   quote_full: '40000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null,
+  -   quote_full: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:65:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '40000.00', history_short: '40000.00', fresh_full: '40000.00', history_full: '40000.00', quote_full: '40000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null, quote_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:62:3
+✖ foreign 折合 attribution survives cropped value/quote and historical display: 王甲的工资以港幣折合四万元。 (1.922875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '40000.00',
+  +   fresh_short: '40000.00',
+  +   history_full: '40000.00',
+  +   history_short: '40000.00',
+  +   quote_full: '40000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null,
+  -   quote_full: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:65:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '40000.00', history_short: '40000.00', fresh_full: '40000.00', history_full: '40000.00', quote_full: '40000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null, quote_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:62:3
+✖ foreign 折合 attribution survives cropped value/quote and historical display: 王甲工资四万元折合港幣。 (1.318417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '40000.00',
+  +   fresh_short: '40000.00',
+  +   history_full: '40000.00',
+  +   history_short: '40000.00',
+  +   quote_full: '40000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null,
+  -   quote_full: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:65:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '40000.00', history_short: '40000.00', fresh_full: '40000.00', history_full: '40000.00', quote_full: '40000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null, quote_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:74:3
+✖ whole ordinary compound has no precise currency amount: 三元组 (0.579ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '3.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:74:94)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '3.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:75:3
+✖ a cropped unit in an ordinary compound remains unavailable in source/history: 三元组 (0.797083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '3.00',
+  +   fresh_short: '3.00',
+  +   history_full: '3.00',
+  +   history_short: '3.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:76:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '3.00', history_short: '3.00', fresh_full: '3.00', history_full: '3.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:74:3
+✖ whole ordinary compound has no precise currency amount: 五圆桌 (0.121417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '5.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:74:94)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '5.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:75:3
+✖ a cropped unit in an ordinary compound remains unavailable in source/history: 五圆桌 (0.842666ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '5.00',
+  +   fresh_short: '5.00',
+  +   history_full: '5.00',
+  +   history_short: '5.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:76:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '5.00', history_short: '5.00', fresh_full: '5.00', history_full: '5.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:74:3
+✖ whole ordinary compound has no precise currency amount: 十元宝 (0.0855ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '10.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:74:94)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '10.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:75:3
+✖ a cropped unit in an ordinary compound remains unavailable in source/history: 十元宝 (0.668709ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '10.00',
+  +   fresh_short: '10.00',
+  +   history_full: '10.00',
+  +   history_short: '10.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:76:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '10.00', history_short: '10.00', fresh_full: '10.00', history_full: '10.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:74:3
+✖ whole ordinary compound has no precise currency amount: 三圆柱 (0.0865ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  '3.00' !== null
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:74:94)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '3.00',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:75:3
+✖ a cropped unit in an ordinary compound remains unavailable in source/history: 三圆柱 (1.124459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '3.00',
+  +   fresh_short: '3.00',
+  +   history_full: '3.00',
+  +   history_short: '3.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:76:11)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '3.00', history_short: '3.00', fresh_full: '3.00', history_full: '3.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:79:3
+✖ ordinary compound continuation across source blocks cannot become a currency: ["😀王甲记录三元","组。"] (0.900833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '3.00',
+  +   fresh_short: '3.00',
+  +   history_full: '3.00',
+  +   history_short: '3.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:80:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '3.00', history_short: '3.00', fresh_full: '3.00', history_full: '3.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:79:3
+✖ ordinary compound continuation across source blocks cannot become a currency: ["😀王甲记录五圆","桌。"] (1.150834ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '5.00',
+  +   fresh_short: '5.00',
+  +   history_full: '5.00',
+  +   history_short: '5.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:80:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '5.00', history_short: '5.00', fresh_full: '5.00', history_full: '5.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:88:3
+✖ definite amount-free wage label rejects the candidate but preserves raw: 拖欠工资 (2.027875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   accepted: 1,
+  +   classification: 'undetermined',
+  +   rejected: 0
+  -   accepted: 0,
+  -   classification: 'not_monetary',
+  -   rejected: 1
+    }
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { classification: 'undetermined', accepted: 1, rejected: 0 },
+    expected: { classification: 'not_monetary', accepted: 0, rejected: 1 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:88:3
+✖ definite amount-free wage label rejects the candidate but preserves raw: 欠付工资 (0.193041ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   accepted: 1,
+  +   classification: 'undetermined',
+  +   rejected: 0
+  -   accepted: 0,
+  -   classification: 'not_monetary',
+  -   rejected: 1
+    }
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { classification: 'undetermined', accepted: 1, rejected: 0 },
+    expected: { classification: 'not_monetary', accepted: 0, rejected: 1 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:88:3
+✖ definite amount-free wage label rejects the candidate but preserves raw: 未付工资 (0.184666ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   accepted: 1,
+  +   classification: 'undetermined',
+  +   rejected: 0
+  -   accepted: 0,
+  -   classification: 'not_monetary',
+  -   rejected: 1
+    }
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { classification: 'undetermined', accepted: 1, rejected: 0 },
+    expected: { classification: 'not_monetary', accepted: 0, rejected: 1 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:88:3
+✖ definite amount-free wage label rejects the candidate but preserves raw: 本期应付工资 (0.156542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   accepted: 1,
+  +   classification: 'undetermined',
+  +   rejected: 0
+  -   accepted: 0,
+  -   classification: 'not_monetary',
+  -   rejected: 1
+    }
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:91:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { classification: 'undetermined', accepted: 1, rejected: 0 },
+    expected: { classification: 'not_monetary', accepted: 0, rejected: 1 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:101:3
+✖ numeral-ending subject cannot hide a monthly rate behind a false total: 王一 (0.734ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '40000.00',
+  +   fresh_short: '40000.00',
+  +   history_full: '40000.00',
+  +   history_short: '40000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:103:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '40000.00', history_short: '40000.00', fresh_full: '40000.00', history_full: '40000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:101:3
+✖ numeral-ending subject cannot hide a monthly rate behind a false total: 李三 (0.833875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '40000.00',
+  +   fresh_short: '40000.00',
+  +   history_full: '40000.00',
+  +   history_short: '40000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:103:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '40000.00', history_short: '40000.00', fresh_full: '40000.00', history_full: '40000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:101:3
+✖ numeral-ending subject cannot hide a monthly rate behind a false total: 赵十 (0.853292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   fresh_full: '40000.00',
+  +   fresh_short: '40000.00',
+  +   history_full: '40000.00',
+  +   history_short: '40000.00'
+  -   fresh_full: null,
+  -   fresh_short: null,
+  -   history_full: null,
+  -   history_short: null
+    }
+  
+      at allAmounts (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:55:46)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:103:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { fresh_short: '40000.00', history_short: '40000.00', fresh_full: '40000.00', history_full: '40000.00' },
+    expected: { fresh_short: null, history_short: null, fresh_full: null, history_full: null },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:130:3
+✖ traditional RMB wrappers at one unique event deduplicate in either order, with raw FP preserved: false (0.482917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:133:54)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:130:3
+✖ traditional RMB wrappers at one unique event deduplicate in either order, with raw FP preserved: true (0.384459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:133:54)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/material-facts-v7-round17-money-independent.test.mjs:136:1
+✖ the same traditional RMB amount in two distinct events remains two accepted facts (2.884166ms)
+  AssertionError [ERR_ASSERTION]: raw_basic
+  + actual - expected
+  
+    [
+  +   1,
+  +   1,
+  +   1
+  -   2,
+  -   0,
+  -   0
+    ]
+  
+      at score (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:125:52)
+      at TestContext.<anonymous> (file:///Users/xuzihan/Documents/Projects/%E5%9B%BD%E5%88%9B/anxin-facts-v7-review/scripts/material-facts-v7-round17-money-independent.test.mjs:141:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 1, 1, 1 ],
+    expected: [ 2, 0, 0 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

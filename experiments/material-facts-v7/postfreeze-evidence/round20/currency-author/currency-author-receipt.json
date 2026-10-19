@@ -1,0 +1,74 @@
+{
+  "schema": "round20-currency-author-evidence/1",
+  "scope": "synthetic currency/name and ordinary-word source boundaries; not a model or business acceptance",
+  "baseline_commit": "37e304de5a1beae2a3f82e91d40dfc1983ac3324",
+  "baseline_currency_sha256": "6015980876561d92d7e6198b0d58cc2355aa7916c72b2066a25b84db4d0e4bf9",
+  "files": {
+    "lib/material-fact-currency-review.ts": "98fc8cde7094e3b0e7250e79f2f29e28820c9e6d8b706c63dd66618a3328d517",
+    "scripts/material-fact-currency-names-ordinary-words.test.mjs": "660fe34e82926c536284bda7b0386d08c6e3469a20659a97df56e1f282e5e39c"
+  },
+  "evidence": {
+    "currency-names-ordinary.before-red.log": "b9945f31e606c49d75bd45cdb13d669474fac8a68f280a343bb14f74eea6adcd",
+    "currency-author.initial.snapshot": "da0131fd37ea4ff7b8555cde88c582d8db7b77ddf874b820d5d5338a6fce6227",
+    "currency-names-ordinary.fixed-before-red.log": "b0d140de783317132fe3786329ea8a8ae8c866cf2428113d5e01175e99452c0a",
+    "currency-names-ordinary.after-green.log": "0bd2f7962c93666d2d757268f87ea2f7b06b5cbcad7cb19ad5f3e8d7a5ada924",
+    "currency-names-ordinary.bare-crop-intermediate.log": "48d8063dcb9796e87916418b6ecf3deb67cef4589dee86caf5386f9f268e338c",
+    "currency-names-ordinary.final-before-red.log": "1c346a3498de2528b1cb770db01462410910fca478ff8db30de3b7b6ccbf888e",
+    "currency-names-ordinary.final-after-green.log": "8c29a2d6c5126e07815db1d61af52b33e9fe902e583449d8c8122a54902acd98",
+    "currency-prior-regression.log": "5b481d936d6bb26ff9688d56507b42ca72f8bb903682b1476729d3cb0799b38a",
+    "currency-final-lint.log": "272e4c2b0e16e307699713ad6b529510bfa6a765ef48eba689f6f501a403e27f",
+    "currency-37e-to-final.patch": "20a704fb8236f93ea33f55e1ac422537aa44c1d5d19199792eb3778a5f503b4a"
+  },
+  "actual_checks": {
+    "final_fixed_baseline": {
+      "tests": 107,
+      "pass": 45,
+      "fail": 62,
+      "exit": 1
+    },
+    "final_integration": {
+      "tests": 107,
+      "pass": 107,
+      "fail": 0,
+      "exit": 0
+    },
+    "earlier_bare_crop_reproduction": {
+      "tests": 107,
+      "pass": 103,
+      "fail": 4,
+      "exit": 1
+    },
+    "prior_currency_suites": {
+      "tests": 360,
+      "pass": 360,
+      "fail": 0,
+      "exit": 0
+    },
+    "scoped_lint_exit": 0
+  },
+  "green_dependency_hashes": {
+    "material-money-v4.ts": "3316417d402d64c8f792ba0ad55080c05d232e02bbaacd3b484fa528efe93517",
+    "material-fact-source-review.ts": "b4aa1f248a6a12b3565002f88ca3631a440c94d2bc210e476acf73a9b5a4c874",
+    "material-fact-arithmetic-review.ts": "0224d2b758428591dfa19a87e851541393c25f49123a5f1b1631b191791f5521",
+    "material-fact-runtime-ingest.ts": "93b6b213871eb3fd8d98fd3f3eb1bd735190746438b96bbf69e9c745971296ea"
+  },
+  "initial_fixture_correction": {
+    "initial_tests": 86,
+    "pass": 30,
+    "fail": 56,
+    "overstrong_expectations": 2,
+    "description": "王美元甲 is not covered by the existing finite currency bridge. Its two initial runtime null expectations were replaced with a direct invariant that a partial subject cannot change the pre-existing guard result. The initial log and test bytes remain preserved."
+  },
+  "contract": {
+    "ordinary_whole": "accepted/null (undetermined), not an automatic not_monetary rejection",
+    "subject_mask": "finite common single-character surname plus a complete currency marker; exact unique original same-clause occurrence before target; complete name boundaries; plain currency/preposition/complex supplied subject never exempted",
+    "identity_validation": false,
+    "raw_source_cp_unchanged": true,
+    "historical_read_only_downgrade": true
+  },
+  "limitations": [
+    "Green test dependencies include caller wiring from CODE/source and MONEY/money-v4; these are not edits authored here.",
+    "The finite name shape deliberately leaves unknown or complex subjects under the existing conservative currency guard. It does not authenticate identity or attribution.",
+    "No build, HTTP, model request, historical CLI chain, gold edit, result edit, commit or push was performed for this author check."
+  ]
+}

@@ -1,0 +1,157 @@
+// Fixed synthetic ROUND29 author regressions; no HTTP/model/frozen data access.
+import test, { after } from 'node:test';
+import assert from 'node:assert/strict';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const OWN = fileURLToPath(new URL('../', import.meta.url));
+const BASE = resolve(process.env.MATERIAL_FACT_TEST_ROOT || OWN);
+const PATCH = resolve(process.env.MATERIAL_FACT_PATCH_ROOT || OWN);
+const temporary = await mkdtemp(resolve(tmpdir(), 'anxin-round29-money-'));
+after(() => rm(temporary, { recursive: true, force: true }));
+await cp(resolve(BASE, 'lib'), resolve(temporary, 'lib'), { recursive: true });
+await cp(resolve(BASE, 'experiments/material-facts-v7/assess.mjs'), resolve(temporary, 'experiments/material-facts-v7/assess.mjs'), { recursive: true });
+for (const file of ['material-money-v4.ts']) await cp(resolve(PATCH, 'lib', file), resolve(temporary, 'lib', file));
+for (const [key, file] of [['MATERIAL_FACT_SOURCE_FILE', 'material-fact-source-review.ts'], ['MATERIAL_FACT_EVENT_FILE', 'material-fact-event-review.ts']])
+  if (process.env[key]) await cp(process.env[key], resolve(temporary, 'lib', file));
+const load = file => import(pathToFileURL(resolve(temporary, file)).href);
+const { normalizeMoneyValueV4: parse, normalizeCandidateValueV4: normalize, classifyMonetaryExpression: classify, canonicalMonetaryExpression: canonical } = await load('lib/material-money-v4.ts');
+const { ingestRuntimeCandidates } = await load('lib/material-fact-runtime-ingest.ts');
+const { emptyFactState, ingestCandidates } = await load('lib/material-facts-v3.ts');
+const { reviewFactsAgainstSources } = await load('lib/material-fact-source-review.ts');
+const { assessCase } = await load('experiments/material-facts-v7/assess.mjs');
+const cpLength = value => Array.from(value).length;
+const AT = '2026-10-18T00:00:00.000Z';
+const modes = ['raw_basic', 'raw_relational', 'raw_strict', 'accepted_basic', 'accepted_relational', 'accepted_strict'];
+function fixture(expression, { value = expression, fullQuote = false, nextBlock = null } = {}) {
+  const source = { id: 'round29-author', name: '合成金额边界', sha256: 'a'.repeat(64), analysisRevision: 1, ready: true,
+    blocks: [{ id: 'b1', page: 1, text: '😀王甲工资' + expression + (nextBlock === null ? '。' : ''), bbox: null, confidence: null }] };
+  if (nextBlock !== null) source.blocks.push({ id: 'b2', page: 1, text: nextBlock + '。', bbox: null, confidence: null });
+  const candidate = { kind: 'money', value, quote: fullQuote ? source.blocks[0].text : value, blockId: 'b1', subject: '王甲', scope: 'individual',
+    meaning: 'arrears', completeness: 'not_applicable', period: null, rateUnit: null, assertion: 'narrated' };
+  return { source, candidate, raw: JSON.stringify({ schemaVersion: 3, candidates: [candidate] }) };
+}
+function pipeline(f, amount) {
+  const original = structuredClone(f);
+  const check = fact => {
+    assert(fact, 'money observation retained'); assert.equal(fact.amount, amount); assert.deepEqual(fact.representation, f.candidate);
+    assert.equal(fact.value, f.candidate.value); assert.equal(fact.quote, f.candidate.quote);
+    const text = f.source.blocks[0].text, start = cpLength(text.slice(0, text.indexOf(f.candidate.quote)));
+    assert.deepEqual([fact.start, fact.end], [start, start + cpLength(f.candidate.quote)]);
+    assert.equal(Array.from(text).slice(fact.start, fact.end).join(''), f.candidate.quote);
+    assert.equal(fact.normalization.rawValue, f.candidate.value);
+  };
+  const fresh = ingestRuntimeCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'round29-author', AT);
+  assert.equal(fresh.materials[0].raw, f.raw); check(fresh.materials[0].candidates[0]);
+  assert.deepEqual(fresh.confirmations, { due: null, paid: null }); assert.equal(fresh.calculation, null);
+  const history = ingestCandidates(emptyFactState(1), f.source, { raw: f.raw }, 'synthetic', 'round29-author', AT);
+  const fact = history.materials[0].candidates[0]; assert(fact);
+  fact.amount = amount ?? '4000.00'; fact.normalization = { rawValue: fact.value, amount: fact.amount, status: 'exact', matchedText: fact.value,
+    span: { start: 0, end: cpLength(fact.value) }, reason: 'Synthetic historical exact.' };
+  const stored = structuredClone(history), reviewed = reviewFactsAgainstSources(history, [f.source]);
+  check(reviewed.materials[0].candidates[0]); assert.deepEqual(history, stored); assert.deepEqual(reviewed.history, history.history); assert.equal(reviewed.materials[0].raw, f.raw);
+  fact.amount = null; fact.normalization = { rawValue: fact.value, amount: null, status: 'unsupported', matchedText: null, span: null, reason: 'Synthetic historical unsupported.' };
+  const unavailable = structuredClone(history); assert.equal(reviewFactsAgainstSources(history, [f.source]).materials[0].candidates[0].amount, null);
+  assert.deepEqual(history, unavailable); assert.deepEqual(f, original);
+}
+
+const prefixes = ['RMB 4000', 'CNY4000', '人民幣4000'];
+for (const value of prefixes) test('minimum prefix: ' + value, () => {
+  const got = parse('😀' + value); assert.equal(got.status, 'exact'); assert.equal(got.amount, '4000.00');
+  assert.equal(got.matchedText, value); assert.deepEqual(got.span, { start: 1, end: 1 + cpLength(value) });
+});
+const unknownMinimum = ['不詳', '無法確定', '待確認', '未載明', '暫定'];
+for (const tail of unknownMinimum) test('minimum traditional unknown: ' + tail, () => {
+  assert.equal(parse('4000元' + tail).amount, null);
+  assert.equal(normalize({ ...fixture('4000元' + tail, { value: '4000元' }).candidate, quote: '王甲工资4000元' + tail }).amount, null);
+});
+for (const day of ['15日', '十五日', '第十五号']) test('minimum calendar payment: ' + day, () => {
+  const f = fixture('4000元每月' + day + '支付', { value: '4000元', fullQuote: true });
+  assert.equal(normalize(f.candidate).amount, '4000.00');
+});
+test('minimum calendar source: 每月15日支付', () => pipeline(fixture('4000元每月15日支付', { value: '4000元' }), '4000.00'));
+
+const prefixAmounts = [['RMB4000','4000.00'],['CNY 4,000','4000.00'],['人民幣四千','4000.00'],['人民币4000','4000.00'],
+  ['RMB四萬元','40000.00'],['人民幣肆仟','4000.00'],['cny4000.50','4000.50'],['RMB 0','0.00'],['CNY12.05','12.05'],
+  ['RMB5元5角','5.50'],['RMB5角2分','0.52'],['CNY2分','0.02'],['4000RMB','4000.00'],['￥4000元','4000.00']];
+for (const [value, amount] of prefixAmounts) test('complete named RMB token/raw/CP: ' + value, () => {
+  const got = parse('😀' + value); assert.equal(got.amount, amount); assert.equal(got.rawValue, '😀' + value);
+  assert.equal(got.matchedText, value); assert.deepEqual(got.span, { start: 1, end: 1 + cpLength(value) }); assert.equal(canonical(value), 'exact:' + amount);
+});
+for (const [value, amount] of prefixAmounts.filter(([value]) => value !== '￥4000元')) for (const fullQuote of [false, true])
+  test('prefix fresh/history/source/no-auto-upgrade: ' + JSON.stringify({ value, fullQuote }), () => pipeline(fixture(value, { fullQuote }), amount));
+const prefixUnsafe = ['RMB4000美元', '美元RMB4000', 'RMB4000港币', 'RMB4000未知', 'RMB4000不詳', 'RMB4000的2倍', 'RMB4000乘以出勤率',
+  'RMB4000至CNY5000', 'RMB4000至约5000元', 'RMB4000/年', 'RMB4000元5角2分1', 'RMB4000万元亿', 'RMB4000.555',
+  'RMB4000角', 'RMB4000分', 'RMB4000RMB', 'RMB人民幣4000', 'RMB4000CNY', '负RMB4000', '约RMB4000', 'RMB4000以上',
+  'RMB4000元宝', 'RMB4000元组', 'RMB4000×2', 'CNY4000+500', 'RMB4000每周', 'RMB4000按季度计'];
+for (const value of prefixUnsafe) test('new prefix cannot bypass existing finite guards: ' + value, () => assert.equal(parse(value).amount, null));
+for (const [expression, value] of [['RMB40005角','RMB4000'], ['CNY4000.50','CNY4000'], ['RMB4000至CNY5000','RMB4000'],
+  ['人民幣四千五百','人民幣四千'], ['RMB4000万元','RMB4000'], ['RMB4000未知','RMB4000'], ['RMB4000的2倍','RMB4000']])
+  for (const fullQuote of [false,true]) test('new prefix clipped edge source/history: ' + JSON.stringify({ expression,value,fullQuote }), () => pipeline(fixture(expression,{ value,fullQuote }),null));
+
+const family = [['不详','不詳'],['无法确定','無法確定'],['未明确','未明確'],['未载明','未載明'],['未记载','未記載'],['未注明','未註明'],['未约定','未約定'],
+  ['未确定','未確定'],['待确认','待確認'],['待核实','待核實'],['待补充','待補充'],['或许','或許'],['估计','估計'],['不确定','不確定'],['暂计','暫計'],['暂定','暫定']];
+for (const [simple, traditional] of family) test('all current uncertainty traditional aliases: ' + traditional, () => {
+  const original = '4000元' + traditional, got = parse(original), baseline = parse('4000元' + simple);
+  assert.equal(got.amount,null); assert.equal(got.status,baseline.status); assert.equal(got.rawValue, original); assert.notEqual(classify(original).kind,'not_monetary');
+  assert.equal(normalize({ ...fixture(original,{ value:'4000元' }).candidate, quote:'王甲工资'+original }).amount,null);
+});
+for (const tail of ['未知','不明','待定','未提供','未披露','未列明','未注明','可能','大概','待核','??','xx','**'])
+  test('original uncertainty family still unavailable: ' + tail, () => { assert.equal(parse('4000元'+tail).amount,null); assert.notEqual(classify('工资'+tail).kind,'not_monetary'); });
+for (const tail of unknownMinimum) for (const layout of ['same','newline','block']) for (const fullQuote of [false,true])
+  test('traditional marker raw/CP/fresh/forced-exact history: ' + JSON.stringify({ tail,layout,fullQuote }), () => {
+    const expression = '4000元' + (layout === 'same' ? tail : layout === 'newline' ? '\n'+tail : '');
+    pipeline(fixture(expression,{ value:'4000元', fullQuote, ...(layout === 'block' ? { nextBlock:tail } : {}) }), null);
+  });
+for (const tail of ['不\u200d詳','無法確定','（金額待確認）','（數額未知）','暫\n定','未載明'])
+  test('uncertainty aliases are detection-only through Cf/layout/label: ' + JSON.stringify(tail), () => {
+    assert.equal(parse('4000元'+tail).amount,null); pipeline(fixture('4000元'+tail,{ value:'4000元',fullQuote:true }),null);
+  });
+for (const nextBlock of ['。王乙工资不詳','。另一笔金额待確認','。王乙工资暫定'])
+  test('separate sentence uncertainty cannot poison exact prior owner: '+nextBlock,()=>pipeline(fixture('4000元',{value:'4000元',nextBlock}),'4000.00'));
+for (const tail of ['整不詳','正待確認','整人民币未載明','正RMB暫定'])
+  test('terminator/currency cannot hide traditional uncertainty: '+tail,()=>pipeline(fixture('4000元'+tail,{value:'4000元',fullQuote:true}),null));
+
+const paymentSchedules = ['每月1日支付','每月15日支付','每月十五日支付','每月第十五号支付','每月三十一日发放','每月31號給付',
+  '每月15日發放','每月15日付清','每月15日发薪','每 月 15 日 支付','每月１５日支付','每月15日\u200d支付'];
+for (const schedule of paymentSchedules) for (const fullQuote of [false,true])
+  test('finite payment calendar is not a rate: '+JSON.stringify({schedule,fullQuote}),()=>pipeline(fixture('4000元'+schedule,{value:'4000元',fullQuote}),'4000.00'));
+for (const schedule of ['每月15日支付','每月十五日支付','按月15日支付']) test('whole payment value keeps amount: '+schedule,()=>assert.equal(parse('4000元'+schedule).amount,'4000.00'));
+for (const suffix of ['每月','每月计','每月支付','每月4000元','/月15日支付','每月32日支付','每月0日支付']) test('genuine denominator or malformed date is not a total: '+suffix,()=> {
+  const f=fixture('4000元'+suffix,{value:'4000元',fullQuote:true}); assert.equal(normalize(f.candidate).amount,null);
+});
+for (const [suffix,unit] of [['每月','month'],['/月','month'],['每小时','hour'],['/日','day'],['每件','piece']])
+  test('supported rate role still derives exact numerator: '+suffix,()=> {
+    const f=fixture('4000元'+suffix,{value:'4000元',fullQuote:true}); f.candidate.meaning='rate'; f.candidate.rateUnit=unit; f.raw=JSON.stringify({schemaVersion:3,candidates:[f.candidate]}); pipeline(f,'4000.00');
+  });
+for (const literal of ['RMB4000','CNY4000','人民幣4000']) test('same event currency spelling receives all six TP: '+literal,()=> {
+  const f=fixture(literal+'（4000元）',{value:literal}),text=f.source.blocks[0].text;
+  const expected={...f.candidate,value:'4000元',quote:'4000元'};
+  const anchor=value=>({blockId:'b1',start:cpLength(text.slice(0,text.indexOf(value))),end:cpLength(text.slice(0,text.indexOf(value)))+cpLength(value)});
+  const label={id:'same',expected:[expected],expected_event_ids:['e1'],events:[{id:'e1',anchors:[anchor(literal),anchor(expected.value)]}]};
+  const row=assessCase({id:'same',source:f.source},label,{finish_reason:'stop',raw_output:f.raw}); assert(row.protocol);
+  for(const mode of modes)assert.deepEqual([row[mode].tp,row[mode].fp,row[mode].fn],[1,0,0]);
+});
+test('equal RMB value in another registered event cannot borrow six-layer TP',()=> {
+  const f=fixture('RMB4000。王乙工资4000元',{value:'RMB4000'}),text=f.source.blocks[0].text;
+  const anchor=value=>({blockId:'b1',start:cpLength(text.slice(0,text.indexOf(value))),end:cpLength(text.slice(0,text.indexOf(value)))+cpLength(value)});
+  const label={id:'separate',expected:[{...f.candidate,subject:'王乙',value:'4000元',quote:'4000元'}],expected_event_ids:['e2'],events:[{id:'e1',anchors:[anchor('RMB4000')]},{id:'e2',anchors:[anchor('4000元')]}]};
+  const row=assessCase({id:'separate',source:f.source},label,{finish_reason:'stop',raw_output:f.raw});
+  for(const mode of modes)assert.deepEqual([row[mode].tp,row[mode].fp,row[mode].fn],[0,1,1]);
+});
+
+for (const tail of ['每月15日支付待確認','每月15日支付?','每月15日支付\n不詳','每月15日支付暫定','每月15日支付USD','每月15日支付的2倍'])
+  test('calendar exception cannot hide uncertain/foreign/formula continuation: '+JSON.stringify(tail),()=> {
+    const f=fixture('4000元'+tail,{value:'4000元',fullQuote:true}); assert.equal(normalize(f.candidate).amount,null);
+  });
+for (const tail of unknownMinimum) for (const fullQuote of [false,true])
+  test('complete unknown value remains literal and unavailable in fresh/history: '+JSON.stringify({tail,fullQuote}),()=>pipeline(fixture('4000元'+tail,{fullQuote}),null));
+for (const tail of unknownMinimum) test('cropped exact amount cannot score as full uncertain gold in six layers: '+tail,()=> {
+  const f=fixture('4000元'+tail,{value:'4000元'}),text=f.source.blocks[0].text,original='4000元'+tail;
+  const anchor=value=>({blockId:'b1',start:cpLength(text.slice(0,text.indexOf(value))),end:cpLength(text.slice(0,text.indexOf(value)))+cpLength(value)});
+  const label={id:'uncertain',expected:[{...f.candidate,value:original,quote:original}],expected_event_ids:['e1'],events:[{id:'e1',anchors:[anchor(original)]}]};
+  const row=assessCase({id:'uncertain',source:f.source},label,{finish_reason:'stop',raw_output:f.raw}); assert(row.protocol);
+  for(const mode of modes)assert.deepEqual([row[mode].tp,row[mode].fp,row[mode].fn],[0,1,1]);
+});
