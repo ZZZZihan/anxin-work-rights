@@ -23,14 +23,19 @@
     "data:runtime:check": "python3 -B scripts/build-public-index.py --check",
     "data:runtime:build": "python3 -B scripts/build-public-index.py",
     "test:materials": "node --test scripts/fact-jobs.test.mjs scripts/material-runner.test.mjs scripts/material-service.test.mjs scripts/material-ocr-linux.test.mjs",
-    "test:fact-runtime": "python3 -B scripts/fact_memory_runtime_test.py && python3 -B scripts/fact_api_transport_test.py && node --test scripts/fact-runtime-runner.test.mjs scripts/material-facts-v4-assessment.test.mjs scripts/material-facts-panel.test.mjs"
+    "test:fact-runtime": "python3 -B scripts/fact_memory_runtime_test.py && python3 -B scripts/fact_api_transport_test.py && node --test scripts/fact-runtime-runner.test.mjs scripts/material-facts-v4-assessment.test.mjs scripts/material-facts-panel.test.mjs",
+    "test:harness:http": "node scripts/harness-persistence-http.mjs"
   },
   "dependencies": {
+    "@langchain/core": "1.2.18",
+    "@langchain/langgraph": "1.5.1",
+    "@langchain/langgraph-checkpoint": "1.2.0",
     "drizzle-orm": "0.45.2",
     "lucide-react": "^0.468.0",
     "next": "16.3.5",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.54.8",

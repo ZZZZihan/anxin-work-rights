@@ -11,6 +11,7 @@ import type { RequestUser } from './auth';
 import { materialSchemaStatements } from './material-schema';
 import { materialFactSchemaStatements } from './material-fact-schema';
 import { materialFactCleanupMigration, materialFactCleanupSchemaStatements } from './material-fact-cleanup-schema';
+import { agentHarnessCheckpointMigration, agentHarnessCheckpointSchemaStatements } from './agent-harness/checkpoint-schema';
 
 let schemaPromise: Promise<void> | null = null;
 
@@ -85,6 +86,7 @@ const schemaStatements = [
   'CREATE UNIQUE INDEX IF NOT EXISTS documents_owner_case_type_idx ON document_drafts (user_id, case_id, type)',
   ...materialFactSchemaStatements,
   ...materialFactCleanupSchemaStatements,
+  ...agentHarnessCheckpointSchemaStatements,
 ];
 
 export function getDatabase(): D1Database {
@@ -146,6 +148,7 @@ async function upgradeLocalSchema(): Promise<void> {
       '0003_material_analyses.sql',
       '0004_material_facts.sql',
       materialFactCleanupMigration,
+      agentHarnessCheckpointMigration,
     ].map((name) => db.prepare('INSERT OR IGNORE INTO d1_migrations (name) VALUES (?)').bind(name)),
   ]);
 }
